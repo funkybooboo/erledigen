@@ -67,4 +67,17 @@ export class EntityStore<T extends { id: string }, CreateInput, UpdateInput> {
             return false;
         }
     }
+
+    /**
+     * Replace `item` in place if its id is already present, otherwise append.
+     * Use this for `*:created`/`*:restored` WebSocket handlers so an event
+     * echoed back to the originating client (self-filter race, missing
+     * X-Client-ID, reconnect id churn) can't duplicate the id and trip
+     * Svelte's each_key_duplicate, which aborts the whole each-block render.
+     */
+    protected upsert(item: T): void {
+        this.items = this.items.some(i => i.id === item.id)
+            ? this.items.map(i => (i.id === item.id ? item : i))
+            : [...this.items, item];
+    }
 }

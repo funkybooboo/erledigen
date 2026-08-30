@@ -37,7 +37,11 @@ export class BunHttpServer implements HttpServer {
             corsHeaders: config.corsHeaders || {
                 'Access-Control-Allow-Origin': config.corsOrigin || '*',
                 'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type',
+                // X-Client-ID lets the server tag broadcast events with their
+                // origin so it can skip echoing them back to the sender.
+                // Without it in the allow-list, the browser blocks the
+                // preflighted POST and the client id never reaches the server.
+                'Access-Control-Allow-Headers': 'Content-Type, X-Client-ID',
             },
         };
     }

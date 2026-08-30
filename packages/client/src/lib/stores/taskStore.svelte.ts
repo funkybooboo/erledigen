@@ -3,6 +3,17 @@ import { container } from '$lib/container';
 import { type TaskQueryParams, TaskService } from '$lib/services/taskService';
 import { websocketService } from '$lib/services/websocketService';
 
+/**
+ * Replace `item` in place if its id is already present, otherwise append.
+ * Used for `task:created`/`task:restored` so an echoed event from this
+ * client's own mutation can't duplicate the id and break the keyed each block.
+ */
+function upsertTask(tasks: Task[], item: Task): Task[] {
+    return tasks.some(t => t.id === item.id)
+        ? tasks.map(t => (t.id === item.id ? item : t))
+        : [...tasks, item];
+}
+
 const taskService = new TaskService(container.httpClient);
 
 class TaskStore {
@@ -29,7 +40,13 @@ class TaskStore {
             switch (message.type) {
                 case 'task:created':
                     if (message.payload.task) {
-                        this.tasks = [...this.tasks, message.payload.task];
+                        // Upsert (not blind append): the originating client already
+                        // added this task optimistically from the HTTP response, and
+                        // the server is supposed to skip echoing back to it. But if
+                        // the self-filter ever misses (race on reconnect, missing
+                        // X-Client-ID, etc.) a blind append would duplicate the id
+                        // and trip Svelte's each_key_duplicate, aborting the render.
+                        this.tasks = upsertTask(this.tasks, message.payload.task);
                     }
                     break;
                 case 'task:updated':
@@ -44,7 +61,7 @@ class TaskStore {
                     break;
                 case 'task:restored':
                     if (message.payload.task) {
-                        this.tasks = [...this.tasks, message.payload.task];
+                        this.tasks = upsertTask(this.tasks, message.payload.task);
                     }
                     break;
             }

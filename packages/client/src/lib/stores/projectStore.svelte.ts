@@ -27,7 +27,7 @@ class ProjectStore extends EntityStore<Project, CreateProjectInput, UpdateProjec
             switch (message.type) {
                 case 'project:created':
                     if (message.payload.project) {
-                        this.items = [...this.items, message.payload.project];
+                        this.upsert(message.payload.project);
                     }
                     break;
                 case 'project:updated':

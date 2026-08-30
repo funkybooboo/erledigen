@@ -205,7 +205,11 @@ export class Container {
     get wsManager(): WebSocketManager {
         if (!this._wsManager) {
             this._wsServer = new BunWebSocketServer(this.connectionManager);
-            this._wsManager = new WebSocketManager(this._wsServer, this.eventBus);
+            this._wsManager = new WebSocketManager(
+                this._wsServer,
+                this.eventBus,
+                this.connectionManager,
+            );
         }
         return this._wsManager;
     }
@@ -213,7 +217,11 @@ export class Container {
     get wsServer(): WebSocketServer {
         if (!this._wsServer) {
             this._wsServer = new BunWebSocketServer(this.connectionManager);
-            this._wsManager = new WebSocketManager(this._wsServer, this.eventBus);
+            this._wsManager = new WebSocketManager(
+                this._wsServer,
+                this.eventBus,
+                this.connectionManager,
+            );
         }
         return this._wsServer;
     }
