@@ -6,7 +6,7 @@
 
 ## Context
 
-Alle's current `ConsoleLogger` outputs human-readable text lines like:
+Erledigen's current `ConsoleLogger` outputs human-readable text lines like:
 
 ```
 [2026-05-09T12:00:00.000Z] [INFO] Task created {"taskId":"abc"}

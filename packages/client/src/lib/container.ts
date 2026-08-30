@@ -15,7 +15,7 @@ import {
     type Logger,
     LogLevel,
     NativeDateProvider,
-} from '@alle/shared';
+} from '@erledigen/shared';
 import { ViteConfigProvider } from './adapters/config/ViteConfigProvider';
 
 export class Container {

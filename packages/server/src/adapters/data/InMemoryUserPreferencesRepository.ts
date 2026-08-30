@@ -3,8 +3,8 @@ import type {
     DateProvider,
     UpdateUserPreferencesInput,
     UserPreferences,
-} from '@alle/shared';
-import { DEFAULT_TAG_KIND_MAP, DEFAULT_TAG_KINDS } from '@alle/shared';
+} from '@erledigen/shared';
+import { DEFAULT_TAG_KIND_MAP, DEFAULT_TAG_KINDS } from '@erledigen/shared';
 import type { UserPreferencesRepository } from './UserPreferencesRepository';
 
 const DEFAULT_ACTIVE_FILTERS: ActiveFilters = {

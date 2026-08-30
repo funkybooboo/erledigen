@@ -1,4 +1,4 @@
-import type { Task, UpdateTaskInput } from '@alle/shared';
+import type { Task, UpdateTaskInput } from '@erledigen/shared';
 import type { TaskRepository } from '../adapters/data/TaskRepository';
 
 export class TaskService {

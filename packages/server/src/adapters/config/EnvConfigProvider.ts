@@ -7,7 +7,7 @@
  * any business logic.
  */
 
-import { ConfigError, type ConfigProvider } from '@alle/shared';
+import { ConfigError, type ConfigProvider } from '@erledigen/shared';
 
 /**
  * Configuration provider that reads from process.env

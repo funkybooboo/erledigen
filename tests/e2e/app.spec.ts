@@ -9,9 +9,9 @@ test.afterEach(async ({ request }) => {
 });
 
 test.describe('app shell & navigation', () => {
-    test('loads with the Alle title and the app-shell landmark', async ({ page }) => {
+    test('loads with the Erledigen title and the app-shell landmark', async ({ page }) => {
         await hydrated(page);
-        await expect(page).toHaveTitle(/Alle/);
+        await expect(page).toHaveTitle(/Erledigen/);
         await expect(page.locator('.app-shell')).toBeVisible();
         await expect(page.locator('[role="application"]')).toBeVisible();
     });

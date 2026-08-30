@@ -1,4 +1,4 @@
-import type { Project } from '@alle/shared';
+import type { Project } from '@erledigen/shared';
 import type { ProjectRepository } from '../adapters/data/ProjectRepository';
 
 export class ProjectService {

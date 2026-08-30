@@ -1,7 +1,7 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
     import { taskStore, uiStore } from '$lib/stores';
-    import type { Task } from '@alle/shared';
+    import type { Task } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
     import { LuCheck, LuCircle } from 'svelte-icons-pack/lu';
 

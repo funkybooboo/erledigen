@@ -5,7 +5,7 @@ import {
     WS_RECONNECT_MAX_MS,
     type WsClientMessage,
     type WsServerMessage,
-} from '@alle/shared';
+} from '@erledigen/shared';
 import { container } from '$lib/container';
 
 type MessageHandler = (message: WsServerMessage) => void;

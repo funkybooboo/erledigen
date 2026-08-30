@@ -1,5 +1,5 @@
-import type { HttpClient } from '@alle/shared';
-import { API_ROUTES, type ApiResponse } from '@alle/shared';
+import type { HttpClient } from '@erledigen/shared';
+import { API_ROUTES, type ApiResponse } from '@erledigen/shared';
 
 export interface TagInfo {
     name: string;

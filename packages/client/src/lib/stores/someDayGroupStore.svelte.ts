@@ -1,4 +1,8 @@
-import type { CreateSomeDayGroupInput, SomeDayGroup, UpdateSomeDayGroupInput } from '@alle/shared';
+import type {
+    CreateSomeDayGroupInput,
+    SomeDayGroup,
+    UpdateSomeDayGroupInput,
+} from '@erledigen/shared';
 import { container } from '$lib/container';
 import { SomeDayGroupService } from '$lib/services/someDayGroupService';
 

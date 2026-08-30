@@ -3,7 +3,7 @@ import type {
     DateProvider,
     SomeDayGroup,
     UpdateSomeDayGroupInput,
-} from '@alle/shared';
+} from '@erledigen/shared';
 import type { SomeDayGroupRepository } from './SomeDayGroupRepository';
 
 export class InMemorySomeDayGroupRepository implements SomeDayGroupRepository {

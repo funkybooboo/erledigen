@@ -2,13 +2,13 @@
  * RecurringTask API routes
  */
 
-import type { Logger } from '@alle/shared';
+import type { Logger } from '@erledigen/shared';
 import {
     API_ROUTES,
     BadRequestError,
     type CreateRecurringTaskInput,
     type UpdateRecurringTaskInput,
-} from '@alle/shared';
+} from '@erledigen/shared';
 import type { RecurringTaskRepository } from '../adapters/data/RecurringTaskRepository';
 import type { HttpServer } from '../adapters/http/HttpServer';
 import {

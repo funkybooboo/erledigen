@@ -4,8 +4,8 @@
  * Tags are derived from task data - no separate Tag entity.
  */
 
-import type { Logger } from '@alle/shared';
-import { API_ROUTES } from '@alle/shared';
+import type { Logger } from '@erledigen/shared';
+import { API_ROUTES } from '@erledigen/shared';
 import type { HttpServer } from '../adapters/http/HttpServer';
 import { MergeTagsSchema, RenameTagSchema } from '../openapi/schemas/tag';
 import { formatTagInfoAsText, formatTagsAsText } from '../presentation/formatters';

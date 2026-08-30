@@ -1,6 +1,6 @@
 # CI/CD Pipeline
 
-This document defines the continuous integration and continuous deployment pipeline for the Alle project, including quality gates, automated checks, and deployment workflows.
+This document defines the continuous integration and continuous deployment pipeline for the Erledigen project, including quality gates, automated checks, and deployment workflows.
 
 ## Philosophy
 
@@ -420,7 +420,7 @@ jobs:
       - name: Run smoke tests
         run: |
           # Verify deployment is healthy
-          curl -f https://staging.alle.app/health
+          curl -f https://staging.erledigen.app/health
 
       - name: Notify team
         run: echo "Staging deployed successfully"

@@ -4,8 +4,8 @@ import type {
     RecurringTask,
     RecurringTaskStats,
     UpdateRecurringTaskInput,
-} from '@alle/shared';
-import { RECURRING_TASK_DEFAULTS } from '@alle/shared';
+} from '@erledigen/shared';
+import { RECURRING_TASK_DEFAULTS } from '@erledigen/shared';
 import type { RecurringTaskRepository } from './RecurringTaskRepository';
 
 export class InMemoryRecurringTaskRepository implements RecurringTaskRepository {

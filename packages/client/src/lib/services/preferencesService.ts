@@ -1,10 +1,10 @@
-import type { HttpClient } from '@alle/shared';
+import type { HttpClient } from '@erledigen/shared';
 import {
     API_ROUTES,
     type ApiResponse,
     type UpdateUserPreferencesInput,
     type UserPreferences,
-} from '@alle/shared';
+} from '@erledigen/shared';
 
 export class PreferencesService {
     constructor(private http: HttpClient) {}

@@ -2,13 +2,13 @@
  * Task API routes
  */
 
-import type { Logger } from '@alle/shared';
+import type { Logger } from '@erledigen/shared';
 import {
     API_ROUTES,
     BadRequestError,
     type CreateTaskInput,
     type UpdateTaskInput,
-} from '@alle/shared';
+} from '@erledigen/shared';
 import type { TaskRepository } from '../adapters/data/TaskRepository';
 import type { HttpServer } from '../adapters/http/HttpServer';
 import { CreateTaskSchema, TaskQuerySchema, UpdateTaskSchema } from '../openapi/schemas/task';

@@ -6,7 +6,7 @@
 
 ## Context
 
-Alle currently stores all data in-memory (`Map<string, T>` implementations). Data is lost on every server restart. The v0.7.0 milestone requires persistent storage. We need to choose a database technology and access pattern.
+Erledigen currently stores all data in-memory (`Map<string, T>` implementations). Data is lost on every server restart. The v0.7.0 milestone requires persistent storage. We need to choose a database technology and access pattern.
 
 ### Requirements
 
@@ -47,7 +47,7 @@ Alle currently stores all data in-memory (`Map<string, T>` implementations). Dat
 
 ### Implementation Details
 
-**Database file**: Configurable via `DB_PATH` env var, defaults to `./data/alle.db`.
+**Database file**: Configurable via `DB_PATH` env var, defaults to `./data/erledigen.db`.
 
 **Type mapping**:
 

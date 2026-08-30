@@ -1,8 +1,8 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
     import { taskStore } from '$lib/stores';
-    import type { Task } from '@alle/shared';
-    import { PURGE_RETENTION_DAYS } from '@alle/shared';
+    import type { Task } from '@erledigen/shared';
+    import { PURGE_RETENTION_DAYS } from '@erledigen/shared';
     import { onMount } from 'svelte';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();

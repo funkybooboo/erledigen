@@ -7,7 +7,7 @@ import {
     NotFoundError,
     UnauthorizedError,
     ValidationError,
-} from '@alle/shared';
+} from '@erledigen/shared';
 import { errorToResponse } from './errorHandler';
 
 describe('errorToResponse', () => {

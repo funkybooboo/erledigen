@@ -1,4 +1,4 @@
-import type { ConnectionStatus } from '@alle/shared';
+import type { ConnectionStatus } from '@erledigen/shared';
 import { container } from '$lib/container';
 import { websocketService } from '$lib/services/websocketService';
 import { notificationStore } from './notificationStore.svelte';

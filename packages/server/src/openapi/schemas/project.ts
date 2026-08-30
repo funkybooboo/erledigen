@@ -12,7 +12,8 @@ export const ProjectSchema = registry.register(
             id: z.string(),
             name: z.string(),
             tag: z.string().openapi({
-                description: 'The tag that links tasks to this project (e.g. "project:build-alle")',
+                description:
+                    'The tag that links tasks to this project (e.g. "project:build-erledigen")',
             }),
             description: z.string().nullable(),
             startDate: z.string().nullable().openapi({ description: 'ISO 8601 date (YYYY-MM-DD)' }),

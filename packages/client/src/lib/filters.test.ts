@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import type { ActiveFilters, Task } from '@alle/shared';
+import type { ActiveFilters, Task } from '@erledigen/shared';
 import { applyFilters } from './filters';
 
 const baseTask: Task = {
@@ -54,16 +54,16 @@ describe('applyFilters', () => {
     });
 
     test('filters by project tag', () => {
-        const projectTask = { ...baseTask, tags: ['work', 'p1', 'project:build-alle'] };
+        const projectTask = { ...baseTask, tags: ['work', 'p1', 'project:build-erledigen'] };
         const tasks = [projectTask];
-        const filters: ActiveFilters = { ...noFilters, tags: ['project:build-alle'] };
+        const filters: ActiveFilters = { ...noFilters, tags: ['project:build-erledigen'] };
         const result = applyFilters(tasks, filters);
         expect(result).toHaveLength(1);
     });
 
     test('excludes tasks without the project tag', () => {
         const tasks = [baseTask];
-        const filters: ActiveFilters = { ...noFilters, tags: ['project:build-alle'] };
+        const filters: ActiveFilters = { ...noFilters, tags: ['project:build-erledigen'] };
         const result = applyFilters(tasks, filters);
         expect(result).toHaveLength(0);
     });

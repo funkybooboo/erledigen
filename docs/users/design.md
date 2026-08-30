@@ -1,12 +1,12 @@
 # Product Design
 
-This document describes the full product vision and design of Alle — the layout, data model, key features, and architectural decisions that define what it is and how it works.
+This document describes the full product vision and design of Erledigen — the layout, data model, key features, and architectural decisions that define what it is and how it works.
 
 ---
 
 ## Core Philosophy
 
-Alle is a unified task management system built around one simple idea: **you should only need one place to manage your work and your life**.
+Erledigen is a unified task management system built around one simple idea: **you should only need one place to manage your work and your life**.
 
 The daily list is the execution surface. Someday is the capture net. Projects and habits feed into the daily list automatically. Everything is organized with tags — the same tag system works across tasks, groups, Someday, and filters.
 
@@ -40,7 +40,7 @@ The daily list is the execution surface. Someday is the capture net. Projects an
 │  │  ─────────────────────────────────────  │  ⠿ ○ essay   │
 │  │  ⠿ ○ deploy to prod   #p1              │              │
 ├──┴──────────────────────────────────────────┴──────────────┤
-│  alle   #work ×  #p1 ×    12 tasks • 4 done  ▲ Today  docs↗│
+│  erledigen   #work ×  #p1 ×    12 tasks • 4 done  ▲ Today  docs↗│
 └────────────────────────────────────────────────────────────┘
 ```
 
@@ -48,7 +48,7 @@ Four zones:
 - **Left icon rail** — slim vertical rail; each icon opens a large centered modal
 - **Center day list** — the primary working area; scrollable list of day sections
 - **Right Someday panel** — always visible by default; collapsible and resizable
-- **Bottom bar** — `alle logo | filter chips | task count | ▲ Today | docs ↗`
+- **Bottom bar** — `erledigen logo | filter chips | task count | ▲ Today | docs ↗`
 
 ---
 
@@ -63,7 +63,7 @@ interface Task {
   date: string | null               // null = Someday / unscheduled
   startTime: string | null          // "09:00" — null = all-day
   endTime: string | null            // "10:30" — null = all-day or open-ended
-  tags: string[]                    // #work, #p1, #build-alle, #deadline, etc.
+  tags: string[]                    // #work, #p1, #build-erledigen, #deadline, etc.
   parentId: string | null           // nested sub-tasks
   rolloverEnabled: boolean          // per-task override; default: true
   someDayGroupId: string | null     // which Someday group
@@ -198,7 +198,7 @@ Tags are the primary organizational tool. A task can have any number of tags. Sp
 The right-side Someday panel captures ideas and unscheduled work. Tasks are organized into user-created groups (tag-based). Works identically to the day list but without dates or automation. Global filtering applies.
 
 ### Command Palette (Cmd+K)
-One unified modal for search and commands. `/add buy milk tomorrow #work #p1` creates a task. Plain text searches. The fastest way to do anything in Alle.
+One unified modal for search and commands. `/add buy milk tomorrow #work #p1` creates a task. Plain text searches. The fastest way to do anything in Erledigen.
 
 ### Project Management
 Projects are collections of ordered tasks. When activated, tasks are auto-distributed across days between the project's start and due dates. Project tasks appear in the day list tagged with the project name.
@@ -217,12 +217,12 @@ Tasks with `startTime`/`endTime` can be viewed in a day or week time-grid view (
 ## Monorepo Structure
 
 ```
-alle/
+erledigen/
 ├── packages/
 │   ├── client/   # SvelteKit frontend (Tailwind CSS)
 │   ├── server/   # Bun REST API
 │   ├── shared/   # Types, interfaces, constants, universal adapters
-│   ├── cli/      # alle CLI — command + TUI modes (v2.0.0)
+│   ├── cli/      # erledigen CLI — command + TUI modes (v2.0.0)
 │   └── mcp/      # MCP server for AI automation (v2.1.0)
 ├── docs/
 │   ├── adr/      # Architecture Decision Records (MADR format)
@@ -246,7 +246,7 @@ alle/
 ## Success Metrics
 
 **For users:**
-- Can replace their current task system with Alle
+- Can replace their current task system with Erledigen
 - Daily list is the primary interface (>80% of time spent there)
 - Streak lengths increase over time
 - Late task count decreases over time

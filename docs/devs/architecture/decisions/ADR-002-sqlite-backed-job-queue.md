@@ -6,7 +6,7 @@
 
 ## Context
 
-Alle needs background processing for:
+Erledigen needs background processing for:
 - **Task rollover** (v0.8.0): Move incomplete tasks to the next day at a configured time
 - **Recurring task generation** (v0.8.0): Create task instances from templates
 - **Trash purge** (ongoing): Permanently delete tasks past the retention period

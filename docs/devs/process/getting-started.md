@@ -1,6 +1,6 @@
 # Getting Started
 
-Welcome to Alle! This guide will walk you through setting up your development environment and running the application.
+Welcome to Erledigen! This guide will walk you through setting up your development environment and running the application.
 
 ## Prerequisites
 
@@ -24,8 +24,8 @@ Once mise is installed, it will automatically use the correct Bun version define
 1.  **Clone the repository:**
 
     ```bash
-    git clone https://github.com/your-username/alle.git
-    cd alle
+    git clone https://github.com/your-username/erledigen.git
+    cd erledigen
     ```
 
 2.  **Install dependencies:**
@@ -159,6 +159,6 @@ All tasks are run via `mise run <task>`. Here's the full list:
 
 ## Contributing
 
-- **Bug reports**: [Open an issue](https://github.com/natestott/alle/issues) with as much detail as possible.
-- **Feature requests**: [Open an issue](https://github.com/natestott/alle/issues) to discuss the idea first.
+- **Bug reports**: [Open an issue](https://github.com/funkybooboo/erledigen/issues) with as much detail as possible.
+- **Feature requests**: [Open an issue](https://github.com/funkybooboo/erledigen/issues) to discuss the idea first.
 - **Pull requests**: Fork the repo, create a branch, make your changes, run `bun run validate`, then submit a PR. See [git-workflow.md](./git-workflow.md) for branching conventions and commit standards.

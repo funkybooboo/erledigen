@@ -1,5 +1,5 @@
-import type { CreateTaskInput, DateProvider, Task, UpdateTaskInput } from '@alle/shared';
-import { PURGE_RETENTION_DAYS, TASK_DEFAULTS } from '@alle/shared';
+import type { CreateTaskInput, DateProvider, Task, UpdateTaskInput } from '@erledigen/shared';
+import { PURGE_RETENTION_DAYS, TASK_DEFAULTS } from '@erledigen/shared';
 import type { TaskRepository } from './TaskRepository';
 
 export class InMemoryTaskRepository implements TaskRepository {

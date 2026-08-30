@@ -6,7 +6,7 @@
 
 ## Context
 
-Alle needs metrics for operational visibility: is the server healthy? Are requests slow? Are background jobs failing? Is the database growing? Currently there's a basic `/api/health` endpoint returning `{ status: "ok" }` — no metrics, no duration tracking, no quantitative health signals.
+Erledigen needs metrics for operational visibility: is the server healthy? Are requests slow? Are background jobs failing? Is the database growing? Currently there's a basic `/api/health` endpoint returning `{ status: "ok" }` — no metrics, no duration tracking, no quantitative health signals.
 
 The roadmap calls for SQLite persistence (v0.7.0), background job processing (v0.8.0), and eventually multi-user SaaS (v2.3.0+). All of these need metrics: request latency, job queue depth, database health, and application-level counts.
 
@@ -147,7 +147,7 @@ alle_build_info{version="0.7.0"} 1
   "uptime": 86400,
   "database": {
     "type": "sqlite",
-    "path": "./data/alle.db",
+    "path": "./data/erledigen.db",
     "sizeBytes": 1048576
   },
   "connections": {
@@ -211,14 +211,14 @@ Self-hosted users add this to their `prometheus.yml`:
 
 ```yaml
 scrape_configs:
-  - job_name: 'alle'
+  - job_name: 'erledigen'
     static_configs:
       - targets: ['localhost:4000']
     metrics_path: '/api/metrics'
     scrape_interval: 15s
 ```
 
-The `docker-compose.monitoring.yml` (shipped with Alle) includes this pre-configured.
+The `docker-compose.monitoring.yml` (shipped with Erledigen) includes this pre-configured.
 
 ### OpenTelemetry Later
 
@@ -241,7 +241,7 @@ No interface changes — just a new implementation class.
 - Rich health endpoint gives uptime monitors useful context without requiring Prometheus
 
 ### Negative
-- Pull model requires Prometheus to reach Alle — doesn't work behind strict firewalls (acceptable for self-hosted)
+- Pull model requires Prometheus to reach Erledigen — doesn't work behind strict firewalls (acceptable for self-hosted)
 - In-memory metrics are lost on server restart — counters reset to zero (mitigated by Prometheus `increase()` function which handles resets)
 - No built-in dashboard — requires Grafana or similar for visualization (addressed by shipped dashboard JSON)
 

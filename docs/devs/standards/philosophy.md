@@ -1,6 +1,6 @@
 # Development Philosophy
 
-This document defines the core development principles for Alle. These are **non-negotiable** — they apply to every feature, every release, every commit.
+This document defines the core development principles for Erledigen. These are **non-negotiable** — they apply to every feature, every release, every commit.
 
 ---
 

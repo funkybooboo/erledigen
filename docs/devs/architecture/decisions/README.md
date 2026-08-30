@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-This directory contains Architecture Decision Records (ADRs) for the Alle project.
+This directory contains Architecture Decision Records (ADRs) for the Erledigen project.
 
 ## What is an ADR?
 

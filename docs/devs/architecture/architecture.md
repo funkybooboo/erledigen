@@ -1,15 +1,15 @@
 # Architecture
 
-This document provides a high-level overview of the architecture of the Alle application. Our architecture is designed to be modular, scalable, and easy to maintain.
+This document provides a high-level overview of the architecture of the Erledigen application. Our architecture is designed to be modular, scalable, and easy to maintain.
 
 ## Monorepo
 
-Alle is a monorepo managed with [Bun Workspaces](https://bun.sh/docs/cli/workspaces). This means that the client, server, and shared code are all in the same repository, but are treated as separate packages.
+Erledigen is a monorepo managed with [Bun Workspaces](https://bun.sh/docs/cli/workspaces). This means that the client, server, and shared code are all in the same repository, but are treated as separate packages.
 
 ### Project Structure
 
 ```
-alle/
+erledigen/
 ├── packages/
 │   ├── client/          # SvelteKit frontend
 │   ├── server/          # Bun API server
@@ -79,9 +79,9 @@ const taskRepo = container.taskRepository // Swap InMemory → SQLite here
 
 This approach allows us to easily manage the lifecycle of our dependencies and provides a central place to configure our application.
 
-## The Shared Package (`@alle/shared`)
+## The Shared Package (`@erledigen/shared`)
 
-The `@alle/shared` package is the secret sauce that enables type-safe, end-to-end communication between our client and server. It contains all the code that is shared between the two, including:
+The `@erledigen/shared` package is the secret sauce that enables type-safe, end-to-end communication between our client and server. It contains all the code that is shared between the two, including:
 
 *   **Types**: All of our data models, such as `Task` and `User`.
 *   **API Contracts**: The request and response types for our API endpoints.
@@ -91,7 +91,7 @@ The `@alle/shared` package is the secret sauce that enables type-safe, end-to-en
 
 ### The Golden Rule of the Shared Package
 
-When deciding whether to put a piece of code in the `@alle/shared` package, ask yourself this question:
+When deciding whether to put a piece of code in the `@erledigen/shared` package, ask yourself this question:
 
 > **Does the client need this code?**
 
@@ -114,7 +114,7 @@ The application is designed to follow the principles of a [12-Factor App](https:
 
 ## Observability
 
-Alle produces three categories of operational signal:
+Erledigen produces three categories of operational signal:
 
 1.  **Logs**: Structured JSON logs with request IDs for correlation (see [ADR-004](decisions/ADR-004-structured-json-logging.md)). `LOG_FORMAT=json|text` controls output format.
 2.  **Metrics**: Prometheus-compatible metrics at `/api/metrics` (see [ADR-005](decisions/ADR-005-prometheus-metrics.md)). Covers HTTP requests, background jobs, database, and application-level metrics.

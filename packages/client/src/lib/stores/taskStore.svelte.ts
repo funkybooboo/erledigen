@@ -1,4 +1,4 @@
-import type { CreateTaskInput, Task, UpdateTaskInput, WsServerMessage } from '@alle/shared';
+import type { CreateTaskInput, Task, UpdateTaskInput, WsServerMessage } from '@erledigen/shared';
 import { container } from '$lib/container';
 import { type TaskQueryParams, TaskService } from '$lib/services/taskService';
 import { websocketService } from '$lib/services/websocketService';

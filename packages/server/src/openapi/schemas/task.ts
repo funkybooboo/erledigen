@@ -2,7 +2,7 @@
  * Task entity schemas — used for both OpenAPI documentation and request validation.
  */
 
-import { TASK_CONSTRAINTS } from '@alle/shared';
+import { TASK_CONSTRAINTS } from '@erledigen/shared';
 import { z } from 'zod';
 import { registry } from '../registry';
 import { HhMmTime } from './common';

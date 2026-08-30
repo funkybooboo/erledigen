@@ -3,7 +3,7 @@
     import { recurringTaskStore, taskStore } from '$lib/stores';
     import { Icon } from 'svelte-icons-pack';
     import { LuPlus, LuPencil, LuTrash2 } from 'svelte-icons-pack/lu';
-    import { WEEKDAY_ABBREVIATIONS, MONTH_NAMES as MONTH_ABBREVIATIONS } from '@alle/shared';
+    import { WEEKDAY_ABBREVIATIONS, MONTH_NAMES as MONTH_ABBREVIATIONS } from '@erledigen/shared';
     import { container } from '$lib/container';
     import { onMount } from 'svelte';
 

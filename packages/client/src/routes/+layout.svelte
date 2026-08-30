@@ -11,7 +11,7 @@
         taskStore,
         notificationStore,
     } from '$lib/stores';
-    import type { Task } from '@alle/shared';
+    import type { Task } from '@erledigen/shared';
     import { container } from '$lib/container';
     import IconRail from '$lib/components/IconRail.svelte';
     import DateMinimap from '$lib/components/DateMinimap.svelte';
@@ -129,7 +129,7 @@
 
 <svelte:window onkeydown={handleGlobalKeydown} />
 
-<div class="app-shell" role="application" aria-label="Alle Task App">
+<div class="app-shell" role="application" aria-label="Erledigen Task App">
     <a href="#main-content" class="skip-link">Skip to content</a>
     <div class="main-area">
         <IconRail />

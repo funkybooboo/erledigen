@@ -1,6 +1,6 @@
 # E2E Tests
 
-This directory contains the end-to-end tests for the Alle application, which are written using [Playwright](https://playwright.dev/).
+This directory contains the end-to-end tests for the Erledigen application, which are written using [Playwright](https://playwright.dev/).
 
 ## ⚡️ Quick Start
 

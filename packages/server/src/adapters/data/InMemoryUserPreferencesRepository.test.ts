@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { NativeDateProvider } from '@alle/shared';
+import { NativeDateProvider } from '@erledigen/shared';
 import { InMemoryUserPreferencesRepository } from './InMemoryUserPreferencesRepository';
 
 function makeRepo() {
@@ -116,12 +116,12 @@ describe('InMemoryUserPreferencesRepository', () => {
             const repo = makeRepo();
             await repo.update({
                 activeFilters: {
-                    tags: ['work', 'p1', 'project:build-alle'],
+                    tags: ['work', 'p1', 'project:build-erledigen'],
                     showCompleted: false,
                 },
             });
             const prefs = await repo.get();
-            expect(prefs.activeFilters.tags).toEqual(['work', 'p1', 'project:build-alle']);
+            expect(prefs.activeFilters.tags).toEqual(['work', 'p1', 'project:build-erledigen']);
             expect(prefs.activeFilters.showCompleted).toBe(false);
         });
     });

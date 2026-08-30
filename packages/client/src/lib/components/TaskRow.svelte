@@ -1,7 +1,7 @@
 <script lang="ts">
     import { taskStore, uiStore, notificationStore } from '$lib/stores';
-    import { TASK_CONSTRAINTS } from '@alle/shared';
-    import type { Task } from '@alle/shared';
+    import { TASK_CONSTRAINTS } from '@erledigen/shared';
+    import type { Task } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
     import { LuCheck, LuCircle, LuRepeat, LuFileText, LuX } from 'svelte-icons-pack/lu';
 

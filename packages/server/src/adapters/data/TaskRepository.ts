@@ -10,7 +10,7 @@
  * - Keep domain logic separate from data access
  */
 
-import type { CreateTaskInput, Task, UpdateTaskInput } from '@alle/shared';
+import type { CreateTaskInput, Task, UpdateTaskInput } from '@erledigen/shared';
 
 /**
  * Task repository interface

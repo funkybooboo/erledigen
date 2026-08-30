@@ -1,6 +1,6 @@
 # Design Patterns
 
-This document defines the architectural design patterns used in the Alle project. These patterns are **REQUIRED** for maintaining clean, maintainable, and testable code architecture.
+This document defines the architectural design patterns used in the Erledigen project. These patterns are **REQUIRED** for maintaining clean, maintainable, and testable code architecture.
 
 ## Philosophy
 
@@ -170,7 +170,7 @@ export class InMemoryTaskRepository implements TaskRepository {
 
 **WHEN TO USE**: REQUIRED for all external dependencies (HTTP, config, logging, databases, etc.).
 
-**IMPLEMENTATION** (Already used throughout Alle):
+**IMPLEMENTATION** (Already used throughout Erledigen):
 
 ```typescript
 // Port (interface in shared package)
@@ -213,7 +213,7 @@ export class FetchHttpClient implements HttpClient {
 - Isolates external dependencies
 - Framework-agnostic core logic
 
-**REAL EXAMPLES IN ALLE**:
+**REAL EXAMPLES IN ERLEDIGEN**:
 - `ConfigProvider` — Environment variable access
 - `HttpClient` — HTTP requests
 - `Logger` — Structured logging
@@ -574,7 +574,7 @@ if (result.isSuccess) {
 
 Use this guide to select the appropriate pattern:
 
-| Problem | Pattern | Example in Alle |
+| Problem | Pattern | Example in Erledigen |
 |---------|---------|----------------|
 | Need to swap implementations | Adapter | ConfigProvider, HttpClient, Logger |
 | Need to manage dependencies | Dependency Injection | Container class |

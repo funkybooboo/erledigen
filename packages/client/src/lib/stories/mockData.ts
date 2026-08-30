@@ -1,5 +1,11 @@
-import type { Project, RecurringTask, SomeDayGroup, Task, UserPreferences } from '@alle/shared';
-import { DEFAULT_TAG_KIND_MAP, DEFAULT_TAG_KINDS } from '@alle/shared';
+import type {
+    Project,
+    RecurringTask,
+    SomeDayGroup,
+    Task,
+    UserPreferences,
+} from '@erledigen/shared';
+import { DEFAULT_TAG_KIND_MAP, DEFAULT_TAG_KINDS } from '@erledigen/shared';
 
 export const mockTask: Task = {
     id: '1',
@@ -95,9 +101,9 @@ export const mockSomeDayGroup2: SomeDayGroup = {
 
 export const mockProject: Project = {
     id: 'p-1',
-    name: 'Alle App',
-    tag: 'project:alle-app',
-    description: 'Build the Alle task management app',
+    name: 'Erledigen App',
+    tag: 'project:erledigen-app',
+    description: 'Build the Erledigen task management app',
     startDate: '2026-01-01',
     dueDate: '2026-06-30',
     isActive: true,

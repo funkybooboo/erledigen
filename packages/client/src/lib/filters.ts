@@ -1,4 +1,4 @@
-import type { ActiveFilters, Task } from '@alle/shared';
+import type { ActiveFilters, Task } from '@erledigen/shared';
 
 /**
  * Apply tag filters to a task list. Completed tasks are NEVER hidden — they

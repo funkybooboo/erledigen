@@ -1,6 +1,6 @@
 # Testing
 
-This document defines the comprehensive testing strategy, standards, and tools for the Alle project. These standards are **MANDATORY** and **ENFORCED** through CI/CD pipelines, code reviews, and automated quality gates.
+This document defines the comprehensive testing strategy, standards, and tools for the Erledigen project. These standards are **MANDATORY** and **ENFORCED** through CI/CD pipelines, code reviews, and automated quality gates.
 
 ## Philosophy
 

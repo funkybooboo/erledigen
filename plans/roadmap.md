@@ -1,6 +1,6 @@
 # Roadmap
 
-This document outlines the development roadmap for Alle. We use semantic versioning to define chunks of work and track our progress.
+This document outlines the development roadmap for Erledigen. We use semantic versioning to define chunks of work and track our progress.
 
 ---
 
@@ -151,9 +151,9 @@ This release builds the core three-panel layout and all fundamental task interac
 
 ### Bottom Bar
 
-Layout: `alle logo | filter chips | task count | ▲ Today | docs ↗`
+Layout: `erledigen logo | filter chips | task count | ▲ Today | docs ↗`
 
-- [x] **Left:** `alle` logo — clicking clears all filters and snaps to today (home button).
+- [x] **Left:** `erledigen` logo — clicking clears all filters and snaps to today (home button).
 - [x] **Center-left:** active filter chips, each with `×` to dismiss; `[clear all]` when multiple filters active.
 - [x] **Center-right:** status — `12 tasks • 4 done`; when no filters: `March 30 • 12 tasks`.
 - [x] **Right:** `▲ Today` button — visible only when today section is out of viewport. IntersectionObserver wires `todayVisible` in DayList.svelte
@@ -336,7 +336,7 @@ Refactoring pass to fix API mismatches, extract shared types/constants/utilities
 
 ## v0.5.0: Keyboard Navigation & Command Palette
 
-This release makes Alle fully operable without a mouse, and finalizes the complete keyboard shortcut system.
+This release makes Erledigen fully operable without a mouse, and finalizes the complete keyboard shortcut system.
 
 ### Complete Keyboard Shortcut Reference
 
@@ -507,7 +507,7 @@ This release implements persistent storage, structured logging and metrics, mult
 - [ ] **I/O Abstraction Layer:** Solidify the adapter pattern so the application core is independent of the data source.
 - [ ] **In-Memory Adapter:** Already exists; keep for testing and ephemeral sessions.
 - [ ] **SQLite Adapter:** Implement a file-based SQLite adapter as the first real persistence layer (see [ADR-001](../docs/devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md)).
-    - Zero-config for self-hosted use: single `.db` file on disk (`./data/alle.db`, configurable via `DB_PATH`).
+    - Zero-config for self-hosted use: single `.db` file on disk (`./data/erledigen.db`, configurable via `DB_PATH`).
     - Raw SQL via `bun:sqlite` — no ORM (see [ADR-001](../docs/devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md)).
     - JSON columns for `tags[]`, `reminder`, nested objects — repository handles `JSON.parse`/`JSON.stringify` at the boundary.
     - Schema migrations via raw SQL files (see [ADR-003](../docs/devs/architecture/decisions/ADR-003-raw-sql-migrations.md)): sequentially-numbered `.sql` files, forward-only, lightweight runner (~50 LOC).
@@ -556,8 +556,8 @@ This release implements persistent storage, structured logging and metrics, mult
 - [ ] **JSON** — restore from a previous export.
 - [ ] **CSV** — generic task CSV with column mapping UI.
 - [ ] **iCal / .ics** — parse VEVENT entries into tasks; sets `date`, `startTime`, `endTime`. Works with Google Calendar, Apple Calendar, Outlook exports.
-- [ ] **Todoist CSV** — map Todoist's export columns to Alle task fields.
-- [ ] **Things 3 JSON** — map Things 3 export format to Alle task fields.
+- [ ] **Todoist CSV** — map Todoist's export columns to Erledigen task fields.
+- [ ] **Things 3 JSON** — map Things 3 export format to Erledigen task fields.
 
 ### Interfaces
 - [ ] **`ExportAdapter<T>`** interface in `packages/shared` — implement one adapter per format.
@@ -603,7 +603,7 @@ This release implements persistent storage, structured logging and metrics, mult
 
 ## v0.8.0: Automation & Background Jobs
 
-This release introduces the automation features that make Alle smart, backed by a persistent job queue.
+This release introduces the automation features that make Erledigen smart, backed by a persistent job queue.
 
 ### Background Job System
 - [ ] **`JobQueue` interface** in `packages/server/src/adapters/jobs/` (see [ADR-002](../docs/devs/architecture/decisions/ADR-002-sqlite-backed-job-queue.md)).
@@ -674,7 +674,7 @@ This release builds the full UI for project management and habit tracking.
     - [Activate] button runs the auto-distribution algorithm (spreads tasks across days between start and due date).
     - [Auto-distribute] shows a preview before confirming.
     - Dependency indicators: tasks blocked by incomplete predecessors show a lock icon.
-    - Project tasks appear in the day list tagged with the project name (e.g., `#build-alle`).
+    - Project tasks appear in the day list tagged with the project name (e.g., `#build-erledigen`).
 - [ ] **Habits modal (🔁):**
     - List all recurring task templates with current streak and last completion date.
     - `+ new habit` flow: text + recurrence rule builder (presets: daily, weekly, monthly; custom rrule).
@@ -768,7 +768,7 @@ This release refines the visual design into a cohesive, calm product and formali
 - [ ] **All preferences persisted** in `UserPreferences` (SQLite). Survive restarts, browser refreshes, and re-logins.
 
 ### Privacy Principle
-- No analytics, no telemetry, no tracking — not even anonymized. Alle knows nothing about how you use it except what you explicitly store in your own database.
+- No analytics, no telemetry, no tracking — not even anonymized. Erledigen knows nothing about how you use it except what you explicitly store in your own database.
 - Document this commitment explicitly in the user docs.
 
 ### Technical Notes & Considerations
@@ -798,7 +798,7 @@ This release refines the visual design into a cohesive, calm product and formali
 
 ## v0.12.0: Accessibility
 
-This release ensures Alle meets WCAG 2.1 Level AA accessibility standards across every surface.
+This release ensures Erledigen meets WCAG 2.1 Level AA accessibility standards across every surface.
 
 - [ ] **Full keyboard operability:** Every action reachable via keyboard (prerequisite: v0.5.0). Audit confirms no mouse-only interactions remain.
 - [x] **ARIA roles and labels:** All interactive elements (buttons, inputs, modals, drag handles) have correct ARIA attributes. Icon rail buttons have `aria-label`, modals have `role="dialog"`, `aria-modal`, `aria-label`.
@@ -891,7 +891,7 @@ This release adds a time-grid calendar view for tasks with start and end times.
 
 ## v1.0.0: Public Release
 
-The first stable, fully usable release of Alle. Goal: a complete daily driver for a single self-hosted user.
+The first stable, fully usable release of Erledigen. Goal: a complete daily driver for a single self-hosted user.
 
 - [ ] **Feature complete:** All v0.x features integrated and working end-to-end.
 - [ ] **SQLite persistence:** All data persists reliably across restarts (ADR-001).
@@ -939,15 +939,15 @@ Adds a full-featured command-line interface in a new `packages/cli` package.
 
 - [ ] **Package setup:** `packages/cli` using Bun, communicates with the server over HTTP REST.
 - [ ] **Command-based mode:**
-    - `alle add "buy milk tomorrow #work #p1"` — natural language task creation
-    - `alle list [--today] [--tag work] [--priority p1]` — list tasks
-    - `alle complete <id|text>` — complete a task
-    - `alle delete <id|text>` — delete a task
-    - `alle someday add "learn Rust"` — add to Someday
-    - `alle someday list` — list Someday tasks
-    - `alle server start|stop|status` — control the server process
+    - `erledigen add "buy milk tomorrow #work #p1"` — natural language task creation
+    - `erledigen list [--today] [--tag work] [--priority p1]` — list tasks
+    - `erledigen complete <id|text>` — complete a task
+    - `erledigen delete <id|text>` — delete a task
+    - `erledigen someday add "learn Rust"` — add to Someday
+    - `erledigen someday list` — list Someday tasks
+    - `erledigen server start|stop|status` — control the server process
     - All commands support `--format json|plain|csv` for output formatting
-- [ ] **Interactive TUI mode:** Running `alle` with no arguments opens a terminal UI for navigating and managing tasks.
+- [ ] **Interactive TUI mode:** Running `erledigen` with no arguments opens a terminal UI for navigating and managing tasks.
     - TUI mirrors the web keyboard shortcuts exactly (same shortcut table from v0.5.0).
     - Vim keys (`j`/`k`/`J`/`K`), `e`, `d`, `Space`, `n`, `?` all work identically.
 - [ ] **Natural language parsing:** Dates (today, tomorrow, next monday), tags (`#work`), priority (`#p1`), all parsed from free text.
@@ -967,7 +967,7 @@ Adds an MCP (Model Context Protocol) server in `packages/mcp` enabling AI-assist
 
 **Design principle: No AI in the UI.** The web UI, CLI command mode, and TUI contain zero AI features. AI automation is exclusively available via this MCP server and the CLI. This keeps the UI fast, deterministic, and distraction-free.
 
-- [ ] **Package setup:** `packages/mcp` exposing all Alle capabilities as MCP tools.
+- [ ] **Package setup:** `packages/mcp` exposing all Erledigen capabilities as MCP tools.
 - [ ] **Core tools:** create/update/delete tasks, query tasks by date/tag/priority, manage Someday groups, manage projects, manage recurring tasks.
 - [ ] **AI workflow support** (MCP-only — not in the web UI):
     - **AI scheduling:** "Schedule all my `#work` tasks for next week" — AI distributes tasks across days.
@@ -1066,7 +1066,7 @@ A dedicated security audit and hardening release. Runs before SaaS billing to en
 
 ## v2.5.0: SaaS & Billing
 
-Alle is open-source — anyone can self-host for free. This release adds optional managed hosting with Stripe billing for users who prefer not to self-host.
+Erledigen is open-source — anyone can self-host for free. This release adds optional managed hosting with Stripe billing for users who prefer not to self-host.
 
 - [ ] **Managed hosting:** Creator's instance available at a public URL. Onboarding flow: sign up → choose plan → Stripe Checkout → access app.
 - [ ] **`PaymentAdapter` interface** in `packages/server`. Stripe adapter implements it. Self-hosted deployments can swap in a no-op adapter.
@@ -1117,11 +1117,11 @@ Alle is open-source — anyone can self-host for free. This release adds optiona
 
 ## v2.7.0: Canvas LMS Integration
 
-Pull assignments and due dates from a Canvas LMS instance into Alle.
+Pull assignments and due dates from a Canvas LMS instance into Erledigen.
 
 - [ ] **`CanvasCalendarAdapter`** implementing the `ImportAdapter` interface.
 - [ ] **Configuration** in ⚙️ Settings: Canvas instance URL + API token (stored encrypted in the database).
-- [ ] **Sync behavior:** One-way pull only (Canvas → Alle). Creates scheduled tasks from Canvas assignments: title, due date, course name as a tag (e.g. `#cs-101`).
+- [ ] **Sync behavior:** One-way pull only (Canvas → Erledigen). Creates scheduled tasks from Canvas assignments: title, due date, course name as a tag (e.g. `#cs-101`).
 - [ ] **Scheduled auto-sync:** Configurable interval (e.g., every hour, every day) or manual pull via a "Sync now" button in Settings.
 - [ ] **Deduplication:** Canvas assignment ID stored on imported tasks. Re-syncing does not create duplicates.
 - [ ] **Update handling:** If an assignment's due date changes in Canvas, the corresponding task's date is updated on next sync.

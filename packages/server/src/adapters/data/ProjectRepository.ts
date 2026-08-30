@@ -1,4 +1,4 @@
-import type { CreateProjectInput, Project, UpdateProjectInput } from '@alle/shared';
+import type { CreateProjectInput, Project, UpdateProjectInput } from '@erledigen/shared';
 
 /**
  * Repository interface for Project persistence

@@ -1,6 +1,6 @@
 # Code Standards
 
-This document defines the coding standards for the Alle project. These standards are **enforced automatically** through TypeScript compiler settings, Biome linting, and code reviews.
+This document defines the coding standards for the Erledigen project. These standards are **enforced automatically** through TypeScript compiler settings, Biome linting, and code reviews.
 
 ## Philosophy
 
@@ -96,7 +96,7 @@ const config: AppConfig = getConfig()
 
 // ✅ OK - type is obvious from literal
 const port: number = 3000
-const name: string = 'Alle'
+const name: string = 'Erledigen'
 
 // ✅ OK - type is obvious from constructor
 const date: Date = new Date()
@@ -561,7 +561,7 @@ try {
 
 <!-- ✅ GOOD -->
 <script lang="ts">
-  import type { User } from '@alle/shared';
+  import type { User } from '@erledigen/shared';
 
   interface Props {
     user: User;

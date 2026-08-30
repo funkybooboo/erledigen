@@ -8,7 +8,7 @@
 
 ADR-004 defines structured JSON logging. ADR-005 defines Prometheus-compatible metrics. This ADR defines the external observability stack that collects, stores, and visualizes those signals.
 
-**Phase 1 (v0.7.0–v1.0)**: Alle produces structured logs and metrics. Self-hosted users can optionally point Prometheus at `/api/metrics` and view JSON logs via `docker logs`. No external collection is required.
+**Phase 1 (v0.7.0–v1.0)**: Erledigen produces structured logs and metrics. Self-hosted users can optionally point Prometheus at `/api/metrics` and view JSON logs via `docker logs`. No external collection is required.
 
 **Phase 2 (v2.x+)**: Multi-user SaaS requires centralized log aggregation, metric dashboards, alerting, and eventually distributed tracing. This ADR documents the recommended stack and deployment pattern.
 
@@ -66,7 +66,7 @@ Shipped as an optional `docker-compose.monitoring.yml` that self-hosted users ca
                     │              Self-Hosted User                 │
                     │                                              │
                     │  ┌─────────┐   ┌────────┐   ┌──────────┐   │
-                    │  │  Alle   │   │ Uptime  │   │ Grafana  │   │
+                    │  │  Erledigen   │   │ Uptime  │   │ Grafana  │   │
                     │  │ Server  │◄──┤  Kuma   │   │ Dashboard│   │
                     │  │ :4000   │   │ :3001   │   │  :3000   │   │
                     │  └────┬────┘   └────────┘   └────┬─────┘   │
@@ -75,7 +75,7 @@ Shipped as an optional `docker-compose.monitoring.yml` that self-hosted users ca
                     │       │  /api/health                │         │
                     │       │                           │         │
                     │  ┌────▼────┐   ┌──────────┐   ┌────┴─────┐   │
-                    │  │  Alle   │   │ Promtail │   │Prometheus│   │
+                    │  │  Erledigen   │   │ Promtail │   │Prometheus│   │
                     │  │  Logs   │──►│  (log    │   │  :9090   │   │
                     │  │ (json)  │   │ router)  │   └────┬────┘   │
                     │  └─────────┘   └────┬─────┘        │         │
@@ -93,9 +93,9 @@ Shipped as an optional `docker-compose.monitoring.yml` that self-hosted users ca
 ```
 
 **Data flow**:
-1. **Alle server** → emits structured JSON logs to stdout (Docker captures)
+1. **Erledigen server** → emits structured JSON logs to stdout (Docker captures)
 2. **Promtail** → reads Docker logs, pushes to **Loki**
-3. **Prometheus** → scrapes `/api/metrics` from **Alle server**
+3. **Prometheus** → scrapes `/api/metrics` from **Erledigen server**
 4. **Grafana** → queries Loki (logs), Prometheus (metrics), Tempo (traces)
 5. **Uptime Kuma** → pings `/api/health`, alerts on downtime
 
@@ -103,13 +103,13 @@ Shipped as an optional `docker-compose.monitoring.yml` that self-hosted users ca
 
 #### Loki (Log Aggregation)
 
-- **Why**: Label-based indexing means ~90% less memory than Elasticsearch. Pair `{app="alle"}` labels with structured JSON from ADR-004. Native Grafana data source.
+- **Why**: Label-based indexing means ~90% less memory than Elasticsearch. Pair `{app="erledigen"}` labels with structured JSON from ADR-004. Native Grafana data source.
 - **Config**: Promtail reads Docker container logs, parses JSON, extracts `level`, `requestId`, `method`, `path` as Loki labels. `message` and `context` stored as log line.
 - **Retention**: 30 days default, configurable.
 
 #### Prometheus (Metrics)
 
-- **Why**: Industry standard. Alle already exposes `/api/metrics` (ADR-005). Prometheus scrapes it.
+- **Why**: Industry standard. Erledigen already exposes `/api/metrics` (ADR-005). Prometheus scrapes it.
 - **Config**: 15-second scrape interval. 30-day retention.
 - **Alerting rules** (shipped in `deploy/prometheus/alerts/`):
   - `alle_error_rate > 5%` — 5xx responses exceed 5% over 5 minutes
@@ -121,17 +121,17 @@ Shipped as an optional `docker-compose.monitoring.yml` that self-hosted users ca
 
 - **Why**: Single UI for logs (Loki), metrics (Prometheus), and traces (Tempo). Best OSS visualization tool.
 - **Shipped dashboards** (in `deploy/grafana/dashboards/`):
-  - **Alle Overview**: Request rate, error rate, p50/p95/p99 latency, active connections, uptime
-  - **Alle Jobs**: Job queue depth, job duration, failure rate by type, dead letter count
-  - **Alle Database**: Query duration, database size, active connections
-  - **Alle Tasks**: Total tasks, tasks by date, completion rate
+  - **Erledigen Overview**: Request rate, error rate, p50/p95/p99 latency, active connections, uptime
+  - **Erledigen Jobs**: Job queue depth, job duration, failure rate by type, dead letter count
+  - **Erledigen Database**: Query duration, database size, active connections
+  - **Erledigen Tasks**: Total tasks, tasks by date, completion rate
 - **Provisioned datasources**: Loki, Prometheus, Tempo auto-configured via `deploy/grafana/provisioning/`
 
 #### Tempo (Distributed Tracing — v2.x+)
 
 - **Why**: Native Grafana integration. Works with OTEL SDK. Scales cheaply (object storage backend).
 - **Deferred**: Added in v2.x when OTEL SDK is instrumented. Phase 1 uses request IDs for correlation.
-- **Config**: OTEL SDK in Alle → OTEL Collector → Tempo. Grafana queries Tempo for traces, correlates with Loki logs via `requestId` label.
+- **Config**: OTEL SDK in Erledigen → OTEL Collector → Tempo. Grafana queries Tempo for traces, correlates with Loki logs via `requestId` label.
 
 #### Uptime Kuma (Uptime Monitoring)
 
@@ -206,10 +206,10 @@ volumes:
 
 Users run:
 ```bash
-# Alle only (default)
+# Erledigen only (default)
 docker compose up -d
 
-# Alle + monitoring
+# Erledigen + monitoring
 docker compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
 ```
 
@@ -237,12 +237,12 @@ The key to making this stack work is **label consistency across logs and metrics
 
 - **Request ID** (`requestId`): Links all logs from one HTTP request. Present in both Loki (log label) and metrics (exemplars in v2.x).
 - **Job ID** (`jobId`): Links all logs from one background job execution.
-- **App label** (`app="alle"`): Shared Loki label and Prometheus job name for cross-system queries.
+- **App label** (`app="erledigen"`): Shared Loki label and Prometheus job name for cross-system queries.
 
 Example Grafana query — "show me all logs for a slow request":
 1. Find slow request in Prometheus: `alle_http_request_duration_seconds{quantile="0.95"} > 2`
 2. Get the `requestId` from the metric exemplar (v2.x) or from the timestamp range
-3. Query Loki: `{app="alle"} |="request_id=req_456"`
+3. Query Loki: `{app="erledigen"} |="request_id=req_456"`
 
 ### Why Not Alternatives
 
@@ -252,7 +252,7 @@ Example Grafana query — "show me all logs for a slow request":
 
 **Netdata**: Great for real-time host metrics, but not a log aggregation or dashboard solution. Doesn't replace Grafana.
 
-**Datadog/New Relic/etc.**: Closed source, expensive, and violates Alle's privacy principle (no telemetry sent to third parties). All monitoring stays self-hosted.
+**Datadog/New Relic/etc.**: Closed source, expensive, and violates Erledigen's privacy principle (no telemetry sent to third parties). All monitoring stays self-hosted.
 
 ## Consequences
 
@@ -261,7 +261,7 @@ Example Grafana query — "show me all logs for a slow request":
 - Grafana provides a single pane of glass for logs, metrics, and traces
 - Prometheus scraping is industry-standard — no custom collection agents needed
 - Log-to-metric correlation via shared labels and request IDs
-- Monitoring stack is completely optional — Alle works without it
+- Monitoring stack is completely optional — Erledigen works without it
 - Open-source end-to-end — no vendor lock-in, no license restrictions
 
 ### Negative

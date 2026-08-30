@@ -51,7 +51,7 @@
 <footer class="bottom-bar">
     <button class="logo-btn" onclick={handleHomeClick} aria-label="Home — clear filters and go to today">
         <Icon src={LuSquareCheck} />
-        <strong>alle</strong>
+        <strong>erledigen</strong>
     </button>
 
     <div class="filter-chips">

@@ -2,8 +2,8 @@
  * UserPreferences API routes
  */
 
-import type { Logger } from '@alle/shared';
-import { API_ROUTES, type UpdateUserPreferencesInput } from '@alle/shared';
+import type { Logger } from '@erledigen/shared';
+import { API_ROUTES, type UpdateUserPreferencesInput } from '@erledigen/shared';
 import type { UserPreferencesRepository } from '../adapters/data/UserPreferencesRepository';
 import type { HttpServer } from '../adapters/http/HttpServer';
 import { UpdateUserPreferencesSchema } from '../openapi/schemas/userPreferences';

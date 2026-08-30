@@ -1,4 +1,8 @@
-import type { CreateSomeDayGroupInput, SomeDayGroup, UpdateSomeDayGroupInput } from '@alle/shared';
+import type {
+    CreateSomeDayGroupInput,
+    SomeDayGroup,
+    UpdateSomeDayGroupInput,
+} from '@erledigen/shared';
 
 /**
  * Repository interface for SomeDayGroup persistence

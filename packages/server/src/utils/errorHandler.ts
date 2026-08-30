@@ -4,8 +4,8 @@
  * Provides helpers to convert errors into HTTP responses
  */
 
-import type { Logger } from '@alle/shared';
-import { AppError } from '@alle/shared';
+import type { Logger } from '@erledigen/shared';
+import { AppError } from '@erledigen/shared';
 import type { HttpResponse } from '../adapters/http/types';
 
 /**
@@ -63,4 +63,4 @@ export function errorToResponse(error: unknown, logger?: Logger): HttpResponse {
 export {
     createNotFoundError as notFoundError,
     createValidationError as validationError,
-} from '@alle/shared';
+} from '@erledigen/shared';

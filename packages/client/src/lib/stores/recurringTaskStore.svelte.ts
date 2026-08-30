@@ -2,7 +2,7 @@ import type {
     CreateRecurringTaskInput,
     RecurringTask,
     UpdateRecurringTaskInput,
-} from '@alle/shared';
+} from '@erledigen/shared';
 import { container } from '$lib/container';
 import { RecurringTaskService } from '$lib/services/recurringTaskService';
 

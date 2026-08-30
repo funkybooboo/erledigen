@@ -5,7 +5,7 @@
  * so every route file doesn't need its own copy.
  */
 
-import { type ApiResponse, CONTENT_TYPE_TEXT, type Logger } from '@alle/shared';
+import { type ApiResponse, CONTENT_TYPE_TEXT, type Logger } from '@erledigen/shared';
 import type { HttpRequest, HttpResponse } from '../adapters/http/types';
 import { negotiate } from './contentNegotiation';
 import { errorToResponse } from './errorHandler';

@@ -1,6 +1,6 @@
 # API Tests (Bruno)
 
-This directory contains the API tests for the Alle application, which are written using [Bruno](https://www.usebruno.com/).
+This directory contains the API tests for the Erledigen application, which are written using [Bruno](https://www.usebruno.com/).
 
 ## ⚡️ Quick Start
 

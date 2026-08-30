@@ -1,8 +1,8 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
     import { taskStore, uiStore, notificationStore } from '$lib/stores';
-    import { TASK_CONSTRAINTS, isValidTimeString, isValidTimeRange } from '@alle/shared';
-    import type { Task } from '@alle/shared';
+    import { TASK_CONSTRAINTS, isValidTimeString, isValidTimeRange } from '@erledigen/shared';
+    import type { Task } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
     import { LuTrash2, LuPlus, LuCheck, LuCircle } from 'svelte-icons-pack/lu';
 

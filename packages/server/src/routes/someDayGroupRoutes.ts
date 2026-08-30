@@ -2,13 +2,13 @@
  * SomeDayGroup API routes
  */
 
-import type { Logger } from '@alle/shared';
+import type { Logger } from '@erledigen/shared';
 import {
     API_ROUTES,
     BadRequestError,
     type CreateSomeDayGroupInput,
     type UpdateSomeDayGroupInput,
-} from '@alle/shared';
+} from '@erledigen/shared';
 import type { SomeDayGroupRepository } from '../adapters/data/SomeDayGroupRepository';
 import type { HttpServer } from '../adapters/http/HttpServer';
 import {

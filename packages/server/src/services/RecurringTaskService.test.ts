@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
-import type { CreateTaskInput, RecurringTask, Task } from '@alle/shared';
-import { NotFoundError } from '@alle/shared';
+import type { CreateTaskInput, RecurringTask, Task } from '@erledigen/shared';
+import { NotFoundError } from '@erledigen/shared';
 import { RecurringTaskService } from './RecurringTaskService';
 
 // Minimal fakes — just the methods the service calls. The real

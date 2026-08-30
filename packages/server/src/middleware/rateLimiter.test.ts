@@ -33,8 +33,9 @@ describe('createRateLimiterGuard', () => {
         // Next request should be rate limited
         const result = guard(req);
         expect(result).not.toBeNull();
-        expect(result?.status).toBe(429);
-        expect((result?.body as { code: string }).code).toBe('RATE_LIMIT_EXCEEDED');
+        if (result === null) throw new Error('expected rate limit response');
+        expect(result.status).toBe(429);
+        expect((result.body as { code: string }).code).toBe('RATE_LIMIT_EXCEEDED');
     });
 
     it('returns RATE_LIMIT_EXCEEDED error body', () => {
@@ -42,7 +43,8 @@ describe('createRateLimiterGuard', () => {
         const req = makeRequest('10.0.0.2');
         guard(req); // exhaust
         const result = guard(req);
-        expect((result?.body as { error: string }).error).toBe('Rate limit exceeded');
+        if (result === null) throw new Error('expected rate limit response');
+        expect((result.body as { error: string }).error).toBe('Rate limit exceeded');
     });
 
     it('uses separate buckets per IP', () => {

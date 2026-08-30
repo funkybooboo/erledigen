@@ -1,4 +1,4 @@
-import type { UpdateUserPreferencesInput, UserPreferences } from '@alle/shared';
+import type { UpdateUserPreferencesInput, UserPreferences } from '@erledigen/shared';
 
 /**
  * Repository interface for UserPreferences persistence.

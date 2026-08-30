@@ -524,9 +524,9 @@ Same codebase can be deployed as:
 
 ---
 
-## Alle's Current Implementation
+## Erledigen's Current Implementation
 
-Alle already uses I/O abstraction extensively:
+Erledigen already uses I/O abstraction extensively:
 
 | Port | Interface | Adapters |
 |------|-----------|----------|

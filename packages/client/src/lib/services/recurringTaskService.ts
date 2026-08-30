@@ -1,11 +1,11 @@
-import type { HttpClient } from '@alle/shared';
+import type { HttpClient } from '@erledigen/shared';
 import {
     API_ROUTES,
     type ApiResponse,
     type CreateRecurringTaskInput,
     type RecurringTask,
     type UpdateRecurringTaskInput,
-} from '@alle/shared';
+} from '@erledigen/shared';
 
 export class RecurringTaskService {
     constructor(private http: HttpClient) {}

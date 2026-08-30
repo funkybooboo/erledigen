@@ -3,7 +3,7 @@ import type {
     RecurringTask,
     RecurringTaskStats,
     UpdateRecurringTaskInput,
-} from '@alle/shared';
+} from '@erledigen/shared';
 
 /**
  * Repository interface for RecurringTask persistence

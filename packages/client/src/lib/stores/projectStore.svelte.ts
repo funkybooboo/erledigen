@@ -3,7 +3,7 @@ import type {
     Project,
     UpdateProjectInput,
     WsServerMessage,
-} from '@alle/shared';
+} from '@erledigen/shared';
 import { container } from '$lib/container';
 import { ProjectService } from '$lib/services/projectService';
 import { websocketService } from '$lib/services/websocketService';

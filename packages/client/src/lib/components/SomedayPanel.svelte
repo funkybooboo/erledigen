@@ -6,7 +6,7 @@
     import SectionHeader from './SectionHeader.svelte';
     import { Icon } from 'svelte-icons-pack';
     import { LuPencil, LuTrash2, LuCheck } from 'svelte-icons-pack/lu';
-    import type { SomeDayGroup } from '@alle/shared';
+    import type { SomeDayGroup } from '@erledigen/shared';
 
     let showAddGroupForm = $state(false);
     let newGroupName = $state('');

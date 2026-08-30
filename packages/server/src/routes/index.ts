@@ -5,7 +5,7 @@
  * Add new route modules here as they are created.
  */
 
-import type { Logger } from '@alle/shared';
+import type { Logger } from '@erledigen/shared';
 import type { HttpServer } from '../adapters/http/HttpServer';
 import type { Container } from '../container';
 import { registerOpenApiRoutes } from './openApiRoutes';

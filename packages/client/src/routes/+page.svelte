@@ -11,7 +11,7 @@
 </script>
 
 <svelte:head>
-    <title>Alle - Task App</title>
+    <title>Erledigen - Task App</title>
 </svelte:head>
 
 {#if taskStore.loading && taskStore.tasks.length === 0}

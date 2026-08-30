@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { ValidationError } from '@alle/shared';
+import { ValidationError } from '@erledigen/shared';
 import { z } from 'zod';
 import { parseBody, parseQuery } from './validate';
 

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import type { RecurringTaskStats } from '@alle/shared';
-import { NativeDateProvider } from '@alle/shared';
+import type { RecurringTaskStats } from '@erledigen/shared';
+import { NativeDateProvider } from '@erledigen/shared';
 import { InMemoryRecurringTaskRepository } from './InMemoryRecurringTaskRepository';
 
 function makeRepo() {

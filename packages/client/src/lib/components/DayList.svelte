@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount, onDestroy, tick, untrack } from 'svelte';
     import { taskStore, preferencesStore, dateViewStore } from '$lib/stores';
-    import { groupTasksByDate, SOMEDAY_KEY } from '@alle/shared';
+    import { groupTasksByDate, SOMEDAY_KEY } from '@erledigen/shared';
     import { applyFilters } from '$lib/filters';
     import { container } from '$lib/container';
     import DaySection from './DaySection.svelte';

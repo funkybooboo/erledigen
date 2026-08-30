@@ -1,7 +1,7 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
     import { preferencesStore } from '$lib/stores';
-    import { isValidTimeZone } from '@alle/shared';
+    import { isValidTimeZone } from '@erledigen/shared';
     import { onMount } from 'svelte';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();

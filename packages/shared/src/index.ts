@@ -1,7 +1,7 @@
 /**
- * @alle/shared
+ * @erledigen/shared
  *
- * Shared types, utilities, and constants for the Alle task app
+ * Shared types, utilities, and constants for the Erledigen task app
  */
 
 // Adapters - Config

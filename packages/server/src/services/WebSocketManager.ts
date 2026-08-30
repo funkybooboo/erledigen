@@ -1,4 +1,4 @@
-import type { WsServerMessage } from '@alle/shared';
+import type { WsServerMessage } from '@erledigen/shared';
 import type { WebSocketServer } from '../adapters/ws/WebSocketServer';
 import type { EventBus } from './EventBus';
 

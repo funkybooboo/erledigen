@@ -1,5 +1,5 @@
 /**
- * Core Task type — the primary entity in Alle
+ * Core Task type — the primary entity in Erledigen
  */
 export interface Task {
     id: string;

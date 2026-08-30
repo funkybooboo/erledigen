@@ -20,7 +20,7 @@ import {
     type Logger,
     LogLevel,
     NativeDateProvider,
-} from '@alle/shared';
+} from '@erledigen/shared';
 import { EnvConfigProvider } from './adapters/config/EnvConfigProvider';
 import { InMemoryProjectRepository } from './adapters/data/InMemoryProjectRepository';
 import { InMemoryRecurringTaskRepository } from './adapters/data/InMemoryRecurringTaskRepository';

@@ -1,7 +1,7 @@
 <script lang="ts">
     import { tick } from 'svelte';
     import { taskStore } from '$lib/stores';
-    import { TASK_CONSTRAINTS } from '@alle/shared';
+    import { TASK_CONSTRAINTS } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
     import { LuCircle } from 'svelte-icons-pack/lu';
 

@@ -1,4 +1,4 @@
-import type { WsServerMessage } from '@alle/shared';
+import type { WsServerMessage } from '@erledigen/shared';
 
 export interface WebSocketServer {
     broadcast(message: WsServerMessage, excludeClientId?: string): void;

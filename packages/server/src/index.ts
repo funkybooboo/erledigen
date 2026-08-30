@@ -1,4 +1,4 @@
-import { API_ROUTES, type ApiResponse, DEFAULT_RATE_LIMIT_RPM } from '@alle/shared';
+import { API_ROUTES, type ApiResponse, DEFAULT_RATE_LIMIT_RPM } from '@erledigen/shared';
 import type { HttpResponse } from './adapters/http/types';
 import { container } from './container';
 import { createRateLimiterGuard } from './middleware/rateLimiter';

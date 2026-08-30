@@ -1,5 +1,5 @@
 {
-    "name": "@alle/server",
+    "name": "@erledigen/server",
     "version": "1.0.0",
     "private": true,
     "type": "module",
@@ -13,7 +13,7 @@
         "test:coverage": "bun test --coverage"
     },
     "dependencies": {
-        "@alle/shared": "workspace:*",
+        "@erledigen/shared": "workspace:*",
         "@asteasolutions/zod-to-openapi": "^8.5.0",
         "@types/bun": "latest",
         "js-yaml": "^4.1.1",

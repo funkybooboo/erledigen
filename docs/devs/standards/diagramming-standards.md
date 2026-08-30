@@ -66,7 +66,7 @@ graph TB
     User[User<br/>End User]
     Admin[Admin<br/>System Administrator]
 
-    System[Alle Task Manager<br/>Web Application]
+    System[Erledigen Task Manager<br/>Web Application]
 
     DB[(SQLite<br/>Database)]
     Email[SendGrid<br/>Email Service]
@@ -115,7 +115,7 @@ graph TB
 graph TB
     User[User]
 
-    subgraph "Alle System"
+    subgraph "Erledigen System"
         Client[Client Application<br/>SvelteKit<br/>Port 3000]
         API[API Server<br/>Bun HTTP Server<br/>Port 4000]
         DB[(Database<br/>SQLite)]

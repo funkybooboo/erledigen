@@ -1,4 +1,4 @@
-import type { WsServerMessage } from '@alle/shared';
+import type { WsServerMessage } from '@erledigen/shared';
 import type { ConnectionManager } from './ConnectionManager';
 import type { WebSocketServer } from './WebSocketServer';
 

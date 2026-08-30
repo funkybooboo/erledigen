@@ -1,11 +1,11 @@
-import type { HttpClient } from '@alle/shared';
+import type { HttpClient } from '@erledigen/shared';
 import {
     API_ROUTES,
     type ApiResponse,
     type CreateTaskInput,
     type Task,
     type UpdateTaskInput,
-} from '@alle/shared';
+} from '@erledigen/shared';
 
 export class TaskService {
     constructor(private http: HttpClient) {}

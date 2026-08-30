@@ -1,11 +1,11 @@
-import type { HttpClient } from '@alle/shared';
+import type { HttpClient } from '@erledigen/shared';
 import {
     API_ROUTES,
     type ApiResponse,
     type CreateProjectInput,
     type Project,
     type UpdateProjectInput,
-} from '@alle/shared';
+} from '@erledigen/shared';
 
 export class ProjectService {
     constructor(private http: HttpClient) {}

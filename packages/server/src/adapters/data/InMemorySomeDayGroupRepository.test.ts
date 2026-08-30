@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { NativeDateProvider } from '@alle/shared';
+import { NativeDateProvider } from '@erledigen/shared';
 import { InMemorySomeDayGroupRepository } from './InMemorySomeDayGroupRepository';
 
 function makeRepo() {

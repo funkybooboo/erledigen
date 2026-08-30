@@ -624,7 +624,7 @@ interface PaymentService {
 
 ---
 
-## Alle's Future Implementation
+## Erledigen's Future Implementation
 
 Apply this pattern to:
 

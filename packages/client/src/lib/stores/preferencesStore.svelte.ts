@@ -5,13 +5,13 @@ import type {
     ThemeType,
     TimeFormatType,
     UserPreferences,
-} from '@alle/shared';
+} from '@erledigen/shared';
 import {
     DEFAULT_TAG_KIND_MAP,
     DEFAULT_TAG_KINDS,
     isValidTimeZone,
     USER_PREFERENCES_DEFAULTS,
-} from '@alle/shared';
+} from '@erledigen/shared';
 import { container } from '$lib/container';
 import { PreferencesService } from '$lib/services/preferencesService';
 

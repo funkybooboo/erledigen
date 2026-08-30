@@ -54,7 +54,7 @@ Each migration file is a plain SQL file. No up/down split — migrations are **f
 
 ```sql
 -- 001_initial_schema.sql
--- Creates the initial database schema for Alle
+-- Creates the initial database schema for Erledigen
 
 CREATE TABLE tasks (
     id TEXT PRIMARY KEY,
@@ -152,7 +152,7 @@ Migrations never have a "down" direction. Reasoning:
 
 1. **Production databases only go forward.** In practice, you never roll back a production schema. If something breaks, you write a new migration that fixes it.
 
-2. **Development databases are disposable.** During development, `rm data/alle.db` and re-run all migrations. This is fast (SQLite creates from scratch in milliseconds).
+2. **Development databases are disposable.** During development, `rm data/erledigen.db` and re-run all migrations. This is fast (SQLite creates from scratch in milliseconds).
 
 3. **Simpler mental model.** No "what does down look like?" decisions. Each migration is one directional change.
 
@@ -195,7 +195,7 @@ touch packages/server/src/adapters/data/migrations/004_add_column_x.sql
 vim packages/server/src/adapters/data/migrations/004_add_column_x.sql
 
 # Test: delete the dev database and restart the server
-rm data/alle.db
+rm data/erledigen.db
 bun run dev   # migrations run automatically
 
 # Or: run contract tests that exercise both in-memory and sqlite repos
@@ -249,6 +249,6 @@ When PostgreSQL is added (v2.3.0):
 
 ### Mitigations
 - Contract tests catch most mistakes
-- `rm data/alle.db` during development is instant — no need for rollback
+- `rm data/erledigen.db` during development is instant — no need for rollback
 - Fix-forward is industry best practice (Facebook, Instagram, GitHub all use it)
 - PostgreSQL migration files will share structure with SQLite files — many will differ only in syntax (`INTEGER` vs `BOOLEAN`, `TEXT` vs `JSONB`, etc.)

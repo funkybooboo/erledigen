@@ -2,7 +2,7 @@
     import TaskRow from './TaskRow.svelte';
     import InlineAddTask from './InlineAddTask.svelte';
     import SectionHeader from './SectionHeader.svelte';
-    import type { Task } from '@alle/shared';
+    import type { Task } from '@erledigen/shared';
     import { container } from '$lib/container';
     import { preferencesStore } from '$lib/stores';
 

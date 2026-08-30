@@ -1,11 +1,11 @@
-import type { HttpClient } from '@alle/shared';
+import type { HttpClient } from '@erledigen/shared';
 import {
     API_ROUTES,
     type ApiResponse,
     type CreateSomeDayGroupInput,
     type SomeDayGroup,
     type UpdateSomeDayGroupInput,
-} from '@alle/shared';
+} from '@erledigen/shared';
 
 export class SomeDayGroupService {
     constructor(private http: HttpClient) {}

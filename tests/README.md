@@ -1,6 +1,6 @@
 # Tests
 
-Alle has three layers of automated tests:
+Erledigen has three layers of automated tests:
 
 ## 1. Unit tests (`bun run test:unit`)
 

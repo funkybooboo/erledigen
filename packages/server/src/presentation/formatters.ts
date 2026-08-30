@@ -2,7 +2,13 @@
  * Plain-text formatters for content negotiation (Accept: text/plain) responses.
  */
 
-import type { Project, RecurringTask, SomeDayGroup, Task, UserPreferences } from '@alle/shared';
+import type {
+    Project,
+    RecurringTask,
+    SomeDayGroup,
+    Task,
+    UserPreferences,
+} from '@erledigen/shared';
 
 export function formatTasksAsText(tasks: Task[]): string {
     if (tasks.length === 0) return 'No tasks found.';

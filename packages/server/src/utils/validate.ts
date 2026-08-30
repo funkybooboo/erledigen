@@ -5,7 +5,7 @@
  * that throws ValidationError on failure.
  */
 
-import { ValidationError } from '@alle/shared';
+import { ValidationError } from '@erledigen/shared';
 import type { ZodSchema } from 'zod';
 
 /**

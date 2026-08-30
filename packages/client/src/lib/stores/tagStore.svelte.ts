@@ -1,5 +1,5 @@
-import type { TagKind, WsServerMessage } from '@alle/shared';
-import { resolveTagKind } from '@alle/shared';
+import type { TagKind, WsServerMessage } from '@erledigen/shared';
+import { resolveTagKind } from '@erledigen/shared';
 import { container } from '$lib/container';
 import { type TagInfo, TagService } from '$lib/services/tagService';
 import { websocketService } from '$lib/services/websocketService';

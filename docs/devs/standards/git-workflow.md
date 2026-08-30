@@ -1,6 +1,6 @@
 # Git Workflow
 
-This document defines the Git workflow, branching strategy, commit standards, and best practices for the Alle project. These standards are **MANDATORY** and **ENFORCED** through Git hooks and code reviews.
+This document defines the Git workflow, branching strategy, commit standards, and best practices for the Erledigen project. These standards are **MANDATORY** and **ENFORCED** through Git hooks and code reviews.
 
 ## Philosophy
 

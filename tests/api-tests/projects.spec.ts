@@ -7,12 +7,12 @@ test.afterEach(async ({ request }) => {
 
 test.describe('projects — create (POST /api/projects)', () => {
     test('creates a project with auto-generated tag', async ({ request }) => {
-        const res = await post(request, '/api/projects', { name: 'Build ALLe' });
+        const res = await post(request, '/api/projects', { name: 'Build Erledigen' });
         expect(res.status).toBe(201);
         const p = res.body.data;
         expect(p.id).toBeTruthy();
-        expect(p.name).toBe('Build ALLe');
-        expect(p.tag).toBe('project:build-alle');
+        expect(p.name).toBe('Build Erledigen');
+        expect(p.tag).toBe('project:build-erledigen');
         expect(p.isActive).toBe(true);
         expect(p.description).toBeNull();
         expect(p.completedAt).toBeNull();

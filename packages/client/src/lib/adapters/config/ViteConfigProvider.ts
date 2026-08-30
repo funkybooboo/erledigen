@@ -9,7 +9,7 @@
  * Works identically in SvelteKit since it is Vite-based.
  */
 
-import { ConfigError, type ConfigProvider } from '@alle/shared';
+import { ConfigError, type ConfigProvider } from '@erledigen/shared';
 
 /**
  * Configuration provider that reads from import.meta.env (Vite)

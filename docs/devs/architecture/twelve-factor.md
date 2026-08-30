@@ -1,6 +1,6 @@
 # Twelve-Factor App
 
-This document explains how the Alle project implements the [Twelve-Factor App](https://12factor.net/) methodology for building modern, scalable, cloud-native applications.
+This document explains how the Erledigen project implements the [Twelve-Factor App](https://12factor.net/) methodology for building modern, scalable, cloud-native applications.
 
 ## Philosophy
 
@@ -18,11 +18,11 @@ The Twelve-Factor App is a methodology for building software-as-a-service apps t
 
 **PRINCIPLE**: One codebase tracked in version control, many deploys.
 
-### Alle Implementation
+### Erledigen Implementation
 
 ✅ **We have**: Single Git repository with all code
 ```
-alle/
+erledigen/
 ├── packages/client/    # SvelteKit frontend
 ├── packages/server/    # Bun API
 └── packages/shared/    # Shared types
@@ -30,8 +30,8 @@ alle/
 
 ✅ **Multiple deploys** from same codebase:
 - Development (`localhost:3000`, `localhost:4000`)
-- Staging (`https://staging.alle.app`)
-- Production (`https://alle.app`)
+- Staging (`https://staging.erledigen.app`)
+- Production (`https://erledigen.app`)
 
 ❌ **We NEVER**:
 - Maintain separate codebases for different environments
@@ -44,7 +44,7 @@ alle/
 
 **PRINCIPLE**: Explicitly declare and isolate dependencies.
 
-### Alle Implementation
+### Erledigen Implementation
 
 ✅ **Explicit declaration** in `package.json`:
 ```json
@@ -84,13 +84,13 @@ bun.lockb
 
 **PRINCIPLE**: Store config in environment variables.
 
-### Alle Implementation
+### Erledigen Implementation
 
 ✅ **Environment variables** for all config:
 ```bash
 # .env.example
 PORT=4000
-DATABASE_URL=file:./alle.db
+DATABASE_URL=file:./erledigen.db
 CORS_ORIGIN=http://localhost:3000
 LOG_LEVEL=info
 ```
@@ -130,7 +130,7 @@ export class EnvConfigProvider implements ConfigProvider {
 
 **PRINCIPLE**: Treat backing services as attached resources.
 
-### Alle Implementation
+### Erledigen Implementation
 
 ✅ **Services as resources**:
 - SQLite database (bun:sqlite)
@@ -167,7 +167,7 @@ class SQLiteTaskRepository implements TaskRepository
 
 **PRINCIPLE**: Strictly separate build, release, and run stages.
 
-### Alle Implementation
+### Erledigen Implementation
 
 ✅ **Build stage** (transform code into bundle):
 ```bash
@@ -180,7 +180,7 @@ bun run build
 ✅ **Release stage** (build + config = release):
 ```bash
 # Combine build artifact with environment config
-docker build -t alle:v1.2.3 .
+docker build -t erledigen:v1.2.3 .
 
 # Tag with release version
 git tag v1.2.3
@@ -189,7 +189,7 @@ git tag v1.2.3
 ✅ **Run stage** (execute release):
 ```bash
 # Run specific release in environment
-docker run -e NODE_ENV=production alle:v1.2.3
+docker run -e NODE_ENV=production erledigen:v1.2.3
 ```
 
 ✅ **Unique release IDs**:
@@ -208,7 +208,7 @@ docker run -e NODE_ENV=production alle:v1.2.3
 
 **PRINCIPLE**: Execute the app as one or more stateless processes.
 
-### Alle Implementation
+### Erledigen Implementation
 
 ✅ **Stateless processes**:
 - No in-memory session storage
@@ -245,7 +245,7 @@ class TaskService {
 
 **PRINCIPLE**: Export services via port binding.
 
-### Alle Implementation
+### Erledigen Implementation
 
 ✅ **Self-contained HTTP server**:
 ```typescript
@@ -283,7 +283,7 @@ PORT=8080 bun run server
 
 **PRINCIPLE**: Scale out via the process model.
 
-### Alle Implementation
+### Erledigen Implementation
 
 ✅ **Horizontal scaling**:
 ```bash
@@ -316,7 +316,7 @@ bun run server  # Process 3 on port 4002
 
 **PRINCIPLE**: Maximize robustness with fast startup and graceful shutdown.
 
-### Alle Implementation
+### Erledigen Implementation
 
 ✅ **Fast startup** (< 3 seconds):
 ```typescript
@@ -369,7 +369,7 @@ async function createTask(input: CreateTaskInput): Promise<Task> {
 
 **PRINCIPLE**: Keep development, staging, and production as similar as possible.
 
-### Alle Implementation
+### Erledigen Implementation
 
 ✅ **Same backing services**:
 - Development: SQLite (`:memory:` for tests, file for dev)
@@ -382,11 +382,11 @@ async function createTask(input: CreateTaskInput): Promise<Task> {
 ✅ **Same deployment**:
 ```bash
 # Same Docker image for all environments
-docker build -t alle:latest .
+docker build -t erledigen:latest .
 
 # Different config only
-docker run -e NODE_ENV=development alle:latest
-docker run -e NODE_ENV=production alle:latest
+docker run -e NODE_ENV=development erledigen:latest
+docker run -e NODE_ENV=production erledigen:latest
 ```
 
 ✅ **Continuous deployment**:
@@ -405,7 +405,7 @@ docker run -e NODE_ENV=production alle:latest
 
 **PRINCIPLE**: Treat logs as event streams.
 
-### Alle Implementation
+### Erledigen Implementation
 
 ✅ **Write to stdout/stderr**:
 ```typescript
@@ -450,7 +450,7 @@ logger.info('Task created', {
 
 **PRINCIPLE**: Run admin/management tasks as one-off processes.
 
-### Alle Implementation
+### Erledigen Implementation
 
 ✅ **One-off tasks** in same environment:
 ```bash
@@ -489,7 +489,7 @@ gcloud run jobs execute migrate \
 
 ## Compliance Checklist
 
-Alle project compliance with 12-factor methodology:
+Erledigen project compliance with 12-factor methodology:
 
 - [x] **I. Codebase** — Single Git repo, multiple deploys
 - [x] **II. Dependencies** — Declared in package.json, isolated with bun.lockb
@@ -508,7 +508,7 @@ Alle project compliance with 12-factor methodology:
 
 ## Benefits Achieved
 
-By following 12-factor principles, Alle achieves:
+By following 12-factor principles, Erledigen achieves:
 
 - **Portability**: Runs on any cloud platform (GCP, AWS, Azure)
 - **Scalability**: Add instances without code changes

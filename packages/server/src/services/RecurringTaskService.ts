@@ -1,5 +1,5 @@
-import type { CreateTaskInput, Task } from '@alle/shared';
-import { NotFoundError } from '@alle/shared';
+import type { CreateTaskInput, Task } from '@erledigen/shared';
+import { NotFoundError } from '@erledigen/shared';
 import type { RecurringTaskRepository } from '../adapters/data/RecurringTaskRepository';
 import type { TaskRepository } from '../adapters/data/TaskRepository';
 import { generateOccurrences } from '../utils/recurringTaskUtils';

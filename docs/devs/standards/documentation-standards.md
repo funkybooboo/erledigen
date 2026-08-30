@@ -1,6 +1,6 @@
 # Documentation Standards
 
-This document defines the documentation writing guidelines, structure, and best practices for the Alle project. These standards are **MANDATORY** for all project documentation.
+This document defines the documentation writing guidelines, structure, and best practices for the Erledigen project. These standards are **MANDATORY** for all project documentation.
 
 ## Philosophy
 
@@ -68,7 +68,7 @@ Our documentation approach prioritizes:
 **RULE**: Documentation MUST be organized in this directory structure:
 
 ```
-alle/
+erledigen/
 ├── docs/
 │   ├── README.md              # Documentation index
 │   ├── devs/                  # Developer documentation

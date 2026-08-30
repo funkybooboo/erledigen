@@ -2,13 +2,13 @@
  * Project API routes
  */
 
-import type { Logger } from '@alle/shared';
+import type { Logger } from '@erledigen/shared';
 import {
     API_ROUTES,
     BadRequestError,
     type CreateProjectInput,
     type UpdateProjectInput,
-} from '@alle/shared';
+} from '@erledigen/shared';
 import type { ProjectRepository } from '../adapters/data/ProjectRepository';
 import type { HttpServer } from '../adapters/http/HttpServer';
 import {

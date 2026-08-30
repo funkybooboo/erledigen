@@ -1,6 +1,6 @@
 # Packages
 
-This directory contains the source code for the Alle application, which is organized into a monorepo with the following packages:
+This directory contains the source code for the Erledigen application, which is organized into a monorepo with the following packages:
 
 *   [`client`](./client) — The SvelteKit frontend.
 *   [`server`](./server) — The Bun API server.

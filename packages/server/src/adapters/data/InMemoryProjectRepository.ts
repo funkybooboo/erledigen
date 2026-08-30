@@ -1,5 +1,10 @@
-import type { CreateProjectInput, DateProvider, Project, UpdateProjectInput } from '@alle/shared';
-import { slugify } from '@alle/shared';
+import type {
+    CreateProjectInput,
+    DateProvider,
+    Project,
+    UpdateProjectInput,
+} from '@erledigen/shared';
+import { slugify } from '@erledigen/shared';
 import type { ProjectRepository } from './ProjectRepository';
 
 export class InMemoryProjectRepository implements ProjectRepository {

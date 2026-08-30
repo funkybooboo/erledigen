@@ -27,10 +27,10 @@ function buildSpec() {
     cachedSpec = generator.generateDocument({
         openapi: '3.1.0',
         info: {
-            title: 'Alle Task API',
+            title: 'Erledigen Task API',
             version: '0.3.0',
             description:
-                'REST API for the Alle task manager. Designed to be curl-friendly:\n' +
+                'REST API for the Erledigen task manager. Designed to be curl-friendly:\n' +
                 'requests without `Accept: application/json` return plain-text responses\n' +
                 'on list endpoints.',
         },

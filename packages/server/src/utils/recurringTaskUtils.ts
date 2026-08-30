@@ -5,7 +5,7 @@
  * No I/O — fully unit testable.
  */
 
-import type { RecurringTask } from '@alle/shared';
+import type { RecurringTask } from '@erledigen/shared';
 
 /**
  * Generate occurrence dates for a recurring task within a date range (inclusive).
