@@ -1,5 +1,5 @@
 import type { TagKind, WsServerMessage } from '@erledigen/shared';
-import { resolveTagKind } from '@erledigen/shared';
+import { getTagsByKind } from '@erledigen/shared';
 import { container } from '$lib/container';
 import { type TagInfo, TagService } from '$lib/services/tagService';
 import { websocketService } from '$lib/services/websocketService';
@@ -12,10 +12,7 @@ class TagStore {
     #messageUnsubscribe: (() => void) | null = null;
 
     initWebSocket(): void {
-        this.#messageUnsubscribe = websocketService.onMessage((message: WsServerMessage) => {
-            const myClientId = websocketService.getClientId();
-            if (message.originClientId === myClientId) return;
-
+        this.#messageUnsubscribe = websocketService.onServerMessage((message: WsServerMessage) => {
             switch (message.type) {
                 case 'tag:renamed':
                 case 'tag:merged':
@@ -71,16 +68,7 @@ class TagStore {
         kinds: TagKind[],
         kindMap: Record<string, string>,
     ): Map<TagKind | null, string[]> {
-        const result = new Map<TagKind | null, string[]>();
-
-        for (const tag of this.tags) {
-            const kind = resolveTagKind(tag, kinds, kindMap);
-            const existing = result.get(kind) ?? [];
-            existing.push(tag);
-            result.set(kind, existing);
-        }
-
-        return result;
+        return getTagsByKind(this.tags, kinds, kindMap);
     }
 }
 

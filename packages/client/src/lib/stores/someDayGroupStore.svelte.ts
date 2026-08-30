@@ -5,53 +5,29 @@ import type {
 } from '@erledigen/shared';
 import { container } from '$lib/container';
 import { SomeDayGroupService } from '$lib/services/someDayGroupService';
+import { EntityStore } from './entityStore.svelte';
 
 const someDayGroupService = new SomeDayGroupService(container.httpClient);
 
-class SomeDayGroupStore {
-    groups = $state<SomeDayGroup[]>([]);
-
-    get sortedGroups() {
-        return [...this.groups].sort((a, b) => a.position - b.position);
+class SomeDayGroupStore extends EntityStore<
+    SomeDayGroup,
+    CreateSomeDayGroupInput,
+    UpdateSomeDayGroupInput
+> {
+    constructor() {
+        super(someDayGroupService);
     }
 
-    async fetchAll() {
-        try {
-            const groups = await someDayGroupService.getAll();
-            this.groups = groups.sort((a, b) => a.position - b.position);
-        } catch {
-            // Keep empty state
-        }
+    get groups(): SomeDayGroup[] {
+        return this.items;
     }
 
-    async create(input: CreateSomeDayGroupInput) {
-        try {
-            const group = await someDayGroupService.create(input);
-            this.groups = [...this.groups, group].sort((a, b) => a.position - b.position);
-            return group;
-        } catch {
-            return null;
-        }
+    get sortedGroups(): SomeDayGroup[] {
+        return [...this.items].sort((a, b) => a.position - b.position);
     }
 
-    async update(id: string, input: UpdateSomeDayGroupInput) {
-        try {
-            const updated = await someDayGroupService.update(id, input);
-            this.groups = this.groups.map(g => (g.id === id ? updated : g));
-            return updated;
-        } catch {
-            return null;
-        }
-    }
-
-    async remove(id: string) {
-        try {
-            await someDayGroupService.delete(id);
-            this.groups = this.groups.filter(g => g.id !== id);
-            return true;
-        } catch {
-            return false;
-        }
+    protected sort(items: SomeDayGroup[]): SomeDayGroup[] {
+        return items.sort((a, b) => a.position - b.position);
     }
 }
 

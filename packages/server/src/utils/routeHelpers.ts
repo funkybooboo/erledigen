@@ -5,10 +5,16 @@
  * so every route file doesn't need its own copy.
  */
 
-import { type ApiResponse, CONTENT_TYPE_TEXT, type Logger } from '@erledigen/shared';
+import {
+    type ApiResponse,
+    BadRequestError,
+    CONTENT_TYPE_TEXT,
+    type Logger,
+} from '@erledigen/shared';
 import type { HttpRequest, HttpResponse } from '../adapters/http/types';
 import { negotiate } from './contentNegotiation';
 import { errorToResponse } from './errorHandler';
+import { extractPathParam } from './pathUtils';
 
 export type RouteHandlerFn = (req: HttpRequest) => Promise<HttpResponse>;
 
@@ -32,6 +38,17 @@ export function withErrorHandling(handler: RouteHandlerFn, logger: Logger): Rout
 export function successResponse<T>(data: T, status = 200): HttpResponse {
     const response: ApiResponse<T> = { data };
     return { status, headers: {}, body: response };
+}
+
+/**
+ * Extract a required path parameter, throwing BadRequestError if it is
+ * missing (i.e. the URL did not match the route pattern). `label` is used
+ * in the error message (e.g. 'project' -> 'Invalid project ID').
+ */
+export function requirePathParam(req: HttpRequest, pattern: string, label: string): string {
+    const value = extractPathParam(req.url, pattern);
+    if (!value) throw new BadRequestError(`Invalid ${label} ID`);
+    return value;
 }
 
 export function respondNegotiated<T>(

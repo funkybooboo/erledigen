@@ -3,12 +3,7 @@
  */
 
 import type { Logger } from '@erledigen/shared';
-import {
-    API_ROUTES,
-    BadRequestError,
-    type CreateTaskInput,
-    type UpdateTaskInput,
-} from '@erledigen/shared';
+import { API_ROUTES, type CreateTaskInput, type UpdateTaskInput } from '@erledigen/shared';
 import type { TaskRepository } from '../adapters/data/TaskRepository';
 import type { HttpServer } from '../adapters/http/HttpServer';
 import { CreateTaskSchema, TaskQuerySchema, UpdateTaskSchema } from '../openapi/schemas/task';
@@ -16,8 +11,12 @@ import { formatTasksAsText } from '../presentation/formatters';
 import type { EventBus } from '../services/EventBus';
 import type { TaskService } from '../services/TaskService';
 import { notFoundError } from '../utils/errorHandler';
-import { extractPathParam } from '../utils/pathUtils';
-import { respondNegotiated, successResponse, withErrorHandling } from '../utils/routeHelpers';
+import {
+    requirePathParam,
+    respondNegotiated,
+    successResponse,
+    withErrorHandling,
+} from '../utils/routeHelpers';
 import { parseBody, parseQuery } from '../utils/validate';
 
 export function registerTaskRoutes(
@@ -77,8 +76,7 @@ export function registerTaskRoutes(
         'POST',
         API_ROUTES.TASK_RESTORE_PATTERN,
         withErrorHandling(async req => {
-            const id = extractPathParam(req.url, API_ROUTES.TASK_RESTORE_PATTERN);
-            if (!id) throw new BadRequestError('Invalid task ID');
+            const id = requirePathParam(req, API_ROUTES.TASK_RESTORE_PATTERN, 'task');
             const originClientId = req.headers['x-client-id'];
             const task = await taskRepo.restore(id);
             if (!task) throw notFoundError('Task', id);
@@ -92,8 +90,7 @@ export function registerTaskRoutes(
         'GET',
         API_ROUTES.TASK_ROUTE_PATTERN,
         withErrorHandling(async req => {
-            const id = extractPathParam(req.url, API_ROUTES.TASK_ROUTE_PATTERN);
-            if (!id) throw new BadRequestError('Invalid task ID');
+            const id = requirePathParam(req, API_ROUTES.TASK_ROUTE_PATTERN, 'task');
             const task = await taskRepo.findById(id);
             if (!task) throw notFoundError('Task', id);
             return successResponse(task);
@@ -105,8 +102,7 @@ export function registerTaskRoutes(
         'PUT',
         API_ROUTES.TASK_ROUTE_PATTERN,
         withErrorHandling(async req => {
-            const id = extractPathParam(req.url, API_ROUTES.TASK_ROUTE_PATTERN);
-            if (!id) throw new BadRequestError('Invalid task ID');
+            const id = requirePathParam(req, API_ROUTES.TASK_ROUTE_PATTERN, 'task');
             const originClientId = req.headers['x-client-id'];
             const raw = await req.json<unknown>();
             const input = parseBody(UpdateTaskSchema, raw) as unknown as UpdateTaskInput;
@@ -122,8 +118,7 @@ export function registerTaskRoutes(
         'DELETE',
         API_ROUTES.TASK_ROUTE_PATTERN,
         withErrorHandling(async req => {
-            const id = extractPathParam(req.url, API_ROUTES.TASK_ROUTE_PATTERN);
-            if (!id) throw new BadRequestError('Invalid task ID');
+            const id = requirePathParam(req, API_ROUTES.TASK_ROUTE_PATTERN, 'task');
             const originClientId = req.headers['x-client-id'];
             const deleted = await taskRepo.delete(id);
             if (!deleted) throw notFoundError('Task', id);

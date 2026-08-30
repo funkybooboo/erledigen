@@ -5,7 +5,6 @@
 import type { Logger } from '@erledigen/shared';
 import {
     API_ROUTES,
-    BadRequestError,
     type CreateSomeDayGroupInput,
     type UpdateSomeDayGroupInput,
 } from '@erledigen/shared';
@@ -18,8 +17,12 @@ import {
 import { formatGroupsAsText } from '../presentation/formatters';
 import type { EventBus } from '../services/EventBus';
 import { notFoundError } from '../utils/errorHandler';
-import { extractPathParam } from '../utils/pathUtils';
-import { respondNegotiated, successResponse, withErrorHandling } from '../utils/routeHelpers';
+import {
+    requirePathParam,
+    respondNegotiated,
+    successResponse,
+    withErrorHandling,
+} from '../utils/routeHelpers';
 import { parseBody } from '../utils/validate';
 
 export function registerSomeDayGroupRoutes(
@@ -60,8 +63,7 @@ export function registerSomeDayGroupRoutes(
         'GET',
         API_ROUTES.SOMEDAY_GROUP_ROUTE_PATTERN,
         withErrorHandling(async req => {
-            const id = extractPathParam(req.url, API_ROUTES.SOMEDAY_GROUP_ROUTE_PATTERN);
-            if (!id) throw new BadRequestError('Invalid group ID');
+            const id = requirePathParam(req, API_ROUTES.SOMEDAY_GROUP_ROUTE_PATTERN, 'group');
             const group = await someDayGroupRepo.findById(id);
             if (!group) throw notFoundError('SomeDayGroup', id);
             return successResponse(group);
@@ -73,8 +75,7 @@ export function registerSomeDayGroupRoutes(
         'PUT',
         API_ROUTES.SOMEDAY_GROUP_ROUTE_PATTERN,
         withErrorHandling(async req => {
-            const id = extractPathParam(req.url, API_ROUTES.SOMEDAY_GROUP_ROUTE_PATTERN);
-            if (!id) throw new BadRequestError('Invalid group ID');
+            const id = requirePathParam(req, API_ROUTES.SOMEDAY_GROUP_ROUTE_PATTERN, 'group');
             const originClientId = req.headers['x-client-id'];
             const raw = await req.json<unknown>();
             const input = parseBody(
@@ -93,8 +94,7 @@ export function registerSomeDayGroupRoutes(
         'DELETE',
         API_ROUTES.SOMEDAY_GROUP_ROUTE_PATTERN,
         withErrorHandling(async req => {
-            const id = extractPathParam(req.url, API_ROUTES.SOMEDAY_GROUP_ROUTE_PATTERN);
-            if (!id) throw new BadRequestError('Invalid group ID');
+            const id = requirePathParam(req, API_ROUTES.SOMEDAY_GROUP_ROUTE_PATTERN, 'group');
             const originClientId = req.headers['x-client-id'];
             const deleted = await someDayGroupRepo.delete(id);
             if (!deleted) throw notFoundError('SomeDayGroup', id);

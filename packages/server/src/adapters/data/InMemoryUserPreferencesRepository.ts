@@ -1,33 +1,20 @@
-import type {
-    ActiveFilters,
-    DateProvider,
-    UpdateUserPreferencesInput,
-    UserPreferences,
-} from '@erledigen/shared';
-import { DEFAULT_TAG_KIND_MAP, DEFAULT_TAG_KINDS } from '@erledigen/shared';
+import type { DateProvider, UpdateUserPreferencesInput, UserPreferences } from '@erledigen/shared';
+import { USER_PREFERENCES_DEFAULTS } from '@erledigen/shared';
 import type { UserPreferencesRepository } from './UserPreferencesRepository';
 
-const DEFAULT_ACTIVE_FILTERS: ActiveFilters = {
-    tags: [],
-    showCompleted: true,
-};
-
+/**
+ * Build a fresh, deeply-copied defaults object. Spreads the shared
+ * `USER_PREFERENCES_DEFAULTS` table (single source of truth) and clones the
+ * nested mutable fields so callers can mutate freely without touching the
+ * shared constant. `id`/`updatedAt` are not part of the defaults table.
+ */
 function defaultPreferences(timestamp: string): UserPreferences {
     return {
+        ...USER_PREFERENCES_DEFAULTS,
         id: 'default',
-        theme: 'system',
-        locale: 'en',
-        someDayPanelWidth: 280,
-        someDayPanelCollapsed: false,
-        someDayPanelLastOpenWidth: 280,
-        rolloverEnabled: true,
-        showEmptyDays: true,
-        deleteConfirmation: 'instant',
-        activeFilters: { ...DEFAULT_ACTIVE_FILTERS },
-        tagKinds: [...DEFAULT_TAG_KINDS],
-        tagKindMap: { ...DEFAULT_TAG_KIND_MAP },
-        timeFormat: '12h',
-        timezone: null,
+        activeFilters: { ...USER_PREFERENCES_DEFAULTS.activeFilters },
+        tagKinds: [...USER_PREFERENCES_DEFAULTS.tagKinds],
+        tagKindMap: { ...USER_PREFERENCES_DEFAULTS.tagKindMap },
         updatedAt: timestamp,
     };
 }

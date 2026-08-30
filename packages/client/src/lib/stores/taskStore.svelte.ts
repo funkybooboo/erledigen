@@ -25,10 +25,7 @@ class TaskStore {
     }
 
     initWebSocket(): void {
-        this.#messageUnsubscribe = websocketService.onMessage((message: WsServerMessage) => {
-            const myClientId = websocketService.getClientId();
-            if (message.originClientId === myClientId) return;
-
+        this.#messageUnsubscribe = websocketService.onServerMessage((message: WsServerMessage) => {
             switch (message.type) {
                 case 'task:created':
                     if (message.payload.task) {

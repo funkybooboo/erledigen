@@ -3,12 +3,7 @@
  */
 
 import type { Logger } from '@erledigen/shared';
-import {
-    API_ROUTES,
-    BadRequestError,
-    type CreateProjectInput,
-    type UpdateProjectInput,
-} from '@erledigen/shared';
+import { API_ROUTES, type CreateProjectInput, type UpdateProjectInput } from '@erledigen/shared';
 import type { ProjectRepository } from '../adapters/data/ProjectRepository';
 import type { HttpServer } from '../adapters/http/HttpServer';
 import {
@@ -20,8 +15,12 @@ import { formatProjectsAsText } from '../presentation/formatters';
 import type { EventBus } from '../services/EventBus';
 import type { ProjectService } from '../services/ProjectService';
 import { notFoundError } from '../utils/errorHandler';
-import { extractPathParam } from '../utils/pathUtils';
-import { respondNegotiated, successResponse, withErrorHandling } from '../utils/routeHelpers';
+import {
+    requirePathParam,
+    respondNegotiated,
+    successResponse,
+    withErrorHandling,
+} from '../utils/routeHelpers';
 import { parseBody, parseQuery } from '../utils/validate';
 
 export function registerProjectRoutes(
@@ -61,8 +60,7 @@ export function registerProjectRoutes(
         'GET',
         API_ROUTES.PROJECT_ROUTE_PATTERN,
         withErrorHandling(async req => {
-            const id = extractPathParam(req.url, API_ROUTES.PROJECT_ROUTE_PATTERN);
-            if (!id) throw new BadRequestError('Invalid project ID');
+            const id = requirePathParam(req, API_ROUTES.PROJECT_ROUTE_PATTERN, 'project');
             const project = await projectRepo.findById(id);
             if (!project) throw notFoundError('Project', id);
             return successResponse(project);
@@ -74,8 +72,7 @@ export function registerProjectRoutes(
         'PUT',
         API_ROUTES.PROJECT_ROUTE_PATTERN,
         withErrorHandling(async req => {
-            const id = extractPathParam(req.url, API_ROUTES.PROJECT_ROUTE_PATTERN);
-            if (!id) throw new BadRequestError('Invalid project ID');
+            const id = requirePathParam(req, API_ROUTES.PROJECT_ROUTE_PATTERN, 'project');
             const originClientId = req.headers['x-client-id'];
             const raw = await req.json<unknown>();
             const input = parseBody(UpdateProjectSchema, raw) as unknown as UpdateProjectInput;
@@ -91,8 +88,7 @@ export function registerProjectRoutes(
         'POST',
         API_ROUTES.PROJECT_ACTIVATE_PATTERN,
         withErrorHandling(async req => {
-            const id = extractPathParam(req.url, API_ROUTES.PROJECT_ACTIVATE_PATTERN);
-            if (!id) throw new BadRequestError('Invalid project ID');
+            const id = requirePathParam(req, API_ROUTES.PROJECT_ACTIVATE_PATTERN, 'project');
             const originClientId = req.headers['x-client-id'];
             const project = await projectRepo.update(id, { isActive: true });
             if (!project) throw notFoundError('Project', id);
@@ -106,8 +102,7 @@ export function registerProjectRoutes(
         'POST',
         API_ROUTES.PROJECT_DEACTIVATE_PATTERN,
         withErrorHandling(async req => {
-            const id = extractPathParam(req.url, API_ROUTES.PROJECT_DEACTIVATE_PATTERN);
-            if (!id) throw new BadRequestError('Invalid project ID');
+            const id = requirePathParam(req, API_ROUTES.PROJECT_DEACTIVATE_PATTERN, 'project');
             const originClientId = req.headers['x-client-id'];
             const project = await projectRepo.update(id, { isActive: false });
             if (!project) throw notFoundError('Project', id);
@@ -121,8 +116,7 @@ export function registerProjectRoutes(
         'DELETE',
         API_ROUTES.PROJECT_ROUTE_PATTERN,
         withErrorHandling(async req => {
-            const id = extractPathParam(req.url, API_ROUTES.PROJECT_ROUTE_PATTERN);
-            if (!id) throw new BadRequestError('Invalid project ID');
+            const id = requirePathParam(req, API_ROUTES.PROJECT_ROUTE_PATTERN, 'project');
             const originClientId = req.headers['x-client-id'];
             const deleted = await projectRepo.delete(id);
             if (!deleted) throw notFoundError('Project', id);

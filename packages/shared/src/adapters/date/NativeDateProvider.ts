@@ -81,8 +81,7 @@ export class NativeDateProvider implements DateProvider {
             };
             return `${get('year')}-${get('month')}-${get('day')}`;
         }
-        const pad = (n: number): string => String(n).padStart(2, '0');
-        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+        return `${date.getFullYear()}-${this.pad(date.getMonth() + 1)}-${this.pad(date.getDate())}`;
     }
 
     /** Parse a YYYY-MM-DD key into its numeric components. */
@@ -91,16 +90,32 @@ export class NativeDateProvider implements DateProvider {
         return [parts[0] ?? 0, (parts[1] ?? 1) - 1, parts[2] ?? 1]; // month is 0-indexed
     }
 
-    /** Get the weekday (0=Sunday .. 6=Saturday) for a calendar date. Zone-independent. */
-    private weekdayOfKey(dateStr: string): number {
-        const [y, m, d] = this.splitKey(dateStr);
-        return new Date(Date.UTC(y, m, d)).getUTCDay();
+    /** Pad a number to 2 digits. */
+    private pad(n: number): string {
+        return String(n).padStart(2, '0');
     }
 
     /** Rebuild a YYYY-MM-DD key from UTC year/month/day numbers. */
     private keyFromUtcParts(y: number, m: number, d: number): string {
-        const pad = (n: number): string => String(n).padStart(2, '0');
-        return `${y}-${pad(m + 1)}-${pad(d)}`;
+        return `${y}-${this.pad(m + 1)}-${this.pad(d)}`;
+    }
+
+    /**
+     * Build a Date anchored at UTC noon for a stored date key. Used by every
+     * zone-independent formatter (formatDate, formatDateParts) so the instant's
+     * UTC calendar date equals the key and formatting with timeZone:'UTC'
+     * reproduces the key regardless of host or user zone. Noon avoids any
+     * midnight rounding edge case in exotic formatters.
+     */
+    private utcNoonFromKey(dateStr: string): Date {
+        const [y, m, d] = this.splitKey(dateStr);
+        return new Date(Date.UTC(y, m, d, 12, 0, 0));
+    }
+
+    /** Get the weekday (0=Sunday .. 6=Saturday) for a calendar date. Zone-independent. */
+    private weekdayOfKey(dateStr: string): number {
+        const [y, m, d] = this.splitKey(dateStr);
+        return new Date(Date.UTC(y, m, d)).getUTCDay();
     }
 
     /**
@@ -196,12 +211,7 @@ export class NativeDateProvider implements DateProvider {
      * @returns Formatted date string
      */
     formatDate(dateStr: string, format: 'short' | 'long' | 'full' | 'weekday' = 'short'): string {
-        const [y, m, d] = this.splitKey(dateStr);
-        // Anchor at UTC noon so the instant's UTC calendar date equals the key;
-        // formatting with timeZone:'UTC' guarantees the displayed date matches
-        // the key regardless of host or user zone. Noon avoids any edge case at
-        // midnight rounding in exotic formatters.
-        const date = new Date(Date.UTC(y, m, d, 12, 0, 0));
+        const date = this.utcNoonFromKey(dateStr);
         const opts: Intl.DateTimeFormatOptions = { timeZone: 'UTC' };
 
         switch (format) {
@@ -339,10 +349,7 @@ export class NativeDateProvider implements DateProvider {
         weekdayShort: string;
         monthShort: string;
     } {
-        const [y, m, d] = this.splitKey(dateStr);
-        // Anchor at UTC noon (matches formatDate) so weekday/month come out
-        // correct for the calendar date regardless of host or user zone.
-        const date = new Date(Date.UTC(y, m, d, 12, 0, 0));
+        const date = this.utcNoonFromKey(dateStr);
         const opts: Intl.DateTimeFormatOptions = { timeZone: 'UTC' };
         return {
             weekday: date.toLocaleDateString('en-US', { ...opts, weekday: 'long' }),

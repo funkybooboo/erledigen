@@ -7,33 +7,38 @@ import type {
 import { container } from '$lib/container';
 import { ProjectService } from '$lib/services/projectService';
 import { websocketService } from '$lib/services/websocketService';
+import { EntityStore } from './entityStore.svelte';
 
 const projectService = new ProjectService(container.httpClient);
 
-class ProjectStore {
-    projects = $state<Project[]>([]);
+class ProjectStore extends EntityStore<Project, CreateProjectInput, UpdateProjectInput> {
     #messageUnsubscribe: (() => void) | null = null;
 
-    initWebSocket(): void {
-        this.#messageUnsubscribe = websocketService.onMessage((message: WsServerMessage) => {
-            const myClientId = websocketService.getClientId();
-            if (message.originClientId === myClientId) return;
+    constructor() {
+        super(projectService);
+    }
 
+    get projects(): Project[] {
+        return this.items;
+    }
+
+    initWebSocket(): void {
+        this.#messageUnsubscribe = websocketService.onServerMessage((message: WsServerMessage) => {
             switch (message.type) {
                 case 'project:created':
                     if (message.payload.project) {
-                        this.projects = [...this.projects, message.payload.project];
+                        this.items = [...this.items, message.payload.project];
                     }
                     break;
                 case 'project:updated':
                     if (message.payload.project) {
-                        this.projects = this.projects.map(p =>
+                        this.items = this.items.map(p =>
                             p.id === message.payload.project.id ? message.payload.project : p,
                         );
                     }
                     break;
                 case 'project:deleted':
-                    this.projects = this.projects.filter(p => p.id !== message.payload.id);
+                    this.items = this.items.filter(p => p.id !== message.payload.id);
                     break;
             }
         });
@@ -42,45 +47,6 @@ class ProjectStore {
     destroyWebSocket(): void {
         this.#messageUnsubscribe?.();
         this.#messageUnsubscribe = null;
-    }
-
-    async fetchAll() {
-        try {
-            const projects = await projectService.getAll();
-            this.projects = projects;
-        } catch {
-            // Keep empty state
-        }
-    }
-
-    async create(input: CreateProjectInput) {
-        try {
-            const project = await projectService.create(input);
-            this.projects = [...this.projects, project];
-            return project;
-        } catch {
-            return null;
-        }
-    }
-
-    async update(id: string, input: UpdateProjectInput) {
-        try {
-            const updated = await projectService.update(id, input);
-            this.projects = this.projects.map(p => (p.id === id ? updated : p));
-            return updated;
-        } catch {
-            return null;
-        }
-    }
-
-    async remove(id: string) {
-        try {
-            await projectService.delete(id);
-            this.projects = this.projects.filter(p => p.id !== id);
-            return true;
-        } catch {
-            return false;
-        }
     }
 }
 

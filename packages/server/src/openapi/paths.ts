@@ -41,6 +41,20 @@ const rateLimitResponse = {
     content: { 'application/json': { schema: ErrorResponseSchema } },
 } as const;
 
+// Reusable request param / response shapes
+
+/** `{ id: string }` path param object shared by every /:id route. */
+const idParams = z.object({ id: z.string() });
+
+/** Standard `{ data: { success: true } }` body for DELETE responses. */
+const deleteSuccessResponse = (description: string) =>
+    ({
+        description,
+        content: {
+            'application/json': { schema: z.object({ data: z.object({ success: z.boolean() }) }) },
+        },
+    }) as const;
+
 // ── Health ─────────────────────────────────────────────────────────────────────
 
 registry.registerPath({
@@ -123,7 +137,7 @@ registry.registerPath({
     path: '/api/tasks/{id}',
     summary: 'Get a task by ID',
     operationId: 'getTask',
-    request: { params: z.object({ id: z.string() }) },
+    request: { params: idParams },
     responses: {
         200: taskDataResponse,
         404: notFoundResponse,
@@ -136,7 +150,7 @@ registry.registerPath({
     summary: 'Update a task',
     operationId: 'updateTask',
     request: {
-        params: z.object({ id: z.string() }),
+        params: idParams,
         body: { required: true, content: { 'application/json': { schema: UpdateTaskSchema } } },
     },
     responses: {
@@ -151,16 +165,9 @@ registry.registerPath({
     path: '/api/tasks/{id}',
     summary: 'Delete a task',
     operationId: 'deleteTask',
-    request: { params: z.object({ id: z.string() }) },
+    request: { params: idParams },
     responses: {
-        200: {
-            description: 'Task deleted',
-            content: {
-                'application/json': {
-                    schema: z.object({ data: z.object({ success: z.boolean() }) }),
-                },
-            },
-        },
+        200: deleteSuccessResponse('Task deleted'),
         404: notFoundResponse,
     },
 });
@@ -212,7 +219,7 @@ registry.registerPath({
     path: '/api/someday-groups/{id}',
     summary: 'Get a Someday group by ID',
     operationId: 'getSomeDayGroup',
-    request: { params: z.object({ id: z.string() }) },
+    request: { params: idParams },
     responses: {
         200: groupDataResponse,
         404: notFoundResponse,
@@ -225,7 +232,7 @@ registry.registerPath({
     summary: 'Update a Someday group',
     operationId: 'updateSomeDayGroup',
     request: {
-        params: z.object({ id: z.string() }),
+        params: idParams,
         body: {
             required: true,
             content: { 'application/json': { schema: UpdateSomeDayGroupSchema } },
@@ -242,16 +249,9 @@ registry.registerPath({
     path: '/api/someday-groups/{id}',
     summary: 'Delete a Someday group',
     operationId: 'deleteSomeDayGroup',
-    request: { params: z.object({ id: z.string() }) },
+    request: { params: idParams },
     responses: {
-        200: {
-            description: 'Someday group deleted',
-            content: {
-                'application/json': {
-                    schema: z.object({ data: z.object({ success: z.boolean() }) }),
-                },
-            },
-        },
+        200: deleteSuccessResponse('Someday group deleted'),
         404: notFoundResponse,
     },
 });
@@ -311,7 +311,7 @@ registry.registerPath({
     path: '/api/projects/{id}',
     summary: 'Get a project by ID',
     operationId: 'getProject',
-    request: { params: z.object({ id: z.string() }) },
+    request: { params: idParams },
     responses: {
         200: projectDataResponse,
         404: notFoundResponse,
@@ -324,7 +324,7 @@ registry.registerPath({
     summary: 'Update a project',
     operationId: 'updateProject',
     request: {
-        params: z.object({ id: z.string() }),
+        params: idParams,
         body: {
             required: true,
             content: { 'application/json': { schema: UpdateProjectSchema } },
@@ -341,16 +341,9 @@ registry.registerPath({
     path: '/api/projects/{id}',
     summary: 'Delete a project',
     operationId: 'deleteProject',
-    request: { params: z.object({ id: z.string() }) },
+    request: { params: idParams },
     responses: {
-        200: {
-            description: 'Project deleted',
-            content: {
-                'application/json': {
-                    schema: z.object({ data: z.object({ success: z.boolean() }) }),
-                },
-            },
-        },
+        200: deleteSuccessResponse('Project deleted'),
         404: notFoundResponse,
     },
 });
@@ -360,7 +353,7 @@ registry.registerPath({
     path: '/api/projects/{id}/activate',
     summary: 'Activate a project',
     operationId: 'activateProject',
-    request: { params: z.object({ id: z.string() }) },
+    request: { params: idParams },
     responses: {
         200: projectDataResponse,
         404: notFoundResponse,
@@ -372,7 +365,7 @@ registry.registerPath({
     path: '/api/projects/{id}/deactivate',
     summary: 'Deactivate a project',
     operationId: 'deactivateProject',
-    request: { params: z.object({ id: z.string() }) },
+    request: { params: idParams },
     responses: {
         200: projectDataResponse,
         404: notFoundResponse,
@@ -428,7 +421,7 @@ registry.registerPath({
     path: '/api/recurring-tasks/{id}',
     summary: 'Get a recurring task by ID',
     operationId: 'getRecurringTask',
-    request: { params: z.object({ id: z.string() }) },
+    request: { params: idParams },
     responses: {
         200: recurringTaskDataResponse,
         404: notFoundResponse,
@@ -441,7 +434,7 @@ registry.registerPath({
     summary: 'Update a recurring task template',
     operationId: 'updateRecurringTask',
     request: {
-        params: z.object({ id: z.string() }),
+        params: idParams,
         body: {
             required: true,
             content: { 'application/json': { schema: UpdateRecurringTaskSchema } },
@@ -458,16 +451,9 @@ registry.registerPath({
     path: '/api/recurring-tasks/{id}',
     summary: 'Delete a recurring task template',
     operationId: 'deleteRecurringTask',
-    request: { params: z.object({ id: z.string() }) },
+    request: { params: idParams },
     responses: {
-        200: {
-            description: 'Recurring task deleted',
-            content: {
-                'application/json': {
-                    schema: z.object({ data: z.object({ success: z.boolean() }) }),
-                },
-            },
-        },
+        200: deleteSuccessResponse('Recurring task deleted'),
         404: notFoundResponse,
     },
 });
@@ -478,7 +464,7 @@ registry.registerPath({
     summary: 'Generate task instances for a date range',
     operationId: 'generateRecurringTaskInstances',
     request: {
-        params: z.object({ id: z.string() }),
+        params: idParams,
         body: {
             required: true,
             content: { 'application/json': { schema: GenerateInstancesSchema } },

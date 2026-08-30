@@ -78,11 +78,10 @@ class PreferencesStore {
             this.activeFilters = prefs.activeFilters;
             this.tagKinds = prefs.tagKinds ?? [...DEFAULT_TAG_KINDS];
             this.tagKindMap = prefs.tagKindMap ?? { ...DEFAULT_TAG_KIND_MAP };
-            this.updatedAt = prefs.updatedAt;
             this.timeFormat = prefs.timeFormat ?? '12h';
             this.timezone = prefs.timezone ?? null;
-            container.setDateProviderTimeZone(this.timezone);
             this.updatedAt = prefs.updatedAt;
+            container.setDateProviderTimeZone(this.timezone);
         } catch {
             // Use defaults
         }

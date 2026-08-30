@@ -5,49 +5,21 @@ import type {
 } from '@erledigen/shared';
 import { container } from '$lib/container';
 import { RecurringTaskService } from '$lib/services/recurringTaskService';
+import { EntityStore } from './entityStore.svelte';
 
 const recurringTaskService = new RecurringTaskService(container.httpClient);
 
-class RecurringTaskStore {
-    tasks = $state<RecurringTask[]>([]);
-
-    async fetchAll() {
-        try {
-            const tasks = await recurringTaskService.getAll();
-            this.tasks = tasks;
-        } catch {
-            // Keep empty state
-        }
+class RecurringTaskStore extends EntityStore<
+    RecurringTask,
+    CreateRecurringTaskInput,
+    UpdateRecurringTaskInput
+> {
+    constructor() {
+        super(recurringTaskService);
     }
 
-    async create(input: CreateRecurringTaskInput) {
-        try {
-            const task = await recurringTaskService.create(input);
-            this.tasks = [...this.tasks, task];
-            return task;
-        } catch {
-            return null;
-        }
-    }
-
-    async update(id: string, input: UpdateRecurringTaskInput) {
-        try {
-            const updated = await recurringTaskService.update(id, input);
-            this.tasks = this.tasks.map(t => (t.id === id ? updated : t));
-            return updated;
-        } catch {
-            return null;
-        }
-    }
-
-    async remove(id: string) {
-        try {
-            await recurringTaskService.delete(id);
-            this.tasks = this.tasks.filter(t => t.id !== id);
-            return true;
-        } catch {
-            return false;
-        }
+    get tasks(): RecurringTask[] {
+        return this.items;
     }
 }
 

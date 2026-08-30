@@ -71,6 +71,17 @@ class WebSocketServiceImpl {
         };
     }
 
+    /**
+     * Subscribe to server messages, ignoring those originating from this
+     * client (echoed back by the server). Unsubscribe via the returned fn.
+     */
+    onServerMessage(handler: MessageHandler): () => void {
+        return this.onMessage(message => {
+            if (message.originClientId === this.clientId) return;
+            handler(message);
+        });
+    }
+
     onStatusChange(handler: (status: ConnectionStatus) => void): () => void {
         this.statusHandlers.add(handler);
         return () => {
