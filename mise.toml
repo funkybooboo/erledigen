@@ -11,22 +11,45 @@ RATE_LIMIT_RPM = "600"
 VITE_API_URL = "http://localhost:4000"
 VITE_PORT = "3000"
 
-# -- Dev servers ---------------------------------------------------------------
+# -- Dev / prod servers (dockerized) ------------------------------------------
+#
+# The app itself runs in containers (compose.yaml); nothing here starts
+# servers on the local filesystem anymore. Repo-management tasks (install,
+# format, lint, type-check, build, clean, ci) further below still run locally
+# against the working tree.
+#
+# NOTE: the dev stack publishes ports 3000/4000 -- stop any locally-running
+# servers first or the port publish will fail.
 
 [tasks.dev]
-description = "Start client and server in parallel"
-run = "bun run dev"
+description = "Start the docker dev stack (server + client, attached)"
+run = "docker compose up"
 
 [tasks.client]
-description = "Start client dev server (port 3000)"
-run = "bun run client"
+description = "Start only the dev client container (attached)"
+run = "docker compose up client"
 
 [tasks.server]
-description = "Start server dev server (port 4000)"
-run = "bun run server"
+description = "Start only the dev server container (attached)"
+run = "docker compose up server"
+
+[tasks.prod]
+description = "Build and start the docker prod stack (detached)"
+run = "docker compose --profile prod up -d --build"
+
+[tasks.prod-stop]
+description = "Stop the docker prod stack"
+run = "docker compose --profile prod down"
+
+[tasks.dev-refresh]
+description = "Rebuild dev images and recreate dev containers (run after changing dependencies)"
+run = """
+docker compose build server client
+docker compose up -d --force-recreate --remove-orphans server client
+"""
 
 [tasks.storybook]
-description = "Start Storybook (port 6006)"
+description = "Start Storybook (port 6006) -- local, not dockerized"
 run = "bun run storybook"
 
 # -- Dependencies --------------------------------------------------------------
@@ -61,31 +84,56 @@ run = "bun run check:ci"
 description = "Type-check all packages"
 run = "bun run type-check"
 
-# -- Tests ---------------------------------------------------------------------
+# -- Tests (dockerized: compose.test.yaml, no host volumes) -------------
 
 [tasks.test]
-description = "Run all unit tests"
-run = "bun run test:unit"
+description = "Run all unit tests in a container"
+run = """
+docker compose -f compose.test.yaml build unit
+docker compose -f compose.test.yaml run --rm unit
+"""
+
+[tasks.test-e2e]
+description = "Run Playwright e2e + api tests in the docker test stack"
+run = """
+docker compose -f compose.test.yaml build
+docker compose -f compose.test.yaml up -d server-test client-test
+docker compose -f compose.test.yaml run --rm e2e
+status=$?
+docker compose -f compose.test.yaml down
+exit $status
+"""
+
+[tasks.test-api]
+description = "Run Bruno API tests against the dockerized test server"
+run = """
+docker compose -f compose.test.yaml build
+docker compose -f compose.test.yaml up -d server-test
+docker compose -f compose.test.yaml run --rm api
+docker compose -f compose.test.yaml down
+"""
+
+[tasks.test-all]
+description = "Run Bruno API tests and Playwright e2e tests in the docker test stack"
+run = """
+docker compose -f compose.test.yaml build
+docker compose -f compose.test.yaml up -d server-test client-test
+docker compose -f compose.test.yaml run --rm api
+docker compose -f compose.test.yaml run --rm e2e
+status=$?
+docker compose -f compose.test.yaml down
+exit $status
+"""
+
+# -- Tests (local; quick feedback loops that only touch the repo) -------------
 
 [tasks.test-watch]
-description = "Run unit tests in watch mode"
+description = "Run unit tests in watch mode -- local"
 run = "bun run test:watch"
 
 [tasks.test-coverage]
-description = "Run unit tests with coverage"
+description = "Run unit tests with coverage -- local"
 run = "bun run test:coverage"
-
-[tasks.test-e2e]
-description = "Run Playwright E2E tests"
-run = "bun run test:e2e"
-
-[tasks.test-api]
-description = "Run Bruno API tests against local server"
-run = "bun run test:api"
-
-[tasks.test-all]
-description = "Run API and E2E tests in parallel (requires servers running)"
-run = "bun run test:all"
 
 # -- Clean ---------------------------------------------------------------------
 

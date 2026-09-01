@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { cleanup, createTask, uniq } from '../api-tests/helpers';
 import { hydrated, modal, todayISO } from './util';
 
-const SERVER = 'http://localhost:4000';
+const SERVER = process.env.PLAYWRIGHT_API_BASE_URL ?? 'http://localhost:4000';
 
 test.afterEach(async ({ request }) => {
     await cleanup(request, SERVER);

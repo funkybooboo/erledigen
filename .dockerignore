@@ -1,0 +1,39 @@
+# Build context exclusions for every Dockerfile in docker/.
+# Keeps contexts small and, critically, prevents host state from leaking
+# into images: host node_modules (wrong platform / stale), local SQLite
+# data, playwright artifacts, build outputs.
+
+# VCS / metadata
+.git
+.gitignore
+.github
+.husky
+
+# Dependencies (installed inside the images)
+node_modules
+**/node_modules
+
+# Local runtime state - never bake into an image
+packages/server/data
+**/*.db
+**/*.db-shm
+**/*.db-wal
+
+# Build artifacts (rebuilt inside the images)
+**/dist
+**/build
+**/.svelte-kit
+**/.vite
+coverage
+**/coverage
+storybook-static
+*.storybook.log
+test-results
+playwright-report
+.biome-cache
+
+# Docs / plans not needed to build or test
+docs
+plans
+LICENSE
+README.md

@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { cleanup, createTask, del } from '../api-tests/helpers';
 import { hydrated, modal, todayISO } from './util';
 
-const SERVER = 'http://localhost:4000';
+const SERVER = process.env.PLAYWRIGHT_API_BASE_URL ?? 'http://localhost:4000';
 const uniq = (p: string) => `${p}-${Math.random().toString(36).slice(2, 8)}`;
 
 test.afterEach(async ({ request }) => {

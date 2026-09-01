@@ -8,6 +8,9 @@ export default defineConfig(({ mode }) => {
     return {
         plugins: [tailwindcss(), sveltekit()],
         server: {
+            // VITE_HOST=0.0.0.0 lets the dev server run in a container while
+            // staying reachable through the published port (docker dev/test).
+            host: env.VITE_HOST || 'localhost',
             port: Number(env.VITE_PORT) || 3000,
         },
     };

@@ -1,0 +1,99 @@
+# =============================================================================
+# Erledigen -- test stack. Separate file so it never collides with the dev /
+# prod stacks, and so NONE of these services mount anything.
+#
+# Requirement: test containers are fully self-contained -- no bind mounts, no
+# named volumes, nothing written to the host or the repo. Source is baked into
+# the images at build time, so tests run against exactly what was built and
+# the only thing that touches the host is the exit code.
+#
+# Services:
+#   server-test  -- API server, STORAGE_ADAPTER=memory (ephemeral, no DB file)
+#   client-test  -- vite dev server (matches how local playwright runs)
+#   e2e          -- Playwright runner (e2e + api projects), bundled Chromium
+#   unit         -- bun unit tests (one-shot)
+#   api          -- Bruno API suite (one-shot)
+#
+# Usage (mise wraps these -- see mise.toml):
+#   docker compose -f compose.test.yaml build
+#   docker compose -f compose.test.yaml up -d server-test client-test
+#   docker compose -f compose.test.yaml run --rm e2e
+#   docker compose -f compose.test.yaml down
+# =============================================================================
+
+name: erledigen-test
+
+services:
+    server-test:
+        build:
+            context: .
+            target: development
+        image: erledigen/dev
+        command: bun run --cwd packages/server start
+        environment:
+            NODE_ENV: development
+            PORT: 4000
+            CORS_ORIGIN: '*'
+            STORAGE_ADAPTER: memory
+        healthcheck:
+            test: ['CMD', 'bun', '-e', "await fetch('http://localhost:4000/api/health')"]
+            interval: 3s
+            timeout: 5s
+            retries: 20
+            start_period: 5s
+
+    client-test:
+        image: erledigen/dev
+        build:
+            context: .
+            target: development
+        command: bun run --cwd packages/client dev
+        environment:
+            VITE_HOST: 0.0.0.0
+            VITE_PORT: 3000
+            # The e2e browser runs INSIDE this compose network, so unlike the
+            # dev stack this must be the service name, not localhost.
+            VITE_API_URL: http://server-test:4000
+        healthcheck:
+            test: ['CMD', 'bun', '-e', "await fetch('http://localhost:3000/')"]
+            interval: 3s
+            timeout: 5s
+            retries: 20
+            start_period: 5s
+
+    e2e:
+        build:
+            context: .
+            target: e2e
+        image: erledigen/e2e
+        command: bunx playwright test
+        environment:
+            PLAYWRIGHT_NO_SERVER: '1'
+            PLAYWRIGHT_USE_BUNDLED_CHROMIUM: '1'
+            PLAYWRIGHT_API_BASE_URL: http://server-test:4000
+            PLAYWRIGHT_E2E_BASE_URL: http://client-test:3000
+        depends_on:
+            server-test:
+                condition: service_healthy
+            client-test:
+                condition: service_healthy
+
+    unit:
+        image: erledigen/dev
+        build:
+            context: .
+            target: development
+        command: bun run test:unit
+
+    api:
+        image: erledigen/dev
+        build:
+            context: .
+            target: development
+        # Bruno env override: point the "local" environment's baseUrl at the
+        # in-network server instead of localhost.
+        command: bunx @usebruno/cli run . --env local --env-var baseUrl=http://server-test:4000
+        working_dir: /app/tests/api
+        depends_on:
+            server-test:
+                condition: service_healthy

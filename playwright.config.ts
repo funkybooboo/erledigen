@@ -15,6 +15,10 @@ import { defineConfig, devices } from '@playwright/test';
  * `bun run test:e2e:ui`      → e2e only
  */
 const CHROMIUM = process.env.PLAYWRIGHT_CHROMIUM ?? '/usr/bin/chromium';
+const BUNDLED_CHROMIUM = process.env.PLAYWRIGHT_USE_BUNDLED_CHROMIUM === '1';
+const API_BASE_URL = process.env.PLAYWRIGHT_API_BASE_URL ?? 'http://localhost:4000';
+const E2E_BASE_URL = process.env.PLAYWRIGHT_E2E_BASE_URL ?? 'http://localhost:3000';
+const NO_SERVER = process.env.PLAYWRIGHT_NO_SERVER === '1';
 
 export default defineConfig({
     testDir: './tests',
@@ -27,8 +31,10 @@ export default defineConfig({
     reporter: [['list']],
     use: {
         trace: 'on-first-retry',
-        // System chromium avoids needing `playwright install`.
-        launchOptions: { executablePath: CHROMIUM },
+        // System chromium avoids needing `playwright install` locally. In the
+        // Docker test image (mcr.microsoft.com/playwright) the bundled
+        // Chromium is used instead: PLAYWRIGHT_USE_BUNDLED_CHROMIUM=1.
+        ...(BUNDLED_CHROMIUM ? {} : { launchOptions: { executablePath: CHROMIUM } }),
     },
     projects: [
         {
@@ -36,7 +42,7 @@ export default defineConfig({
             testDir: './tests/api-tests',
             testMatch: /.*\.spec\.ts$/,
             use: {
-                baseURL: 'http://localhost:4000',
+                baseURL: API_BASE_URL,
                 extraHTTPHeaders: { Accept: 'application/json' },
             },
         },
@@ -45,29 +51,36 @@ export default defineConfig({
             testDir: './tests/e2e',
             testMatch: /.*\.spec\.ts$/,
             use: {
-                baseURL: 'http://localhost:3000',
+                baseURL: E2E_BASE_URL,
                 ...devices['Desktop Chrome'],
             },
         },
     ],
-    webServer: [
-        {
-            command: 'bun run --cwd packages/server dev',
-            port: 4000,
-            // Never reuse a server already on the port: a dev server runs with
-            // the persistent sqlite adapter by default, which would leak state
-            // across runs. The pretest:e2e* scripts free the port first.
-            reuseExistingServer: false,
-            timeout: 120_000,
-            // Ephemeral storage keeps test runs deterministic — no state
-            // leaks between runs from the persistent SQLite file.
-            env: { STORAGE_ADAPTER: 'memory' },
-        },
-        {
-            command: 'bun run --cwd packages/client dev',
-            port: 3000,
-            reuseExistingServer: !process.env.CI,
-            timeout: 120_000,
-        },
-    ],
+    // PLAYWRIGHT_NO_SERVER=1 (docker: servers are separate compose services)
+    // skips spawning web servers entirely. The env-driven URLs above let the
+    // same config drive both local runs and the dockerized test stack.
+    ...(NO_SERVER
+        ? {}
+        : {
+              webServer: [
+                  {
+                      command: 'bun run --cwd packages/server dev',
+                      port: 4000,
+                      // Never reuse a server already on the port: a dev server runs with
+                      // the persistent sqlite adapter by default, which would leak state
+                      // across runs. The pretest:e2e* scripts free the port first.
+                      reuseExistingServer: false,
+                      timeout: 120_000,
+                      // Ephemeral storage keeps test runs deterministic — no state
+                      // leaks between runs from the persistent SQLite file.
+                      env: { STORAGE_ADAPTER: 'memory' },
+                  },
+                  {
+                      command: 'bun run --cwd packages/client dev',
+                      port: 3000,
+                      reuseExistingServer: !process.env.CI,
+                      timeout: 120_000,
+                  },
+              ],
+          }),
 });

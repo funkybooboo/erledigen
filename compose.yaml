@@ -1,0 +1,108 @@
+# =============================================================================
+# Erledigen -- dev (default) and prod (profile) stacks.
+#
+#   docker compose up                              # dev: server + client
+#   docker compose --profile prod up -d --build   # prod stack
+#
+# Dev:
+#   - Source is bind-mounted; edits are picked up live by `bun --watch`
+#     (server) and vite HMR (client) -- no image rebuild needed for code.
+#   - node_modules are shielded from the bind mount by anonymous volumes
+#     seeded from the image. After changing dependencies run `mise run
+#     dev-refresh` (bun install happens inside the image).
+#   - The dev DB lives in the `dev-data` named volume (DB_PATH=/data), never
+#     in the repo.
+#
+# Prod:
+#   - Publishes the same host ports as dev (3000/4000): stop dev first.
+#   - VITE_API_URL is baked into the client bundle at build time; override
+#     with an environment variable when deploying for real.
+# =============================================================================
+
+name: erledigen
+
+services:
+    # ---- dev ----------------------------------------------------------------
+    server:
+        build:
+            context: .
+            target: development
+        image: erledigen/dev
+        command: bun run --cwd packages/server dev # bun --watch src/index.ts
+        environment:
+            NODE_ENV: development
+            PORT: 4000
+            CORS_ORIGIN: ${CORS_ORIGIN:-*}
+            RATE_LIMIT_RPM: ${RATE_LIMIT_RPM:-600}
+            DB_PATH: /data/erledigen.db
+        volumes:
+            - .:/app
+            # Anonymous volumes: keep the image's installed deps, shadow the
+            # host's node_modules that the bind mount would otherwise leak.
+            - /app/node_modules
+            - /app/packages/shared/node_modules
+            - /app/packages/server/node_modules
+            - /app/packages/client/node_modules
+            - dev-data:/data
+        ports:
+            - '4000:4000'
+
+    client:
+        image: erledigen/dev
+        build:
+            context: .
+            target: development
+        command: bun run --cwd packages/client dev # vite dev + HMR
+        environment:
+            VITE_HOST: 0.0.0.0 # reachable through the published port
+            VITE_PORT: 3000
+            # Consumed by the BROWSER on the host, so this must be the
+            # published host address, not the compose service name.
+            VITE_API_URL: ${VITE_API_URL:-http://localhost:4000}
+        volumes:
+            - .:/app
+            - /app/node_modules
+            - /app/packages/shared/node_modules
+            - /app/packages/server/node_modules
+            - /app/packages/client/node_modules
+        ports:
+            - '3000:3000'
+
+    # ---- prod ---------------------------------------------------------------
+    prod-server:
+        profiles: ['prod']
+        build:
+            context: .
+            target: production-server
+        image: erledigen/server
+        environment:
+            NODE_ENV: production
+            PORT: 4000
+            CORS_ORIGIN: ${CORS_ORIGIN:-*}
+            RATE_LIMIT_RPM: ${RATE_LIMIT_RPM:-600}
+            DB_PATH: /data/erledigen.db
+        volumes:
+            - prod-data:/data
+        ports:
+            - '4000:4000'
+
+    prod-client:
+        profiles: ['prod']
+        build:
+            context: .
+            target: production-client
+            args:
+                # Baked into the bundle at build time; same note as dev: the
+                # browser resolves this, so it is the published host address.
+                VITE_API_URL: ${VITE_API_URL:-http://localhost:4000}
+        image: erledigen/client
+        environment:
+            HOSTNAME: 0.0.0.0
+            PORT: 3000
+            ORIGINS: ${ORIGINS:-http://localhost:3000}
+        ports:
+            - '3000:3000'
+
+volumes:
+    dev-data:
+    prod-data:

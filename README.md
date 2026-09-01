@@ -47,7 +47,7 @@ This project uses [mise](https://mise.jdx.dev) as its task runner and tool versi
     mise run install
     ```
 
-2.  **Run the development servers**:
+2.  **Run the development servers** (requires Docker / podman + compose):
 
     ```bash
     mise run dev
@@ -59,17 +59,69 @@ That's it! The client runs at `http://localhost:3000` and the server at `http://
 
 | Command | What it does |
 |---------|--------------|
-| `mise run dev` | Start client + server in parallel |
-| `mise run client` / `mise run server` | Start just one |
-| `mise run storybook` | Start Storybook on port 6006 |
+| `mise run dev` | Start the docker dev stack (server + client) |
+| `mise run client` / `mise run server` | Start just one dev container |
+| `mise run prod` / `mise run prod-stop` | Build + start / stop the docker prod stack |
+| `mise run dev-refresh` | Rebuild dev images after changing dependencies |
+| `mise run storybook` | Start Storybook on port 6006 (local, not dockerized) |
 | `mise run check` | Lint + format with Biome (auto-fix) |
 | `mise run type-check` | Type-check all packages |
-| `mise run test` | Run all unit tests |
-| `mise run test-e2e` | Run Playwright E2E tests |
-| `mise run test-api` | Run Bruno API tests against a local server |
-| `mise run build` | Build all packages |
-| `mise run ci` | Run the full local CI mirror |
+| `mise run test` | Run all unit tests in a container |
+| `mise run test-e2e` | Run Playwright E2E + api tests in the docker test stack |
+| `mise run test-api` | Run Bruno API tests in the docker test stack |
+| `mise run build` | Build all packages (local, artifacts in the repo) |
+| `mise run ci` | Run the full local CI mirror (local, mirrors GitHub Actions) |
 | `mise run clean` | Remove build artifacts and caches |
+
+App-running tasks (dev, prod, tests) execute in containers and never touch
+your host environment. Repo-management tasks (install, format, lint,
+type-check, build, clean, ci) run locally against the working tree, because
+they manage the repo itself.
+
+## 🐳 Docker
+
+One multi-stage `Dockerfile` at the repo root; compose picks the stage via
+`build.target`:
+
+| Stage | Used by | What it is |
+|-------|---------|------------|
+| `development` | `server`, `client` (dev), all test services | bun + workspace deps + source |
+| `production-server` | `prod-server` | minimal bun runtime + server bundle |
+| `production-client` | `prod-client` | node runtime + SvelteKit adapter-node build |
+| `e2e` | `e2e` runner (test stack) | mcr.microsoft.com/playwright + bun + source |
+
+**Dev** (`compose.yaml`, default): source is bind-mounted, so code edits are
+picked up live by `bun --watch` (server) and vite HMR (client) — no rebuild
+needed. `node_modules` are shielded from the bind mount by anonymous volumes
+seeded from the image; after changing dependencies run `mise run dev-refresh`.
+The dev DB lives in the `dev-data` named volume (`DB_PATH=/data`), never in
+the repo.
+
+**Prod** (`docker compose --profile prod up -d --build`): built artifacts
+only, no bind mounts. `VITE_API_URL` is baked into the client bundle at build
+time — override it (e.g. `VITE_API_URL=https://api.example.com docker compose
+--profile prod up -d --build`) when deploying for real. Prod publishes the
+same ports as dev, so stop dev first. Server data persists in the `prod-data`
+named volume.
+
+**Tests** (`compose.test.yaml`): fully self-contained — no bind mounts, no
+named volumes, nothing written to the host. Source is baked into the images,
+the test server runs with `STORAGE_ADAPTER=memory`, and the Playwright runner
+uses the Chromium bundled in the mcr image (no `playwright install` needed
+locally, no browsers polluting your machine).
+
+Version pins to keep in sync:
+
+- `BUN_VERSION` in the `Dockerfile` must match `[tools] bun` in `mise.toml`.
+- `PLAYWRIGHT_VERSION` in the `Dockerfile` must match the `@playwright/test`
+  version in `bun.lock` — bump both together or the bundled browsers fail
+  version validation.
+
+> **Note (this machine):** `docker` here is a `podman` wrapper (rootless,
+> fuse-overlayfs storage). The podman `storage.conf` fix that makes
+> `docker compose build` work on btrfs lives in the dotfiles
+> (`~/.config/containers/storage.conf`) — `mount_program` must be set under
+> `[storage.options.overlay]`, not `[storage.options]`.
 
 ## 📦 Monorepo Layout
 
