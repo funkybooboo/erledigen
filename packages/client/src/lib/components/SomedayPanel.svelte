@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { preferencesStore, someDayGroupStore, taskStore } from '$lib/stores';
+    import { preferencesStore, someDayGroupStore, taskStore, uiStore } from '$lib/stores';
     import { applyFilters } from '$lib/filters';
     import TaskRow from './TaskRow.svelte';
     import InlineAddTask from './InlineAddTask.svelte';
@@ -66,6 +66,21 @@
     let ungroupedTasks = $derived(filteredSomedayTasks.filter(t => t.someDayGroupId === null));
 
     let groups = $derived(someDayGroupStore.sortedGroups);
+
+    // Publish the panel's task ids in render order (groups, then ungrouped)
+    // so global j/k navigation can move through Someday tasks. Cleared when
+    // collapsed so stale ids never steer navigation.
+    $effect(() => {
+        if (isCollapsed) {
+            uiStore.setVisibleSomedayTasks([]);
+            return;
+        }
+        const ids = [
+            ...groups.flatMap(group => groupTasks(group).map(t => t.id)),
+            ...ungroupedTasks.map(t => t.id),
+        ];
+        uiStore.setVisibleSomedayTasks(ids);
+    });
 
     let newlyCreatedIds = $state<Set<string>>(new Set());
 

@@ -67,6 +67,23 @@ class NotificationStore {
         }, 200);
     }
 
+    /**
+     * Run the action of the most recent notification that has one (the
+     * Ctrl/Cmd+Z "Undo" binding), then dismiss it. Returns false when no
+     * actionable notification exists.
+     */
+    undoLatest(): boolean {
+        for (let i = this.notifications.length - 1; i >= 0; i--) {
+            const notification = this.notifications[i];
+            if (notification?.action) {
+                this.dismiss(notification.id);
+                notification.action.fn();
+                return true;
+            }
+        }
+        return false;
+    }
+
     clear(): void {
         for (const timer of this.#timers.values()) {
             clearTimeout(timer);

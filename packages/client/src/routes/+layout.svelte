@@ -95,10 +95,23 @@
         return id ? taskStore.tasks.find(t => t.id === id) : undefined;
     }
 
-    /** Move the focused task within the day list (j/k). Returns whether
-     *  keyboard focus was handled (so the caller can swallow the key). */
+    /** Move the focused task within its list: j/k navigates the day list,
+     *  or the Someday panel when the focused task lives there. Returns
+     *  whether keyboard focus was handled (so the caller can swallow the key). */
     function moveFocus(delta: 1 | -1): boolean {
-        const ids = uiStore.visibleTaskIds;
+        const dayIds = uiStore.visibleTaskIds;
+        const somedayIds = uiStore.visibleSomedayTaskIds;
+        // The list that owns the current focus; falls back to the day list
+        // (when nothing is focused yet, or focus is stale).
+        const inSomeday =
+            somedayIds.length > 0 && uiStore.focusedTaskId !== null
+                ? somedayIds.includes(uiStore.focusedTaskId)
+                : false;
+        const ids = inSomeday
+            ? somedayIds
+            : dayIds.length > 0
+              ? dayIds
+              : somedayIds;
         if (ids.length === 0) return false;
         const idx = uiStore.focusedTaskId ? ids.indexOf(uiStore.focusedTaskId) : -1;
         let next: number;
@@ -109,6 +122,7 @@
             if (next === idx) return true;
         }
         const id = ids[next];
+        if (!id) return false;
         uiStore.focusTask(id);
         document.getElementById(`task-${id}`)?.scrollIntoView({ block: 'nearest' });
         return true;
@@ -215,6 +229,11 @@
                 } else if (key === '\\') {
                     e.preventDefault();
                     toggleSomedayPanel();
+                } else if (key === 'z' && !isTypingTarget(e)) {
+                    // Undo runs the latest notification's action. Skipped
+                    // while typing so the native text undo keeps working.
+                    e.preventDefault();
+                    notificationStore.undoLatest();
                 }
             }
             clearPendingG();

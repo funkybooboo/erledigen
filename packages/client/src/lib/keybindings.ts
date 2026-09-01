@@ -26,6 +26,7 @@ export type ShortcutId =
     | 'taskDetail'
     | 'toggleComplete'
     | 'deleteTask'
+    | 'undo'
     | 'setP1'
     | 'setP2'
     | 'setP3'
@@ -59,6 +60,7 @@ export const SHORTCUTS: Record<ShortcutId, Shortcut> = {
     taskDetail: { bindings: ['e'], label: 'Task details' },
     toggleComplete: { bindings: ['Space'], label: 'Complete / uncomplete' },
     deleteTask: { bindings: ['d'], label: 'Delete task' },
+    undo: { bindings: ['{mod}+Z'], label: 'Undo last action' },
     setP1: { bindings: ['1'], label: 'Set priority #p1' },
     setP2: { bindings: ['2'], label: 'Set priority #p2' },
     setP3: { bindings: ['3'], label: 'Set priority #p3' },
@@ -91,6 +93,7 @@ export const SHORTCUT_SECTIONS: { title: string; ids: ShortcutId[] }[] = [
             'taskDetail',
             'toggleComplete',
             'deleteTask',
+            'undo',
             'setP1',
             'setP2',
             'setP3',

@@ -20,12 +20,21 @@ class UIStore {
      *  on-screen order (which respects filters and the scrolled window). */
     visibleTaskIds = $state<string[]>([]);
 
+    /** Task ids in Someday-panel render order (groups, then ungrouped).
+     *  Published by SomedayPanel; j/k navigation uses it when the focused
+     *  task lives in the panel. Empty when the panel is collapsed. */
+    visibleSomedayTaskIds = $state<string[]>([]);
+
     focusTask(id: string | null) {
         this.focusedTaskId = id;
     }
 
     setVisibleTasks(ids: string[]) {
         this.visibleTaskIds = ids;
+    }
+
+    setVisibleSomedayTasks(ids: string[]) {
+        this.visibleSomedayTaskIds = ids;
     }
 
     openModal(modal: ModalType) {
