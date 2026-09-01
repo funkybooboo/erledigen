@@ -2,17 +2,19 @@
     import { uiStore, type ModalType } from '$lib/stores';
     import { Icon } from 'svelte-icons-pack';
     import { LuCalendar, LuBarChart3, LuRepeat, LuSearch, LuTag, LuTrash2, LuSettings, LuCircleHelp, LuList } from 'svelte-icons-pack/lu';
+    import { tooltip } from '$lib/tooltip';
+    import type { ShortcutId } from '$lib/keybindings';
 
-    const icons: { id: ModalType; icon: typeof LuCalendar; label: string }[] = [
-        { id: 'summary', icon: LuList, label: 'Summary' },
-        { id: 'projects', icon: LuBarChart3, label: 'Projects' },
-        { id: 'habits', icon: LuRepeat, label: 'Habits' },
-        { id: 'calendar', icon: LuCalendar, label: 'Calendar' },
-        { id: 'search', icon: LuSearch, label: 'Search' },
-        { id: 'filter', icon: LuTag, label: 'Filter' },
-        { id: 'trash', icon: LuTrash2, label: 'Trash' },
-        { id: 'settings', icon: LuSettings, label: 'Settings' },
-        { id: 'help', icon: LuCircleHelp, label: 'Help' },
+    const icons: { id: ModalType; icon: typeof LuCalendar; label: string; shortcut: ShortcutId }[] = [
+        { id: 'summary', icon: LuList, label: 'Summary', shortcut: 'openSummary' },
+        { id: 'projects', icon: LuBarChart3, label: 'Projects', shortcut: 'openProjects' },
+        { id: 'habits', icon: LuRepeat, label: 'Habits', shortcut: 'openHabits' },
+        { id: 'calendar', icon: LuCalendar, label: 'Calendar', shortcut: 'openCalendar' },
+        { id: 'search', icon: LuSearch, label: 'Search', shortcut: 'search' },
+        { id: 'filter', icon: LuTag, label: 'Filter', shortcut: 'openFilter' },
+        { id: 'trash', icon: LuTrash2, label: 'Trash', shortcut: 'openTrash' },
+        { id: 'settings', icon: LuSettings, label: 'Settings', shortcut: 'openSettings' },
+        { id: 'help', icon: LuCircleHelp, label: 'Help', shortcut: 'help' },
     ];
 
     function handleIconClick(id: ModalType) {
@@ -30,8 +32,8 @@
             class="icon-btn"
             class:active={uiStore.activeModal === item.id}
             onclick={() => handleIconClick(item.id)}
+            use:tooltip={item.shortcut}
             aria-label={item.label}
-            title={item.label}
         >
             <span class="icon"><Icon src={item.icon} /></span>
             <span class="label">{item.label}</span>
@@ -70,6 +72,7 @@
         transition: background-color 0.15s;
         color: var(--color-text-secondary);
         text-align: center;
+        border-radius: 999px;
     }
 
     .icon-btn:hover {
@@ -80,6 +83,7 @@
     .icon-btn.active {
         background: var(--color-accent-light);
         color: var(--color-accent);
+        font-weight: 600;
     }
 
     .icon :global(svg) {

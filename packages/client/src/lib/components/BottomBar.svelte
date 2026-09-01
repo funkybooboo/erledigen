@@ -4,6 +4,7 @@
     import { container } from '$lib/container';
     import { Icon } from 'svelte-icons-pack';
     import { LuX, LuSquareCheck } from 'svelte-icons-pack/lu';
+    import { tooltip } from '$lib/tooltip';
 
     let totalTasks = $derived(taskStore.tasks.length);
     let completedCount = $derived(taskStore.tasks.filter(t => t.completed).length);
@@ -49,7 +50,7 @@
 </script>
 
 <footer class="bottom-bar">
-    <button class="logo-btn" onclick={handleHomeClick} aria-label="Home — clear filters and go to today">
+    <button class="logo-btn" onclick={handleHomeClick} use:tooltip={{ label: 'Clear filters and go to today' }} aria-label="Home — clear filters and go to today">
         <Icon src={LuSquareCheck} />
         <strong>erledigen</strong>
     </button>
@@ -58,16 +59,16 @@
         {#each preferencesStore.activeFilters.tags ?? [] as tag}
             <span class="chip">
                 #{tag}
-                <button class="chip-remove" onclick={() => preferencesStore.toggleTag(tag)} aria-label="Remove filter #{tag}"><Icon src={LuX} /></button>
+                <button class="chip-remove" onclick={() => preferencesStore.toggleTag(tag)} use:tooltip={{ label: `Remove filter #${tag}` }} aria-label="Remove filter #{tag}"><Icon src={LuX} /></button>
             </span>
         {/each}
         {#if preferencesStore.activeFilterCount > 0}
-            <button class="clear-all-btn" onclick={preferencesStore.clearAll}>clear all</button>
+            <button class="clear-all-btn" onclick={preferencesStore.clearAll} use:tooltip={{ label: 'Clear all filters' }}>clear all</button>
         {/if}
     </div>
 
     <div class="status">
-        <button class="date-btn" onclick={goToday} aria-label="Scroll to today">
+        <button class="date-btn" onclick={goToday} use:tooltip={'goToday'} aria-label="Scroll to today">
             {dateLabel} &middot; {clockLabel}
         </button>
         <span class="task-stats">

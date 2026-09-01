@@ -1,46 +1,35 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
+    import { SHORTCUTS, SHORTCUT_SECTIONS, formatBinding } from '$lib/keybindings';
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 </script>
 
 <Modal title="Keyboard Shortcuts" onclose={onclose}>
     <div class="help">
-        <section class="section">
-            <h3>Navigation</h3>
-            <table class="shortcut-table">
-                <tbody>
-                    <tr><td><kbd>j</kbd> / <kbd>&#8595;</kbd></td><td>Focus next task</td></tr>
-                    <tr><td><kbd>k</kbd> / <kbd>&#8593;</kbd></td><td>Focus previous task</td></tr>
-                    <tr><td><kbd>g</kbd> <kbd>t</kbd></td><td>Jump to today</td></tr>
-                    <tr><td><kbd>Ctrl</kbd>+<kbd>\</kbd></td><td>Toggle Someday panel</td></tr>
-                </tbody>
-            </table>
-        </section>
-
-        <section class="section">
-            <h3>Task Actions</h3>
-            <table class="shortcut-table">
-                <tbody>
-                    <tr><td><kbd>n</kbd> / <kbd>a</kbd></td><td>Add new task</td></tr>
-                    <tr><td><kbd>e</kbd></td><td>Edit task / open detail</td></tr>
-                    <tr><td><kbd>Space</kbd></td><td>Complete / uncomplete</td></tr>
-                    <tr><td><kbd>d</kbd></td><td>Delete task (with undo)</td></tr>
-                    <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></td><td>Set priority #p1 #p2 #p3</td></tr>
-                    <tr><td><kbd>0</kbd></td><td>Clear priority</td></tr>
-                </tbody>
-            </table>
-        </section>
-
-        <section class="section">
-            <h3>Panels & Modals</h3>
-            <table class="shortcut-table">
-                <tbody>
-                    <tr><td><kbd>Cmd</kbd>+<kbd>K</kbd></td><td>Search / Command palette</td></tr>
-                    <tr><td><kbd>?</kbd></td><td>This help modal</td></tr>
-                    <tr><td><kbd>Esc</kbd></td><td>Close modal / cancel edit</td></tr>
-                </tbody>
-            </table>
-        </section>
+        {#each SHORTCUT_SECTIONS as section (section.title)}
+            <section class="section">
+                <h3>{section.title}</h3>
+                <table class="shortcut-table">
+                    <tbody>
+                        {#each section.ids as id (id)}
+                            <tr>
+                                <td>
+                                    <span class="keys">
+                                        {#each SHORTCUTS[id].bindings as binding, i (binding)}
+                                            {#if i > 0}<span class="alt">/</span>{/if}
+                                            {#each formatBinding(binding).split(' ') as key (key)}
+                                                <kbd>{key}</kbd>
+                                            {/each}
+                                        {/each}
+                                    </span>
+                                </td>
+                                <td>{SHORTCUTS[id].label}</td>
+                            </tr>
+                        {/each}
+                    </tbody>
+                </table>
+            </section>
+        {/each}
     </div>
 </Modal>
 
@@ -74,6 +63,19 @@
     .shortcut-table td:first-child {
         width: 160px;
         white-space: nowrap;
+    }
+
+    .alt {
+        color: var(--color-text-muted);
+        margin: 0 2px;
+    }
+
+    /* Flex gap (not whitespace) separates the kbd chips: Svelte strips
+       whitespace-only text nodes, so template spacing is unreliable. */
+    .keys {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
     }
 
     kbd {

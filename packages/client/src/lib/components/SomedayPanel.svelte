@@ -7,6 +7,7 @@
     import { Icon } from 'svelte-icons-pack';
     import { LuPencil, LuTrash2, LuCheck } from 'svelte-icons-pack/lu';
     import type { SomeDayGroup } from '@erledigen/shared';
+    import { tooltip } from '$lib/tooltip';
 
     let showAddGroupForm = $state(false);
     let newGroupName = $state('');
@@ -169,7 +170,7 @@
 
 {#if isCollapsed}
     <div class="collapsed-strip" role="separator" aria-label="Expand Someday panel">
-        <button class="expand-btn" onclick={togglePanel} aria-label="Open Someday panel" title="Open Someday panel">
+        <button class="expand-btn" onclick={togglePanel} use:tooltip={{ label: 'Open Someday panel', shortcut: 'toggleSomedayPanel' }} aria-label="Open Someday panel">
             <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="8,2 2,9 8,16" />
             </svg>
@@ -177,7 +178,7 @@
     </div>
 {:else}
     <aside class="someday-panel" class:resizing={isResizing} style="width: {preferencesStore.someDayPanelWidth}px" aria-label="Someday panel">
-        <div class="resize-handle" role="separator" aria-orientation="vertical" aria-label="Resize Someday panel" title="Drag to resize" onmousedown={startResize}></div>
+        <div class="resize-handle" role="separator" aria-orientation="vertical" aria-label="Resize Someday panel" use:tooltip={{ label: 'Drag to resize' }} onmousedown={startResize}></div>
         <div class="panel-content">
             <div class="panel-header">
                 <h2 class="panel-title">Someday</h2>
@@ -192,12 +193,12 @@
                                 onkeydown={handleNewGroupKeydown}
                                 onblur={() => { if (!newGroupName.trim()) cancelNewGroup(); }}
                             />
-                            <button class="icon-btn" onclick={submitNewGroup} aria-label="Create group" title="Create group">
+                            <button class="icon-btn" onclick={submitNewGroup} use:tooltip={{ label: 'Create group' }} aria-label="Create group">
                                 <Icon src={LuCheck} size={14} />
                             </button>
                         </div>
                     {:else}
-                        <button class="add-group-btn" onclick={() => (showAddGroupForm = true)} aria-label="Add group" title="Add group">
+                        <button class="add-group-btn" onclick={() => (showAddGroupForm = true)} use:tooltip={{ label: 'Add group' }} aria-label="Add group">
                             + add group
                         </button>
                     {/if}
@@ -221,10 +222,10 @@
                                     onkeydown={handleRenameKeydown}
                                     onblur={commitRenameGroup}
                                 />
-                                <button class="icon-btn" onclick={commitRenameGroup} aria-label="Save rename" title="Save">
+                                <button class="icon-btn" onclick={commitRenameGroup} use:tooltip={{ label: 'Save (Enter)' }} aria-label="Save rename">
                                     <Icon src={LuCheck} size={13} />
                                 </button>
-                                <button class="icon-btn" onclick={cancelRenameGroup} aria-label="Cancel rename" title="Cancel">
+                                <button class="icon-btn" onclick={cancelRenameGroup} use:tooltip={{ label: 'Cancel (Esc)' }} aria-label="Cancel rename">
                                     ✕
                                 </button>
                             </div>
@@ -237,10 +238,10 @@
                                     {completedCount}
                                 />
                                 <div class="group-actions">
-                                    <button class="icon-btn" onclick={() => startRenameGroup(group)} aria-label="Rename group" title="Rename group">
+                                    <button class="icon-btn" onclick={() => startRenameGroup(group)} use:tooltip={{ label: 'Rename group' }} aria-label="Rename group">
                                         <Icon src={LuPencil} size={13} />
                                     </button>
-                                    <button class="icon-btn icon-btn-danger" onclick={() => handleDeleteGroup(group.id)} aria-label="Delete group" title="Delete group">
+                                    <button class="icon-btn icon-btn-danger" onclick={() => handleDeleteGroup(group.id)} use:tooltip={{ label: 'Delete group' }} aria-label="Delete group">
                                         <Icon src={LuTrash2} size={13} />
                                     </button>
                                 </div>

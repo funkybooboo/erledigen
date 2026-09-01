@@ -216,6 +216,61 @@
     padding: 20px 0;
 }
 
+/* ------------------------------------------------------------------
+ * Hover tooltips (lib/tooltip.ts action)
+ *
+ * The tooltip element is created by the action and appended to <body>,
+ * so these must be GLOBAL rules (no component scope can reach it). The
+ * ink/surface tokens are deliberately inverted (text on ink) so the
+ * tooltip reads in both light and dark themes.
+ * ------------------------------------------------------------------ */
+
+.ui-tooltip {
+    position: fixed;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    background: var(--color-text);
+    color: var(--color-surface);
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: var(--shadow-panel);
+    opacity: 0;
+    transform: translateY(2px);
+    transition: opacity 120ms ease-out, transform 120ms ease-out;
+}
+
+.ui-tooltip.ui-tooltip-visible {
+    opacity: 1;
+    transform: none;
+}
+
+.ui-tooltip-keys {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.ui-tooltip-sep {
+    color: color-mix(in oklab, currentColor 55%, transparent);
+    margin: 0 2px;
+}
+
+.ui-tooltip kbd {
+    background: transparent;
+    border: 1px solid color-mix(in oklab, currentColor 35%, transparent);
+    border-radius: 4px;
+    padding: 0 5px;
+    font-family: monospace;
+    font-size: 11px;
+    line-height: 16px;
+}
+
 @layer base {
     * {
         box-sizing: border-box;

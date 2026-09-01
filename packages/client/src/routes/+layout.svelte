@@ -10,6 +10,7 @@
         uiStore,
         taskStore,
         notificationStore,
+        dateViewStore,
     } from '$lib/stores';
     import type { Task } from '@erledigen/shared';
     import { container } from '$lib/container';
@@ -63,6 +64,116 @@
         applyTheme(preferencesStore.theme);
     });
 
+    // --- global keyboard shortcuts -------------------------------------
+    // Bindings are documented once in lib/keybindings.ts (help modal +
+    // hover tooltips render from that registry); this handler implements
+    // them. Keep the two in sync.
+
+    const TYPING_TARGETS = new Set(['INPUT', 'TEXTAREA', 'SELECT']);
+    const PRIORITY_TAGS = ['p1', 'p2', 'p3'];
+
+    function isTypingTarget(e: KeyboardEvent) {
+        const target = e.target as HTMLElement | null;
+        return !!target && (TYPING_TARGETS.has(target.tagName) || target.isContentEditable);
+    }
+
+    function getFocusedTask(): Task | undefined {
+        const id = uiStore.focusedTaskId;
+        return id ? taskStore.tasks.find(t => t.id === id) : undefined;
+    }
+
+    /** Move the focused task within the day list (j/k). Returns whether
+     *  keyboard focus was handled (so the caller can swallow the key). */
+    function moveFocus(delta: 1 | -1): boolean {
+        const ids = uiStore.visibleTaskIds;
+        if (ids.length === 0) return false;
+        const idx = uiStore.focusedTaskId ? ids.indexOf(uiStore.focusedTaskId) : -1;
+        let next: number;
+        if (idx === -1) {
+            next = delta > 0 ? 0 : ids.length - 1;
+        } else {
+            next = Math.min(ids.length - 1, Math.max(0, idx + delta));
+            if (next === idx) return true;
+        }
+        const id = ids[next];
+        uiStore.focusTask(id);
+        document.getElementById(`task-${id}`)?.scrollIntoView({ block: 'nearest' });
+        return true;
+    }
+
+    function setPriorityTag(task: Task, tag: 'p1' | 'p2' | 'p3' | null) {
+        const tags = task.tags.filter(t => !PRIORITY_TAGS.includes(t));
+        if (tag) tags.push(tag);
+        taskStore.update(task.id, { tags });
+    }
+
+    function focusTodayAddInput() {
+        const todayInput = document.querySelector(`#day-${container.dateProvider.today()} .add-input`) as HTMLElement | null;
+        todayInput?.focus();
+    }
+
+    function deleteFocusedTask() {
+        const task = getFocusedTask();
+        if (!task) return;
+        const taskId = task.id;
+        async function doDelete() {
+            const taskCopy = { ...task } as Task;
+            const success = await taskStore.remove(taskId);
+            if (success) {
+                notificationStore.push('Task deleted', {
+                    kind: 'info',
+                    action: { label: 'Undo', fn: () => taskStore.restore(taskCopy) },
+                });
+            }
+        }
+        if (preferencesStore.deleteConfirmation === 'confirm') {
+            if (window.confirm(`Delete "${task.text}"?`)) {
+                doDelete();
+            }
+        } else {
+            doDelete();
+        }
+    }
+
+    function toggleSomedayPanel() {
+        if (preferencesStore.someDayPanelWidth === 0) {
+            preferencesStore.setPanelWidth(preferencesStore.someDayPanelLastOpenWidth || 280);
+        } else {
+            preferencesStore.setPanelWidth(0);
+        }
+    }
+
+    /** Second keystroke of a "g <key>" sequence. */
+    const GO_KEYS: Record<string, () => void> = {
+        t: () => dateViewStore.requestScroll(container.dateProvider.today(), true),
+        s: () => uiStore.openModal('summary'),
+        p: () => uiStore.openModal('projects'),
+        h: () => uiStore.openModal('habits'),
+        c: () => uiStore.openModal('calendar'),
+        f: () => uiStore.openModal('filter'),
+        x: () => uiStore.openModal('trash'),
+        o: () => uiStore.openModal('settings'),
+    };
+
+    let pendingG = false;
+    let pendingGTimer: ReturnType<typeof setTimeout> | null = null;
+
+    function clearPendingG() {
+        pendingG = false;
+        if (pendingGTimer) {
+            clearTimeout(pendingGTimer);
+            pendingGTimer = null;
+        }
+    }
+
+    function setPendingG() {
+        pendingG = true;
+        if (pendingGTimer) clearTimeout(pendingGTimer);
+        // Chords expire quickly -- a lone "g" should never swallow a later,
+        // unrelated keypress.
+        pendingGTimer = setTimeout(clearPendingG, 800);
+    }
+
     function handleGlobalKeydown(e: KeyboardEvent) {
         if (e.key === 'Escape') {
             uiStore.closeModal();
@@ -71,57 +182,125 @@
             if (activeInput && activeInput.classList.contains('add-input')) {
                 (activeInput as HTMLInputElement).blur();
             }
+            clearPendingG();
             return;
         }
 
-        if (uiStore.activeModal) return;
+        if (uiStore.activeModal) {
+            clearPendingG();
+            return;
+        }
 
-        if (e.key === 'n' || e.key === 'a') {
-            if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'TEXTAREA') return;
-            e.preventDefault();
-            const todayInput = document.querySelector(`#day-${container.dateProvider.today()} .add-input`) as HTMLElement | null;
-            todayInput?.focus();
-        } else if (e.key === '/') {
-            if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'TEXTAREA') return;
-            e.preventDefault();
-            uiStore.openModal('search');
-        } else if (e.key === '?') {
-            if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'TEXTAREA') return;
-            e.preventDefault();
-            uiStore.openModal('help');
-        } else if (e.key === 'e' && uiStore.focusedTaskId) {
-            if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'TEXTAREA') return;
-            e.preventDefault();
-            uiStore.openModal('taskDetail');
-        } else if (e.key === 'd' && uiStore.focusedTaskId) {
-            if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'TEXTAREA') return;
-            e.preventDefault();
-            const taskId = uiStore.focusedTaskId;
-            const task = taskStore.tasks.find(t => t.id === taskId) as Task | undefined;
-            if (!task) return;
-            async function doDelete() {
-                const taskCopy = { ...task! } as Task;
-                const success = await taskStore.remove(taskId);
-                if (success) {
-                    notificationStore.push('Task deleted', {
-                        kind: 'info',
-                        action: { label: 'Undo', fn: () => taskStore.restore(taskCopy) },
-                    });
+        // Modifier chords work anywhere, including while typing in an input
+        // (Gmail-style: Cmd/Ctrl+K hijacks the browser's address-bar focus).
+        if (e.metaKey || e.ctrlKey) {
+            if (!e.altKey && !e.shiftKey) {
+                const key = e.key.toLowerCase();
+                if (key === 'k') {
+                    e.preventDefault();
+                    uiStore.openModal('search');
+                } else if (key === '\\') {
+                    e.preventDefault();
+                    toggleSomedayPanel();
                 }
             }
-            if (preferencesStore.deleteConfirmation === 'confirm') {
-                if (window.confirm(`Delete "${task.text}"?`)) {
-                    doDelete();
-                }
-            } else {
-                doDelete();
+            clearPendingG();
+            return;
+        }
+        if (e.altKey) {
+            clearPendingG();
+            return;
+        }
+
+        if (isTypingTarget(e)) {
+            clearPendingG();
+            return;
+        }
+
+        const key = e.key;
+
+        // Second keystroke of a "g <key>" navigation sequence.
+        if (pendingG) {
+            const action = GO_KEYS[key.toLowerCase()];
+            clearPendingG();
+            if (action) {
+                e.preventDefault();
+                action();
             }
-        } else if (e.ctrlKey && e.key === '\\') {
-            e.preventDefault();
-            if (preferencesStore.someDayPanelWidth === 0) {
-                preferencesStore.setPanelWidth(preferencesStore.someDayPanelLastOpenWidth || 280);
-            } else {
-                preferencesStore.setPanelWidth(0);
+            return;
+        }
+
+        switch (key) {
+            case 'j':
+            case 'ArrowDown':
+                if (moveFocus(1)) e.preventDefault();
+                return;
+            case 'k':
+            case 'ArrowUp':
+                if (moveFocus(-1)) e.preventDefault();
+                return;
+            case 'g':
+                e.preventDefault();
+                setPendingG();
+                return;
+            case 'n':
+            case 'a':
+                e.preventDefault();
+                focusTodayAddInput();
+                return;
+            case '/':
+                e.preventDefault();
+                uiStore.openModal('search');
+                return;
+            case '?':
+                e.preventDefault();
+                uiStore.openModal('help');
+                return;
+            case 'e':
+                if (uiStore.focusedTaskId) {
+                    e.preventDefault();
+                    uiStore.openModal('taskDetail');
+                }
+                return;
+            case 'd':
+                if (uiStore.focusedTaskId) {
+                    e.preventDefault();
+                    deleteFocusedTask();
+                }
+                return;
+            case 'Enter': {
+                const focusedId = uiStore.focusedTaskId;
+                if (focusedId) {
+                    e.preventDefault();
+                    uiStore.startEditing(focusedId);
+                }
+                return;
+            }
+            case ' ': {
+                const task = getFocusedTask();
+                if (task) {
+                    e.preventDefault();
+                    taskStore.update(task.id, { completed: !task.completed });
+                }
+                return;
+            }
+            case '1':
+            case '2':
+            case '3': {
+                const task = getFocusedTask();
+                if (task) {
+                    e.preventDefault();
+                    setPriorityTag(task, `p${key}` as 'p1' | 'p2' | 'p3');
+                }
+                return;
+            }
+            case '0': {
+                const task = getFocusedTask();
+                if (task) {
+                    e.preventDefault();
+                    setPriorityTag(task, null);
+                }
+                return;
             }
         }
     }

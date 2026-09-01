@@ -1,5 +1,6 @@
 <script lang="ts">
     import { notificationStore } from '$lib/stores/notificationStore.svelte';
+    import { tooltip } from '$lib/tooltip';
 
     // Inline SVG icons for the notification kinds. Removes the
     // svelte-icons-pack dependency from this component (part of the
@@ -31,7 +32,7 @@
                 <span class="notification-icon">{@html iconSvg(notification.iconType)}</span>
                 <span class="notification-message">{notification.message}</span>
                 {#if notification.action}
-                    <button class="notification-action" onclick={notification.action.fn}>
+                    <button class="notification-action" onclick={notification.action.fn} use:tooltip={{ label: notification.action.label }}>
                         {notification.action.label}
                     </button>
                 {/if}

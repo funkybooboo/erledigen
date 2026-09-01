@@ -2,6 +2,7 @@
     import { onMount, onDestroy, tick, untrack } from 'svelte';
     import { dateViewStore, preferencesStore } from '$lib/stores';
     import { container } from '$lib/container';
+    import { tooltip } from '$lib/tooltip';
 
     // Month granularity: each row is one month. The minimap has its OWN
     // bidirectional infinite scroll. There is NO hard wall: extension
@@ -265,9 +266,9 @@
             class:selected={isSelected(mk)}
             data-mk={mk}
             onclick={() => scrollToDateStart(firstOfMonth(mk))}
+            use:tooltip={{ label: `{monthLabel(mk)} {yearOf(mk)} — jump to month` }}
             aria-label="{monthLabel(mk)} {yearOf(mk)}"
             aria-current={isSelected(mk) ? 'true' : undefined}
-            title="{monthLabel(mk)} {yearOf(mk)}"
         >
             <span class="month-label">{monthLabel(mk)}</span>
             <span class="today-dot" class:visible={showTodayDot(mk)} aria-hidden="true"></span>

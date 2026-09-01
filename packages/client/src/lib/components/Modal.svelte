@@ -3,6 +3,7 @@
     import { onMount, onDestroy } from 'svelte';
     import { Icon } from 'svelte-icons-pack';
     import { LuX } from 'svelte-icons-pack/lu';
+    import { tooltip } from '$lib/tooltip';
 
     let { title = '', onclose = () => {}, children }: { title?: string; onclose?: () => void; children?: Snippet } = $props();
 
@@ -75,7 +76,7 @@
     >
         <div class="modal-header">
             <h2 class="modal-title" id="modal-title">{title}</h2>
-            <button class="close-btn" onclick={() => onclose()} aria-label="Close modal"><Icon src={LuX} /></button>
+            <button class="close-btn" onclick={() => onclose()} use:tooltip={'closeModal'} aria-label="Close modal"><Icon src={LuX} /></button>
         </div>
         <div class="modal-body" role="document">
             {@render children?.()}

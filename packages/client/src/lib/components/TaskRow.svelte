@@ -4,10 +4,12 @@
     import type { Task } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
     import { LuCheck, LuCircle, LuRepeat, LuFileText, LuX } from 'svelte-icons-pack/lu';
+    import { tooltip } from '$lib/tooltip';
 
     let { task, dateStr = '', isNew = false }: { task: Task; dateStr?: string; isNew?: boolean } = $props();
 
     let isEditing = $derived(uiStore.editingTaskId === task.id);
+    let isFocused = $derived(uiStore.focusedTaskId === task.id);
     let hasStartTime = $derived(task.startTime !== null);
 
     let editText = $state('');
@@ -25,11 +27,16 @@
         }
     });
 
+    // Acting on a row (checkbox, edit, delete, details) also makes it the
+    // focused task so follow-up keyboard shortcuts (Space, d, 1-3, Enter)
+    // target the row the user just touched with the mouse.
     function handleCheckboxChange() {
+        uiStore.focusTask(task.id);
         taskStore.update(task.id, { completed: !task.completed });
     }
 
     function startEdit() {
+        uiStore.focusTask(task.id);
         uiStore.startEditing(task.id);
     }
 
@@ -61,6 +68,7 @@
     }
 
     async function handleDelete() {
+        uiStore.focusTask(task.id);
         const removedTask: Task = { ...task };
         const success = await taskStore.remove(task.id);
         if (success) {
@@ -76,12 +84,15 @@
     class="task-row"
     class:completed={task.completed}
     class:task-new={isNew}
+    class:focused={isFocused}
+    id="task-{task.id}"
     aria-label="{task.text}{task.completed ? ', completed' : ''}"
 >
     <button
         class="checkbox"
         class:checked={task.completed}
         onclick={handleCheckboxChange}
+        use:tooltip={{ label: task.completed ? 'Mark incomplete' : 'Mark complete', shortcut: 'toggleComplete' }}
         aria-label="{task.completed ? 'Mark incomplete' : 'Mark complete'}"
         aria-pressed={task.completed}
     >
@@ -102,7 +113,7 @@
             maxlength={TASK_CONSTRAINTS.MAX_TEXT_LENGTH}
         />
     {:else}
-        <button class="task-text" onclick={startEdit} title="Click to edit">
+        <button class="task-text" onclick={startEdit} use:tooltip={'editTask'}>
             {#if hasStartTime}
                 <span class="time-badge">{task.startTime}</span>
             {/if}
@@ -121,10 +132,10 @@
     </div>
 
     <div class="task-actions">
-        <button class="action-btn" onclick={openDetail} aria-label="Task details" title="Details (e)">
+        <button class="action-btn" onclick={openDetail} use:tooltip={'taskDetail'} aria-label="Task details">
             <Icon src={LuFileText} />
         </button>
-        <button class="action-btn danger" onclick={handleDelete} aria-label="Delete task" title="Delete (d)">
+        <button class="action-btn danger" onclick={handleDelete} use:tooltip={'deleteTask'} aria-label="Delete task">
             <Icon src={LuX} />
         </button>
     </div>
@@ -143,6 +154,16 @@
 
     .task-row:hover {
         background: var(--color-surface-hover);
+    }
+
+    /* Keyboard-focused task (j/k navigation): accent tint so it is visibly
+       the target of the next single-key action (Space, d, e, 1-3...). */
+    .task-row.focused {
+        background: var(--color-accent-light);
+    }
+
+    .task-row.focused:hover {
+        background: var(--color-accent-light);
     }
 
     .task-row.completed .task-text {
