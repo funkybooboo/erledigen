@@ -42,9 +42,9 @@
 
     // Route through the shared date-view store so DayList slides its window
     // to today (even if today is outside the currently-loaded range) and the
-    // DateMinimap's auto-follow resets the selected month to today.
+    // DateMinimap centers on today's month. This is a full view reset.
     function goToday() {
-        dateViewStore.requestScroll(todayKey);
+        dateViewStore.requestScroll(todayKey, true);
     }
 </script>
 

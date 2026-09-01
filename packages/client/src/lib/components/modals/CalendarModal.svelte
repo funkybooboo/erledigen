@@ -1,6 +1,6 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
-    import { uiStore } from '$lib/stores';
+    import { uiStore, dateViewStore } from '$lib/stores';
     import { container } from '$lib/container';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
@@ -9,31 +9,32 @@
 
     function handleDateSelect() {
         if (!selectedDate) return;
-        const el = document.getElementById(`day-${selectedDate}`);
-        const scrollEl = document.querySelector('.day-list-area') as HTMLElement | null;
-        if (el && scrollEl) {
-            const elRect = el.getBoundingClientRect();
-            const containerRect = scrollEl.getBoundingClientRect();
-            const elCenter = elRect.top - containerRect.top + elRect.height / 2;
-            const scrollTarget = Math.max(0, scrollEl.scrollTop + elCenter - containerRect.height / 2);
-            scrollEl.scrollTo({
-                top: scrollTarget,
-                behavior: 'smooth',
-            });
-        } else if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+        // Route through the shared date-view store so DayList slides its
+        // window when the date is outside the loaded range and the minimap
+        // centers on the target month -- same path as the Today button.
+        dateViewStore.requestScroll(selectedDate, true);
         uiStore.closeModal();
     }
 
     function goToToday() {
         selectedDate = container.dateProvider.today();
+        // Full reset: also re-center the calendar grid itself on the
+        // current month.
+        const [y, m] = todayParts();
+        viewYear = y;
+        viewMonth = m;
         handleDateSelect();
     }
 
-    const today = new Date();
-    let viewYear = $state(today.getFullYear());
-    let viewMonth = $state(today.getMonth());
+    // [year, monthIndex] of "today" per the date provider (timezone-aware).
+    function todayParts(): [number, number] {
+        const [y, m] = container.dateProvider.today().split('-').map(Number);
+        return [y, m - 1];
+    }
+
+    const [initYear, initMonth] = todayParts();
+    let viewYear = $state(initYear);
+    let viewMonth = $state(initMonth);
 
     let monthName = $derived(new Date(viewYear, viewMonth).toLocaleString('en-US', { month: 'long', year: 'numeric' }));
     let daysInMonth = $derived(new Date(viewYear, viewMonth + 1, 0).getDate());

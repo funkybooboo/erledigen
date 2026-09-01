@@ -96,12 +96,15 @@
     // When a navigation request arrives (today button, etc.), slide the
     // minimap window to include that month. Keying on ``requestId`` (monotonic)
     // means this re-fires even when the target is the same as last time
-    // (e.g. clicking Today twice).
+    // (e.g. clicking Today twice). When the request also asks for it
+    // (``centerMinimap`` -- today button / calendar picks), center the
+    // target month in the rail rather than just keeping it on-screen.
     $effect(() => {
         const id = dateViewStore.requestId;
         if (id === 0) return;
         const target = dateViewStore.pendingScrollTarget;
         if (!target) return;
+        const center = dateViewStore.centerMinimap;
         const mk = toMonthKey(target);
         untrack(() => {
             if (mk < visibleStart) {
@@ -113,6 +116,14 @@
                 visibleEnd = monthOffset(mk, CHUNK_MONTHS);
                 const desiredStart = monthOffset(visibleEnd, -MAX_RENDER_MONTHS);
                 if (visibleStart < desiredStart) visibleStart = desiredStart;
+            }
+            if (center) {
+                // Wait for the (possibly re-rendered) row to exist before
+                // scrolling it to the middle of the rail.
+                tick().then(() => {
+                    const btn = scrollEl?.querySelector(`[data-mk="${mk}"]`) as HTMLElement | null;
+                    btn?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                });
             }
         });
     });
