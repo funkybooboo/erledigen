@@ -1,6 +1,10 @@
 import { describe, expect, test } from 'bun:test';
 import { Container } from './container';
 
+// Unit tests run against the ephemeral in-memory adapter so they never
+// touch (or create) a database file on disk.
+process.env['STORAGE_ADAPTER'] = 'memory';
+
 describe('Container', () => {
     const container = new Container();
 

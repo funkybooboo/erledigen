@@ -40,6 +40,7 @@ export class InMemoryRecurringTaskRepository implements RecurringTaskRepository 
             startDate: input.startDate,
             endDate: input.endDate ?? null,
             rolloverEnabled: input.rolloverEnabled ?? RECURRING_TASK_DEFAULTS.rolloverEnabled,
+            startTime: input.startTime ?? null,
             createdAt: now,
             updatedAt: now,
         };

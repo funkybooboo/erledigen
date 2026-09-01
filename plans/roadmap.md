@@ -506,15 +506,15 @@ This release implements persistent storage, structured logging and metrics, mult
 ### Storage
 - [ ] **I/O Abstraction Layer:** Solidify the adapter pattern so the application core is independent of the data source.
 - [ ] **In-Memory Adapter:** Already exists; keep for testing and ephemeral sessions.
-- [ ] **SQLite Adapter:** Implement a file-based SQLite adapter as the first real persistence layer (see [ADR-001](../docs/devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md)).
+- [x] **SQLite Adapter:** Implement a file-based SQLite adapter as the first real persistence layer (see [ADR-001](../docs/devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md)).
     - Zero-config for self-hosted use: single `.db` file on disk (`./data/erledigen.db`, configurable via `DB_PATH`).
     - Raw SQL via `bun:sqlite` — no ORM (see [ADR-001](../docs/devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md)).
     - JSON columns for `tags[]`, `reminder`, nested objects — repository handles `JSON.parse`/`JSON.stringify` at the boundary.
     - Schema migrations via raw SQL files (see [ADR-003](../docs/devs/architecture/decisions/ADR-003-raw-sql-migrations.md)): sequentially-numbered `.sql` files, forward-only, lightweight runner (~50 LOC).
     - Supports all entities: tasks, sub-tasks, Someday groups, projects, recurring tasks, `UserPreferences`.
     - Indexes on `tasks(date)`, `tasks(some_day_group_id)`, `tasks(parent_id)`, `tasks(recurring_task_id)`, `tasks(deleted_at)`.
-- [ ] **Configuration:** Select adapter via environment variable (`STORAGE_ADAPTER=sqlite|memory`, default: `sqlite` in production, `memory` in test).
-- [ ] **Adapter contract tests:** The same test suite runs against both in-memory and SQLite adapters to ensure behavioral parity.
+- [x] **Configuration:** Select adapter via environment variable (`STORAGE_ADAPTER=sqlite|memory`, default: `sqlite`; Playwright/test runs force `memory`).
+- [x] **Adapter contract tests:** The same test suite runs against both in-memory and SQLite adapters to ensure behavioral parity.
 
 ### State Persistence
 - [ ] **`UserPreferences` entity persisted in SQLite.** Covers:

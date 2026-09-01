@@ -4,7 +4,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "bun build ./src/index.ts --outdir ./dist --target bun",
+        "build": "bun build ./src/index.ts --outdir ./dist --target bun && cp -r src/adapters/data/migrations dist/migrations",
         "dev": "bun --watch src/index.ts",
         "start": "bun src/index.ts",
         "type-check": "tsc --noEmit",

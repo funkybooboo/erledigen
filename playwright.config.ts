@@ -54,8 +54,14 @@ export default defineConfig({
         {
             command: 'bun run --cwd packages/server dev',
             port: 4000,
-            reuseExistingServer: !process.env.CI,
+            // Never reuse a server already on the port: a dev server runs with
+            // the persistent sqlite adapter by default, which would leak state
+            // across runs. The pretest:e2e* scripts free the port first.
+            reuseExistingServer: false,
             timeout: 120_000,
+            // Ephemeral storage keeps test runs deterministic — no state
+            // leaks between runs from the persistent SQLite file.
+            env: { STORAGE_ADAPTER: 'memory' },
         },
         {
             command: 'bun run --cwd packages/client dev',

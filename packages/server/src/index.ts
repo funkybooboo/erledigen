@@ -12,6 +12,11 @@ const RATE_LIMIT_RPM = container.config.getNumber('RATE_LIMIT_RPM', DEFAULT_RATE
 const server = container.httpServer;
 const logger = container.logger;
 
+// Initialize the storage layer before serving traffic — opens the SQLite
+// database and runs pending migrations (see ADR-003) so a schema failure
+// aborts startup instead of surfacing on the first request.
+container.initStorage();
+
 // Wire up WebSocket support
 server.setConnectionManager(container.connectionManager);
 container.wsManager.start();

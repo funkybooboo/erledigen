@@ -31,6 +31,10 @@ export class InMemoryTaskRepository implements TaskRepository {
             .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
     }
 
+    async findByRecurringTaskId(recurringTaskId: string): Promise<Task[]> {
+        return this.activeTasks().filter(task => task.recurringTaskId === recurringTaskId);
+    }
+
     async findBySomeDayGroup(groupId: string): Promise<Task[]> {
         return this.activeTasks()
             .filter(task => task.someDayGroupId === groupId)

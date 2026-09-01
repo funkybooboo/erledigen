@@ -24,6 +24,7 @@ export interface TaskRepository {
     delete(id: string): Promise<boolean>;
     findSomeday(): Promise<Task[]>;
     findBySomeDayGroup(groupId: string): Promise<Task[]>;
+    findByRecurringTaskId(recurringTaskId: string): Promise<Task[]>;
     findChildren(parentId: string): Promise<Task[]>;
     findByTags(tags: string[]): Promise<Task[]>;
     forceDelete(id: string): Promise<boolean>;

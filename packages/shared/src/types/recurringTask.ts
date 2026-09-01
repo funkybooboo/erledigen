@@ -18,6 +18,8 @@ export interface RecurringTask {
     startDate: string;
     endDate: string | null;
     rolloverEnabled: boolean;
+    /** Default start time (24h "HH:MM") stamped onto generated instances. */
+    startTime: string | null;
     createdAt: string;
     updatedAt: string;
 }
@@ -47,6 +49,7 @@ export type CreateRecurringTaskInput = {
     dayOfMonth?: number | null;
     endDate?: string | null;
     rolloverEnabled?: boolean;
+    startTime?: string | null;
 };
 
 /**

@@ -30,6 +30,12 @@ import { InMemoryUserPreferencesRepository } from './adapters/data/InMemoryUserP
 import type { ProjectRepository } from './adapters/data/ProjectRepository';
 import type { RecurringTaskRepository } from './adapters/data/RecurringTaskRepository';
 import type { SomeDayGroupRepository } from './adapters/data/SomeDayGroupRepository';
+import { SqliteProjectRepository } from './adapters/data/SqliteProjectRepository';
+import { SqliteRecurringTaskRepository } from './adapters/data/SqliteRecurringTaskRepository';
+import { SqliteSomeDayGroupRepository } from './adapters/data/SqliteSomeDayGroupRepository';
+import { SqliteTaskRepository } from './adapters/data/SqliteTaskRepository';
+import { SqliteUserPreferencesRepository } from './adapters/data/SqliteUserPreferencesRepository';
+import { SqliteConnection } from './adapters/data/sqliteConnection';
 import type { TaskRepository } from './adapters/data/TaskRepository';
 import type { UserPreferencesRepository } from './adapters/data/UserPreferencesRepository';
 import { BunHttpServer } from './adapters/http/BunHttpServer';
@@ -56,6 +62,7 @@ export class Container {
     private _projectRepository: ProjectRepository | null = null;
     private _recurringTaskRepository: RecurringTaskRepository | null = null;
     private _userPreferencesRepository: UserPreferencesRepository | null = null;
+    private _sqliteConnection: SqliteConnection | null = null;
     private _logger: Logger | null = null;
     private _dateProvider: DateProvider | null = null;
     private _taskService: TaskService | null = null;
@@ -99,13 +106,57 @@ export class Container {
 
     /**
      * Get the task repository (for data persistence)
-     * Lazy-initializes on first access with injected date provider
+     * Lazy-initializes on first access; implementation picked by the
+     * STORAGE_ADAPTER config (sqlite by default, memory for ephemeral runs)
      */
     get taskRepository(): TaskRepository {
         if (!this._taskRepository) {
-            this._taskRepository = new InMemoryTaskRepository(this.dateProvider);
+            this._taskRepository =
+                this.storageAdapter === 'sqlite'
+                    ? new SqliteTaskRepository(this.sqliteConnection.db, this.dateProvider)
+                    : new InMemoryTaskRepository(this.dateProvider);
         }
         return this._taskRepository;
+    }
+
+    /**
+     * Get the configured storage adapter (see ADR-001).
+     *
+     * STORAGE_ADAPTER=sqlite (default) persists to a single .db file via
+     * bun:sqlite; STORAGE_ADAPTER=memory keeps the ephemeral in-memory
+     * repositories (data is lost on restart).
+     */
+    get storageAdapter(): 'sqlite' | 'memory' {
+        const value = this.config.get('STORAGE_ADAPTER', 'sqlite');
+        if (value !== 'sqlite' && value !== 'memory') {
+            throw new Error(`Invalid STORAGE_ADAPTER "${value}" — expected "sqlite" or "memory"`);
+        }
+        return value;
+    }
+
+    /**
+     * Get the shared SQLite connection (sqlite adapter only).
+     * Lazy-initializes on first access: opens DB_PATH, enables WAL, and runs
+     * pending migrations (see ADR-003).
+     */
+    get sqliteConnection(): SqliteConnection {
+        if (!this._sqliteConnection) {
+            const dbPath = this.config.get('DB_PATH', './data/erledigen.db');
+            this._sqliteConnection = new SqliteConnection(dbPath);
+        }
+        return this._sqliteConnection;
+    }
+
+    /**
+     * Initialize the storage layer at startup, before traffic is served.
+     * For the sqlite adapter this opens the database and runs pending
+     * migrations so a schema failure aborts boot (see ADR-003). No-op for
+     * the memory adapter.
+     */
+    initStorage(): void {
+        if (this.storageAdapter === 'sqlite') {
+            this._sqliteConnection ??= this.sqliteConnection;
+        }
     }
 
     /**
@@ -124,30 +175,43 @@ export class Container {
 
     get someDayGroupRepository(): SomeDayGroupRepository {
         if (!this._someDayGroupRepository) {
-            this._someDayGroupRepository = new InMemorySomeDayGroupRepository(this.dateProvider);
+            this._someDayGroupRepository =
+                this.storageAdapter === 'sqlite'
+                    ? new SqliteSomeDayGroupRepository(this.sqliteConnection.db, this.dateProvider)
+                    : new InMemorySomeDayGroupRepository(this.dateProvider);
         }
         return this._someDayGroupRepository;
     }
 
     get projectRepository(): ProjectRepository {
         if (!this._projectRepository) {
-            this._projectRepository = new InMemoryProjectRepository(this.dateProvider);
+            this._projectRepository =
+                this.storageAdapter === 'sqlite'
+                    ? new SqliteProjectRepository(this.sqliteConnection.db, this.dateProvider)
+                    : new InMemoryProjectRepository(this.dateProvider);
         }
         return this._projectRepository;
     }
 
     get recurringTaskRepository(): RecurringTaskRepository {
         if (!this._recurringTaskRepository) {
-            this._recurringTaskRepository = new InMemoryRecurringTaskRepository(this.dateProvider);
+            this._recurringTaskRepository =
+                this.storageAdapter === 'sqlite'
+                    ? new SqliteRecurringTaskRepository(this.sqliteConnection.db, this.dateProvider)
+                    : new InMemoryRecurringTaskRepository(this.dateProvider);
         }
         return this._recurringTaskRepository;
     }
 
     get userPreferencesRepository(): UserPreferencesRepository {
         if (!this._userPreferencesRepository) {
-            this._userPreferencesRepository = new InMemoryUserPreferencesRepository(
-                this.dateProvider,
-            );
+            this._userPreferencesRepository =
+                this.storageAdapter === 'sqlite'
+                    ? new SqliteUserPreferencesRepository(
+                          this.sqliteConnection.db,
+                          this.dateProvider,
+                      )
+                    : new InMemoryUserPreferencesRepository(this.dateProvider);
         }
         return this._userPreferencesRepository;
     }

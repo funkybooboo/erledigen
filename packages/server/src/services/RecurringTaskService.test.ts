@@ -60,6 +60,7 @@ function makeRecurringTask(overrides: Partial<RecurringTask> = {}): RecurringTas
         startDate: '2026-01-01',
         endDate: null,
         rolloverEnabled: true,
+        startTime: null,
         createdAt: '2026-01-01T00:00:00.000Z',
         updatedAt: '2026-01-01T00:00:00.000Z',
         ...overrides,
