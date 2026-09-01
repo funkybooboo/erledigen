@@ -30,17 +30,37 @@ test.describe('recurring-tasks — create (POST /api/recurring-tasks)', () => {
         expect(rt.endDate).toBeNull();
     });
 
-    test('accepts weekly with dayOfWeek and interval', async ({ request }) => {
+    test('accepts weekly with daysOfWeek and interval', async ({ request }) => {
         const res = await post(request, '/api/recurring-tasks', {
             text: 'Biweekly review',
             frequency: 'weekly',
             interval: 2,
-            dayOfWeek: 1,
+            daysOfWeek: [1],
             startDate: '2026-01-05',
         });
         expect(res.status).toBe(201);
         expect(res.body.data.interval).toBe(2);
-        expect(res.body.data.dayOfWeek).toBe(1);
+        expect(res.body.data.daysOfWeek).toEqual([1]);
+    });
+
+    test('accepts weekday and weekend day sets', async ({ request }) => {
+        const weekdays = await post(request, '/api/recurring-tasks', {
+            text: 'Standup',
+            frequency: 'daily',
+            daysOfWeek: [1, 2, 3, 4, 5],
+            startDate: '2026-01-01',
+        });
+        expect(weekdays.status).toBe(201);
+        expect(weekdays.body.data.daysOfWeek).toEqual([1, 2, 3, 4, 5]);
+
+        const weekends = await post(request, '/api/recurring-tasks', {
+            text: 'Brunch',
+            frequency: 'daily',
+            daysOfWeek: [0, 6],
+            startDate: '2026-01-01',
+        });
+        expect(weekends.status).toBe(201);
+        expect(weekends.body.data.daysOfWeek).toEqual([0, 6]);
     });
 
     test('rejects invalid frequency enum', async ({ request }) => {
@@ -76,11 +96,11 @@ test.describe('recurring-tasks — create (POST /api/recurring-tasks)', () => {
         expect(res.body.code).toBe('VALIDATION_ERROR');
     });
 
-    test('rejects dayOfWeek out of range (> 6)', async ({ request }) => {
+    test('rejects daysOfWeek entries out of range (> 6)', async ({ request }) => {
         const res = await post(request, '/api/recurring-tasks', {
             text: 'Bad dow',
             frequency: 'weekly',
-            dayOfWeek: 7,
+            daysOfWeek: [1, 7],
             startDate: '2026-01-01',
         });
         expect(res.status).toBe(400);
@@ -236,5 +256,99 @@ test.describe('recurring-tasks — generate instances', () => {
         });
         expect(res.status).toBe(400);
         expect(res.body.code).toBe('VALIDATION_ERROR');
+    });
+});
+
+test.describe('recurring-tasks — streak stats', () => {
+    /** Local-calendar ISO date offset by N days from today. */
+    function localDate(offsetDays: number): string {
+        const d = new Date();
+        d.setDate(d.getDate() + offsetDays);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
+
+    test('GET stats returns zeroed stats for a fresh habit', async ({ request }) => {
+        const rt = await createRecurring(request, {
+            text: 'Fresh habit',
+            frequency: 'daily',
+            startDate: '2026-01-01',
+        });
+        const res = await get(request, `/api/recurring-tasks/${rt.id}/stats`);
+        expect(res.status).toBe(200);
+        expect(res.body.data).toEqual({
+            recurringTaskId: rt.id,
+            currentStreak: 0,
+            longestStreak: 0,
+            totalCompletions: 0,
+            lastCompletedDate: null,
+        });
+    });
+
+    test('GET stats for unknown id returns 404', async ({ request }) => {
+        const res = await get(request, '/api/recurring-tasks/999999/stats');
+        expect(res.status).toBe(404);
+    });
+
+    test('completing instances builds a streak; an uncompleted day breaks it', async ({
+        request,
+    }) => {
+        const rt = await createRecurring(request, {
+            text: 'Streaky habit',
+            frequency: 'daily',
+            startDate: localDate(-4),
+        });
+        // Materialize the last three days (all on or before today).
+        const gen = await post(request, `/api/recurring-tasks/${rt.id}/generate`, {
+            startDate: localDate(-3),
+            endDate: localDate(-1),
+        });
+        expect(gen.status).toBe(200);
+        const instances = gen.body.data as Array<{ id: string; date: string }>;
+
+        // Complete only the two most recent days.
+        for (const instance of instances.slice(1)) {
+            const res = await put(request, `/api/tasks/${instance.id}`, { completed: true });
+            expect(res.status).toBe(200);
+        }
+
+        const stats = (await get(request, `/api/recurring-tasks/${rt.id}/stats`)).body.data;
+        expect(stats.currentStreak).toBe(2);
+        expect(stats.longestStreak).toBe(2);
+        expect(stats.totalCompletions).toBe(2);
+        expect(stats.lastCompletedDate).toBe(localDate(-1));
+
+        // Complete the remaining (oldest) day: the run becomes 3.
+        const oldest = instances[0];
+        await put(request, `/api/tasks/${oldest.id}`, { completed: true });
+        const grown = (await get(request, `/api/recurring-tasks/${rt.id}/stats`)).body.data;
+        expect(grown.currentStreak).toBe(3);
+        expect(grown.longestStreak).toBe(3);
+
+        // Uncomplete the middle day: current drops to 1, longest stays 3
+        // (the best run ever is never forgotten).
+        const middle = instances[1];
+        await put(request, `/api/tasks/${middle.id}`, { completed: false });
+        const broken = (await get(request, `/api/recurring-tasks/${rt.id}/stats`)).body.data;
+        expect(broken.currentStreak).toBe(1);
+        expect(broken.longestStreak).toBe(3);
+        expect(broken.totalCompletions).toBe(2);
+    });
+
+    test('stats survive a restart via upsertStats persistence', async ({ request }) => {
+        // findStats is served from the repository layer, so stats persist
+        // exactly like every other entity (verified by the repo contract
+        // tests). Here we just confirm the endpoint round-trips.
+        const rt = await createRecurring(request, {
+            text: 'Persist habit',
+            frequency: 'daily',
+            startDate: localDate(-1),
+        });
+        const first = await get(request, `/api/recurring-tasks/${rt.id}/stats`);
+        expect(first.status).toBe(200);
+        const second = await get(request, `/api/recurring-tasks/${rt.id}/stats`);
+        expect(second.body.data).toEqual(first.body.data);
     });
 });

@@ -20,7 +20,7 @@ import type { RecurringTaskRepository } from './RecurringTaskRepository';
 import { parseJsonColumn, toBoolean, toInteger } from './sqliteMapping';
 
 const RECURRING_TASK_COLUMNS = `
-    id, text, notes, tags, frequency, interval, day_of_week, day_of_month,
+    id, text, notes, tags, frequency, interval, days_of_week, day_of_month,
     start_date, end_date, rollover_enabled, start_time, created_at, updated_at
 `;
 
@@ -31,7 +31,7 @@ interface RecurringTaskRow {
     tags: string;
     frequency: string;
     interval: number;
-    day_of_week: number | null;
+    days_of_week: string | null;
     day_of_month: number | null;
     start_date: string;
     end_date: string | null;
@@ -57,7 +57,8 @@ function mapRecurringTaskRow(row: RecurringTaskRow): RecurringTask {
         tags: parseJsonColumn<string[]>(row.tags, []),
         frequency: row.frequency as RecurringTask['frequency'],
         interval: row.interval,
-        dayOfWeek: row.day_of_week,
+        daysOfWeek:
+            row.days_of_week === null ? null : parseJsonColumn<number[]>(row.days_of_week, []),
         dayOfMonth: row.day_of_month,
         startDate: row.start_date,
         endDate: row.end_date,
@@ -111,7 +112,7 @@ export class SqliteRecurringTaskRepository implements RecurringTaskRepository {
                 JSON.stringify(input.tags ?? [...RECURRING_TASK_DEFAULTS.tags]),
                 input.frequency,
                 input.interval ?? RECURRING_TASK_DEFAULTS.interval,
-                input.dayOfWeek ?? null,
+                input.daysOfWeek ? JSON.stringify(input.daysOfWeek) : null,
                 input.dayOfMonth ?? null,
                 input.startDate,
                 input.endDate ?? null,
@@ -142,7 +143,8 @@ export class SqliteRecurringTaskRepository implements RecurringTaskRepository {
         if ('tags' in input) assign('tags', JSON.stringify(input.tags));
         if ('frequency' in input) assign('frequency', input.frequency);
         if ('interval' in input) assign('interval', input.interval);
-        if ('dayOfWeek' in input) assign('day_of_week', input.dayOfWeek);
+        if ('daysOfWeek' in input)
+            assign('days_of_week', input.daysOfWeek ? JSON.stringify(input.daysOfWeek) : null);
         if ('dayOfMonth' in input) assign('day_of_month', input.dayOfMonth);
         if ('startDate' in input) assign('start_date', input.startDate);
         if ('endDate' in input) assign('end_date', input.endDate);

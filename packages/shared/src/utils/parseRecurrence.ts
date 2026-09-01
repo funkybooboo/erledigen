@@ -17,6 +17,9 @@
  *   every N months (on the Nth)
  *   every year / yearly / annually / every N years
  *   every friday / every fridays (full names or 3-letter abbreviations)
+ *   every weekday / weekdays (Mon-Fri)
+ *   every weekend / weekends (Sat-Sun)
+ *   every monday, wednesday, friday (comma/"and"/slash-separated day list)
  * plus an optional time suffix:
  *   at 4:00pm / at 4pm / at 16:00 / at noon / at midnight
  *
@@ -30,8 +33,9 @@ export interface RecurrenceSchedule {
     frequency: RecurringFrequency;
     /** 1 = every period, 2 = every other, 3 = every third, ... */
     interval: number;
-    /** 0-6 for weekly recurrence (0 = Sunday), null when not weekly-on-a-day */
-    dayOfWeek: number | null;
+    /** Which weekdays (0-6, 0 = Sunday) occurrences land on. null = any
+     *  day. Sorted unique values; [1..5] = weekdays, [0,6] = weekends. */
+    daysOfWeek: number[] | null;
     /** 1-31 for monthly recurrence, null when not monthly-on-a-day */
     dayOfMonth: number | null;
     /** 24h "HH:MM" stamped onto instances, null when no time given */
@@ -119,7 +123,7 @@ interface Candidate {
 const base = (): RecurrenceSchedule => ({
     frequency: 'daily',
     interval: 1,
-    dayOfWeek: null,
+    daysOfWeek: null,
     dayOfMonth: null,
     startTime: null,
 });
@@ -144,7 +148,44 @@ const weekdayOf = (word: string | undefined): number | null => {
 
 const dayWords = WEEKDAY_WORDS.join('|');
 
+/** Weekday list tail: at least two day names separated by ",", "and",
+ *  "/" or "&" (single days are handled by the candidates below).
+ *  1 = the whole list. */
+const DAY_LIST_RE = new RegExp(
+    `(?:^|\\s)(?:every\\s+)?((?:${dayWords})s?` +
+        `(?:\\s*(?:,|and|/|&)\\s*(?:${dayWords})s?)+)\\s*$`,
+    'i',
+);
+
+/** Parse a weekday list like "monday, wednesday and friday" into
+ *  sorted unique 0-6 indices; null when any word is not a weekday. */
+function weekdayListOf(raw: string): number[] | null {
+    const words = raw.split(/\s*(?:,|and|\/|&)\s*/i);
+    const days = new Set<number>();
+    for (const word of words) {
+        const day = weekdayOf(word.replace(/s$/i, ''));
+        if (day === null) return null;
+        days.add(day);
+    }
+    return [...days].sort((a, b) => a - b);
+}
+
 const CANDIDATES: Candidate[] = [
+    {
+        re: /(?:^|\s)(?:every )?weekdays?$/i,
+        build: () => ({ ...base(), daysOfWeek: [1, 2, 3, 4, 5] }),
+    },
+    {
+        re: /(?:^|\s)(?:every )?weekends?$/i,
+        build: () => ({ ...base(), daysOfWeek: [0, 6] }),
+    },
+    {
+        re: DAY_LIST_RE,
+        build: m => {
+            const days = weekdayListOf(m[1] ?? '');
+            return days === null ? null : { ...base(), daysOfWeek: days };
+        },
+    },
     {
         re: /(?:^|\s)every other day$/i,
         build: () => ({ ...base(), frequency: 'daily', interval: 2 }),
@@ -167,7 +208,7 @@ const CANDIDATES: Candidate[] = [
             const day = weekdayOf(m[2]);
             return interval === null || day === null
                 ? null
-                : { ...base(), frequency: 'weekly', interval, dayOfWeek: day };
+                : { ...base(), frequency: 'weekly', interval, daysOfWeek: [day] };
         },
     },
     {
@@ -181,7 +222,7 @@ const CANDIDATES: Candidate[] = [
         re: new RegExp(`(?:^|\\s)(?:every week|weekly) on (${dayWords})$`, 'i'),
         build: m => {
             const day = weekdayOf(m[1]);
-            return day === null ? null : { ...base(), frequency: 'weekly', dayOfWeek: day };
+            return day === null ? null : { ...base(), frequency: 'weekly', daysOfWeek: [day] };
         },
     },
     {
@@ -235,7 +276,7 @@ const CANDIDATES: Candidate[] = [
         re: new RegExp(`(?:^|\\s)every (${dayWords})s?$`, 'i'),
         build: m => {
             const day = weekdayOf(m[1]);
-            return day === null ? null : { ...base(), frequency: 'weekly', dayOfWeek: day };
+            return day === null ? null : { ...base(), frequency: 'weekly', daysOfWeek: [day] };
         },
     },
 ];

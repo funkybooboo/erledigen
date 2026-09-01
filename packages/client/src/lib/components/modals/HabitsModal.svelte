@@ -8,7 +8,7 @@
         preferencesStore,
     } from '$lib/stores';
     import { Icon } from 'svelte-icons-pack';
-    import { LuPencil, LuPlus, LuRepeat, LuTrash2 } from 'svelte-icons-pack/lu';
+    import { LuFlame, LuPencil, LuPlus, LuRepeat, LuTrash2 } from 'svelte-icons-pack/lu';
     import {
         WEEKDAY_ABBREVIATIONS,
         describeRecurrence,
@@ -22,7 +22,9 @@
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
     onMount(() => {
-        recurringTaskStore.fetchAll();
+        recurringTaskStore.fetchAll().then(() => {
+            recurringTaskStore.fetchStats(recurringTaskStore.tasks.map(h => h.id));
+        });
     });
 
     const DAY_NAMES = WEEKDAY_ABBREVIATIONS;
@@ -36,7 +38,7 @@
         text: string;
         frequency: RecurringFrequency;
         interval: number;
-        dayOfWeek: number | null;
+        daysOfWeek: number[];
         dayOfMonth: number | null;
         startDate: string;
         endDate: string;
@@ -49,7 +51,7 @@
             text: '',
             frequency: 'daily',
             interval: 1,
-            dayOfWeek: null,
+            daysOfWeek: [],
             dayOfMonth: null,
             startDate: container.dateProvider.today(),
             endDate: '',
@@ -63,16 +65,14 @@
     let showForm = $state(false);
     let saving = $state(false);
 
-    // Select values are strings; keep this in sync with form.dayOfWeek
-    // ('' = any day) so the control and the state never disagree.
-    let dayOfWeekSel = $state('');
-    $effect(() => {
-        dayOfWeekSel = form.dayOfWeek === null ? '' : String(form.dayOfWeek);
-    });
+    /** Day chips apply to daily and weekly schedules. */
+    const usesDaysOfWeek = $derived(form.frequency === 'daily' || form.frequency === 'weekly');
 
-    function onDayOfWeekChange(e: Event) {
-        const value = (e.currentTarget as HTMLSelectElement).value;
-        form.dayOfWeek = value === '' ? null : Number(value);
+    function toggleDay(day: number): void {
+        const days = form.daysOfWeek;
+        form.daysOfWeek = days.includes(day)
+            ? days.filter(d => d !== day)
+            : [...days, day].sort((a, b) => a - b);
     }
 
     // Live TeuxDeux-style parsing: typing "Water plants every friday at
@@ -83,7 +83,7 @@
         if (parsed) {
             form.frequency = parsed.schedule.frequency;
             form.interval = parsed.schedule.interval;
-            form.dayOfWeek = parsed.schedule.dayOfWeek;
+            form.daysOfWeek = parsed.schedule.daysOfWeek ?? [];
             form.dayOfMonth = parsed.schedule.dayOfMonth;
             form.startTime = parsed.schedule.startTime ?? '';
         }
@@ -100,7 +100,7 @@
             text: habit.text,
             frequency: habit.frequency,
             interval: habit.interval,
-            dayOfWeek: habit.dayOfWeek,
+            daysOfWeek: habit.daysOfWeek ?? [],
             dayOfMonth: habit.dayOfMonth,
             startDate: habit.startDate,
             endDate: habit.endDate ?? '',
@@ -144,7 +144,7 @@
             text: name,
             frequency: form.frequency,
             interval: Math.max(1, Number(form.interval) || 1),
-            dayOfWeek: form.frequency === 'weekly' ? form.dayOfWeek : null,
+            daysOfWeek: usesDaysOfWeek && form.daysOfWeek.length > 0 ? form.daysOfWeek : null,
             dayOfMonth:
                 form.frequency === 'monthly' && form.dayOfMonth !== null
                     ? Math.min(31, Math.max(1, Number(form.dayOfMonth) || 1))
@@ -185,6 +185,11 @@
 
     function getInstanceCount(habitId: string): number {
         return taskStore.tasks.filter(t => t.recurringTaskId === habitId).length;
+    }
+
+    /** Current streak count for the badge next to the flame icon. */
+    function streakLabel(habitId: string): string {
+        return String(recurringTaskStore.stats.get(habitId)?.currentStreak ?? 0);
     }
 </script>
 
@@ -234,19 +239,25 @@
                         />
                     {/if}
                 </div>
-                {#if form.frequency === 'weekly'}
+                {#if usesDaysOfWeek}
                     <div class="form-row">
-                        <label for="habit-day-of-week">On day</label>
-                        <select
-                            id="habit-day-of-week"
-                            value={dayOfWeekSel}
-                            onchange={onDayOfWeekChange}
-                        >
-                            <option value="">Any day</option>
+                        <span class="chip-label">On days</span>
+                        <div class="day-chips" role="group" aria-label="Days of week">
                             {#each DAY_NAMES as day, i}
-                                <option value={i}>{day}</option>
+                                <button
+                                    type="button"
+                                    class="day-chip"
+                                    class:active={form.daysOfWeek.includes(i)}
+                                    onclick={() => toggleDay(i)}
+                                    aria-pressed={form.daysOfWeek.includes(i)}
+                                >
+                                    {day}
+                                </button>
                             {/each}
-                        </select>
+                        </div>
+                        {#if form.daysOfWeek.length === 0}
+                            <span class="chip-hint">any day</span>
+                        {/if}
                     </div>
                 {/if}
                 {#if form.frequency === 'monthly'}
@@ -319,7 +330,19 @@
                     </div>
                     <div class="habit-streak">
                         {#if getInstanceCount(habit.id) > 0}
-                            <span class="streak-badge">{getInstanceCount(habit.id)} instance{getInstanceCount(habit.id) !== 1 ? 's' : ''}</span>
+                            <span class="streak-badge" data-testid="habit-streak">
+                                <Icon src={LuFlame} />
+                                {streakLabel(habit.id)}
+                            </span>
+                            <span class="meta-stat">{getInstanceCount(habit.id)} instance{getInstanceCount(habit.id) !== 1 ? 's' : ''}</span>
+                            {@const stats = recurringTaskStore.stats.get(habit.id)}
+                            {#if stats}
+                                <span class="meta-stat">best {stats.longestStreak}</span>
+                                <span class="meta-stat">{stats.totalCompletions} done</span>
+                                {#if stats.lastCompletedDate}
+                                    <span class="meta-stat">last {stats.lastCompletedDate}</span>
+                                {/if}
+                            {/if}
                         {:else}
                             <span class="streak-badge empty">No instances yet</span>
                         {/if}
@@ -395,20 +418,77 @@
 
     .habit-streak {
         margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .meta-stat {
+        font-size: 11px;
+        color: var(--color-text-muted);
     }
 
     .streak-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
         font-size: 11px;
         padding: 2px 8px;
         border-radius: 999px;
         background: var(--color-success-light);
         color: var(--color-success);
-        font-weight: 500;
+        font-weight: 600;
+    }
+
+    .streak-badge :global(svg) {
+        width: 11px;
+        height: 11px;
     }
 
     .streak-badge.empty {
         background: var(--color-surface-hover);
         color: var(--color-text-muted);
+    }
+
+    .day-chips {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+    }
+
+    .day-chip {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--color-border);
+        background: var(--color-surface);
+        color: var(--color-text-muted);
+        cursor: pointer;
+        transition: background-color 0.1s, color 0.1s, border-color 0.1s;
+    }
+
+    .day-chip:hover {
+        background: var(--color-surface-hover);
+        color: var(--color-text);
+    }
+
+    .day-chip.active {
+        background: var(--color-accent);
+        border-color: var(--color-accent);
+        color: var(--color-on-accent);
+    }
+
+    .chip-label {
+        font-size: 13px;
+        color: var(--color-text-secondary);
+    }
+
+    .chip-hint {
+        font-size: 11px;
+        color: var(--color-text-muted);
+        font-style: italic;
     }
 
     .form-row {

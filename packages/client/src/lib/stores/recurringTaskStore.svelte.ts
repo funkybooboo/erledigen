@@ -1,9 +1,11 @@
 import type {
     CreateRecurringTaskInput,
     RecurringTask,
+    RecurringTaskStats,
     Task,
     UpdateRecurringTaskInput,
 } from '@erledigen/shared';
+import { SvelteMap } from 'svelte/reactivity';
 import { container } from '$lib/container';
 import { RecurringTaskService } from '$lib/services/recurringTaskService';
 import { EntityStore } from './entityStore.svelte';
@@ -29,6 +31,29 @@ class RecurringTaskStore extends EntityStore<
         return this.items;
     }
 
+    /** Streak stats by habit id, fetched for the Habits modal.
+     *  SvelteMap (not $state< Map >): Svelte 5 only deep-proxies plain
+     *  objects/arrays, so Map.set on a raw Map would never re-render the
+     *  modal. SvelteMap tracks reads of .get() so entries appearing later
+     *  update the badge. */
+    stats = new SvelteMap<string, RecurringTaskStats>();
+
+    /** Fetch (or refresh) stats for the given habit ids. Failures leave
+     *  existing entries untouched — the modal just shows what it has. */
+    async fetchStats(ids: string[]): Promise<void> {
+        await Promise.all(
+            ids.map(async id => {
+                try {
+                    const stats = await recurringTaskService.getStats(id);
+                    this.stats.set(id, stats);
+                } catch (error) {
+                    // keep whatever we already have for this id
+                    this.logFailure('fetchStats', error);
+                }
+            }),
+        );
+    }
+
     /**
      * Create a habit and immediately materialize its instances through
      * `endDate`. Returns null when creation fails. Callers ingest the
@@ -45,8 +70,9 @@ class RecurringTaskStore extends EntityStore<
         let tasks: Task[] = [];
         try {
             tasks = await recurringTaskService.generate(habit.id, habit.startDate, endDate);
-        } catch {
+        } catch (error) {
             // Creation succeeded; generation can be retried by scrolling.
+            this.logFailure('generate', error);
         }
         return { habit, tasks };
     }
@@ -59,7 +85,8 @@ class RecurringTaskStore extends EntityStore<
         try {
             const generated = await recurringTaskService.generateAll(startDate, endDate);
             return generated.flatMap(g => g.tasks);
-        } catch {
+        } catch (error) {
+            this.logFailure('generateAll', error);
             return [];
         }
     }

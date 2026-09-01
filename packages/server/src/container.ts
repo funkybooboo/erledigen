@@ -245,6 +245,7 @@ export class Container {
             this._recurringTaskService = new RecurringTaskService(
                 this.recurringTaskRepository,
                 this.taskRepository,
+                this.dateProvider,
             );
         }
         return this._recurringTaskService;

@@ -29,7 +29,7 @@ export function runRecurringTaskRepositoryContractTests(
             expect(task.interval).toBe(1);
             expect(task.notes).toBeNull();
             expect(task.tags).toEqual([]);
-            expect(task.dayOfWeek).toBeNull();
+            expect(task.daysOfWeek).toBeNull();
             expect(task.dayOfMonth).toBeNull();
             expect(task.endDate).toBeNull();
             expect(task.rolloverEnabled).toBe(true);
@@ -44,13 +44,13 @@ export function runRecurringTaskRepositoryContractTests(
                 startDate: '2026-04-07',
                 tags: ['#work'],
                 interval: 2,
-                dayOfWeek: 1,
+                daysOfWeek: [1],
                 rolloverEnabled: false,
                 startTime: '09:30',
             });
             expect(task.tags).toEqual(['#work']);
             expect(task.interval).toBe(2);
-            expect(task.dayOfWeek).toBe(1);
+            expect(task.daysOfWeek).toEqual([1]);
             expect(task.rolloverEnabled).toBe(false);
             expect(task.startTime).toBe('09:30');
         });

@@ -13,7 +13,10 @@ export interface RecurringTask {
     tags: string[];
     frequency: RecurringFrequency;
     interval: number;
-    dayOfWeek: number | null;
+    /** Which weekdays (0-6, 0 = Sunday) the schedule lands on.
+     *  Generalizes single-day scheduling and covers "every weekday"
+     *  ([1..5]) and "every weekend" ([0, 6]). null = any day. */
+    daysOfWeek: number[] | null;
     dayOfMonth: number | null;
     startDate: string;
     endDate: string | null;
@@ -45,7 +48,7 @@ export type CreateRecurringTaskInput = {
     notes?: string | null;
     tags?: string[];
     interval?: number;
-    dayOfWeek?: number | null;
+    daysOfWeek?: number[] | null;
     dayOfMonth?: number | null;
     endDate?: string | null;
     rolloverEnabled?: boolean;

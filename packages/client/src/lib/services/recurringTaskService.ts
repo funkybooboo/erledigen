@@ -4,6 +4,7 @@ import {
     type ApiResponse,
     type CreateRecurringTaskInput,
     type RecurringTask,
+    type RecurringTaskStats,
     type UpdateRecurringTaskInput,
 } from '@erledigen/shared';
 
@@ -48,6 +49,14 @@ export class RecurringTaskService {
         const response = await this.http.post<ApiResponse<Task[]>>(
             API_ROUTES.RECURRING_TASK_GENERATE(id),
             { startDate, endDate },
+        );
+        return response.data;
+    }
+
+    /** Streak stats for one template (recomputed server-side on read). */
+    async getStats(id: string): Promise<RecurringTaskStats> {
+        const response = await this.http.get<ApiResponse<RecurringTaskStats>>(
+            API_ROUTES.RECURRING_TASK_STATS(id),
         );
         return response.data;
     }

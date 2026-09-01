@@ -85,6 +85,7 @@
     class:completed={task.completed}
     class:task-new={isNew}
     class:focused={isFocused}
+    class:is-recurring={Boolean(task.recurringTaskId)}
     id="task-{task.id}"
     aria-label="{task.text}{task.completed ? ', completed' : ''}"
 >
@@ -123,7 +124,9 @@
 
     <div class="task-meta">
         {#if task.recurringTaskId}
-            <span class="recurring-icon" title="Recurring task"><Icon src={LuRepeat} /></span>
+            <span class="recurring-icon" use:tooltip={{ label: 'Recurring habit instance' }}>
+                <Icon src={LuRepeat} />
+            </span>
         {/if}
 
         {#each task.tags as tag}
@@ -164,6 +167,17 @@
 
     .task-row.focused:hover {
         background: var(--color-accent-light);
+    }
+
+    /* Habit instances carry their template's accent as a hairline left
+       bar, echoing the repeat icon: visible linkage beyond the icon alone,
+       but quiet enough to stay out of the way. */
+    .task-row.is-recurring {
+        box-shadow: inset 2px 0 0 color-mix(in oklab, var(--color-accent) 65%, transparent);
+    }
+
+    .task-row.is-recurring .recurring-icon {
+        color: var(--color-accent);
     }
 
     .task-row.completed .task-text {

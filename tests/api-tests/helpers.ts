@@ -103,7 +103,7 @@ export async function fetchRaw(
 // Lifecycle helpers — create an entity and track it for afterEach cleanup.
 // ---------------------------------------------------------------------------
 
-const created: Array<{ ctx: APIRequestContext; base: string; kind: string; id: string }> = [];
+const created: Array<{ base: string; kind: string; id: string }> = [];
 
 export async function createTask(
     ctx: APIRequestContext,
@@ -111,7 +111,7 @@ export async function createTask(
     base = '',
 ): Promise<BaseEntity> {
     const res = await post(ctx, '/api/tasks', input, base);
-    if (res.status === 201) created.push({ ctx, base, kind: 'task', id: res.body.data.id });
+    if (res.status === 201) created.push({ base, kind: 'task', id: res.body.data.id });
     return res.body.data;
 }
 
@@ -121,7 +121,7 @@ export async function createProject(
     base = '',
 ): Promise<BaseEntity> {
     const res = await post(ctx, '/api/projects', input, base);
-    if (res.status === 201) created.push({ ctx, base, kind: 'project', id: res.body.data.id });
+    if (res.status === 201) created.push({ base, kind: 'project', id: res.body.data.id });
     return res.body.data;
 }
 
@@ -131,7 +131,7 @@ export async function createRecurring(
     base = '',
 ): Promise<BaseEntity> {
     const res = await post(ctx, '/api/recurring-tasks', input, base);
-    if (res.status === 201) created.push({ ctx, base, kind: 'recurring', id: res.body.data.id });
+    if (res.status === 201) created.push({ base, kind: 'recurring', id: res.body.data.id });
     return res.body.data;
 }
 
@@ -141,14 +141,19 @@ export async function createGroup(
     base = '',
 ): Promise<BaseEntity> {
     const res = await post(ctx, '/api/someday-groups', input, base);
-    if (res.status === 201) created.push({ ctx, base, kind: 'group', id: res.body.data.id });
+    if (res.status === 201) created.push({ base, kind: 'group', id: res.body.data.id });
     return res.body.data;
 }
 
-/** Delete everything this test created. Safe to call in afterEach. */
+/** Delete everything this test created. Safe to call in afterEach.
+ *
+ * Tracked entities are deleted through the live context passed in (the
+ * afterEach `request` fixture), NOT the context that created them: e2e
+ * specs seed through `page.request`, which is a different instance than
+ * the test's `request` fixture — filtering by creator context silently
+ * skipped everything and leaked state across tests. */
 export async function cleanup(ctx: APIRequestContext, base = ''): Promise<void> {
     for (const item of created.splice(0)) {
-        if (item.ctx !== ctx) continue;
         const pathBase =
             item.kind === 'task'
                 ? '/api/tasks'
@@ -157,7 +162,7 @@ export async function cleanup(ctx: APIRequestContext, base = ''): Promise<void> 
                   : item.kind === 'recurring'
                     ? '/api/recurring-tasks'
                     : '/api/someday-groups';
-        await del(ctx, `${pathBase}/${item.id}`, item.base ?? base).catch(() => {});
+        await del(ctx, `${pathBase}/${item.id}`, item.base || base).catch(() => {});
     }
 }
 

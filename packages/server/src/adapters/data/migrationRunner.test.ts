@@ -46,6 +46,7 @@ describe('runMigrations', () => {
         expect(applied.map(row => row.name)).toEqual([
             '001_initial_schema.sql',
             '002_add_start_time_to_recurring_tasks.sql',
+            '003_recurring_days_of_week.sql',
         ]);
     });
 });

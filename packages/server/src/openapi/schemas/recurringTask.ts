@@ -9,6 +9,9 @@ import { IsoDate } from './common';
 /** 24h clock time, "HH:MM". */
 export const TimeHHMM = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 
+/** Weekday numbers, 0 = Sunday (0-6). */
+const DaysOfWeek = z.array(z.number().int().min(0).max(6));
+
 export const RecurringTaskSchema = registry.register(
     'RecurringTask',
     z
@@ -19,11 +22,12 @@ export const RecurringTaskSchema = registry.register(
             tags: z.array(z.string()),
             frequency: z.enum(['daily', 'weekly', 'monthly', 'yearly']),
             interval: z.number().int().min(1).openapi({ description: 'e.g. 2 = every 2 weeks' }),
-            dayOfWeek: z.number().int().min(0).max(6).nullable().openapi({
-                description: '0–6 for weekly recurrence (0 = Sunday)',
+            daysOfWeek: DaysOfWeek.nullable().openapi({
+                description:
+                    'Weekdays (0-6, 0 = Sunday) the schedule lands on; null = any day. [1,2,3,4,5] = weekdays, [0,6] = weekends',
             }),
             dayOfMonth: z.number().int().min(1).max(31).nullable().openapi({
-                description: '1–31 for monthly recurrence',
+                description: '1-31 for monthly recurrence',
             }),
             startDate: IsoDate,
             endDate: IsoDate.nullable(),
@@ -47,7 +51,7 @@ export const CreateRecurringTaskSchema = registry.register(
             notes: z.string().nullable().optional(),
             tags: z.array(z.string()).optional(),
             interval: z.number().int().min(1).optional(),
-            dayOfWeek: z.number().int().min(0).max(6).nullable().optional(),
+            daysOfWeek: DaysOfWeek.nullable().optional(),
             dayOfMonth: z.number().int().min(1).max(31).nullable().optional(),
             endDate: IsoDate.nullable().optional(),
             rolloverEnabled: z.boolean().optional(),
@@ -69,4 +73,17 @@ export const GenerateInstancesSchema = registry.register(
             endDate: IsoDate.openapi({ description: 'ISO 8601 date (YYYY-MM-DD)' }),
         })
         .openapi('GenerateInstancesInput'),
+);
+
+export const RecurringTaskStatsSchema = registry.register(
+    'RecurringTaskStats',
+    z
+        .object({
+            recurringTaskId: z.string(),
+            currentStreak: z.number().int().min(0),
+            longestStreak: z.number().int().min(0),
+            totalCompletions: z.number().int().min(0),
+            lastCompletedDate: IsoDate.nullable(),
+        })
+        .openapi('RecurringTaskStats'),
 );

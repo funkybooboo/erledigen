@@ -9,6 +9,7 @@ import type { HttpServer } from '../adapters/http/HttpServer';
 import { CreateTaskSchema, TaskQuerySchema, UpdateTaskSchema } from '../openapi/schemas/task';
 import { formatTasksAsText } from '../presentation/formatters';
 import type { EventBus } from '../services/EventBus';
+import type { RecurringTaskService } from '../services/RecurringTaskService';
 import type { TaskService } from '../services/TaskService';
 import { notFoundError } from '../utils/errorHandler';
 import {
@@ -25,7 +26,17 @@ export function registerTaskRoutes(
     taskService: TaskService,
     eventBus: EventBus,
     logger: Logger,
+    recurringTaskService: RecurringTaskService,
 ): void {
+    /** Refresh habit streak stats for a task's template. Stats failures
+     *  must never break the task mutation that triggered them. */
+    const refreshStats = (recurringTaskId: string | null): void => {
+        if (!recurringTaskId) return;
+        recurringTaskService.computeStats(recurringTaskId).catch(error => {
+            logger.warn('Failed to refresh recurring task stats', { error, recurringTaskId });
+        });
+    };
+
     // GET /api/tasks
     server.route(
         'GET',
@@ -80,6 +91,7 @@ export function registerTaskRoutes(
             const originClientId = req.headers['x-client-id'];
             const task = await taskRepo.restore(id);
             if (!task) throw notFoundError('Task', id);
+            refreshStats(task.recurringTaskId);
             eventBus.publish('task:restored', { task }, originClientId);
             return successResponse(task);
         }, logger),
@@ -108,6 +120,7 @@ export function registerTaskRoutes(
             const input = parseBody(UpdateTaskSchema, raw) as unknown as UpdateTaskInput;
             const task = await taskService.completeTask(id, input);
             if (!task) throw notFoundError('Task', id);
+            refreshStats(task.recurringTaskId);
             eventBus.publish('task:updated', { task }, originClientId);
             return successResponse(task);
         }, logger),
@@ -120,8 +133,12 @@ export function registerTaskRoutes(
         withErrorHandling(async req => {
             const id = requirePathParam(req, API_ROUTES.TASK_ROUTE_PATTERN, 'task');
             const originClientId = req.headers['x-client-id'];
+            // Capture the template link before the instance disappears from
+            // the active set (deleted instances no longer count for streaks).
+            const existing = await taskRepo.findById(id);
             const deleted = await taskRepo.delete(id);
             if (!deleted) throw notFoundError('Task', id);
+            refreshStats(existing?.recurringTaskId ?? null);
             eventBus.publish('task:deleted', { id }, originClientId);
             return successResponse({ success: true });
         }, logger),

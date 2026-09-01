@@ -7,8 +7,17 @@
 
 import type { RecurringTask } from '@erledigen/shared';
 
+const MS_PER_DAY = 86_400_000;
+
 /**
  * Generate occurrence dates for a recurring task within a date range (inclusive).
+ *
+ * A date is an occurrence when it is on the template's interval grid measured
+ * from `startDate` AND matches the schedule's day constraints:
+ *   - `daysOfWeek` (0-6, 0 = Sunday) filters daily/weekly schedules to the
+ *     listed weekdays — null means any day.
+ *   - `dayOfMonth` pins monthly schedules to that calendar day — null keeps
+ *     the start date's day-of-month.
  *
  * @param rt - The recurring task template
  * @param startDate - Range start, ISO 8601 YYYY-MM-DD
@@ -30,69 +39,105 @@ export function generateOccurrences(
     const templateStart = parseLocal(rt.startDate);
     const templateEnd = rt.endDate ? parseLocal(rt.endDate) : null;
 
-    const results: string[] = [];
-
     // Clamp effective range to the template's own start/end dates
     const effectiveStart = start > templateStart ? start : templateStart;
     const effectiveEnd = templateEnd && end > templateEnd ? templateEnd : end;
 
     if (effectiveStart > effectiveEnd) return [];
 
-    const interval = rt.interval > 0 ? rt.interval : 1;
-    let cursor = new Date(effectiveStart);
-
-    // Advance cursor to the first valid occurrence on or after effectiveStart
-    cursor = advanceToFirstOccurrence(rt, cursor, templateStart, interval);
+    const results: string[] = [];
+    const cursor = new Date(effectiveStart);
 
     while (cursor <= effectiveEnd) {
-        results.push(toIsoDate(cursor));
-        cursor = nextOccurrence(rt, cursor, interval);
+        if (isOccurrence(rt, cursor)) results.push(toIsoDate(cursor));
+        cursor.setDate(cursor.getDate() + 1);
     }
 
     return results;
 }
 
 /**
- * Advance the cursor to the first occurrence on or after `from`,
- * respecting the template's frequency and interval.
+ * The next occurrence date strictly after `afterIso`, ignoring the template's
+ * endDate. Used for streak math: two consecutive instances are "adjacent"
+ * exactly when the later one equals nextOccurrenceIso(earlier one).
+ *
+ * Returns null when no occurrence exists within a generous horizon (malformed
+ * schedules only; a sane template always finds its next occurrence).
  */
-function advanceToFirstOccurrence(
-    rt: RecurringTask,
-    from: Date,
-    templateStart: Date,
-    interval: number,
-): Date {
-    let cursor = new Date(templateStart);
+export function nextOccurrenceIso(rt: RecurringTask, afterIso: string): string | null {
+    const cursor = parseLocal(afterIso);
+    // Guard the walk so a malformed template can never spin forever.
+    const limit = new Date(cursor);
+    limit.setFullYear(limit.getFullYear() + 50);
 
-    while (cursor < from) {
-        cursor = nextOccurrence(rt, cursor, interval);
+    cursor.setDate(cursor.getDate() + 1);
+    while (cursor <= limit) {
+        if (isOccurrence(rt, cursor)) return toIsoDate(cursor);
+        cursor.setDate(cursor.getDate() + 1);
     }
-
-    return cursor;
+    return null;
 }
 
 /**
- * Calculate the next occurrence after the given date.
+ * Whether a calendar date satisfies the template's schedule. The date is
+ * assumed to be on or after the template's start date (callers clamp).
  */
-function nextOccurrence(rt: RecurringTask, current: Date, interval: number): Date {
-    const next = new Date(current);
+function isOccurrence(rt: RecurringTask, date: Date): boolean {
+    const interval = rt.interval > 0 ? rt.interval : 1;
+    const start = parseLocal(rt.startDate);
 
     switch (rt.frequency) {
-        case 'daily':
-            next.setDate(next.getDate() + interval);
-            break;
-        case 'weekly':
-            next.setDate(next.getDate() + 7 * interval);
-            break;
-        case 'monthly':
-            next.setMonth(next.getMonth() + interval);
-            break;
-        case 'yearly':
-            next.setFullYear(next.getFullYear() + interval);
-            break;
+        case 'daily': {
+            if (daysBetween(start, date) % interval !== 0) return false;
+            return matchesDaysOfWeek(rt, date);
+        }
+        case 'weekly': {
+            const days = rt.daysOfWeek;
+            if (days && days.length > 0) {
+                // Multi-day weekly schedules: listed weekdays, in every
+                // interval-th week measured from the start date's week.
+                if (!days.includes(date.getDay())) return false;
+                const anchorWeek = weekStartOf(start);
+                return daysBetween(anchorWeek, weekStartOf(date)) % (7 * interval) === 0;
+            }
+            return daysBetween(start, date) % (7 * interval) === 0;
+        }
+        case 'monthly': {
+            const monthsBetween =
+                (date.getFullYear() - start.getFullYear()) * 12 +
+                (date.getMonth() - start.getMonth());
+            if (monthsBetween % interval !== 0) return false;
+            // Months without the requested day (e.g. Feb 31) simply have no
+            // occurrence that month.
+            const dom = rt.dayOfMonth ?? start.getDate();
+            return date.getDate() === dom;
+        }
+        case 'yearly': {
+            const years = date.getFullYear() - start.getFullYear();
+            if (years % interval !== 0) return false;
+            return date.getMonth() === start.getMonth() && date.getDate() === start.getDate();
+        }
     }
+}
 
-    return next;
+/** True when the date's weekday is allowed by `daysOfWeek` (null = any day). */
+function matchesDaysOfWeek(rt: RecurringTask, date: Date): boolean {
+    const days = rt.daysOfWeek;
+    if (!days || days.length === 0) return true;
+    return days.includes(date.getDay());
+}
+
+/** Whole calendar days from a to b (DST-safe: compares UTC projections of
+ *  the local calendar dates). */
+function daysBetween(a: Date, b: Date): number {
+    const aUtc = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+    const bUtc = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+    return Math.round((bUtc - aUtc) / MS_PER_DAY);
+}
+
+/** The Sunday that starts the week containing `date`. */
+function weekStartOf(date: Date): Date {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate() - date.getDay());
 }
 
 /**

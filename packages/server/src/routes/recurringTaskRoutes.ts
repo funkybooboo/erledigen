@@ -145,6 +145,23 @@ export function registerRecurringTaskRoutes(
         }, logger),
     );
 
+    // GET /api/recurring-tasks/:id/stats
+    // Recomputes from the template's instances on read, so the response is
+    // always fresh even if a mutation hook missed a refresh.
+    server.route(
+        'GET',
+        API_ROUTES.RECURRING_TASK_STATS_PATTERN,
+        withErrorHandling(async req => {
+            const id = requirePathParam(
+                req,
+                API_ROUTES.RECURRING_TASK_STATS_PATTERN,
+                'recurring task',
+            );
+            const stats = await recurringTaskService.computeStats(id);
+            return successResponse(stats);
+        }, logger),
+    );
+
     // DELETE /api/recurring-tasks/:id
     server.route(
         'DELETE',

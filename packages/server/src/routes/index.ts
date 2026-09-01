@@ -26,6 +26,7 @@ export function registerAllRoutes(server: HttpServer, container: Container): voi
         container.taskService,
         container.eventBus,
         logger,
+        container.recurringTaskService,
     );
     registerSomeDayGroupRoutes(
         server,

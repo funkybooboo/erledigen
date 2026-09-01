@@ -25,7 +25,7 @@ describe('parseRecurrence', () => {
             expect(parsed.cleanText).toBe(cleanText);
             expect(parsed.schedule.frequency).toBe('daily');
             expect(parsed.schedule.interval).toBe(interval);
-            expect(parsed.schedule.dayOfWeek).toBeNull();
+            expect(parsed.schedule.daysOfWeek).toBeNull();
             expect(parsed.schedule.dayOfMonth).toBeNull();
         });
     });
@@ -34,21 +34,21 @@ describe('parseRecurrence', () => {
         it.each([
             ['Take out trash every week', 'Take out trash', 1, null],
             ['Review budget weekly', 'Review budget', 1, null],
-            ['Call mom every sunday', 'Call mom', 1, 0],
-            ['Call mom every Sunday', 'Call mom', 1, 0],
-            ['Call mom every sundays', 'Call mom', 1, 0],
-            ['Standup every mon', 'Standup', 1, 1],
-            ['Dinner with parents every friday', 'Dinner with parents', 1, 5],
-            ['Sprint planning weekly on tuesday', 'Sprint planning', 1, 2],
-            ['Sprint planning every week on tuesday', 'Sprint planning', 1, 2],
-            ['Pay cleaner every 2 weeks on friday', 'Pay cleaner', 2, 5],
+            ['Call mom every sunday', 'Call mom', 1, [0]],
+            ['Call mom every Sunday', 'Call mom', 1, [0]],
+            ['Call mom every sundays', 'Call mom', 1, [0]],
+            ['Standup every mon', 'Standup', 1, [1]],
+            ['Dinner with parents every friday', 'Dinner with parents', 1, [5]],
+            ['Sprint planning weekly on tuesday', 'Sprint planning', 1, [2]],
+            ['Sprint planning every week on tuesday', 'Sprint planning', 1, [2]],
+            ['Pay cleaner every 2 weeks on friday', 'Pay cleaner', 2, [5]],
             ['Water garden every 2 weeks', 'Water garden', 2, null],
-        ])('%s -> weekly', (input, cleanText, interval, dayOfWeek) => {
+        ])('%s -> weekly', (input, cleanText, interval, daysOfWeek) => {
             const parsed = mustParse(input);
             expect(parsed.cleanText).toBe(cleanText);
             expect(parsed.schedule.frequency).toBe('weekly');
             expect(parsed.schedule.interval).toBe(interval);
-            expect(parsed.schedule.dayOfWeek).toBe(dayOfWeek);
+            expect(parsed.schedule.daysOfWeek).toEqual(daysOfWeek);
         });
     });
 
@@ -84,6 +84,47 @@ describe('parseRecurrence', () => {
         });
     });
 
+    describe('weekday and weekend schedules', () => {
+        it.each([
+            ['Standup every weekday', 'Standup', [1, 2, 3, 4, 5]],
+            ['Standup every weekdays', 'Standup', [1, 2, 3, 4, 5]],
+            ['Gym weekdays', 'Gym', [1, 2, 3, 4, 5]],
+            ['Brunch every weekend', 'Brunch', [0, 6]],
+            ['Brunch weekends', 'Brunch', [0, 6]],
+        ])('%s -> daily on %s', (input, cleanText, daysOfWeek) => {
+            const parsed = mustParse(input);
+            expect(parsed.cleanText).toBe(cleanText);
+            expect(parsed.schedule.frequency).toBe('daily');
+            expect(parsed.schedule.interval).toBe(1);
+            expect(parsed.schedule.daysOfWeek).toEqual(daysOfWeek);
+        });
+    });
+
+    describe('day lists', () => {
+        it.each([
+            ['Gym every monday, wednesday, friday', 'Gym', [1, 3, 5]],
+            ['Gym every mon, wed, fri', 'Gym', [1, 3, 5]],
+            ['Gym every monday and wednesday', 'Gym', [1, 3]],
+            ['Gym every monday/wednesday', 'Gym', [1, 3]],
+            ['Physio every mondays, wednesdays and fridays', 'Physio', [1, 3, 5]],
+            ['Gym every sunday, monday', 'Gym', [0, 1]],
+        ])('%s -> daily on the listed days', (input, cleanText, daysOfWeek) => {
+            const parsed = mustParse(input);
+            expect(parsed.cleanText).toBe(cleanText);
+            expect(parsed.schedule.frequency).toBe('daily');
+            expect(parsed.schedule.daysOfWeek).toEqual(daysOfWeek);
+        });
+
+        it('deduplicates repeated days in a list', () => {
+            const parsed = mustParse('Gym every monday, monday, wednesday');
+            expect(parsed?.schedule.daysOfWeek).toEqual([1, 3]);
+        });
+
+        it('rejects a list with an unknown day word', () => {
+            expect(parseRecurrence('Gym every monday, someday')).toBeNull();
+        });
+    });
+
     describe('time suffix', () => {
         it.each([
             ['Meditate every day at 4:00pm', '16:00'],
@@ -93,7 +134,8 @@ describe('parseRecurrence', () => {
             ['Stretch every day at noon', '12:00'],
             ['Sleep meds every day at midnight', '00:00'],
             ['Deploy every friday at 16:00', '16:00'],
-            ['Standup every weekday at 9:30am', null], // weekday unsupported -> no match
+            ['Standup every weekday at 9:30am', '09:30'],
+            ['Gym every mon, wed, fri at 6am', '06:00'],
         ])('%s -> startTime %s', (input, expected) => {
             if (expected === null) {
                 expect(parseRecurrence(input)).toBeNull();
@@ -155,7 +197,7 @@ describe('describeRecurrence / formatFrequency', () => {
             describeRecurrence({
                 frequency: 'daily',
                 interval: 1,
-                dayOfWeek: null,
+                daysOfWeek: null,
                 dayOfMonth: null,
                 startTime: null,
             }),
@@ -164,7 +206,7 @@ describe('describeRecurrence / formatFrequency', () => {
             describeRecurrence({
                 frequency: 'daily',
                 interval: 2,
-                dayOfWeek: null,
+                daysOfWeek: null,
                 dayOfMonth: null,
                 startTime: null,
             }),
@@ -173,7 +215,7 @@ describe('describeRecurrence / formatFrequency', () => {
             describeRecurrence({
                 frequency: 'daily',
                 interval: 3,
-                dayOfWeek: null,
+                daysOfWeek: null,
                 dayOfMonth: null,
                 startTime: null,
             }),
@@ -182,7 +224,7 @@ describe('describeRecurrence / formatFrequency', () => {
             describeRecurrence({
                 frequency: 'weekly',
                 interval: 1,
-                dayOfWeek: 5,
+                daysOfWeek: [5],
                 dayOfMonth: null,
                 startTime: null,
             }),
@@ -191,7 +233,7 @@ describe('describeRecurrence / formatFrequency', () => {
             describeRecurrence({
                 frequency: 'weekly',
                 interval: 2,
-                dayOfWeek: 5,
+                daysOfWeek: [5],
                 dayOfMonth: null,
                 startTime: null,
             }),
@@ -200,7 +242,7 @@ describe('describeRecurrence / formatFrequency', () => {
             describeRecurrence({
                 frequency: 'monthly',
                 interval: 1,
-                dayOfWeek: null,
+                daysOfWeek: null,
                 dayOfMonth: 15,
                 startTime: null,
             }),
@@ -209,7 +251,7 @@ describe('describeRecurrence / formatFrequency', () => {
             describeRecurrence({
                 frequency: 'daily',
                 interval: 1,
-                dayOfWeek: null,
+                daysOfWeek: null,
                 dayOfMonth: null,
                 startTime: '16:00',
             }),
@@ -218,7 +260,7 @@ describe('describeRecurrence / formatFrequency', () => {
             describeRecurrence({
                 frequency: 'yearly',
                 interval: 1,
-                dayOfWeek: null,
+                daysOfWeek: null,
                 dayOfMonth: null,
                 startTime: null,
             }),
@@ -229,10 +271,58 @@ describe('describeRecurrence / formatFrequency', () => {
         const rt = {
             frequency: 'weekly',
             interval: 1,
-            dayOfWeek: 0,
+            daysOfWeek: [0],
             dayOfMonth: null,
             startTime: '10:30',
         } as RecurringTask;
         expect(formatFrequency(rt)).toBe('Every Sunday at 10:30am');
+    });
+
+    it('describes weekday, weekend, and multi-day schedules', () => {
+        expect(
+            describeRecurrence({
+                frequency: 'daily',
+                interval: 1,
+                daysOfWeek: [1, 2, 3, 4, 5],
+                dayOfMonth: null,
+                startTime: '09:30',
+            }),
+        ).toBe('Weekdays at 9:30am');
+        expect(
+            describeRecurrence({
+                frequency: 'daily',
+                interval: 1,
+                daysOfWeek: [0, 6],
+                dayOfMonth: null,
+                startTime: null,
+            }),
+        ).toBe('Weekends');
+        expect(
+            describeRecurrence({
+                frequency: 'daily',
+                interval: 1,
+                daysOfWeek: [1, 3, 5],
+                dayOfMonth: null,
+                startTime: null,
+            }),
+        ).toBe('Mon, Wed, Fri');
+        expect(
+            describeRecurrence({
+                frequency: 'weekly',
+                interval: 2,
+                daysOfWeek: [1, 3, 5],
+                dayOfMonth: null,
+                startTime: null,
+            }),
+        ).toBe('Every 2 weeks on Mon, Wed, Fri');
+        expect(
+            describeRecurrence({
+                frequency: 'daily',
+                interval: 1,
+                daysOfWeek: [5],
+                dayOfMonth: null,
+                startTime: null,
+            }),
+        ).toBe('Every Friday');
     });
 });

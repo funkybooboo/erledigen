@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import type { CreateTaskInput, RecurringTask, Task } from '@erledigen/shared';
+import type { CreateTaskInput, RecurringTask, RecurringTaskStats, Task } from '@erledigen/shared';
 import { NotFoundError } from '@erledigen/shared';
 import { RecurringTaskService } from './RecurringTaskService';
 
@@ -45,12 +45,41 @@ class FakeTaskRepository {
 
 class FakeRecurringTaskRepository {
     store = new Map<string, RecurringTask>();
+    stats = new Map<string, RecurringTaskStats>();
     findById(id: string): Promise<RecurringTask | null> {
         return Promise.resolve(this.store.get(id) ?? null);
     }
     findAll(): Promise<RecurringTask[]> {
         return Promise.resolve(Array.from(this.store.values()));
     }
+    findStats(recurringTaskId: string): Promise<RecurringTaskStats | null> {
+        return Promise.resolve(this.stats.get(recurringTaskId) ?? null);
+    }
+    upsertStats(stats: RecurringTaskStats): Promise<void> {
+        this.stats.set(stats.recurringTaskId, stats);
+        return Promise.resolve();
+    }
+}
+
+/** Frozen clock so streak math is deterministic ("today" = 2026-03-15). */
+class FakeDateProvider {
+    today(): string {
+        return '2026-03-15';
+    }
+    timestamp(): string {
+        return '2026-03-15T00:00:00.000Z';
+    }
+}
+
+function makeService(
+    recurringRepo: FakeRecurringTaskRepository,
+    taskRepo: FakeTaskRepository,
+): RecurringTaskService {
+    return new RecurringTaskService(
+        recurringRepo as never,
+        taskRepo as never,
+        new FakeDateProvider() as never,
+    );
 }
 
 function makeRecurringTask(overrides: Partial<RecurringTask> = {}): RecurringTask {
@@ -61,7 +90,7 @@ function makeRecurringTask(overrides: Partial<RecurringTask> = {}): RecurringTas
         tags: ['#work'],
         frequency: 'daily',
         interval: 1,
-        dayOfWeek: null,
+        daysOfWeek: null,
         dayOfMonth: null,
         startDate: '2026-01-01',
         endDate: null,
@@ -81,7 +110,7 @@ describe('RecurringTaskService', () => {
             const rt = makeRecurringTask({ id: 'rt-9' });
             recurringRepo.store.set(rt.id, rt);
 
-            const service = new RecurringTaskService(recurringRepo as never, taskRepo as never);
+            const service = makeService(recurringRepo, taskRepo);
 
             const created = await service.generateInstances(rt.id, '2026-03-02', '2026-03-04');
             expect(created).toHaveLength(3);
@@ -103,7 +132,7 @@ describe('RecurringTaskService', () => {
             });
             recurringRepo.store.set(rt.id, rt);
 
-            const service = new RecurringTaskService(recurringRepo as never, taskRepo as never);
+            const service = makeService(recurringRepo, taskRepo);
 
             const created = await service.generateInstances(rt.id, '2026-04-01', '2026-04-01');
             expect(created).toHaveLength(1);
@@ -118,7 +147,7 @@ describe('RecurringTaskService', () => {
         it('throws NotFoundError when the template does not exist', async () => {
             const taskRepo = new FakeTaskRepository();
             const recurringRepo = new FakeRecurringTaskRepository();
-            const service = new RecurringTaskService(recurringRepo as never, taskRepo as never);
+            const service = makeService(recurringRepo, taskRepo);
 
             await expect(
                 service.generateInstances('missing', '2026-03-02', '2026-03-04'),
@@ -131,7 +160,7 @@ describe('RecurringTaskService', () => {
             const rt = makeRecurringTask({ id: 'rt-t', startTime: '16:00' });
             recurringRepo.store.set(rt.id, rt);
 
-            const service = new RecurringTaskService(recurringRepo as never, taskRepo as never);
+            const service = makeService(recurringRepo, taskRepo);
 
             const created = await service.generateInstances(rt.id, '2026-03-02', '2026-03-03');
             expect(created).toHaveLength(2);
@@ -146,7 +175,7 @@ describe('RecurringTaskService', () => {
             const rt = makeRecurringTask({ id: 'rt-i' });
             recurringRepo.store.set(rt.id, rt);
 
-            const service = new RecurringTaskService(recurringRepo as never, taskRepo as never);
+            const service = makeService(recurringRepo, taskRepo);
 
             await service.generateInstances(rt.id, '2026-03-02', '2026-03-04');
             const second = await service.generateInstances(rt.id, '2026-03-03', '2026-03-05');
@@ -162,7 +191,7 @@ describe('RecurringTaskService', () => {
             const rt = makeRecurringTask({ id: 'rt-c' });
             recurringRepo.store.set(rt.id, rt);
 
-            const service = new RecurringTaskService(recurringRepo as never, taskRepo as never);
+            const service = makeService(recurringRepo, taskRepo);
 
             const first = await service.generateInstances(rt.id, '2026-03-02', '2026-03-02');
             const instance = first[0];
@@ -181,13 +210,13 @@ describe('RecurringTaskService', () => {
             const weekly = makeRecurringTask({
                 id: 'rt-weekly',
                 frequency: 'weekly',
-                dayOfWeek: 2,
+                daysOfWeek: [2],
                 startDate: '2026-03-01',
             });
             recurringRepo.store.set(daily.id, daily);
             recurringRepo.store.set(weekly.id, weekly);
 
-            const service = new RecurringTaskService(recurringRepo as never, taskRepo as never);
+            const service = makeService(recurringRepo, taskRepo);
 
             const results = await service.generateAllInstances('2026-03-02', '2026-03-08');
             // 03-02..03-08: daily creates 7, weekly-on-Tuesday creates 1 (03-03).
@@ -199,10 +228,151 @@ describe('RecurringTaskService', () => {
         it('returns an empty array when there are no templates', async () => {
             const taskRepo = new FakeTaskRepository();
             const recurringRepo = new FakeRecurringTaskRepository();
-            const service = new RecurringTaskService(recurringRepo as never, taskRepo as never);
+            const service = makeService(recurringRepo, taskRepo);
 
             const results = await service.generateAllInstances('2026-03-02', '2026-03-08');
             expect(results).toEqual([]);
+        });
+    });
+
+    describe('computeStats', () => {
+        /** Seed a completed/uncompleted instance directly (skipping generation). */
+        function seed(
+            taskRepo: FakeTaskRepository,
+            rtId: string,
+            date: string,
+            completed: boolean,
+        ): void {
+            taskRepo.tasks.push({
+                id: `t-${taskRepo.tasks.length}-${date}`,
+                text: 'instance',
+                notes: null,
+                completed,
+                date,
+                createdAt: '2026-01-01T00:00:00.000Z',
+                updatedAt: '2026-01-01T00:00:00.000Z',
+                tags: [],
+                parentId: null,
+                rolloverEnabled: false,
+                someDayGroupId: null,
+                position: null,
+                state: null,
+                recurringTaskId: rtId,
+                instanceDate: date,
+                originalScheduledDate: null,
+                daysLate: 0,
+                dependsOn: null,
+                startTime: null,
+                endTime: null,
+                reminder: null,
+                deletedAt: null,
+            });
+        }
+
+        it('counts a consecutive completed run as the current streak', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            const rt = makeRecurringTask({ id: 'rt-s', startDate: '2026-03-10' });
+            recurringRepo.store.set(rt.id, rt);
+            // "Today" is 2026-03-15 (FakeDateProvider).
+            seed(taskRepo, rt.id, '2026-03-12', true);
+            seed(taskRepo, rt.id, '2026-03-13', true);
+            seed(taskRepo, rt.id, '2026-03-14', true);
+
+            const stats = await makeService(recurringRepo, taskRepo).computeStats(rt.id);
+            expect(stats.currentStreak).toBe(3);
+            expect(stats.longestStreak).toBe(3);
+            expect(stats.totalCompletions).toBe(3);
+            expect(stats.lastCompletedDate).toBe('2026-03-14');
+            expect(recurringRepo.stats.get(rt.id)).toEqual(stats);
+        });
+
+        it('breaks the streak when the latest occurrence is uncompleted', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            const rt = makeRecurringTask({ id: 'rt-s', startDate: '2026-03-10' });
+            recurringRepo.store.set(rt.id, rt);
+            seed(taskRepo, rt.id, '2026-03-12', true);
+            seed(taskRepo, rt.id, '2026-03-13', true);
+            seed(taskRepo, rt.id, '2026-03-14', false);
+
+            const stats = await makeService(recurringRepo, taskRepo).computeStats(rt.id);
+            expect(stats.currentStreak).toBe(0);
+            expect(stats.longestStreak).toBe(2);
+            expect(stats.totalCompletions).toBe(2);
+        });
+
+        it('breaks the streak across a missed day (gap between instances)', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            const rt = makeRecurringTask({ id: 'rt-s', startDate: '2026-03-10' });
+            recurringRepo.store.set(rt.id, rt);
+            // 03-11 and 03-12 completed, 03-13 missing, 03-14 completed.
+            seed(taskRepo, rt.id, '2026-03-11', true);
+            seed(taskRepo, rt.id, '2026-03-12', true);
+            seed(taskRepo, rt.id, '2026-03-14', true);
+
+            const stats = await makeService(recurringRepo, taskRepo).computeStats(rt.id);
+            expect(stats.currentStreak).toBe(1);
+            expect(stats.longestStreak).toBe(2);
+        });
+
+        it('keeps weekly streaks across week gaps (adjacency, not calendar days)', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            // Every Friday, starting 2026-03-06 (a Friday).
+            const rt = makeRecurringTask({
+                id: 'rt-w',
+                frequency: 'weekly',
+                daysOfWeek: [5],
+                startDate: '2026-03-06',
+            });
+            recurringRepo.store.set(rt.id, rt);
+            seed(taskRepo, rt.id, '2026-03-06', true);
+            seed(taskRepo, rt.id, '2026-03-13', true);
+
+            const stats = await makeService(recurringRepo, taskRepo).computeStats(rt.id);
+            // 7-day gap, but adjacent on the weekly schedule.
+            expect(stats.currentStreak).toBe(2);
+        });
+
+        it('ignores future occurrences for streaks but counts their completions', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            const rt = makeRecurringTask({ id: 'rt-f', startDate: '2026-03-10' });
+            recurringRepo.store.set(rt.id, rt);
+            seed(taskRepo, rt.id, '2026-03-14', true);
+            // Completed "early" — after today (2026-03-15).
+            seed(taskRepo, rt.id, '2026-03-16', true);
+
+            const stats = await makeService(recurringRepo, taskRepo).computeStats(rt.id);
+            expect(stats.currentStreak).toBe(1);
+            expect(stats.longestStreak).toBe(1);
+            expect(stats.totalCompletions).toBe(2);
+            expect(stats.lastCompletedDate).toBe('2026-03-16');
+        });
+
+        it('returns zeroed stats for a template with no instances', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            const rt = makeRecurringTask({ id: 'rt-empty' });
+            recurringRepo.store.set(rt.id, rt);
+
+            const stats = await makeService(recurringRepo, taskRepo).computeStats(rt.id);
+            expect(stats).toEqual({
+                recurringTaskId: 'rt-empty',
+                currentStreak: 0,
+                longestStreak: 0,
+                totalCompletions: 0,
+                lastCompletedDate: null,
+            });
+        });
+
+        it('throws NotFoundError for an unknown template', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            const service = makeService(recurringRepo, taskRepo);
+            expect(service.computeStats('nope')).rejects.toBeInstanceOf(NotFoundError);
         });
     });
 });

@@ -1,16 +1,40 @@
-import { WEEKDAY_NAMES } from '../constants';
+import { WEEKDAY_ABBREVIATIONS, WEEKDAY_NAMES } from '../constants';
 import type { RecurringTask } from '../types/recurringTask';
 import type { RecurrenceSchedule } from './parseRecurrence';
 
+const WEEKDAYS_SET = [1, 2, 3, 4, 5];
+const WEEKEND_SET = [0, 6];
+
+/** Compact label for a set of weekdays: "Weekdays", "Weekends",
+ *  "Mon, Wed, Fri", or null when the set is empty/absent. */
+function daysLabel(days: number[] | null | undefined): string | null {
+    if (!days || days.length === 0) return null;
+    if (days.length === WEEKDAYS_SET.length && WEEKDAYS_SET.every(d => days.includes(d))) {
+        return 'Weekdays';
+    }
+    if (days.length === WEEKEND_SET.length && WEEKEND_SET.every(d => days.includes(d))) {
+        return 'Weekends';
+    }
+    const names = [...days].sort((a, b) => a - b).map(d => WEEKDAY_ABBREVIATIONS[d] ?? 'day');
+    return names.join(', ');
+}
+
+/** True when the schedule lands on exactly one weekday. */
+function singleDay(days: number[] | null | undefined): number | null {
+    if (days?.length !== 1) return null;
+    return days[0] ?? null;
+}
+
 /**
  * Human-readable description of a recurring task's schedule,
- * e.g. "Every Friday at 4:00pm", "Every other day", "Monthly on day 15".
+ * e.g. "Every Friday at 4:00pm", "Every other day", "Monthly on day 15",
+ * "Weekdays at 9:30am", "Every week on Mon, Wed, Fri".
  */
 export function formatFrequency(task: RecurringTask): string {
     return describeRecurrence({
         frequency: task.frequency,
         interval: task.interval,
-        dayOfWeek: task.dayOfWeek,
+        daysOfWeek: task.daysOfWeek,
         dayOfMonth: task.dayOfMonth,
         startTime: task.startTime,
     });
@@ -21,17 +45,34 @@ export function formatFrequency(task: RecurringTask): string {
  * without needing a full RecurringTask.
  */
 export function describeRecurrence(schedule: RecurrenceSchedule): string {
-    const { frequency, interval, dayOfWeek, dayOfMonth, startTime } = schedule;
+    const { frequency, interval, daysOfWeek, dayOfMonth, startTime } = schedule;
     let text: string;
 
     if (frequency === 'daily') {
-        if (interval === 1) text = 'Every day';
-        else if (interval === 2) text = 'Every other day';
-        else text = `Every ${interval} days`;
+        const label = daysLabel(daysOfWeek);
+        if (label && singleDay(daysOfWeek) === null) {
+            // Multi-day daily schedules read naturally as their label:
+            // "Weekdays", "Weekends", "Mon, Wed, Fri".
+            text = interval === 1 ? label : `Every ${interval} days on ${label}`;
+        } else if (singleDay(daysOfWeek) !== null) {
+            const day = WEEKDAY_NAMES[singleDay(daysOfWeek) ?? 0] ?? 'day';
+            text = interval === 1 ? `Every ${day}` : `Every ${interval} days on ${day}`;
+        } else if (interval === 1) {
+            text = 'Every day';
+        } else if (interval === 2) {
+            text = 'Every other day';
+        } else {
+            text = `Every ${interval} days`;
+        }
     } else if (frequency === 'weekly') {
-        if (dayOfWeek !== null && dayOfWeek !== undefined) {
-            const day = WEEKDAY_NAMES[dayOfWeek] ?? 'day';
+        const label = daysLabel(daysOfWeek);
+        const single = singleDay(daysOfWeek);
+        if (single !== null) {
+            const day = WEEKDAY_NAMES[single] ?? 'day';
             text = interval === 1 ? `Every ${day}` : `Every ${interval} weeks on ${day}`;
+        } else if (label) {
+            text =
+                interval === 1 ? `Every week on ${label}` : `Every ${interval} weeks on ${label}`;
         } else {
             text = interval === 1 ? 'Every week' : `Every ${interval} weeks`;
         }

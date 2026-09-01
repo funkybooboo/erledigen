@@ -35,7 +35,7 @@ export class InMemoryRecurringTaskRepository implements RecurringTaskRepository 
             tags: input.tags ?? [...RECURRING_TASK_DEFAULTS.tags],
             frequency: input.frequency,
             interval: input.interval ?? RECURRING_TASK_DEFAULTS.interval,
-            dayOfWeek: input.dayOfWeek ?? null,
+            daysOfWeek: input.daysOfWeek ?? null,
             dayOfMonth: input.dayOfMonth ?? null,
             startDate: input.startDate,
             endDate: input.endDate ?? null,
