@@ -1,17 +1,8 @@
 <script lang="ts">
     import { tick } from 'svelte';
-    import {
-        GENERATE_HORIZON_DAYS,
-        notificationStore,
-        recurringTaskStore,
-        taskStore,
-    } from '$lib/stores';
-    import {
-        TASK_CONSTRAINTS,
-        describeRecurrence,
-        parseRecurrence,
-    } from '@erledigen/shared';
-    import { container } from '$lib/container';
+    import { notificationStore } from '$lib/stores';
+    import { TASK_CONSTRAINTS, describeRecurrence, parseRecurrence } from '@erledigen/shared';
+    import { createFromText } from '$lib/createFromText';
     import { Icon } from 'svelte-icons-pack';
     import { LuCircle, LuRepeat } from 'svelte-icons-pack/lu';
     import { tooltip } from '$lib/tooltip';
@@ -29,61 +20,27 @@
     // input into a habit. Parsed reactively so the hint updates as you type.
     let parsed = $derived(text.trim() ? parseRecurrence(text.trim()) : null);
 
-    function horizonEnd(from: string): string {
-        const d = new Date(`${from}T00:00:00`);
-        d.setDate(d.getDate() + GENERATE_HORIZON_DAYS);
-        return d.toISOString().split('T')[0] ?? from;
-    }
+    async function handleSubmit() {
+        // Capture the text before awaiting: `text = ''` below would otherwise
+        // re-derive `parsed` to null while suspended.
+        const value = text.trim();
+        if (!value) return;
 
-    async function submitHabit(): Promise<boolean> {
-        if (!parsed) return false;
-
-        // Capture before any await: `text` is cleared below, which would
-        // re-derive `parsed` to null while this function is suspended.
-        const { cleanText, schedule } = parsed;
-
-        const startDate = date || container.dateProvider.today();
-        const result = await recurringTaskStore.createAndGenerate(
-            {
-                text: cleanText,
-                frequency: schedule.frequency,
-                interval: schedule.interval,
-                dayOfWeek: schedule.dayOfWeek,
-                dayOfMonth: schedule.dayOfMonth,
-                startTime: schedule.startTime,
-                startDate,
-            },
-            horizonEnd(startDate),
-        );
+        const result = await createFromText(value, { date, someDayGroupId });
+        if (!result) return;
         text = '';
 
-        if (result) {
-            taskStore.ingest(result.tasks);
-            notificationStore.push(`Habit created — ${describeRecurrence(schedule)}`, {
+        if (result.kind === 'habit') {
+            notificationStore.push(`Habit created — ${describeRecurrence(result.schedule)}`, {
                 kind: 'success',
             });
             // Flash the instance on this day, matching the plain-task path.
             const instanceHere = result.tasks.find(t => t.date === date);
             if (instanceHere && oncreated) oncreated(instanceHere.id);
+        } else if (oncreated) {
+            oncreated(result.task.id);
         }
-        return true;
-    }
 
-    async function handleSubmit() {
-        if (!text.trim()) return;
-        if (await submitHabit()) {
-            await tick();
-            inputEl?.focus();
-            return;
-        }
-        const input: Record<string, unknown> = {
-            text: text.trim(),
-            date: date || null,
-        };
-        if (someDayGroupId) input.someDayGroupId = someDayGroupId;
-        text = '';
-        const task = await taskStore.create(input as Parameters<typeof taskStore.create>[0]);
-        if (task && oncreated) oncreated(task.id);
         await tick();
         inputEl?.focus();
     }

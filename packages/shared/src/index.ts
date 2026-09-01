@@ -117,3 +117,4 @@ export {
     resolveTagKind,
     slugify,
 } from './utils';
+export type { ParsedRecurrence, RecurrenceSchedule } from './utils/parseRecurrence';
