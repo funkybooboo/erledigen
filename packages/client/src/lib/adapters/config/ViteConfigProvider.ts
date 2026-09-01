@@ -28,7 +28,9 @@ export class ViteConfigProvider implements ConfigProvider {
             throw new ConfigError(key);
         }
 
-        return value;
+        // Vite built-ins (DEV/PROD/SSR) are real booleans, not strings;
+        // normalize so string-based comparisons in getNumber/getBoolean work.
+        return typeof value === 'string' ? value : String(value);
     }
 
     /**

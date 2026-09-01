@@ -1,3 +1,5 @@
+import type { Logger } from '@erledigen/shared';
+
 export interface ClientData {
     clientId: string;
     connectedAt: string;
@@ -9,6 +11,11 @@ export class ConnectionManager {
     private onConnectCallback?: (clientId: string) => void;
     private onDisconnectCallback?: (clientId: string) => void;
     private onMessageCallback?: (clientId: string, message: unknown) => void;
+    private logger: Logger | null;
+
+    constructor(logger?: Logger) {
+        this.logger = logger ?? null;
+    }
 
     add(clientId: string, ws: unknown): void {
         this.clients.set(clientId, ws);
@@ -16,12 +23,14 @@ export class ConnectionManager {
             clientId,
             connectedAt: new Date().toISOString(),
         });
+        this.logger?.info('WebSocket client connected', { clientId, active: this.clients.size });
         this.onConnectCallback?.(clientId);
     }
 
     remove(clientId: string): void {
         this.clients.delete(clientId);
         this.clientData.delete(clientId);
+        this.logger?.info('WebSocket client disconnected', { clientId, active: this.clients.size });
         this.onDisconnectCallback?.(clientId);
     }
 

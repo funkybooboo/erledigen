@@ -16,6 +16,7 @@ const logger = container.logger;
 // database and runs pending migrations (see ADR-003) so a schema failure
 // aborts startup instead of surfacing on the first request.
 container.initStorage();
+logger.info('Storage initialized', { adapter: container.storageAdapter });
 
 // Wire up WebSocket support
 server.setConnectionManager(container.connectionManager);
@@ -46,3 +47,4 @@ const port = server.getPort();
 if (port === null) throw new Error('Server failed to start — port is null');
 logger.info(`Server running at http://localhost:${port}`);
 logger.info(`WebSocket available at ws://localhost:${port}`);
+logger.info('Startup complete', { nodeEnv: NODE_ENV, rateLimitRpm: RATE_LIMIT_RPM });

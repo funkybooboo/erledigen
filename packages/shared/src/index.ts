@@ -16,7 +16,7 @@ export { FetchHttpClient } from './adapters/http/FetchHttpClient';
 export type { HttpClient, RequestOptions } from './adapters/http/HttpClient';
 export { HttpClientError } from './adapters/http/HttpClient';
 // Adapters - IO
-export { ConsoleLogger } from './adapters/logging/ConsoleLogger';
+export { ConsoleLogger, type LoggerDestination } from './adapters/logging/ConsoleLogger';
 // Adapters - Logging
 export type { LogContext, Logger } from './adapters/logging/Logger';
 export { LogLevel } from './adapters/logging/Logger';

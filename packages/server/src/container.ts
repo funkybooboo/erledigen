@@ -88,7 +88,7 @@ export class Container {
     get httpServer(): HttpServer {
         if (!this._httpServer) {
             const corsOrigin = this.config.get('CORS_ORIGIN', '*');
-            this._httpServer = new BunHttpServer({ corsOrigin });
+            this._httpServer = new BunHttpServer({ corsOrigin, logger: this.logger });
         }
         return this._httpServer;
     }
@@ -165,9 +165,19 @@ export class Container {
      */
     get logger(): Logger {
         if (!this._logger) {
-            // Determine log level from config (not environment directly)
+            // LOG_LEVEL env var wins when it parses; otherwise default by
+            // environment (debug in development, info in production).
+            const configured = this.config.get('LOG_LEVEL', '');
+            const parsed = (['debug', 'info', 'warn', 'error'] as const).find(
+                level => level === configured,
+            );
             const env = this.config.get('NODE_ENV', 'development');
-            const logLevel = env === 'production' ? LogLevel.INFO : LogLevel.DEBUG;
+            const logLevel =
+                parsed !== undefined
+                    ? LogLevel[parsed.toUpperCase() as keyof typeof LogLevel]
+                    : env === 'production'
+                      ? LogLevel.INFO
+                      : LogLevel.DEBUG;
             this._logger = new ConsoleLogger(logLevel);
         }
         return this._logger;
@@ -261,7 +271,7 @@ export class Container {
 
     get connectionManager(): ConnectionManager {
         if (!this._connectionManager) {
-            this._connectionManager = new ConnectionManager();
+            this._connectionManager = new ConnectionManager(this.logger);
         }
         return this._connectionManager;
     }

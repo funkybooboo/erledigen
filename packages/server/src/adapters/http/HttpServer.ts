@@ -6,6 +6,8 @@
  * by changing one line in the container.
  */
 
+import type { Logger } from '@erledigen/shared';
+
 import type { Guard, Middleware, RouteHandler } from './types';
 
 /**
@@ -14,6 +16,8 @@ import type { Guard, Middleware, RouteHandler } from './types';
 export interface HttpServerConfig {
     corsOrigin?: string;
     corsHeaders?: Record<string, string>;
+    /** Optional logger for access logging (method, path, status, duration). */
+    logger?: Logger;
 }
 
 /**

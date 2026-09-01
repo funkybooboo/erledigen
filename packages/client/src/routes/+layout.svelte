@@ -46,6 +46,17 @@
         tagStore.initWebSocket();
         projectStore.initWebSocket();
 
+        // Route uncaught errors through the shared logger so client-side
+        // failures are visible in the console alongside server logs.
+        const onError = (event: ErrorEvent) => {
+            container.logger.error('Uncaught error', event.error ?? event.message);
+        };
+        const onRejection = (event: PromiseRejectionEvent) => {
+            container.logger.error('Unhandled promise rejection', event.reason);
+        };
+        window.addEventListener('error', onError);
+        window.addEventListener('unhandledrejection', onRejection);
+
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
             if (preferencesStore.theme === 'system') {
                 applyTheme('system');
@@ -53,6 +64,8 @@
         });
 
         return () => {
+            window.removeEventListener('error', onError);
+            window.removeEventListener('unhandledrejection', onRejection);
             connectionStore.destroy();
             taskStore.destroyWebSocket();
             tagStore.destroyWebSocket();

@@ -41,8 +41,18 @@ export class Container {
 
     get logger(): Logger {
         if (!this._logger) {
-            const isDev = this.config.getBoolean('DEV', false);
-            const logLevel = isDev ? LogLevel.DEBUG : LogLevel.INFO;
+            // VITE_LOG_LEVEL (debug|info|warn|error) wins when set; otherwise
+            // debug in development, info in production builds.
+            const configured = this.config.get('VITE_LOG_LEVEL', '');
+            const parsed = (['debug', 'info', 'warn', 'error'] as const).find(
+                level => level === configured,
+            );
+            const logLevel =
+                parsed !== undefined
+                    ? LogLevel[parsed.toUpperCase() as keyof typeof LogLevel]
+                    : this.config.getBoolean('DEV', false)
+                      ? LogLevel.DEBUG
+                      : LogLevel.INFO;
             this._logger = new ConsoleLogger(logLevel);
         }
         return this._logger;

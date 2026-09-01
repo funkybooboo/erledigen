@@ -17,6 +17,17 @@ import { PreferencesService } from '$lib/services/preferencesService';
 
 const preferencesService = new PreferencesService(container.httpClient);
 
+/** Fire-and-forget preference persistence. These updates are intentionally
+ *  non-blocking and invisible to the UI, so log (don't surface) failures. */
+function persistPreferences(update: Partial<UserPreferences>) {
+    return preferencesService.update(update).catch(error => {
+        container.logger.warn('Failed to persist preferences', {
+            keys: Object.keys(update),
+            error: error instanceof Error ? error.message : String(error),
+        });
+    });
+}
+
 class PreferencesStore {
     id = $state('default');
     theme = $state<ThemeType>('system');
@@ -45,17 +56,17 @@ class PreferencesStore {
         } else {
             this.activeFilters = { ...this.activeFilters, tags: [...this.activeFilters.tags, tag] };
         }
-        preferencesService.update({ activeFilters: this.activeFilters }).catch(() => {});
+        persistPreferences({ activeFilters: this.activeFilters });
     }
 
     setTags(tags: string[]) {
         this.activeFilters = { ...this.activeFilters, tags };
-        preferencesService.update({ activeFilters: this.activeFilters }).catch(() => {});
+        persistPreferences({ activeFilters: this.activeFilters });
     }
 
     clearAll() {
         this.activeFilters = { tags: [], showCompleted: true };
-        preferencesService.update({ activeFilters: this.activeFilters }).catch(() => {});
+        persistPreferences({ activeFilters: this.activeFilters });
     }
 
     get activeFilterCount() {
@@ -82,8 +93,11 @@ class PreferencesStore {
             this.timezone = prefs.timezone ?? null;
             this.updatedAt = prefs.updatedAt;
             container.setDateProviderTimeZone(this.timezone);
-        } catch {
+        } catch (error) {
             // Use defaults
+            container.logger.warn('Failed to load preferences — using defaults', {
+                error: error instanceof Error ? error.message : String(error),
+            });
         }
     }
 
@@ -111,7 +125,10 @@ class PreferencesStore {
         try {
             const updated = await preferencesService.update(partial);
             Object.assign(this, updated);
-        } catch {
+        } catch (error) {
+            container.logger.warn('Failed to save preferences — rolling back', {
+                error: error instanceof Error ? error.message : String(error),
+            });
             Object.assign(this, current);
         }
         return merged;
@@ -119,7 +136,7 @@ class PreferencesStore {
 
     setTheme(theme: ThemeType) {
         this.theme = theme;
-        preferencesService.update({ theme }).catch(() => {});
+        persistPreferences({ theme });
     }
 
     setPanelWidth(width: number) {
@@ -127,28 +144,26 @@ class PreferencesStore {
         if (width >= 200) {
             this.someDayPanelLastOpenWidth = width;
         }
-        preferencesService
-            .update({
-                someDayPanelWidth: width,
-                someDayPanelLastOpenWidth: this.someDayPanelLastOpenWidth,
-            })
-            .catch(() => {});
+        persistPreferences({
+            someDayPanelWidth: width,
+            someDayPanelLastOpenWidth: this.someDayPanelLastOpenWidth,
+        });
     }
 
     setDeleteConfirmation(value: DeleteConfirmationType) {
         this.deleteConfirmation = value;
-        preferencesService.update({ deleteConfirmation: value }).catch(() => {});
+        persistPreferences({ deleteConfirmation: value });
     }
 
     updateTagKinds(tagKinds: TagKind[], tagKindMap: Record<string, string>) {
         this.tagKinds = tagKinds;
         this.tagKindMap = tagKindMap;
-        preferencesService.update({ tagKinds, tagKindMap }).catch(() => {});
+        persistPreferences({ tagKinds, tagKindMap });
     }
 
     setTimeFormat(format: TimeFormatType) {
         this.timeFormat = format;
-        preferencesService.update({ timeFormat: format }).catch(() => {});
+        persistPreferences({ timeFormat: format });
     }
 
     /**
@@ -161,7 +176,7 @@ class PreferencesStore {
         const normalized = timezone === '' ? null : timezone;
         container.setDateProviderTimeZone(normalized);
         this.timezone = normalized;
-        preferencesService.update({ timezone: normalized }).catch(() => {});
+        persistPreferences({ timezone: normalized });
     }
 }
 

@@ -5,6 +5,7 @@
  * Supports WebSocket upgrades via ConnectionManager injection.
  */
 
+import type { LogContext, Logger } from '@erledigen/shared';
 import { pathToRegex } from '../../utils/pathUtils';
 import type { ConnectionManager } from '../ws/ConnectionManager';
 import type { HttpServer, HttpServerConfig } from './HttpServer';
@@ -30,8 +31,10 @@ export class BunHttpServer implements HttpServer {
     private middlewares: Middleware[] = [];
     private config: HttpServerConfig;
     private connectionManager: ConnectionManager | null = null;
+    private logger: Logger | null;
 
     constructor(config: HttpServerConfig = {}) {
+        this.logger = config.logger ?? null;
         this.config = {
             corsOrigin: config.corsOrigin || '*',
             corsHeaders: config.corsHeaders || {
@@ -103,7 +106,10 @@ export class BunHttpServer implements HttpServer {
 
     private async handleHttpRequest(req: Request): Promise<Response> {
         const url = new URL(req.url);
+        const startedAt = performance.now();
 
+        // CORS preflights are pure plumbing (one per cross-origin mutation)
+        // — skip them to keep the access log useful.
         if (req.method === 'OPTIONS') {
             const responseInit: ResponseInit = this.config.corsHeaders
                 ? { headers: this.config.corsHeaders }
@@ -118,6 +124,7 @@ export class BunHttpServer implements HttpServer {
                 this.config.corsHeaders !== undefined
                     ? { status: 404, headers: this.config.corsHeaders }
                     : { status: 404 };
+            this.logRequest(req.method, url.pathname, 404, startedAt);
             return new Response('Not Found', responseInit);
         }
 
@@ -132,6 +139,7 @@ export class BunHttpServer implements HttpServer {
         for (const guard of this.guards) {
             const guardResponse = guard(httpReq);
             if (guardResponse !== null) {
+                this.logRequest(req.method, url.pathname, guardResponse.status, startedAt);
                 return this.toNativeResponse(guardResponse);
             }
         }
@@ -142,7 +150,25 @@ export class BunHttpServer implements HttpServer {
             response = middleware(httpReq, response);
         }
 
+        this.logRequest(req.method, url.pathname, response.status, startedAt);
         return this.toNativeResponse(response);
+    }
+
+    /**
+     * Access log for every HTTP request, including 404s and guard
+     * short-circuits (rate limits) which route middleware never sees.
+     * Successful requests log at debug; failures at warn so they stand
+     * out on stderr even when debug logging is off.
+     */
+    private logRequest(method: string, path: string, status: number, startedAt: number): void {
+        if (!this.logger) return;
+        const durationMs = Number(performance.now() - startedAt).toFixed(1);
+        const context: LogContext = { status, durationMs: Number(durationMs) };
+        if (status >= 400) {
+            this.logger.warn(`${method} ${path} -> ${status}`, context);
+        } else {
+            this.logger.debug(`${method} ${path} -> ${status}`, context);
+        }
     }
 
     async stop(): Promise<void> {

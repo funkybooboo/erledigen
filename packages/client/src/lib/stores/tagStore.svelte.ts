@@ -8,6 +8,7 @@ const tagService = new TagService(container.httpClient);
 
 class TagStore {
     tags = $state<string[]>([]);
+    #logger = container.logger;
     tagInfo = $state<TagInfo[]>([]);
     #messageUnsubscribe: (() => void) | null = null;
 
@@ -31,16 +32,20 @@ class TagStore {
     async fetchAll() {
         try {
             this.tags = await tagService.getAll();
-        } catch {
-            // Keep empty state
+        } catch (error) {
+            this.#logger.warn('Failed to fetch tags', {
+                error: error instanceof Error ? error.message : String(error),
+            });
         }
     }
 
     async fetchInfo() {
         try {
             this.tagInfo = await tagService.getInfo();
-        } catch {
-            // Keep empty state
+        } catch (error) {
+            this.#logger.warn('Failed to fetch tag info', {
+                error: error instanceof Error ? error.message : String(error),
+            });
         }
     }
 
@@ -49,7 +54,10 @@ class TagStore {
             await tagService.rename(from, to);
             await this.fetchAll();
             return true;
-        } catch {
+        } catch (error) {
+            this.#logger.warn('Failed to rename tag', {
+                error: error instanceof Error ? error.message : String(error),
+            });
             return false;
         }
     }
@@ -59,7 +67,10 @@ class TagStore {
             await tagService.merge(sources, target);
             await this.fetchAll();
             return true;
-        } catch {
+        } catch (error) {
+            this.#logger.warn('Failed to merge tags', {
+                error: error instanceof Error ? error.message : String(error),
+            });
             return false;
         }
     }

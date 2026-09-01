@@ -21,6 +21,7 @@ class WebSocketServiceImpl {
     private messageHandlers: Set<MessageHandler> = new Set();
     private statusHandlers: Set<(status: ConnectionStatus) => void> = new Set();
     private intentionalDisconnect = false;
+    private logger = container.logger;
 
     constructor() {
         const apiBaseUrl = container.config.get('VITE_API_URL', 'http://localhost:4000');
@@ -34,6 +35,7 @@ class WebSocketServiceImpl {
         if (this.status === 'connected' || this.status === 'connecting') return;
         this.intentionalDisconnect = false;
         this.setStatus('connecting');
+        this.logger.debug('WebSocket connecting', { url: this.url });
 
         try {
             this.ws = new WebSocket(this.url);
@@ -41,7 +43,8 @@ class WebSocketServiceImpl {
             this.ws.onmessage = this.handleMessage.bind(this);
             this.ws.onclose = this.handleClose.bind(this);
             this.ws.onerror = this.handleError.bind(this);
-        } catch {
+        } catch (error) {
+            this.logger.error('WebSocket construction failed', error);
             this.scheduleReconnect();
         }
     }
@@ -98,6 +101,7 @@ class WebSocketServiceImpl {
     private handleOpen(): void {
         this.reconnectAttempts = 0;
         this.setStatus('connected');
+        this.logger.debug('WebSocket connected');
         this.startPing();
     }
 
@@ -107,13 +111,16 @@ class WebSocketServiceImpl {
 
             if (data.type === 'connection:ack') {
                 this.clientId = data.payload.clientId;
+                this.logger.debug('WebSocket acknowledged', { clientId: this.clientId });
             }
 
             for (const handler of this.messageHandlers) {
                 handler(data);
             }
-        } catch {
-            // Ignore malformed messages
+        } catch (error) {
+            this.logger.warn('Ignoring malformed WebSocket message', {
+                error: error instanceof Error ? error.message : String(error),
+            });
         }
     }
 
@@ -122,14 +129,19 @@ class WebSocketServiceImpl {
         this.ws = null;
 
         if (!this.intentionalDisconnect) {
+            this.logger.warn('WebSocket closed unexpectedly', {
+                attempt: this.reconnectAttempts + 1,
+            });
             this.scheduleReconnect();
         } else {
+            this.logger.debug('WebSocket disconnected');
             this.setStatus('disconnected');
         }
     }
 
     private handleError(): void {
         this.stopPing();
+        this.logger.error('WebSocket error');
         if (this.ws) {
             this.ws.close();
         }
@@ -144,6 +156,7 @@ class WebSocketServiceImpl {
             WS_RECONNECT_MAX_MS,
         );
         this.reconnectAttempts++;
+        this.logger.debug('WebSocket reconnect scheduled', { delayMs: delay });
 
         this.reconnectTimer = setTimeout(() => {
             this.connect();

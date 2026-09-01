@@ -13,6 +13,8 @@
  * and may carry additional methods beyond these four.
  */
 
+import { container } from '$lib/container';
+
 export interface CrudService<T extends { id: string }, CreateInput, UpdateInput> {
     getAll(): Promise<T[]>;
     create(input: CreateInput): Promise<T>;
@@ -23,6 +25,8 @@ export interface CrudService<T extends { id: string }, CreateInput, UpdateInput>
 export class EntityStore<T extends { id: string }, CreateInput, UpdateInput> {
     items = $state<T[]>([]);
 
+    private logger = container.logger;
+
     constructor(protected service: CrudService<T, CreateInput, UpdateInput>) {}
 
     /** Override to impose a display order on fetched/created lists. */
@@ -30,11 +34,20 @@ export class EntityStore<T extends { id: string }, CreateInput, UpdateInput> {
         return items;
     }
 
+    /** Log a swallowed operation failure — these are silent to the UI, so
+     *  the log is the only trace something went wrong. */
+    protected logFailure(operation: string, error: unknown): void {
+        this.logger.warn(`${operation} failed`, {
+            service: this.service.constructor.name,
+            error: error instanceof Error ? error.message : String(error),
+        });
+    }
+
     async fetchAll(): Promise<void> {
         try {
             this.items = this.sort(await this.service.getAll());
-        } catch {
-            // Keep current state
+        } catch (error) {
+            this.logFailure('fetchAll', error);
         }
     }
 
@@ -43,7 +56,8 @@ export class EntityStore<T extends { id: string }, CreateInput, UpdateInput> {
             const item = await this.service.create(input);
             this.items = this.sort([...this.items, item]);
             return item;
-        } catch {
+        } catch (error) {
+            this.logFailure('create', error);
             return null;
         }
     }
@@ -53,7 +67,8 @@ export class EntityStore<T extends { id: string }, CreateInput, UpdateInput> {
             const updated = await this.service.update(id, input);
             this.items = this.items.map(i => (i.id === id ? updated : i));
             return updated;
-        } catch {
+        } catch (error) {
+            this.logFailure('update', error);
             return null;
         }
     }
@@ -63,7 +78,8 @@ export class EntityStore<T extends { id: string }, CreateInput, UpdateInput> {
             await this.service.delete(id);
             this.items = this.items.filter(i => i.id !== id);
             return true;
-        } catch {
+        } catch (error) {
+            this.logFailure('remove', error);
             return false;
         }
     }

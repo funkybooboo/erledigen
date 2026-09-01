@@ -18,6 +18,7 @@ const taskService = new TaskService(container.httpClient);
 
 class TaskStore {
     tasks = $state<Task[]>([]);
+    #logger = container.logger;
     loading = $state(false);
     error = $state<string | null>(null);
     #fetchPromise: Promise<void> | null = null;
@@ -102,6 +103,7 @@ class TaskStore {
             } catch (e) {
                 this.loading = false;
                 this.error = e instanceof Error ? e.message : 'Failed to fetch tasks';
+                this.#logger.warn('Failed to fetch tasks', { error: this.error });
             } finally {
                 this.#fetchPromise = null;
             }
@@ -116,6 +118,7 @@ class TaskStore {
             return task;
         } catch (e) {
             this.error = e instanceof Error ? e.message : 'Failed to create task';
+            this.#logger.warn('Failed to create task', { error: this.error });
             return null;
         }
     }
@@ -138,6 +141,7 @@ class TaskStore {
                 this.tasks = this.tasks.map(t => (t.id === id ? prev : t));
             }
             this.error = e instanceof Error ? e.message : 'Failed to update task';
+            this.#logger.warn('Failed to update task', { error: this.error });
             return null;
         }
     }
@@ -154,6 +158,7 @@ class TaskStore {
         } catch (e) {
             this.tasks = [...this.tasks, task];
             this.error = e instanceof Error ? e.message : 'Failed to delete task';
+            this.#logger.warn('Failed to delete task', { error: this.error });
             return false;
         }
     }
@@ -165,6 +170,7 @@ class TaskStore {
         } catch (e) {
             this.tasks = this.tasks.filter(t => t.id !== task.id);
             this.error = e instanceof Error ? e.message : 'Failed to restore task';
+            this.#logger.warn('Failed to restore task', { error: this.error });
         }
     }
 
@@ -183,6 +189,7 @@ class TaskStore {
             return task;
         } catch (e) {
             this.error = e instanceof Error ? e.message : 'Failed to restore task';
+            this.#logger.warn('Failed to restore task', { error: this.error });
             return null;
         }
     }
