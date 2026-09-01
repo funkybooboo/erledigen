@@ -1,11 +1,9 @@
 import { expect, test } from '@playwright/test';
 import { cleanup, createTask, uniq } from '../api-tests/helpers';
-import { hydrated, modal, todayISO } from './util';
-
-const SERVER = process.env.PLAYWRIGHT_API_BASE_URL ?? 'http://localhost:4000';
+import { hydrated, modal, SERVER_URL, todayISO } from './util';
 
 test.afterEach(async ({ request }) => {
-    await cleanup(request, SERVER);
+    await cleanup(request, SERVER_URL);
 });
 
 test.describe('app shell & navigation', () => {
@@ -36,7 +34,7 @@ test.describe('app shell & navigation', () => {
 
     test('rendering the day list with today highlighted', async ({ page }) => {
         const text = uniq('ShellToday');
-        await createTask(page.request, { text, date: todayISO() }, SERVER);
+        await createTask(page.request, { text, date: todayISO() }, SERVER_URL);
         await hydrated(page);
         await expect(page.locator('.day-section.today')).toBeVisible();
         await expect(
@@ -108,5 +106,34 @@ test.describe('keyboard shortcuts', () => {
             if (!focused) await page.waitForTimeout(150);
         }
         expect(focused).toBe(true);
+    });
+
+    test('j/k move through Someday panel tasks when focused there', async ({ page }) => {
+        const first = uniq('SomedayNavA');
+        const second = uniq('SomedayNavB');
+        // Someday tasks: date null, no group -> rendered in the Ungrouped
+        // section of the panel in creation order.
+        await createTask(page.request, { text: first, date: null }, SERVER_URL);
+        await createTask(page.request, { text: second, date: null }, SERVER_URL);
+
+        await hydrated(page);
+        const panel = page.locator('.someday-panel');
+        await expect(panel).toBeVisible();
+        const rowA = panel.locator('.task-row', { hasText: first });
+        const rowB = panel.locator('.task-row', { hasText: second });
+        await expect(rowA).toBeVisible();
+        await expect(rowB).toBeVisible();
+
+        // Acting on a Someday row (checkbox) focuses it; j/k then navigate
+        // within the panel instead of the day list.
+        await rowA.getByRole('button', { name: 'Mark complete' }).click();
+        await expect(rowA).toHaveClass(/focused/);
+
+        await page.keyboard.press('j');
+        await expect(rowB).toHaveClass(/focused/);
+        await expect(rowA).not.toHaveClass(/focused/);
+
+        await page.keyboard.press('k');
+        await expect(rowA).toHaveClass(/focused/);
     });
 });

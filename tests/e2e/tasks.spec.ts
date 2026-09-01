@@ -1,18 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { cleanup, createTask } from '../api-tests/helpers';
-import { hydrated, modal, todayISO } from './util';
-
-const SERVER = process.env.PLAYWRIGHT_API_BASE_URL ?? 'http://localhost:4000';
-const uniq = (p: string) => `${p}-${Math.random().toString(36).slice(2, 8)}`;
+import { cleanup, createTask, uniq } from '../api-tests/helpers';
+import { hydrated, modal, SERVER_URL, todayInput, todayISO } from './util';
 
 test.afterEach(async ({ request }) => {
-    await cleanup(request, SERVER);
+    await cleanup(request, SERVER_URL);
 });
-
-async function todayInput(page: import('@playwright/test').Page) {
-    await hydrated(page);
-    return page.locator('.day-section.today .add-input');
-}
 
 test.describe('task CRUD through the UI', () => {
     test('create a task in today\'s section via the inline input', async ({ page }) => {
@@ -28,7 +20,7 @@ test.describe('task CRUD through the UI', () => {
 
     test('complete a task toggles its checkbox state', async ({ page }) => {
         const text = uniq('UiComplete');
-        const task = await createTask(page.request, { text, date: todayISO() }, SERVER);
+        const task = await createTask(page.request, { text, date: todayISO() }, SERVER_URL);
         await hydrated(page);
         const row = page.locator('.task-row', { hasText: text }).first();
         const checkbox = row.getByRole('button', { name: /Mark complete/ });
@@ -38,14 +30,14 @@ test.describe('task CRUD through the UI', () => {
         const rowCheck = page.locator('.task-row', { hasText: text }).first();
         await expect(rowCheck.getByRole('button', { name: /Mark incomplete/ })).toBeVisible();
         // And the server agrees.
-        const res = await page.request.get(`${SERVER}/api/tasks/${task.id}`);
+        const res = await page.request.get(`${SERVER_URL}/api/tasks/${task.id}`);
         expect((await res.json()).data.completed).toBe(true);
     });
 
     test('inline edit changes the task text and persists', async ({ page }) => {
         const original = uniq('UiEditOrig');
         const edited = uniq('UiEditDone');
-        const task = await createTask(page.request, { text: original, date: todayISO() }, SERVER);
+        const task = await createTask(page.request, { text: original, date: todayISO() }, SERVER_URL);
         await hydrated(page);
         const row = page.locator('.task-row', { hasText: original }).first();
         await row.locator('.task-text').click();
@@ -57,13 +49,13 @@ test.describe('task CRUD through the UI', () => {
         await editInput.fill(edited);
         await editInput.press('Enter');
         await expect(page.locator('.task-row', { hasText: edited })).toBeVisible();
-        const res = await page.request.get(`${SERVER}/api/tasks/${task.id}`);
+        const res = await page.request.get(`${SERVER_URL}/api/tasks/${task.id}`);
         expect((await res.json()).data.text).toBe(edited);
     });
 
     test('delete a task surfaces an Undo notification that restores it', async ({ page }) => {
         const text = uniq('UiDeleteUndo');
-        const task = await createTask(page.request, { text, date: todayISO() }, SERVER);
+        const task = await createTask(page.request, { text, date: todayISO() }, SERVER_URL);
         await hydrated(page);
         const row = page.locator('.task-row', { hasText: text }).first();
         await row.getByRole('button', { name: 'Delete task' }).click();
@@ -74,14 +66,32 @@ test.describe('task CRUD through the UI', () => {
         await notif.getByRole('button', { name: 'Undo' }).click();
         await expect(page.locator('.task-row', { hasText: text })).toBeVisible();
         // Server confirms the task is restored (not soft-deleted).
-        const res = await page.request.get(`${SERVER}/api/tasks/${task.id}`);
+        const res = await page.request.get(`${SERVER_URL}/api/tasks/${task.id}`);
+        expect(res.status()).toBe(200);
+        expect((await res.json()).data.deletedAt).toBeNull();
+    });
+
+    test('Ctrl+Z runs the notification Undo action', async ({ page }) => {
+        const text = uniq('UiDeleteUndoKb');
+        const task = await createTask(page.request, { text, date: todayISO() }, SERVER_URL);
+        await hydrated(page);
+        const row = page.locator('.task-row', { hasText: text }).first();
+        await row.getByRole('button', { name: 'Delete task' }).click();
+        const notif = page.locator('.notification', { hasText: 'Task deleted' });
+        await expect(notif).toBeVisible();
+
+        // The global Ctrl/Cmd+Z binding triggers the latest notification's
+        // action instead of clicking the Undo button.
+        await page.keyboard.press('Control+z');
+        await expect(page.locator('.task-row', { hasText: text })).toBeVisible();
+        const res = await page.request.get(`${SERVER_URL}/api/tasks/${task.id}`);
         expect(res.status()).toBe(200);
         expect((await res.json()).data.deletedAt).toBeNull();
     });
 
     test('tags entered via the detail modal persist on the task', async ({ page }) => {
         const text = uniq('UiDetailTags');
-        const task = await createTask(page.request, { text, date: todayISO() }, SERVER);
+        const task = await createTask(page.request, { text, date: todayISO() }, SERVER_URL);
         await hydrated(page);
         const row = page.locator('.task-row', { hasText: text }).first();
         await row.getByRole('button', { name: 'Task details' }).click();
@@ -92,7 +102,7 @@ test.describe('task CRUD through the UI', () => {
         await modalEl.getByRole('button', { name: 'Save', exact: true }).click();
         // Save closes the modal and PATCHes; the server reflects the tags.
         await expect.poll(async () => {
-            const r = await page.request.get(`${SERVER}/api/tasks/${task.id}`);
+            const r = await page.request.get(`${SERVER_URL}/api/tasks/${task.id}`);
             return (await r.json()).data.tags;
         }).toEqual(['#e2e', '#work']);
         // Tag chip renders on the row after the store re-syncs.

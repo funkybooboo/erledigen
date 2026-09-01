@@ -9,6 +9,9 @@
  */
 import type { Page } from '@playwright/test';
 
+/** The API server origin, for seeding/cleanup calls that bypass the client. */
+export const SERVER_URL = process.env.PLAYWRIGHT_API_BASE_URL ?? 'http://localhost:4000';
+
 /** Wait for the app to hydrate so Svelte event handlers are active. */
 export async function hydrated(page: Page): Promise<void> {
     await page.goto('/');
@@ -22,6 +25,12 @@ export async function hydrated(page: Page): Promise<void> {
  */
 export function modal(page: Page, title: string) {
     return page.getByRole('dialog', { name: title, exact: true });
+}
+
+/** Hydrate the app and return the inline add-task input in today's section. */
+export async function todayInput(page: Page) {
+    await hydrated(page);
+    return page.locator('.day-section.today .add-input');
 }
 
 /** Today as YYYY-MM-DD in the browser's local zone (matches dateProvider.today()). */
