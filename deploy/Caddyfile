@@ -1,0 +1,30 @@
+# =============================================================================
+# Erledigen -- edge proxy for the prod stack (compose.prod.yaml).
+#
+# One public port serves the whole app:
+#   /api/* and /ws  -> API server (Bun, internal :4000)
+#   everything else -> SvelteKit SSR server (Node, internal :3000)
+#
+# The client bundle is built same-origin (VITE_API_URL is empty), so the
+# browser talks to this proxy for everything -- no CORS, no WebSocket
+# cross-origin rules, and no host/domain baked into the images.
+#
+# Serving on a real domain with automatic HTTPS:
+#   1. Replace `:8080` below with your domain, e.g. `erledigen.example.com`.
+#      Caddy then provisions Let's Encrypt certificates and redirects
+#      HTTP -> HTTPS automatically (ports 80/443 must be reachable).
+#   2. Publish the standard ports instead of PROD_PORT:
+#      ports: ['80:80', '443:443'] on the proxy service in compose.prod.yaml.
+# =============================================================================
+
+:8080 {
+	handle /api/* {
+		reverse_proxy server:4000
+	}
+	handle /ws {
+		reverse_proxy server:4000
+	}
+	handle {
+		reverse_proxy client:3000
+	}
+}

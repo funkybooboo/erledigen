@@ -37,3 +37,6 @@ docs
 plans
 LICENSE
 README.md
+
+# Deploy config is bind-mounted by compose, never baked into images
+deploy

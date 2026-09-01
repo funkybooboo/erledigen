@@ -6,6 +6,7 @@ import {
     type WsClientMessage,
     type WsServerMessage,
 } from '@erledigen/shared';
+import { resolveApiBaseUrl } from '$lib/apiBaseUrl';
 import { container } from '$lib/container';
 
 type MessageHandler = (message: WsServerMessage) => void;
@@ -24,8 +25,10 @@ class WebSocketServiceImpl {
     private logger = container.logger;
 
     constructor() {
-        const apiBaseUrl = container.config.get('VITE_API_URL', 'http://localhost:4000');
-        const url = new URL(apiBaseUrl);
+        const configured = container.config.get('VITE_API_URL', 'http://localhost:4000');
+        // Empty string = same-origin deployment (reverse-proxied prod
+        // stack); see lib/apiBaseUrl.ts.
+        const url = new URL(resolveApiBaseUrl(configured));
         url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
         url.pathname = '/ws';
         this.url = url.toString();

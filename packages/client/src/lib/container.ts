@@ -17,6 +17,7 @@ import {
     NativeDateProvider,
 } from '@erledigen/shared';
 import { ViteConfigProvider } from './adapters/config/ViteConfigProvider';
+import { resolveApiBaseUrl } from './apiBaseUrl';
 
 export class Container {
     private _config: ConfigProvider | null = null;
@@ -33,8 +34,10 @@ export class Container {
 
     get httpClient(): HttpClient {
         if (!this._httpClient) {
-            const apiUrl = this.config.get('VITE_API_URL', 'http://localhost:4000');
-            this._httpClient = new FetchHttpClient(apiUrl);
+            const configured = this.config.get('VITE_API_URL', 'http://localhost:4000');
+            // Empty string = same-origin deployment (reverse-proxied prod
+            // stack); see lib/apiBaseUrl.ts.
+            this._httpClient = new FetchHttpClient(resolveApiBaseUrl(configured));
         }
         return this._httpClient;
     }

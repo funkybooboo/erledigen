@@ -1,28 +1,28 @@
 # =============================================================================
-# Erledigen -- dev (default) and prod (profile) stacks.
+# Erledigen -- dev stack (the default `docker compose up`).
 #
-#   docker compose up                              # dev: server + client
-#   docker compose --profile prod up -d --build   # prod stack
+#   docker compose up          # server + client, attached (Ctrl-C stops)
+#   docker compose up -d       # detached
+#   docker compose down        # stop (dev DB in `dev-data` survives)
 #
-# Dev:
-#   - Source is bind-mounted; edits are picked up live by `bun --watch`
-#     (server) and vite HMR (client) -- no image rebuild needed for code.
-#   - node_modules are shielded from the bind mount by anonymous volumes
-#     seeded from the image. After changing dependencies run `mise run
-#     dev-refresh` (bun install happens inside the image).
-#   - The dev DB lives in the `dev-data` named volume (DB_PATH=/data), never
-#     in the repo.
+# - Source is bind-mounted; edits are picked up live by `bun --watch`
+#   (server) and vite HMR (client) -- no image rebuild needed for code.
+# - node_modules are shielded from the bind mount by anonymous volumes
+#   seeded from the image. After changing dependencies run `mise run
+#   dev-refresh` (bun install happens inside the image).
+# - The dev DB lives in the `dev-data` named volume (DB_PATH=/data), never
+#   in the repo.
+# - Publishes 3000/4000 on the host: stop any locally-running servers first
+#   (the `predev` script does this when running outside docker).
 #
-# Prod:
-#   - Publishes the same host ports as dev (3000/4000): stop dev first.
-#   - VITE_API_URL is baked into the client bundle at build time; override
-#     with an environment variable when deploying for real.
+# Other stacks, fully independent of this one (separate compose projects,
+# no shared ports): compose.prod.yaml (prod, single port 8080) and
+# compose.test.yaml (e2e, no published ports at all).
 # =============================================================================
 
 name: erledigen
 
 services:
-    # ---- dev ----------------------------------------------------------------
     server:
         build:
             context: .
@@ -68,41 +68,5 @@ services:
         ports:
             - '3000:3000'
 
-    # ---- prod ---------------------------------------------------------------
-    prod-server:
-        profiles: ['prod']
-        build:
-            context: .
-            target: production-server
-        image: erledigen/server
-        environment:
-            NODE_ENV: production
-            PORT: 4000
-            CORS_ORIGIN: ${CORS_ORIGIN:-*}
-            RATE_LIMIT_RPM: ${RATE_LIMIT_RPM:-600}
-            DB_PATH: /data/erledigen.db
-        volumes:
-            - prod-data:/data
-        ports:
-            - '4000:4000'
-
-    prod-client:
-        profiles: ['prod']
-        build:
-            context: .
-            target: production-client
-            args:
-                # Baked into the bundle at build time; same note as dev: the
-                # browser resolves this, so it is the published host address.
-                VITE_API_URL: ${VITE_API_URL:-http://localhost:4000}
-        image: erledigen/client
-        environment:
-            HOSTNAME: 0.0.0.0
-            PORT: 3000
-            ORIGINS: ${ORIGINS:-http://localhost:3000}
-        ports:
-            - '3000:3000'
-
 volumes:
     dev-data:
-    prod-data:

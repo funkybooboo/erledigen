@@ -1,0 +1,98 @@
+# =============================================================================
+# Erledigen -- prod stack. Fully self-contained: `docker compose -f
+# compose.prod.yaml up -d --build` on any Docker host is a running app.
+#
+#   docker compose -f compose.prod.yaml up -d --build   # build + start
+#   docker compose -f compose.prod.yaml logs -f         # follow logs
+#   docker compose -f compose.prod.yaml down            # stop (keeps data)
+#
+# Topology:
+#
+#              PROD_PORT (default 8080)
+#                     |
+#                  proxy (Caddy) -- deploy/Caddyfile; TLS if you give it a
+#                     |            domain (see the file header)
+#          /api, /ws -+- everything else
+#                     |
+#          server (bun, sqlite)    client (node, SvelteKit SSR)
+#
+# - Single published port: never collides with the dev stack (3000/4000) or
+#   anything else. Override the public port with PROD_PORT=...
+# - The client is built SAME-ORIGIN (empty VITE_API_URL): the image works on
+#   any host or domain without a rebuild; the proxy routes /api and /ws.
+# - server + client are internal to the compose network (no published ports).
+# - SQLite data persists in the prod-data named volume; migrations run at
+#   server boot (fail-fast).
+# - Services restart automatically (unless-stopped) -- cloud-host friendly.
+#
+# Split-origin deployments (client and API on different public hosts) are
+# still possible: pass an absolute VITE_API_URL build arg to `client` and
+# publish server:4000 yourself.
+# =============================================================================
+
+name: erledigen-prod
+
+services:
+    server:
+        build:
+            context: .
+            target: production-server
+        image: erledigen/server
+        # Internal only -- the proxy is the sole entry point.
+        environment:
+            NODE_ENV: production
+            PORT: 4000
+            CORS_ORIGIN: ${CORS_ORIGIN:-*} # same-origin via proxy; kept for split deployments
+            RATE_LIMIT_RPM: ${RATE_LIMIT_RPM:-600}
+            DB_PATH: /data/erledigen.db
+        volumes:
+            - prod-data:/data
+        restart: unless-stopped
+        healthcheck:
+            test: ['CMD', 'bun', '-e', "await fetch('http://localhost:4000/api/health')"]
+            interval: 30s
+            timeout: 5s
+            retries: 3
+            start_period: 10s
+
+    client:
+        build:
+            context: .
+            target: production-client
+            # No VITE_API_URL arg on purpose: an empty value builds the
+            # client same-origin, which is what the proxy serves. Only pass
+            # an absolute URL here for split-origin deployments.
+        image: erledigen/client
+        environment:
+            NODE_ENV: production
+            HOSTNAME: 0.0.0.0
+            PORT: 3000
+        restart: unless-stopped
+        healthcheck:
+            # 127.0.0.1, not localhost: busybox wget resolves localhost to ::1
+            # first, and node binds IPv4 only (HOSTNAME=0.0.0.0).
+            test: ['CMD', 'wget', '-q', '--spider', 'http://127.0.0.1:3000/']
+            interval: 30s
+            timeout: 5s
+            retries: 3
+            start_period: 10s
+
+    proxy:
+        image: caddy:2-alpine
+        ports:
+            - '${PROD_PORT:-8080}:8080'
+        volumes:
+            - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+            - caddy-data:/data # TLS certificates, when a domain is configured
+            - caddy-config:/config
+        restart: unless-stopped
+        depends_on:
+            server:
+                condition: service_healthy
+            client:
+                condition: service_healthy
+
+volumes:
+    prod-data:
+    caddy-data:
+    caddy-config:

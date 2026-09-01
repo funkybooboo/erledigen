@@ -47,9 +47,13 @@ COPY packages/server packages/server
 RUN bun run --cwd packages/server build
 
 # ---- client build ------------------------------------------------------------
-# Vite inlines VITE_* vars at build time, so the API URL is a build arg.
+# Vite inlines VITE_* vars at build time. An EMPTY (or unset) VITE_API_URL
+# builds the client same-origin ("this page's origin") -- that is what the
+# prod stack serves via the reverse proxy (deploy/Caddyfile), and it keeps
+# the image host/domain-agnostic. Pass an absolute URL only for
+# split-origin deployments. See packages/client/src/lib/apiBaseUrl.ts.
 FROM base AS build-client
-ARG VITE_API_URL
+ARG VITE_API_URL=""
 ENV VITE_API_URL=$VITE_API_URL
 COPY packages/shared packages/shared
 COPY packages/client packages/client
@@ -69,6 +73,12 @@ CMD ["bun", "dist/index.js"]
 # `node build`. bun is copied in ONLY for the production dependency install
 # (it reads bun.lock); the alpine bun binary matches this alpine (musl) base.
 FROM node:24-alpine AS production-client
+# Re-declare so the oven/bun COPY --from references below can use it (global
+# ARGs are only in scope for FROM lines, not inside stages).
+ARG BUN_VERSION
+# 1. Install prod deps for the whole workspace at the monorepo root. Bun's
+#    isolated linker puts each workspace's deps in its own
+#    packages/*/node_modules (symlinks into /app/node_modules/.bun).
 WORKDIR /app
 COPY --from=oven/bun:${BUN_VERSION}-alpine /usr/local/bin/bun /usr/local/bin/bun
 COPY --from=oven/bun:${BUN_VERSION}-alpine /usr/local/bin/bunx /usr/local/bin/bunx
@@ -76,8 +86,14 @@ COPY bun.lock package.json ./
 COPY packages/shared/package.json packages/shared/
 COPY packages/server/package.json packages/server/
 COPY packages/client/package.json packages/client/
-RUN bun install --prod --frozen-lockfile
-COPY --from=build-client /app/packages/client/build ./build
+# --ignore-scripts: the root `prepare: husky` script would otherwise fail
+# (husky is a devDependency, absent from a prod install).
+RUN bun install --prod --frozen-lockfile --ignore-scripts
+# 2. Run from the client workspace so node resolves its node_modules tree.
+COPY --from=build-client /app/packages/client/build ./packages/client/build
+WORKDIR /app/packages/client
+# No ORIGIN needed: adapter-node derives the public origin from the Host
+# header, which the prod proxy (Caddy) passes through untouched.
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 EXPOSE 3000
@@ -85,6 +101,7 @@ CMD ["node", "build"]
 
 # ---- e2e test runner ---------------------------------------------------------
 FROM mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION} AS e2e
+ARG BUN_VERSION
 COPY --from=oven/bun:${BUN_VERSION} /usr/local/bin/bun /usr/local/bin/bun
 COPY --from=oven/bun:${BUN_VERSION} /usr/local/bin/bunx /usr/local/bin/bunx
 WORKDIR /app

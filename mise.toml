@@ -21,7 +21,9 @@ VITE_PORT = "3000"
 # against the working tree.
 #
 # NOTE: the dev stack publishes ports 3000/4000 -- stop any locally-running
-# servers first or the port publish will fail.
+# servers first or the port publish will fail. The prod stack
+# (compose.prod.yaml) is independent: single port 8080 (PROD_PORT), so it
+# can run alongside dev.
 
 [tasks.dev]
 description = "Start the docker dev stack (server + client, attached)"
@@ -37,11 +39,15 @@ run = "docker compose up server"
 
 [tasks.prod]
 description = "Build and start the docker prod stack (detached)"
-run = "docker compose --profile prod up -d --build"
+run = "docker compose -f compose.prod.yaml up -d --build"
 
 [tasks.prod-stop]
-description = "Stop the docker prod stack"
-run = "docker compose --profile prod down"
+description = "Stop the docker prod stack (data volume is kept)"
+run = "docker compose -f compose.prod.yaml down"
+
+[tasks.prod-logs]
+description = "Follow the docker prod stack logs"
+run = "docker compose -f compose.prod.yaml logs -f"
 
 [tasks.dev-refresh]
 description = "Rebuild dev images and recreate dev containers (run after changing dependencies)"
