@@ -77,8 +77,6 @@ export const RECURRING_TASK_DEFAULTS = {
 } as const;
 
 export const PURGE_RETENTION_DAYS = 7;
-export const DEFAULT_DAY_RANGE = 30;
-export const DEFAULT_TOAST_DURATION_MS = 5000;
 export const DEFAULT_RATE_LIMIT_RPM = 300;
 
 export const DEFAULT_TAG_KINDS: import('./types/userPreferences').TagKind[] = [
@@ -137,20 +135,5 @@ export const WEEKDAY_NAMES = [
     'Friday',
     'Saturday',
 ] as const;
-export const MONTH_NAMES = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-] as const;
 
 export const CONTENT_TYPE_TEXT = 'text/plain; charset=utf-8';
-export const MAX_SEARCH_RESULTS = 20;
