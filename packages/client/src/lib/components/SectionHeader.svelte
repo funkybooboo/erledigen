@@ -8,8 +8,17 @@
         isToday = false,
     }: {
         sectionId: string;
+        /** Present for day sections (date-style header); absent for non-date
+         * sections like Someday groups, which show `title` instead. */
         title: string;
-        dateParts: { weekday: string; month: string; day: string; year: string; weekdayShort: string; monthShort: string };
+        dateParts?: {
+            weekday: string;
+            month: string;
+            day: string;
+            year: string;
+            weekdayShort: string;
+            monthShort: string;
+        };
         taskCount: number;
         completedCount: number;
         isToday?: boolean;
@@ -26,9 +35,13 @@
     class:complete={isComplete}
     id={sectionId}
 >
-    <span class="day-num">{dateParts.day}</span>
-    <span class="weekday">{dateParts.weekdayShort}</span>
-    <span class="month-year">{dateParts.monthShort} {dateParts.year}</span>
+    {#if dateParts}
+        <span class="day-num">{dateParts.day}</span>
+        <span class="weekday">{dateParts.weekdayShort}</span>
+        <span class="month-year">{dateParts.monthShort} {dateParts.year}</span>
+    {:else}
+        <span class="section-title">{title}</span>
+    {/if}
     <span class="section-stats">
         {taskCount} task{taskCount !== 1 ? 's' : ''}
         {completedCount} done
@@ -82,6 +95,16 @@
         text-transform: uppercase;
         color: var(--color-text-secondary);
         white-space: nowrap;
+    }
+
+    /* Title-style header for non-date sections (e.g. Someday groups). */
+    .section-title {
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 60%;
     }
 
     /* Stats pushed to the far right, always visible. */
