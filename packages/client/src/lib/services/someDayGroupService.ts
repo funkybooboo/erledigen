@@ -17,13 +17,6 @@ export class SomeDayGroupService {
         return response.data;
     }
 
-    async getById(id: string): Promise<SomeDayGroup> {
-        const response = await this.http.get<ApiResponse<SomeDayGroup>>(
-            API_ROUTES.SOMEDAY_GROUP_BY_ID(id),
-        );
-        return response.data;
-    }
-
     async create(input: CreateSomeDayGroupInput): Promise<SomeDayGroup> {
         const response = await this.http.post<ApiResponse<SomeDayGroup>>(
             API_ROUTES.SOMEDAY_GROUPS,

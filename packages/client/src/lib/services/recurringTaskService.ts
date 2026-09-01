@@ -17,13 +17,6 @@ export class RecurringTaskService {
         return response.data;
     }
 
-    async getById(id: string): Promise<RecurringTask> {
-        const response = await this.http.get<ApiResponse<RecurringTask>>(
-            API_ROUTES.RECURRING_TASK_BY_ID(id),
-        );
-        return response.data;
-    }
-
     async create(input: CreateRecurringTaskInput): Promise<RecurringTask> {
         const response = await this.http.post<ApiResponse<RecurringTask>>(
             API_ROUTES.RECURRING_TASKS,
@@ -42,13 +35,5 @@ export class RecurringTaskService {
 
     async delete(id: string): Promise<void> {
         await this.http.delete<ApiResponse<{ id: string }>>(API_ROUTES.RECURRING_TASK_BY_ID(id));
-    }
-
-    async generateInstances(id: string, startDate: string, endDate: string): Promise<unknown> {
-        const response = await this.http.post<ApiResponse<unknown>>(
-            API_ROUTES.RECURRING_TASK_GENERATE(id),
-            { startDate, endDate },
-        );
-        return response.data;
     }
 }

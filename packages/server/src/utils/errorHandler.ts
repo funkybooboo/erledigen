@@ -4,18 +4,8 @@
  * Provides helpers to convert errors into HTTP responses
  */
 
-import type { Logger } from '@erledigen/shared';
-import { AppError } from '@erledigen/shared';
+import { AppError, type ErrorResponseBody, type Logger } from '@erledigen/shared';
 import type { HttpResponse } from '../adapters/http/types';
-
-/**
- * Standard error response body shape
- */
-export interface ErrorResponseBody {
-    error: string;
-    code: string;
-    details?: unknown;
-}
 
 /**
  * Convert an error to an HTTP response
@@ -60,7 +50,4 @@ export function errorToResponse(error: unknown, logger?: Logger): HttpResponse {
     };
 }
 
-export {
-    createNotFoundError as notFoundError,
-    createValidationError as validationError,
-} from '@erledigen/shared';
+export { createNotFoundError as notFoundError } from '@erledigen/shared';

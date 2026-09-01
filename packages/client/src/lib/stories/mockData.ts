@@ -1,11 +1,4 @@
-import type {
-    Project,
-    RecurringTask,
-    SomeDayGroup,
-    Task,
-    UserPreferences,
-} from '@erledigen/shared';
-import { DEFAULT_TAG_KIND_MAP, DEFAULT_TAG_KINDS } from '@erledigen/shared';
+import type { Task } from '@erledigen/shared';
 
 export const mockTask: Task = {
     id: '1',
@@ -79,85 +72,6 @@ export const mockPriorityTask: Task = {
     id: '7',
     text: 'Fix critical bug',
     tags: ['p1', 'urgent'],
-};
-
-export const mockSomeDayGroup: SomeDayGroup = {
-    id: 'sg-1',
-    name: 'Home Improvements',
-    description: 'Things to do around the house',
-    tag: 'home',
-    position: 0,
-    createdAt: '2026-04-01T00:00:00Z',
-};
-
-export const mockSomeDayGroup2: SomeDayGroup = {
-    id: 'sg-2',
-    name: 'Learning',
-    description: null,
-    tag: 'learning',
-    position: 1,
-    createdAt: '2026-04-01T00:00:00Z',
-};
-
-export const mockProject: Project = {
-    id: 'p-1',
-    name: 'Erledigen App',
-    tag: 'project:erledigen-app',
-    description: 'Build the Erledigen task management app',
-    startDate: '2026-01-01',
-    dueDate: '2026-06-30',
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00Z',
-    completedAt: null,
-};
-
-export const mockInactiveProject: Project = {
-    id: 'p-2',
-    name: 'Old Project',
-    tag: 'project:old-project',
-    description: 'A completed project',
-    startDate: '2025-01-01',
-    dueDate: '2025-12-31',
-    isActive: false,
-    createdAt: '2025-01-01T00:00:00Z',
-    completedAt: '2025-12-31T00:00:00Z',
-};
-
-export const mockRecurringTask: RecurringTask = {
-    id: 'rt-1',
-    text: 'Morning exercise',
-    notes: null,
-    tags: ['health'],
-    frequency: 'daily',
-    interval: 1,
-    dayOfWeek: null,
-    dayOfMonth: null,
-    startDate: '2026-01-01',
-    endDate: null,
-    rolloverEnabled: true,
-    createdAt: '2026-01-01T00:00:00Z',
-    updatedAt: '2026-01-01T00:00:00Z',
-};
-
-export const mockPreferences: UserPreferences = {
-    id: 'default',
-    theme: 'system',
-    locale: 'en',
-    someDayPanelWidth: 280,
-    someDayPanelCollapsed: false,
-    someDayPanelLastOpenWidth: 280,
-    rolloverEnabled: true,
-    showEmptyDays: true,
-    deleteConfirmation: 'instant',
-    activeFilters: {
-        tags: [],
-        showCompleted: false,
-    },
-    tagKinds: [...DEFAULT_TAG_KINDS],
-    tagKindMap: { ...DEFAULT_TAG_KIND_MAP },
-    timeFormat: '12h' as const,
-    timezone: null as string | null,
-    updatedAt: '2026-04-27T00:00:00Z',
 };
 
 export const mockTasks: Task[] = [

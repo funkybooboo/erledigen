@@ -17,11 +17,6 @@ export class TaskService {
         return response.data;
     }
 
-    async getById(id: string): Promise<Task> {
-        const response = await this.http.get<ApiResponse<Task>>(API_ROUTES.TASK_BY_ID(id));
-        return response.data;
-    }
-
     async create(input: CreateTaskInput): Promise<Task> {
         const response = await this.http.post<ApiResponse<Task>>(API_ROUTES.TASKS, input);
         return response.data;
