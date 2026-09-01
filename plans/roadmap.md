@@ -338,6 +338,8 @@ Refactoring pass to fix API mismatches, extract shared types/constants/utilities
 
 This release makes Erledigen fully operable without a mouse, and finalizes the complete keyboard shortcut system.
 
+**Status:** Largely shipped. A single shortcut registry (`packages/client/src/lib/keybindings.ts`) now drives both the Help modal and hover tooltips on every UI action. Implemented: `j`/`k` + arrows (task focus), `n`/`a`, `Enter` (inline edit), `e` (detail), `Space` (complete), `d` (delete), `1`/`2`/`3`/`0` (priority tags), `g t` (today) + `g s/p/h/c/f/x/o` (modals), `{mod}+K` / `/` (search palette), `?` (help), `{mod}+\` (Someday panel), `Esc`, `{mod}+Z` (undo). Not yet implemented: `J`/`K` section jumps, `r`/`m`/`t` per-task actions. The palette has search mode and `/add` (with natural-language habit phrases); the rest of the command list below is still planned.
+
 ### Complete Keyboard Shortcut Reference
 
 **Navigation**
@@ -412,13 +414,13 @@ The palette has two modes distinguished by the first character:
 - The palette command list is extensible — new commands are registered by adding to the command registry in `packages/shared`.
 
 ### Additional Checklist
-- [ ] Vim + arrow key navigation: both work simultaneously throughout the app.
-- [ ] All shortcuts in the table above implemented and working.
-- [ ] Command palette: search mode and command mode (`/` prefix) both functional.
+- [x] Vim + arrow key navigation: both work simultaneously throughout the app (day list; Someday panel not yet keyboard-navigable).
+- [ ] All shortcuts in the table above implemented and working (`J`/`K`, `r`, `m`, `t` remain).
+- [x] Command palette: search mode and command mode (`/` prefix, currently `/add`) both functional.
 - [ ] Natural language date parsing: today, tomorrow, next monday, march 15, in 3 days.
-- [ ] Natural language task creation: `buy milk tomorrow #work #p1`.
-- [ ] Focus management: keyboard focus always visible and predictable after every action.
-- [ ] Focus trapped inside modals; Esc closes and returns focus to the trigger element.
+- [ ] Natural language task creation: `buy milk tomorrow #work #p1` (tags are parsed; dates are not).
+- [x] Focus management: keyboard focus always visible and predictable after every action (focused task row gets an accent style; clicking a task action focuses its row).
+- [x] Focus trapped inside modals; Esc closes and returns focus to the trigger element.
 
 ### Technical Notes & Considerations
 - `mousetrap` or `hotkeys-js` for keybinding management. Choose one — ADR it.
@@ -447,21 +449,23 @@ This release polishes the three-panel layout, completes drag-and-drop interactio
 
 ### Drag-and-Drop (from v0.5.0)
 
-- [x] **Drag handle:** ⠿ grip icon appears on the left of each task row on hover. Only the handle initiates a drag.
-- [x] **Drag between days:** Drag a task from one day section and drop it onto another day's header or task list. The target day section highlights on hover.
-- [x] **Reorder within a day:** Drag tasks up/down within the same day section to reorder.
+> **Removed:** drag-and-drop (and the `svelte-dnd-action` dependency) was removed in the frontend simplification (commit `2f3a700`) in favor of true infinite scroll. The items below are kept as the design for whenever drag returns.
+
+- [ ] **Drag handle:** ⠿ grip icon appears on the left of each task row on hover. Only the handle initiates a drag.
+- [ ] **Drag between days:** Drag a task from one day section and drop it onto another day's header or task list. The target day section highlights on hover.
+- [ ] **Reorder within a day:** Drag tasks up/down within the same day section to reorder.
 - [ ] **Drag to Someday:** Drag a task rightward into the Someday panel. Task's `date` is cleared on drop (becomes unscheduled). Task lands in the first group or a highlighted group.
 - [ ] **Drag from Someday:** Drag a task from the Someday panel leftward onto a specific day section header to schedule it. The target day highlights as the task hovers over it.
 - [ ] **Visual feedback:** Ghost image while dragging; drop zone indicator; smooth animations.
 
 ### Layout Polish
 
-- [ ] **Lazy loading:** Day sections load on demand as the user scrolls using an intersection observer. Starts at today; loads past and future days as needed.
-- [ ] **Panel resize & collapse:**
+- [x] **Lazy loading:** Day sections load on demand as the user scrolls (true infinite scroll in both directions, anchored on today; chunk extension also triggers recurring-instance generation for the newly loaded range).
+- [x] **Panel resize & collapse:**
     - Left icon rail: fixed width, always visible.
-    - Someday panel: resizable by dragging divider edge; collapsible via toggle button and `Ctrl+\`; width saved to `UserPreferences`.
+    - Someday panel: resizable by dragging divider edge; collapsible via toggle button and `{mod}+\`; width saved to `UserPreferences`.
     - Both panels handle gracefully on smaller viewports.
-- [ ] **Resizable Someday panel drag handle:** The divider between the day list and the Someday panel can be dragged to resize.
+- [x] **Resizable Someday panel drag handle:** The divider between the day list and the Someday panel can be dragged to resize.
 
 ### Filtering
 
@@ -517,7 +521,7 @@ This release implements persistent storage, structured logging and metrics, mult
 - [x] **Adapter contract tests:** The same test suite runs against both in-memory and SQLite adapters to ensure behavioral parity.
 
 ### State Persistence
-- [ ] **`UserPreferences` entity persisted in SQLite.** Covers:
+- [x] **`UserPreferences` entity persisted in SQLite.** Covers:
     - Panel widths (Someday panel, future panels)
     - Last scroll position / last visited date
     - Active filters (if filter persistence is enabled in Settings)
@@ -537,9 +541,9 @@ This release implements persistent storage, structured logging and metrics, mult
 - [ ] **`MetricsAdapter` interface** in `packages/shared/src/adapters/metrics/` (see [ADR-005](../docs/devs/architecture/decisions/ADR-005-prometheus-metrics.md)).
 - [ ] **`PrometheusMetricsAdapter`:** In-memory counters, gauges, and histograms. Renders Prometheus text format on `/api/metrics`.
 - [ ] **`NullMetricsAdapter`:** No-op implementation for tests and `METRICS_ENABLED=false`.
-- [ ] **HTTP request metrics:** `alle_http_requests_total` (counter by method, path, status), `alle_http_request_duration_seconds` (histogram by method, path), `alle_http_requests_active` (gauge by method).
-- [ ] **Background job metrics:** `alle_jobs_total` (counter by type, status), `alle_job_duration_seconds` (histogram by type), `alle_jobs_pending` (gauge by type), `alle_jobs_running` (gauge).
-- [ ] **Application metrics:** `alle_tasks_total` (gauge), `alle_ws_connections_active` (gauge), `alle_uptime_seconds` (gauge), `alle_build_info` (gauge with version label).
+- [ ] **HTTP request metrics:** `erledigen_http_requests_total` (counter by method, path, status), `erledigen_http_request_duration_seconds` (histogram by method, path), `erledigen_http_requests_active` (gauge by method).
+- [ ] **Background job metrics:** `erledigen_jobs_total` (counter by type, status), `erledigen_job_duration_seconds` (histogram by type), `erledigen_jobs_pending` (gauge by type), `erledigen_jobs_running` (gauge).
+- [ ] **Application metrics:** `erledigen_tasks_total` (gauge), `erledigen_ws_connections_active` (gauge), `erledigen_uptime_seconds` (gauge), `erledigen_build_info` (gauge with version label).
 - [ ] **Path normalization:** Dynamic path segments (e.g., `/api/tasks/:id`) normalized to route patterns to prevent label explosion.
 - [ ] **Container wiring:** `container.metricsAdapter` — `METRICS_ENABLED=true` (default) creates `PrometheusMetricsAdapter`, `false` creates `NullMetricsAdapter`.
 
@@ -623,26 +627,27 @@ This release introduces the automation features that make Erledigen smart, backe
 - [ ] **Rollover job:** Scheduled daily at configured time (default: midnight). Processes all incomplete tasks where `rolloverEnabled=true` and `date < today`.
 
 ### Recurring Task Generation
-- [ ] **Recurring tasks:**
+- [x] **Recurring tasks:**
     - Recurring task instances are auto-generated from templates.
-    - Generation window configurable in Settings (1 week, 2 weeks, 1 month ahead).
+    - Generation window: a +90-day horizon (`GENERATE_HORIZON_DAYS`) is generated when a habit is created; the DayList extends it on scroll. Not yet configurable in Settings.
     - Instances appear in the day list with a 🔁 icon.
-    - Completing an instance updates `RecurringTaskStats` (streak tracking: current streak, longest streak, total completions).
+    - Completing an instance updates `RecurringTaskStats` (streak tracking: current streak, longest streak, total completions) — stats are recomputed from instances on read (`GET /api/recurring-tasks/:id/stats`).
     - Missing a day breaks the streak.
-- [ ] **Recurring generation job:** Runs daily. Generates instances for the configured window ahead. Skips dates that already have an instance.
+    - Habits are created from natural-language phrases ("water plants every friday at 9am") via `parseRecurrence` in `@erledigen/shared` — trailing phrase, live-parsed in every add input and the Habits modal.
+- [x] **Recurring generation:** `generateInstances` is idempotent (skips dates that already have an instance) and is triggered on demand — DayList mount/scroll plus `POST /api/recurring-tasks/generate-all` — instead of by a daily job. Other tabs are notified via the `recurringTask:generated` WebSocket event.
 
 ### Trash Purge
 - [ ] **Purge job:** Runs daily at 3am. Permanently deletes tasks where `deletedAt` is older than `PURGE_RETENTION_DAYS` (default: 7).
 
 ### Streak Tracking
-- [ ] **Streak tracking:** Displayed on recurring tasks in the 🔁 Habits modal heatmap.
+- [x] **Streak tracking:** Current/longest streak and total completions shown as badges in the 🔁 Habits modal (the GitHub-style heatmap remains planned).
 
 ### Technical Notes & Considerations
 - Job queue is SQLite-backed per [ADR-002](../docs/devs/architecture/decisions/ADR-002-sqlite-backed-job-queue.md). Same database, `jobs` table.
 - `rrule.js` for recurring date generation.
 - Streak calculation: check if yesterday's instance was completed when today's is completed.
 - All automation logic has unit tests written before implementation.
-- Job metrics are exposed via `/api/metrics` (see [ADR-005](../docs/devs/architecture/decisions/ADR-005-prometheus-metrics.md)): `alle_jobs_total`, `alle_job_duration_seconds`, `alle_jobs_pending`, `alle_jobs_running`.
+- Job metrics are exposed via `/api/metrics` (see [ADR-005](../docs/devs/architecture/decisions/ADR-005-prometheus-metrics.md)): `erledigen_jobs_total`, `erledigen_job_duration_seconds`, `erledigen_jobs_pending`, `erledigen_jobs_running`.
 
 ### Documentation & ADRs
 - [ADR-002](../docs/devs/architecture/decisions/ADR-002-sqlite-backed-job-queue.md): SQLite-backed job queue
@@ -665,6 +670,8 @@ This release introduces the automation features that make Erledigen smart, backe
 
 This release builds the full UI for project management and habit tracking.
 
+**Status:** Partially shipped. Habits: done (list, create/edit/delete with live natural-language schedule parsing, streak badges, weekday/weekend schedules; the heatmap and the "make recurring" toggle remain). Projects: the modal exists with list + create/edit/delete + a detail view showing the project's tasks; the Kanban board, auto-distribution, and dependency indicators remain (activate/deactivate are API flag flips only). Summary: today's completion percentage + upcoming `#deadline` tasks; overdue/streak/holiday sections remain. Calendar: done. Holidays: not started.
+
 - [ ] **Projects modal (📊):**
     - List all projects (active and inactive).
     - Create/edit/delete projects with name, description, start date, due date.
@@ -685,8 +692,9 @@ This release builds the full UI for project management and habit tracking.
     - List of overdue tasks with days-late count.
     - Active streaks for recurring tasks.
     - Upcoming hard deadlines (tasks tagged `#deadline`) and holidays within the next 14 days.
-- [ ] **Calendar modal (📆):**
-    - A date picker that jumps the day list to the selected date.
+- [x] **Calendar modal (📆):**
+    - A month-grid date picker that jumps the day list to the selected date (and centers it).
+    - **Today** is a full view reset: day list centered on today and the month minimap re-centered on the current month.
 - [ ] **Holidays in Settings:**
     - Manual entry of named dates (name + date).
     - Optional `.ics` import via URL or file upload.
@@ -738,12 +746,12 @@ This release adds rich text support to task notes.
 This release refines the visual design into a cohesive, calm product and formalizes all user-configurable preferences into a complete Settings experience.
 
 ### Design System & Theming
-- [ ] **Design system:** Establish a consistent visual language using Tailwind + CSS custom properties.
-    - Inspired by Basecamp: clean, spacious, warm, calm. No clutter.
-    - Typography: a readable sans-serif for task text, monospace accents for dates and labels.
-    - Spacing, border radius, shadow, and color scales defined as CSS variables.
-    - Design tokens documented in Storybook.
-- [ ] **Theme system:** Light, dark, and system default. Optional accent color schemes (e.g., warm, cool, high-contrast). All stored in `UserPreferences`.
+- [x] **Design system:** Established a consistent visual language using Tailwind + CSS custom properties.
+    - Inspired by Basecamp / 37signals (Fizzy): clean, spacious, warm, calm. No clutter.
+    - Typography: system font stack (no web fonts).
+    - Spacing, border radius (pill buttons), layered shadows, and an OKLCH color scale defined as CSS variables in `app.css` (light + dark).
+    - Design tokens reviewed in Storybook.
+- [x] **Theme system:** Light, dark, and system default, stored in `UserPreferences` and switchable in Settings. Accent color schemes remain planned.
 - [ ] **Tag colors:**
     - Tags are auto-assigned distinct pastel colors on creation.
     - User can override the color for any tag in Settings > Tags.
@@ -759,7 +767,7 @@ This release refines the visual design into a cohesive, calm product and formali
 - [ ] **Font size:** Small, medium (default), large. Adjusts `--font-size-base` CSS variable globally.
 - [ ] **Task row density:** Compact (tight spacing) vs comfortable (spacious, default).
 - [ ] **Completion animation:** Configurable — strikethrough+fade, stay grayed, or hide immediately.
-- [ ] **Delete behavior:** Instant + 5s undo toast (default) vs require confirmation dialog.
+- [x] **Delete behavior:** Instant + 5s undo toast (default) vs require confirmation dialog — configurable in Settings (`deleteConfirmation`).
 - [ ] **Rollover defaults:** App-wide on/off, trigger time (midnight / 9am / manual).
 - [ ] **Empty day visibility:** Show empty days (default) vs hide.
 - [ ] **Filter persistence:** Persist active filters across sessions (default) vs always start fresh.
@@ -894,7 +902,7 @@ This release adds a time-grid calendar view for tasks with start and end times.
 The first stable, fully usable release of Erledigen. Goal: a complete daily driver for a single self-hosted user.
 
 - [ ] **Feature complete:** All v0.x features integrated and working end-to-end.
-- [ ] **SQLite persistence:** All data persists reliably across restarts (ADR-001).
+- [x] **SQLite persistence:** All data persists reliably across restarts (ADR-001).
 - [ ] **Background jobs:** Rollover, recurring generation, trash purge run via persistent job queue (ADR-002).
 - [ ] **Structured logging:** JSON logs with request IDs in production (ADR-004).
 - [ ] **Metrics endpoint:** `/api/metrics` exposes Prometheus-format metrics (ADR-005).
@@ -907,7 +915,7 @@ The first stable, fully usable release of Erledigen. Goal: a complete daily driv
 - [ ] **Tag system:** Full tag management — colors, rename, merge, delete.
 - [ ] **Light & dark themes:** Polished and complete.
 - [ ] **Markdown notes:** Rich notes in task detail.
-- [ ] **Trash & undo:** 7-day trash, undo toasts, Cmd+Z.
+- [x] **Trash & undo:** 7-day trash, undo toasts, Cmd+Z.
 - [ ] **Holidays:** Manual + .ics import; banners in day list.
 - [ ] **Import/Export:** JSON, CSV, Markdown, iCal, Todoist CSV, Things 3 JSON all working.
 - [ ] **Start/end times:** Task model and detail modal support time fields. Calendar time-grid view functional.
@@ -915,11 +923,11 @@ The first stable, fully usable release of Erledigen. Goal: a complete daily driv
 - [ ] **Internationalization:** All strings in locale files; locale switching functional.
 - [ ] **User customization:** All preferences functional and persisted.
 - [ ] **Docs link:** Bottom bar docs link working; Writebook user docs live and linked.
-- [ ] **Help modal:** All keyboard shortcuts documented and accurate.
+- [x] **Help modal:** All keyboard shortcuts documented and accurate (single registry shared with hover tooltips).
 - [ ] **Mobile:** Bottom sheet behavior for panels on small screens.
-- [ ] **Dockerized:** A single `docker-compose up` starts the full application.
-- [ ] **CI/CD pipeline:** Tests run on every push; Docker image built on release.
-- [ ] **Security headers:** All API responses include security headers.
+- [x] **Dockerized:** A single `docker compose up` starts the full application (dev, prod, and test stacks).
+- [x] **CI/CD pipeline:** Tests run on every push (dockerized test stack); building a release Docker image on release remains planned.
+- [x] **Security headers:** All API responses include security headers.
 - [ ] **ADRs:** Written for all significant decisions made during v0.x.
 - [ ] **Performance:** Day list loads in <100ms; lazy loading keeps scroll smooth.
 

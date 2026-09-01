@@ -27,28 +27,30 @@ The daily list is the execution surface. Someday is the capture net. Projects an
 ```
 ┌──┬──────────────────────────────────────────┬──────────────┐
 │📅│                                          │  Someday   ‹ │
-│📊│  [holiday: Easter 🐣]                    │  + add group │
+│📊│                                          │  + add group │
 │🔁│                                          │              │
 │📆│  March 30, Sunday  •  4 tasks            │  #work       │
 │🔍│  ─────────────────────────────────────  │  ─────────── │
-│🏷️│  ⠿ ○ 09:00 fix auth  #work  #p1        │  ⠿ ○ idea    │
-│🗑️│       ○ unit tests                       │  ⠿ ○ thing   │
-│⚙️│  ⠿ ○ write tests       #p2             │  + add task  │
-│? │  + add task                              │              │
+│🏷️│   ○ 09:00 fix auth  #work  #p1          │   ○ idea     │
+│🗑️│   ○ unit tests                          │   ○ thing    │
+│⚙️│   ○ write tests       #p2               │  + add task  │
+│? │  + add task   (every friday → habit)    │              │
 │  │                                          │  #school     │
 │  │  March 31, Monday  •  2 tasks            │  ─────────── │
-│  │  ─────────────────────────────────────  │  ⠿ ○ essay   │
-│  │  ⠿ ○ deploy to prod   #p1              │              │
+│  │  ─────────────────────────────────────  │   ○ essay    │
+│  │   ○ deploy to prod   #p1               │              │
 ├──┴──────────────────────────────────────────┴──────────────┤
-│  erledigen   #work ×  #p1 ×    12 tasks • 4 done  ▲ Today  docs↗│
+│  erledigen   14:32   #work ×  #p1 ×    12 tasks • 4 done  ▲ Today │
 └────────────────────────────────────────────────────────────┘
 ```
 
 Four zones:
-- **Left icon rail** — slim vertical rail; each icon opens a large centered modal
-- **Center day list** — the primary working area; scrollable list of day sections
-- **Right Someday panel** — always visible by default; collapsible and resizable
-- **Bottom bar** — `erledigen logo | filter chips | task count | ▲ Today | docs ↗`
+- **Left icon rail** — slim vertical rail; each icon opens a large centered modal (also via `g`-sequences: `g s` Summary, `g p` Projects, `g h` Habits, `g c` Calendar, `g f` Filter, `g x` Trash, `g o` Settings)
+- **Center day list** — the primary working area; a continuously-scrolling list of day sections with a month minimap on the left edge
+- **Right Someday panel** — always visible by default; collapsible (`Cmd/Ctrl+\\`) and drag-to-resize (width persisted)
+- **Bottom bar** — `erledigen logo (home/today) | live clock | filter chips | task count | ▲ Today`
+
+Every interactive element shows a hover tooltip with its keybinding (see the Help modal, `?`), and a trailing recurrence phrase in any add input ("every friday", "daily at 9am", …) creates a habit.
 
 ---
 
@@ -114,12 +116,12 @@ interface RecurringTask {
   tags: string[]
   frequency: RecurringFrequency
   interval: number               // e.g. every 2 weeks → frequency: 'weekly', interval: 2
-  dayOfWeek: number | null       // 0–6 for weekly recurrence
-  dayOfMonth: number | null      // 1–31 for monthly recurrence
+  daysOfWeek: number[] | null   // 0–6 (0 = Sunday) the schedule lands on; covers "every weekday" ([1..5]) and "every weekend" ([0, 6]); null = any day
+  dayOfMonth: number | null     // 1–31 for monthly recurrence
   startDate: string
   endDate: string | null
-  projectId: string | null
   rolloverEnabled: boolean
+  startTime: string | null      // "09:00" — stamped onto generated instances
   createdAt: string
   updatedAt: string
 }
@@ -159,29 +161,23 @@ interface UserPreferences {
 
 Every major subsystem has an interface in `packages/shared`. Adapters implement the interface. New implementations can be swapped in without changing application code.
 
-The table below includes both current and planned adapters. Current adapters are in-memory; future phases add SQLite, PostgreSQL, and more.
+The table below is the target inventory. Repository adapters (in-memory + SQLite) are implemented today; the rest are planned per the [roadmap](../../plans/roadmap.md).
 
-| Interface | Adapters |
-|-----------|----------|
-| `StorageAdapter` | In-memory, SQLite, PostgreSQL |
-| `ExportAdapter` | JSON, CSV, Markdown, iCal |
-| `ImportAdapter` | JSON, CSV, iCal, Todoist CSV, Things 3, Canvas |
-| `EmailAdapter` | SMTP, Resend, Postmark |
-| `PaymentAdapter` | Stripe, No-op (self-hosted) |
-| `I18nAdapter` | locale JSON files |
-| `NLPAdapter` | chrono-node (swappable) |
-| `LoggerAdapter` | Console, file, structured (e.g. pino) |
-| `RateLimiterAdapter` | In-memory, Redis |
-| `NotificationAdapter` | Web Push, email |
+| Interface | Status | Adapters |
+|-----------|--------|----------|
+| `TaskRepository` / `ProjectRepository` / `RecurringTaskRepository` / `SomeDayGroupRepository` / `UserPreferencesRepository` | **Implemented** | In-memory, SQLite (raw SQL, [ADR-001](../devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md)) |
+| `HttpClient` / `Logger` / `DateProvider` / `ConfigProvider` | **Implemented** | Fetch, Console, NativeDate, env/Vite |
+| `ExportAdapter` / `ImportAdapter` | Interface only | JSON, CSV, Markdown, iCal planned |
+| `EmailAdapter` / `PaymentAdapter` / `I18nAdapter` / `NLPAdapter` / `RateLimiterAdapter` / `NotificationAdapter` | Planned | — |
 
 ---
 
 ## Command Palette Convention
 
-The command palette (Cmd+K) has two modes:
+The command palette (Cmd/Ctrl+K, or `/`) has two modes:
 
-- **Plain text** → fuzzy search across all tasks (title, tags, notes). Results scroll the day list to the matching task on selection.
-- **`/` prefix** → command mode. Commands: `/add`, `/complete`, `/delete`, `/move`, `/go`, `/tag`, `/filter`, `/clear`, `/today`, `/someday`, `/settings`, `/help`, and more. The command registry is extensible.
+- **Plain text** → fuzzy search across all tasks (title, tags). Results scroll the day list to the matching task on selection.
+- **`/` prefix** → command mode. `/add <text>` creates a task for today — and a trailing recurrence phrase ("water plants every friday at 9am") creates a habit instead. The command registry in `SearchModal` is extensible; the full command set (`/go`, `/filter`, `/move`, …) is planned for v0.5.0+ of the roadmap.
 
 ---
 
@@ -197,20 +193,20 @@ Tags are the primary organizational tool. A task can have any number of tags. Sp
 ### Someday Panel
 The right-side Someday panel captures ideas and unscheduled work. Tasks are organized into user-created groups (tag-based). Works identically to the day list but without dates or automation. Global filtering applies.
 
-### Command Palette (Cmd+K)
-One unified modal for search and commands. `/add buy milk tomorrow #work #p1` creates a task. Plain text searches. The fastest way to do anything in Erledigen.
+### Command Palette (Cmd/Ctrl+K)
+One unified modal for search and commands. `/add fix auth #work #p1` creates a task for today (tags are parsed; a trailing recurrence phrase creates a habit); plain text searches tasks. The fastest way to do anything in Erledigen — the command set grows from here (see the roadmap).
 
 ### Project Management
-Projects are collections of ordered tasks. When activated, tasks are auto-distributed across days between the project's start and due dates. Project tasks appear in the day list tagged with the project name.
+Projects are collections of ordered tasks with a detail view in the Projects modal. Activate/deactivate flips the project's `isActive` flag (auto-distribution of tasks across days between start and due dates is planned for v0.9.0). Project tasks appear in the day list tagged with the project's auto-generated `project:`-prefixed tag.
 
 ### Habit Tracking
-Recurring tasks generate daily instances automatically. Completing instances builds streaks. The Habits modal shows a GitHub-style heatmap of completion history per habit.
+Recurring tasks ("habits") are created from natural-language phrases — type "water plants every friday at 9am" in any inline add input or the Habits modal and the schedule is parsed live. Instances are generated idempotently into the daily list (+90-day horizon) and tagged with the habit. Completing instances builds streaks (current, longest, total completions) shown as badges in the Habits modal. A GitHub-style completion heatmap is planned (v0.9.0).
 
 ### Rollover
-Incomplete tasks roll over to the next day by default. The `daysLate` counter tracks how overdue a task is. Configurable app-wide and per-task.
+Incomplete tasks roll over to the next day by default. The `daysLate` counter tracks how overdue a task is. Configurable app-wide and per-task. (Planned for v0.8.0 — the per-task `rolloverEnabled` flag and Settings toggle exist today; automatic movement does not.)
 
-### Calendar Time-Grid View
-Tasks with `startTime`/`endTime` can be viewed in a day or week time-grid view (like Google Calendar), available from the 📆 Calendar rail icon.
+### Calendar Modal
+The 📆 Calendar rail icon opens a month-grid date picker: picking a date scrolls (and centers) the day list on it; **Today** is a full view reset (day list + month minimap). A time-grid view for tasks with `startTime`/`endTime` is planned for v0.14.0.
 
 ---
 
@@ -219,27 +215,26 @@ Tasks with `startTime`/`endTime` can be viewed in a day or week time-grid view (
 ```
 erledigen/
 ├── packages/
-│   ├── client/   # SvelteKit frontend (Tailwind CSS)
-│   ├── server/   # Bun REST API
-│   ├── shared/   # Types, interfaces, constants, universal adapters
-│   ├── cli/      # erledigen CLI — command + TUI modes (v2.0.0)
-│   └── mcp/      # MCP server for AI automation (v2.1.0)
-├── docs/
-│   ├── adr/      # Architecture Decision Records (MADR format)
-│   └── ...
-├── tests/
+│   ├── client/   # SvelteKit frontend (Tailwind CSS, Svelte 5 runes)
+│   ├── server/   # Bun REST API + WebSocket server
+│   └── shared/   # Types, adapter interfaces, constants, universal utilities
+├── docs/         # User + developer docs; ADRs in docs/devs/architecture/decisions/
+├── tests/        # Playwright e2e + api suites, Bruno API collection
+├── plans/        # Roadmap and planning docs
 └── package.json
 ```
+
+`packages/cli` (v2.0.0) and `packages/mcp` (v2.1.0) are planned but do not exist yet.
 
 ---
 
 ## Persistence Strategy
 
-| Phase | Adapter | When |
-|-------|---------|------|
-| Development | In-memory | v0.x |
-| Self-hosted v1 | SQLite (bun:sqlite) | v0.8.0 |
-| Multi-user v2 | PostgreSQL + Drizzle ORM | v2.3.0 |
+| Phase | Adapter | Status |
+|-------|---------|--------|
+| Development / tests | In-memory (`STORAGE_ADAPTER=memory`) | Implemented |
+| Self-hosted v1 | SQLite (raw SQL via `bun:sqlite`, [ADR-001](../devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md)) | Implemented (default) |
+| Multi-user v2 | PostgreSQL (raw SQL, same repository interfaces) | Planned v2.3.0 |
 
 ---
 

@@ -36,7 +36,7 @@ Our CI/CD approach prioritizes:
 │                       └─────────────────┘              │
 │                                                          │
 │  ┌─────────────────────────────────────────────────────┐│
-│  │           AI Agent Reviews (Parallel)                ││
+│  │           AI Agent Reviews (planned)                ││
 │  │  - Security  - Performance  - Code Quality          ││
 │  │  - Test Quality  - Documentation  - Git Quality     ││
 │  └─────────────────────────────────────────────────────┘│
@@ -69,387 +69,135 @@ Our CI/CD approach prioritizes:
 
 **RULE**: Merging to main is BLOCKED unless all gates pass.
 
-### 1. Code Linting
+### 1. Lint & Format (Biome)
 
 ```yaml
-# .github/workflows/ci.yml
-- name: Lint code
-  run: bun run lint:check
+- name: Check code quality (lint + format)
+  run: mise run biome-check
 ```
 
-**What it checks**:
-- Biome linting rules
-- Code style consistency
-- Naming conventions
-- Import organization
-- Complexity limits
+**What it checks**: Biome linting + formatting (CI mode, no auto-fix), naming conventions, import organization.
+**Failure criteria**: Any linting or formatting difference
 
-**Failure criteria**: Any linting error
-
-### 2. Code Formatting
+### 2. Spell Check, Link Check, Secret Scan
 
 ```yaml
-- name: Check formatting
-  run: bun run format:check
+- name: Spell check
+  run: mise run spellcheck
+- name: Verify links
+  run: mise run check-links
+- name: Scan for secrets
+  run: mise run scan-secrets
 ```
 
-**What it checks**:
-- Consistent indentation (4 spaces)
-- Line length (100 chars)
-- Trailing whitespace
-- File endings (LF)
-
-**Failure criteria**: Any formatting difference
+**What it checks**: cspell over the codebase, lychee over markdown/source links, gitleaks over the working tree.
+**Failure criteria**: Any unknown word, broken link, or detected secret
 
 ### 3. Type Checking
 
 ```yaml
 - name: Type check
-  run: bun run type-check
+  run: mise run type-check
 ```
 
-**What it checks**:
-- TypeScript strict mode compliance
-- No implicit any
-- All return types declared
-- No type errors
-
+**What it checks**: TypeScript strict mode across all three packages (tsc for shared/server; `svelte-kit sync` + tsc for the client).
 **Failure criteria**: Any type error
 
 ### 4. Unit Tests
 
 ```yaml
 - name: Run unit tests
-  run: bun run test:unit --coverage
+  run: mise run test
 ```
 
-**What it checks**:
-- All unit tests pass
-- Code coverage ≥ 85%
-- No flaky tests (run 3 times)
+**What it checks**: All Bun unit tests (shared + server + client) run in a container. Repository contract suites run against BOTH the in-memory and SQLite adapters, so SQL bugs are caught here too.
+**Failure criteria**: Any test fails
 
-**Failure criteria**:
-- Any test fails
-- Coverage < 85%
-- Tests take > 30 seconds
-
-### 5. Integration Tests
-
-```yaml
-- name: Run integration tests
-  run: bun run test:integration
-```
-
-**What it checks**:
-- Database operations work
-- Docker containers start correctly
-- Service integrations function
-- Data consistency maintained
-
-**Failure criteria**:
-- Any test fails
-- Containers fail to start
-- Tests take > 2 minutes
-
-### 6. End-to-End Tests
+### 5. E2E Tests (Playwright)
 
 ```yaml
 - name: Run E2E tests
-  run: bun run test:e2e
+  run: mise run test-e2e
 ```
 
-**What it checks**:
-- User workflows complete successfully
-- Cross-browser compatibility
-- Accessibility compliance (WCAG 2.1 AA)
-- Performance benchmarks met
+**What it checks**: Browser tests (project `e2e`) + black-box HTTP tests (project `api`) against a self-contained docker test stack (`compose.test.yaml`, `STORAGE_ADAPTER=memory`, bundled Chromium).
+**Failure criteria**: Any test fails (1 retry allowed in CI)
 
-**Failure criteria**:
-- Any test fails
-- Accessibility violations
-- Response time > 2x baseline
-- Tests take > 5 minutes
-
-### 7. API Tests
+### 6. API Tests (Bruno)
 
 ```yaml
 - name: Run API tests
-  run: bun run test:api
+  run: mise run test-api
 ```
 
-**What it checks**:
-- All endpoints respond correctly
-- Request/response schemas valid
-- Error scenarios handled
-- Authentication/authorization works
+**What it checks**: The Bruno collection in `tests/api/` against the dockerized test server.
+**Failure criteria**: Any request or assertion fails
 
-**Failure criteria**:
-- Any endpoint fails
-- Schema validation errors
-- Status codes incorrect
-
-### 8. Build Validation
+### 7. Build Validation
 
 ```yaml
-- name: Build application
-  run: bun run build
+- name: Build all packages
+  run: mise run build
+- name: Check client bundle size
+  run: |
+      CLIENT_SIZE=$(du -sb packages/client/dist 2>/dev/null | cut -f1 || echo "0")
+      MAX_SIZE=524288  # 512KB
+      ...
 ```
 
-**What it checks**:
-- Code compiles successfully
-- No build warnings
-- Bundle size within limits
-- Dependencies resolve correctly
+**What it checks**: All packages compile; client bundle stays under 512KB; Storybook builds (`mise run build-storybook`).
+**Failure criteria**: Build failure or bundle over budget
 
-**Failure criteria**:
-- Build fails
-- Bundle size > 500KB (client)
-- Critical warnings present
-
-### 9. Security Scanning
+### 8. Security Audit
 
 ```yaml
 - name: Security audit
-  run: bun audit
+  run: mise run security
 ```
 
-**What it checks**:
-- Known vulnerabilities in dependencies
-- Security advisories
-- Outdated packages with CVEs
+**What it checks**: `bun audit` for known dependency vulnerabilities. This job is `continue-on-error` — advisories surface for review without blocking merges.
+**Failure criteria**: (Non-blocking; reviewed)
 
-**Failure criteria**:
-- High or critical vulnerabilities
-- Security advisories unaddressed
+### 9. Performance Tests
 
-### 10. Performance Tests
-
-```yaml
-- name: Performance benchmarks
-  run: bun run test:performance
-```
-
-**What it checks**:
-- API response times
-- Database query performance
-- Frontend load times
-- Memory usage
-
-**Failure criteria**:
-- Response time regression > 20%
-- Memory leak detected
-- Failed performance budget
+**Planned** — no automated performance benchmarks exist yet. The bundle-size gate above is the only performance-adjacent check.
 
 ---
 
 ## AI Agent Integration
 
-**NOTE**: AI agents provide recommendations but don't block merges (yet).
-
-See `.ai-agents/` folder for detailed prompts (when implemented).
-
-### Agent Execution
-
-```yaml
-- name: AI Code Review
-  run: |
-    bun run ai-agents/security-agent.ts
-    bun run ai-agents/performance-agent.ts
-    bun run ai-agents/code-quality-agent.ts
-    bun run ai-agents/test-quality-agent.ts
-    bun run ai-agents/documentation-agent.ts
-    bun run ai-agents/git-quality-agent.ts
-```
-
-### Agent Output
-
-Agents post comments on pull requests with:
-- **Score** (0-10)
-- **Issues Found** (critical, warnings, suggestions)
-- **Recommendations**
-- **Decision** (AUTO-APPROVE, REQUEST-CHANGES, MANUAL-REVIEW)
+**Planned** - AI-agent code reviews are not implemented yet. The intent: agents
+post PR comments with a score, issues found, and a decision
+(AUTO-APPROVE / REQUEST-CHANGES / MANUAL-REVIEW), and do not block merges
+initially. Prompts would live in an `.ai-agents/` folder when implemented.
 
 ---
 
 ## GitHub Actions Workflow
 
-### Complete CI Workflow
+The real workflow lives in [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml)
+and is mirrored locally by `mise run ci`. Every job installs mise (which pins
+Bun/lychee/gitleaks) and dependencies via `mise run install-ci` (frozen
+lockfile), then:
 
-```yaml
-# .github/workflows/ci.yml
-name: CI
-
-on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
-
-jobs:
-  quality-checks:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Lint code
-        run: bun run lint:check
-
-      - name: Check formatting
-        run: bun run format:check
-
-      - name: Type check
-        run: bun run type-check
-
-  tests:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Run unit tests
-        run: bun run test:unit --coverage
-
-      - name: Run integration tests
-        run: bun run test:integration
-
-      - name: Run E2E tests
-        run: bun run test:e2e
-
-      - name: Run API tests
-        run: bun run test:api
-
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./coverage/coverage-final.json
-
-  build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Build application
-        run: bun run build
-
-      - name: Check bundle size
-        run: |
-          SIZE=$(du -sb dist/client | cut -f1)
-          MAX_SIZE=512000  # 500KB
-          if [ $SIZE -gt $MAX_SIZE ]; then
-            echo "Bundle size $SIZE exceeds limit $MAX_SIZE"
-            exit 1
-          fi
-
-  security:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-
-      - name: Security audit
-        run: bun audit
-
-      - name: Dependency review
-        uses: actions/dependency-review-action@v3
-        if: github.event_name == 'pull_request'
-```
+| Job | Steps |
+|-----|-------|
+| `quality-checks` | `biome-check` -> `spellcheck` -> `check-links` -> `scan-secrets` -> `type-check` (<= 10 min) |
+| `unit-tests` | `mise run test` (dockerized Bun unit tests) |
+| `e2e-tests` | start server + client, then `mise run test-e2e` (Playwright `e2e` + `api` projects against the docker test stack); report uploaded as artifact on failure |
+| `api-tests` | start server, then `mise run test-api` (Bruno) |
+| `build` | `mise run build` + client bundle <= 512KB check |
+| `storybook-build` | `mise run build-storybook` |
+| `security` | `mise run security` (`bun audit`, `continue-on-error`) |
+| `all-checks` | gate job - fails if any required job failed or was cancelled |
 
 ### Deployment Workflow
 
-```yaml
-# .github/workflows/deploy.yml
-name: Deploy
-
-on:
-  push:
-    branches: [main]
-
-jobs:
-  deploy-staging:
-    runs-on: ubuntu-latest
-    environment: staging
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Build application
-        run: bun run build
-        env:
-          NODE_ENV: production
-
-      - name: Deploy to staging
-        run: |
-          # Deploy to staging environment
-          # (e.g., Cloud Run, Vercel, etc.)
-
-      - name: Run smoke tests
-        run: |
-          # Verify deployment is healthy
-          curl -f https://staging.erledigen.app/health
-
-      - name: Notify team
-        run: echo "Staging deployed successfully"
-
-  deploy-production:
-    needs: deploy-staging
-    runs-on: ubuntu-latest
-    environment: production
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Deploy to production (gradual rollout)
-        run: |
-          # Deploy 10% traffic
-          deploy.sh --traffic=10
-
-          # Wait and monitor
-          sleep 300  # 5 minutes
-
-          # If healthy, deploy 50%
-          deploy.sh --traffic=50
-
-          # Wait and monitor
-          sleep 300
-
-          # If healthy, deploy 100%
-          deploy.sh --traffic=100
-```
+**Planned** - no `deploy.yml` exists yet. Erledigen is self-hosted via
+`docker compose -f compose.prod.yaml up -d --build` (single published port
+behind a Caddy proxy; see the root README). The staging / production /
+gradual-rollout strategy described in the sections below is the target design
+for when a hosted deployment exists.
 
 ---
 
@@ -470,10 +218,14 @@ jobs:
 - ✅ Require status checks to pass before merging
 - ✅ Require branches to be up to date before merging
 - **Required checks**:
-  - `quality-checks` (lint, format, type-check)
-  - `tests` (unit, integration, E2E, API)
-  - `build` (successful build)
-  - `security` (audit passing)
+  - `quality-checks` (biome, spellcheck, links, secrets, type-check)
+  - `unit-tests` (Bun unit tests incl. repository contract tests)
+  - `e2e-tests` (Playwright e2e + api projects)
+  - `api-tests` (Bruno collection)
+  - `build` (successful build + bundle budget)
+  - `storybook-build` (Storybook build)
+  - `security` (audit - non-blocking)
+  - `all-checks` (aggregate gate)
 
 ### Additional Rules
 

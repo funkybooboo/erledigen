@@ -7,7 +7,7 @@ Built with Svelte 5 runes (`$state`, `$derived`, `$effect`, `$props`), Tailwind 
 ## Quick Start
 
 ```bash
-mise run client
+mise run client   # dockerized dev container (or: bun run --cwd packages/client dev)
 ```
 
 The client is available at `http://localhost:3000`. To run both client and server together:
@@ -22,12 +22,19 @@ mise run dev
 src/
 ├── lib/
 │   ├── adapters/      # Config provider (Vite env), HTTP client impl
-│   ├── components/    # BottomBar, DayList, DaySection, TaskRow, IconRail, Modal, …
-│   │   └── modals/    # Calendar, Summary, Projects, Habits, Search, Filter, Settings, Trash, Help, TaskDetail
+│   ├── components/    # BottomBar, DayList, DaySection, SectionHeader, TaskRow,
+│   │                  #   IconRail, DateMinimap (month minimap), SomedayPanel,
+│   │                  #   InlineAddTask, Modal, ModalHost, NotificationContainer
+│   │   └── modals/    # Calendar, Summary, Projects, Habits, Search, Filter,
+│   │                  #   Settings, Trash, Help, TaskDetail
 │   ├── services/     # Thin HTTP services per resource (task, project, recurring, someday, tag, preferences, websocket)
 │   ├── stores/       # Svelte 5 $state stores (task, preferences, project, recurring, someday, tag, connection, notification, ui, dateView)
-│   └── stories/      # Storybook mock data
-├── routes/           # SvelteKit routes (+layout, +page)
+│   ├── keybindings.ts   # Single shortcut registry — drives the Help modal AND hover tooltips
+│   ├── tooltip.ts       # `use:tooltip` Svelte action (label + keybinding chips)
+│   ├── createFromText.ts # Shared inline-add / `/add` parsing (tasks + natural-language habits)
+│   ├── filters.ts    # Tag/priority filtering + view composition
+│   └── stories/       # Storybook mock data
+├── routes/           # SvelteKit routes (+layout with global keybindings, +page)
 └── app.html
 ```
 

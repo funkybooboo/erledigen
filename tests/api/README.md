@@ -4,6 +4,14 @@ This directory contains the API tests for the Erledigen application, which are w
 
 ## ⚡️ Quick Start
 
+**Dockerized (recommended)** — builds the test stack and runs the collection against it:
+
+```bash
+mise run test-api
+```
+
+**Locally** —
+
 1.  **Start the server:**
 
     ```bash
@@ -16,11 +24,8 @@ This directory contains the API tests for the Erledigen application, which are w
     *   **CLI**:
 
         ```bash
-        # Make sure you have the Bruno CLI installed
-        # npm install -g @usebruno/cli
-
         cd tests/api
-        bru run --env local
+        bunx @usebruno/cli run . --env local
         ```
 
 ## 📚 Learn More

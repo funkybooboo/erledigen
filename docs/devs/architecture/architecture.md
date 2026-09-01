@@ -15,7 +15,8 @@ erledigen/
 │   ├── server/          # Bun API server
 │   └── shared/          # Shared types and utilities
 ├── docs/                # Project documentation
-├── tests/               # API and e2e tests
+├── tests/               # Playwright api/e2e suites + Bruno collection
+├── plans/               # Roadmap and planning docs
 └── package.json         # Root workspace config
 ```
 
@@ -53,15 +54,12 @@ A cornerstone of our architecture is the **adapter pattern**. This pattern allow
 *   **`UserPreferencesRepository`**: Abstracts data persistence for user settings.
     *   **`InMemoryUserPreferencesRepository`** (server): An in-memory singleton implementation.
     *   **`SqliteUserPreferencesRepository`** (server): SQLite-backed persistence.
-*   **`MetricsAdapter`**: Abstracts metrics collection (see [ADR-005](decisions/ADR-005-prometheus-metrics.md)).
-    *   **`PrometheusMetricsAdapter`** (server): In-memory Prometheus exposition format.
-    *   **`NullMetricsAdapter`** (server): No-op for testing and disabled metrics.
-*   **`JobQueue`**: Abstracts background job scheduling and processing (see [ADR-002](decisions/ADR-002-sqlite-backed-job-queue.md)).
-    *   **`SqliteJobQueue`** (server): SQLite-backed persistent job queue.
+*   **`MetricsAdapter`**: Abstracts metrics collection — **planned**, see [ADR-005](decisions/ADR-005-prometheus-metrics.md) (accepted, not yet implemented).
+*   **`JobQueue`**: Abstracts background job scheduling and processing — **planned**, see [ADR-002](decisions/ADR-002-sqlite-backed-job-queue.md) (accepted, not yet implemented). Recurring-task generation currently happens on demand (client-driven) instead of via jobs.
 
 ### Benefits of the Adapter Pattern
 
-*   **Flexibility**: We can easily swap out implementations without changing our application's code. For example, we could replace the `InMemoryTaskRepository` with a `SQLiteTaskRepository` to use a real database.
+*   **Flexibility**: We can easily swap out implementations without changing our application's code. For example, the `STORAGE_ADAPTER` env var swaps the in-memory repositories for SQLite-backed ones (see [ADR-001](decisions/ADR-001-sqlite-raw-sql-persistence.md)) — no application code changes.
 *   **Testability**: We can easily mock our dependencies in our tests. For example, we can use a `MockHttpClient` to simulate API calls.
 *   **Maintainability**: The separation of concerns makes our code easier to understand, maintain, and reason about.
 
@@ -73,8 +71,10 @@ We use a simple dependency injection (DI) container to manage our application's 
 // packages/server/src/container.ts
 export const container = new Container()
 
-// Lazily create and provide an instance of the TaskRepository
-const taskRepo = container.taskRepository // Swap InMemory → SQLite here
+// Repositories are lazy getters; the STORAGE_ADAPTER env var (sqlite by
+// default, memory for ephemeral/test runs) picks InMemory* vs Sqlite*
+// implementations — see container.initStorage().
+const taskRepo = container.taskRepository
 ```
 
 This approach allows us to easily manage the lifecycle of our dependencies and provides a central place to configure our application.
@@ -114,14 +114,12 @@ The application is designed to follow the principles of a [12-Factor App](https:
 
 ## Observability
 
-Erledigen produces three categories of operational signal:
+Erledigen's observability roadmap ([ADR-004](decisions/ADR-004-structured-json-logging.md), [ADR-005](decisions/ADR-005-prometheus-metrics.md), [ADR-006](decisions/ADR-006-observability-stack.md)) is accepted but **not yet implemented**. Today:
 
-1.  **Logs**: Structured JSON logs with request IDs for correlation (see [ADR-004](decisions/ADR-004-structured-json-logging.md)). `LOG_FORMAT=json|text` controls output format.
-2.  **Metrics**: Prometheus-compatible metrics at `/api/metrics` (see [ADR-005](decisions/ADR-005-prometheus-metrics.md)). Covers HTTP requests, background jobs, database, and application-level metrics.
-3.  **Health**: Rich health check at `/api/health` with uptime, version, database status, and connection counts.
+1.  **Logs**: Plain console logging via `ConsoleLogger`.
+2.  **Health**: A minimal `GET /api/health` returning `{ status: 'ok' }` (rich version with uptime/version/DB status is planned).
+3.  **Metrics**: None yet — a Prometheus-compatible `/api/metrics` endpoint is planned, with a Loki + Prometheus + Grafana stack (`docker-compose.monitoring.yml`) for self-hosted deployments.
 
-The recommended observability stack for self-hosted deployment is Loki + Prometheus + Grafana, shipped as an optional `docker-compose.monitoring.yml` (see [ADR-006](decisions/ADR-006-observability-stack.md)).
+## Dockerized
 
-## Ready for Docker
-
-The application is designed to be easily containerized with Docker. The stateless architecture, environment-based configuration, and self-contained nature of the application make it a perfect candidate for containerization.
+The app ships as containers: one multi-stage `Dockerfile` plus three compose files — `compose.yaml` (dev: bind-mounted source, live `bun --watch`/vite HMR, dev DB in a named volume), `compose.prod.yaml` (prod: built artifacts behind a Caddy proxy on a single port), and `compose.test.yaml` (self-contained test stack with `STORAGE_ADAPTER=memory`). `mise run dev` / `prod` / `test-e2e` wrap them; see the root [README](../../../README.md) for details.

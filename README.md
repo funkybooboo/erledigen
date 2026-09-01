@@ -2,7 +2,7 @@
 
 Welcome to Erledigen, a modern task application that's as fun to develop as it is to use! Inspired by the clean and simple interface of TeuxDeux, Erledigen is a unified task manager built around one idea: **you should only need one place to manage your work and your life**.
 
-The daily list is the execution surface. Someday is the capture net. Projects and habits feed into the daily list automatically. Everything is organized with tags — the same tag system works across tasks, groups, Someday, and filters.
+The daily list is the execution surface. Someday is the capture net. Habits generate instances into the daily list automatically (projects will too, once auto-distribution lands). Everything is organized with tags — the same tag system works across tasks, groups, Someday, and filters.
 
 [![CI](https://github.com/funkybooboo/erledigen/actions/workflows/ci.yml/badge.svg)](https://github.com/funkybooboo/erledigen/actions/workflows/ci.yml)
 
@@ -24,17 +24,16 @@ Erledigen is a **monorepo** built with a modern tech stack designed for a great 
 
 ## 🧩 Key Features
 
-*   **Daily list** — the primary working area; a scrollable list of day sections with inline add/edit, drag-to-reorder, and drag between days.
-*   **Someday panel** — a right-side capture net for unscheduled work, organized into tag-based groups.
+*   **Daily list** — the primary working area; a continuously-scrolling list of day sections (loads more days as you scroll) with inline add/edit and a month minimap for orientation.
+*   **Someday panel** — a right-side capture net for unscheduled work, organized into tag-based groups; drag-to-resize and collapsible (`Cmd/Ctrl+\\`).
 *   **Tags as the primary organization** — `#p1`/`#p2`/`#p3` priority, `project:`-prefixed project tags, and any free-form tags. One filter system covers everything.
 *   **Projects** — collections of ordered tasks with activate/deactivate and a detail view.
-*   **Habits / recurring tasks** — templates that generate instances into the daily list, with streak tracking.
+*   **Habits / recurring tasks** — natural-language templates ("water plants every friday at 9am") that generate instances into the daily list, with streak tracking and a management modal.
 *   **Sub-tasks** — nested tasks under a parent; completion rolls up.
-*   **Rollover** — incomplete tasks roll to the next day with `daysLate` tracking (configurable app-wide and per-task).
-*   **Command palette** (`Cmd+K`) — fuzzy search across tasks plus a `/`-prefixed command mode (`/add`, `/go`, `/filter`, …).
-*   **Keyboard-first** — full vim + arrow navigation; every action reachable without a mouse.
+*   **Command palette** (`Cmd/Ctrl+K` or `/`) — fuzzy search across tasks plus a `/`-prefixed command mode (currently `/add`, with habit phrases like "every day" creating habits).
+*   **Keyboard-first + tooltips** — vim + arrow navigation, `g`-sequences for modals, priority keys `1`/`2`/`3`/`0`, `Cmd/Ctrl+Z` undo; every UI action shows its keybinding on hover.
 *   **Icon-rail modals** — Calendar, Summary, Projects, Habits, Search, Filter, Settings, Trash, Help.
-*   **Trash with undo** — soft delete with 5s undo toast and auto-purge after 7 days.
+*   **Trash with undo** — soft delete with a 5s undo toast, restore from Trash, and purge of soft-deleted tasks after 7 days.
 *   **Privacy first** — no analytics, no telemetry, no tracking. Your data stays in your own database.
 
 ## ⚡️ Getting Started

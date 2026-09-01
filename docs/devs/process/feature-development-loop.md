@@ -497,18 +497,18 @@ Use PR template (see [git-workflow.md](../standards/git-workflow.md)).
 
 ### Required CI Checks
 
-ALL must pass before merge:
+ALL must pass before merge (run locally with `mise run ci`):
 
-1. **Linting** (`bun run lint:check`)
-2. **Type Checking** (`bun run type-check`)
-3. **Unit Tests** (`bun run test:unit`)
-4. **Integration Tests** (`bun run test:integration`)
-5. **E2E Tests** (`bun run test:e2e`)
-6. **API Tests** (`bun run test:api`)
-7. **Coverage** (≥ 85%)
-8. **Build** (`bun run build`)
-9. **Security Scan** (dependency vulnerabilities)
-10. **Performance Tests** (no regressions)
+1. **Lint + Format** (`mise run biome-check`)
+2. **Spell Check** (`mise run spellcheck`)
+3. **Link Check** (`mise run check-links`)
+4. **Secret Scan** (`mise run scan-secrets`)
+5. **Type Checking** (`mise run type-check`)
+6. **Unit Tests** (`mise run test` — includes repository contract suites against both adapters)
+7. **E2E Tests** (`mise run test-e2e` — Playwright `e2e` + `api` projects)
+8. **API Tests** (`mise run test-api` — Bruno collection)
+9. **Build + bundle budget** (`mise run build`, client <= 512KB)
+10. **Security Scan** (`mise run security` — non-blocking)
 
 ### AI Agent Reviews
 

@@ -66,7 +66,7 @@ We follow a strict testing pyramid distribution:
 
 **SCOPE**: Pure functions, calculations, validations, transformers, business rules.
 
-**TOOLS**: Bun test runner, Vitest.
+**TOOLS**: Bun test runner (no Vitest — coverage runs via `bun test --coverage`).
 
 **REQUIREMENTS**:
 - Every pure function MUST have comprehensive unit tests
@@ -93,59 +93,39 @@ We follow a strict testing pyramid distribution:
 
 **PURPOSE**: Test how multiple components work together with real dependencies.
 
-**SCOPE**: Database operations, service integrations, adapter implementations, data flows.
+**SCOPE**: Adapter implementations (repositories against real SQLite), service integrations, data flows.
 
-**TOOLS**: Testcontainers, Docker, Bun test runner.
+**TOOLS**: Bun test runner, `bun:sqlite`.
 
 **REQUIREMENTS**:
-- Integration tests MUST use temporary Docker containers
-- NO shared databases or services between tests
-- Each test class MUST get its own container instances
-- Tests MUST run in under 30 seconds total
-- Cleanup MUST be automatic and guaranteed
+- Repository tests use a fresh `:memory:` SQLite database per test — no Docker, no file I/O, no shared state
+- Every repository has a **contract test suite** that runs against BOTH the in-memory and SQLite implementations, so the two adapters can never drift
+- Tests run in milliseconds; cleanup is automatic (`:memory:` databases are garbage-collected)
 
 **WHAT TO TEST**:
-- ✅ Database interactions (create, read, update, delete)
-- ✅ Transaction handling and rollbacks
-- ✅ Data consistency and constraints
-- ✅ Service-to-service communication
-- ✅ Adapter implementations with real backing services
-- ✅ Concurrent access scenarios
-- ✅ Error propagation across layers
+- Database interactions (create, read, update, delete)
+- Data consistency and constraints
+- Adapter implementations with real backing stores
+- Error propagation across layers
 
-**SQLITE IN-MEMORY REQUIREMENT**:
-
-All integration tests MUST use a fresh in-memory SQLite database — no Docker, no file I/O:
+**THE CONTRACT-TEST PATTERN** (the actual repo convention):
 
 ```typescript
-import { test, expect, describe, beforeEach, afterEach } from "bun:test";
-import { Database } from "bun:sqlite";
-import { SQLiteTaskRepository } from "../adapters/data/SQLiteTaskRepository";
+// contracts/taskRepositoryContract.ts exports runTaskRepositoryContractTests(makeRepo)
+// and both adapters run the exact same suite:
+import { SqliteTaskRepository } from './SqliteTaskRepository';
+import { SqliteConnection } from './sqliteConnection';
+import { NativeDateProvider } from '@erledigen/shared';
+import { runTaskRepositoryContractTests } from './contracts/taskRepositoryContract';
 
-describe('TaskRepository Integration', () => {
-  let db: Database;
-  let repository: SQLiteTaskRepository;
+// Fresh :memory: database per test - full isolation, no file cleanup needed.
+function makeRepo() {
+    const connection = new SqliteConnection(':memory:');
+    return new SqliteTaskRepository(connection.db, new NativeDateProvider());
+}
 
-  beforeEach(() => {
-    db = new Database(':memory:'); // Fresh DB per test — no shared state
-    db.run(`
-      CREATE TABLE tasks (
-        id TEXT PRIMARY KEY,
-        text TEXT NOT NULL,
-        completed INTEGER NOT NULL DEFAULT 0,
-        date TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-      )
-    `);
-    repository = new SQLiteTaskRepository(db);
-  });
-
-  afterEach(() => {
-    db.close();
-  });
-
-  // Tests here...
+describe('SqliteTaskRepository', () => {
+    runTaskRepositoryContractTests(makeRepo);
 });
 ```
 
@@ -413,11 +393,10 @@ export const Disabled: Story = {
 
 ### What to Use Instead
 
-- **Real databases**: Use Docker containers with Testcontainers
-- **Real HTTP services**: Use test adapters or running services in containers
-- **Real file systems**: Use temporary directories that are cleaned up
-- **Real time**: Use `DateProvider` adapter with test implementation
-- **Test doubles for external APIs**: Create test implementations, not mocks
+- **Real adapter implementations**: In-memory repositories and SQLite repositories backed by a fresh `:memory:` database
+- **Real HTTP services**: The Playwright api project hits the real Bun server (with `STORAGE_ADAPTER=memory`) end to end
+- **Real time**: Use `DateProvider` with a test implementation for deterministic dates
+- **Test doubles for external APIs**: Create test adapter implementations, not mocks
 
 ### Exceptions (Rare)
 
@@ -574,34 +553,30 @@ test('should calculate discount for verified students', () => {
 
 ### Quality Gates
 
-ALL of the following MUST pass before merge:
+ALL of the following MUST pass before merge (as enforced by CI, see [ci-cd-pipeline.md](../process/ci-cd-pipeline.md)):
 
-1. **All tests pass** (unit, integration, E2E, API)
-2. **Coverage ≥ 85%** (measured, enforced)
+1. **All tests pass** (unit, Playwright e2e + api, Bruno API)
+2. **Coverage >= 85%** (expected; not yet measured/enforced in CI)
 3. **No flaky tests** (0% tolerance)
 4. **Linting passes** (Biome)
 5. **Type checking passes** (TypeScript strict mode)
-6. **Performance tests pass** (no regressions)
-7. **Security scans pass** (dependency vulnerabilities)
-8. **Accessibility tests pass** (WCAG 2.1 AA)
+6. **Security scans pass** (gitleaks, `bun audit`)
+7. **Performance tests pass** (planned — only the client bundle-size budget is enforced today)
+8. **Accessibility tests pass** (planned — axe-core integration is on the roadmap, v0.12.0)
 
 ### Automated Test Execution
 
 ```bash
-# Full test suite
-bun run test
+# Full test suites (dockerized via mise; see getting-started.md)
+mise run test          # unit
+mise run test-e2e      # Playwright e2e + api projects
+mise run test-api      # Bruno API collection
+mise run ci            # everything CI runs, locally
 
-# Individual test types
+# Local (fast feedback)
 bun run test:unit
-bun run test:integration
-bun run test:e2e
-bun run test:api
-
-# With coverage
+bun run test:watch
 bun run test --coverage
-
-# Watch mode (development)
-bun run test --watch
 ```
 
 ---

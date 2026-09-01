@@ -365,11 +365,14 @@ git stash drop stash@{0}
 
 ### Pre-Commit Hook (`.husky/pre-commit`)
 
-Runs before every commit. Blocks the commit if validation fails.
+Runs before every commit. Fails fast on secrets, then lints what's staged:
 
 ```bash
-bun run validate   # biome ci (format + lint) + tsc --noEmit across all packages
+mise exec -- gitleaks protect --staged --source . --config .gitleaks.toml --no-banner --redact
+bunx lint-staged   # biome check --write + cspell on staged files
 ```
+
+(Repo-wide validation - `biome ci` + `tsc --noEmit` - runs in CI and via `bun run validate` before opening a PR; it is no longer part of every commit.)
 
 ### Commit-Msg Hook (`.husky/commit-msg`)
 

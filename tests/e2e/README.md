@@ -4,15 +4,16 @@ This directory contains the end-to-end tests for the Erledigen application, whic
 
 ## ⚡️ Quick Start
 
-To run the end-to-end tests, use the following command:
-
 ```bash
+# Dockerized (recommended): builds the self-contained test stack
+mise run test-e2e
+
+# Local: spawns an ephemeral in-memory server + client, then runs the tests
 bun run test:e2e
 ```
 
-This will start the development server and then run the Playwright tests.
-
-If you already have the server running, you can run the tests without starting a new server instance:
+If you already have the stack running, you can run the tests without
+spawning servers:
 
 ```bash
 bun run test:e2e:no-server
