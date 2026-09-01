@@ -31,11 +31,3 @@ export function getTagsByKind(
     }
     return result;
 }
-
-export function getKindValues(
-    kind: TagKind,
-    allTags: string[],
-    tagKindMap: Record<string, string>,
-): string[] {
-    return allTags.filter(tag => resolveTagKind(tag, [kind], tagKindMap) !== null);
-}

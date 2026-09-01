@@ -32,16 +32,3 @@ export interface TaskRepository {
     findDeleted(maxAgeDays?: number): Promise<Task[]>;
     purgeDeleted(maxAgeDays?: number): Promise<number>;
 }
-
-/**
- * Repository error for data access issues
- */
-export class RepositoryError extends Error {
-    public readonly errorCause?: unknown;
-
-    constructor(message: string, errorCause?: unknown) {
-        super(message);
-        this.name = 'RepositoryError';
-        this.errorCause = errorCause;
-    }
-}

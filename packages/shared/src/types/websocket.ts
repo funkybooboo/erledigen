@@ -78,4 +78,3 @@ export interface RecurringTaskGeneratedPayload {
 export const WS_RECONNECT_BASE_MS = 500;
 export const WS_RECONNECT_MAX_MS = 10_000;
 export const WS_PING_INTERVAL_MS = 30_000;
-export const WS_PING_TIMEOUT_MS = 5_000;

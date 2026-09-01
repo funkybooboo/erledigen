@@ -2,6 +2,7 @@
     import Modal from '$lib/components/Modal.svelte';
     import { taskStore } from '$lib/stores';
     import { container } from '$lib/container';
+    import { hasDeadlineTag } from '@erledigen/shared';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
@@ -12,7 +13,7 @@
     let completedToday = $derived(todayTasks.filter(t => t.completed).length);
     let totalToday = $derived(todayTasks.length);
     let completionPct = $derived(totalToday > 0 ? Math.round((completedToday / totalToday) * 100) : 0);
-    let upcomingDeadlines = $derived(allTasks.filter(t => !t.completed && t.tags.includes('deadline') && t.date).slice(0, 5));
+    let upcomingDeadlines = $derived(allTasks.filter(t => !t.completed && hasDeadlineTag(t) && t.date).slice(0, 5));
 </script>
 
 <Modal title="Summary" onclose={onclose}>

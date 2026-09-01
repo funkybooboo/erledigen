@@ -17,9 +17,6 @@ export const HhMmTime = z
     .regex(/^\d{2}:\d{2}$/, 'Must be HH:MM')
     .openapi({ description: 'Time in HH:MM format', example: '09:00' });
 
-/** Tag name — non-empty string up to 50 chars */
-export const TagName = z.string().min(1).max(50);
-
 export const ErrorResponseSchema = registry.register(
     'ErrorResponse',
     z

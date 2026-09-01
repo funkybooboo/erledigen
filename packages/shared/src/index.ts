@@ -16,8 +16,6 @@ export { FetchHttpClient } from './adapters/http/FetchHttpClient';
 export type { HttpClient, RequestOptions } from './adapters/http/HttpClient';
 export { HttpClientError } from './adapters/http/HttpClient';
 // Adapters - IO
-export type { ExportAdapter } from './adapters/io/ExportAdapter';
-export type { ImportAdapter } from './adapters/io/ImportAdapter';
 export { ConsoleLogger } from './adapters/logging/ConsoleLogger';
 // Adapters - Logging
 export type { LogContext, Logger } from './adapters/logging/Logger';
@@ -58,14 +56,8 @@ export {
     ValidationError,
 } from './errors/AppError';
 export type {
-    ApiError,
     ApiResponse,
     ErrorResponseBody,
-    MergeTagRequest,
-    MergeTagResponse,
-    RenameTagRequest,
-    RenameTagResponse,
-    TaskApi,
     TaskQueryParams,
 } from './types/api';
 // Types
@@ -112,7 +104,6 @@ export type {
 } from './types/websocket';
 export {
     WS_PING_INTERVAL_MS,
-    WS_PING_TIMEOUT_MS,
     WS_RECONNECT_BASE_MS,
     WS_RECONNECT_MAX_MS,
 } from './types/websocket';
@@ -122,7 +113,6 @@ export {
     formatFrequency,
     formatTags,
     formatTime12,
-    getKindValues,
     getTagsByKind,
     groupTasksByDate,
     hasDeadlineTag,

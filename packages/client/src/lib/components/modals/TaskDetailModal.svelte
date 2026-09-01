@@ -1,7 +1,13 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
     import { taskStore, uiStore, notificationStore } from '$lib/stores';
-    import { TASK_CONSTRAINTS, isValidTimeString, isValidTimeRange } from '@erledigen/shared';
+    import {
+        TASK_CONSTRAINTS,
+        formatTags,
+        isValidTimeString,
+        isValidTimeRange,
+        parseTags,
+    } from '@erledigen/shared';
     import type { Task } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
     import { LuTrash2, LuPlus, LuCheck, LuCircle } from 'svelte-icons-pack/lu';
@@ -36,7 +42,7 @@
                 editDate = task.date ?? '';
                 editStartTime = task.startTime ?? '';
                 editEndTime = task.endTime ?? '';
-                editTags = task.tags.join(', ');
+                editTags = formatTags(task.tags);
                 editRollover = task.rolloverEnabled;
             }
         }
@@ -57,8 +63,8 @@
         if (editDate !== (task.date ?? '')) updates.date = editDate || null;
         if (editStartTime !== (task.startTime ?? '')) updates.startTime = editStartTime || null;
         if (editEndTime !== (task.endTime ?? '')) updates.endTime = editEndTime || null;
-        if (editTags !== task.tags.join(', ')) {
-            updates.tags = editTags.split(',').map(t => t.trim()).filter(Boolean);
+        if (editTags !== formatTags(task.tags)) {
+            updates.tags = parseTags(editTags);
         }
         if (editRollover !== task.rolloverEnabled) updates.rolloverEnabled = editRollover;
 
