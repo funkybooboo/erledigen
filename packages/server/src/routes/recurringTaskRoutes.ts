@@ -59,6 +59,30 @@ export function registerRecurringTaskRoutes(
         }, logger),
     );
 
+    // POST /api/recurring-tasks/generate-all
+    // (registered before the :id routes so "generate-all" is never treated
+    // as an :id path parameter)
+    server.route(
+        'POST',
+        API_ROUTES.RECURRING_TASK_GENERATE_ALL_PATTERN,
+        withErrorHandling(async req => {
+            const originClientId = req.headers['x-client-id'];
+
+            const raw = await req.json<unknown>();
+            const { startDate, endDate } = parseBody(GenerateInstancesSchema, raw);
+
+            const generated = await recurringTaskService.generateAllInstances(startDate, endDate);
+            for (const { recurringTaskId, tasks } of generated) {
+                eventBus.publish(
+                    'recurringTask:generated',
+                    { tasks, recurringTaskId },
+                    originClientId,
+                );
+            }
+            return successResponse(generated);
+        }, logger),
+    );
+
     // GET /api/recurring-tasks/:id
     server.route(
         'GET',

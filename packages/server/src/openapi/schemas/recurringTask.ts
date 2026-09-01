@@ -6,6 +6,9 @@ import { z } from 'zod';
 import { registry } from '../registry';
 import { IsoDate } from './common';
 
+/** 24h clock time, "HH:MM". */
+export const TimeHHMM = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
+
 export const RecurringTaskSchema = registry.register(
     'RecurringTask',
     z
@@ -25,6 +28,9 @@ export const RecurringTaskSchema = registry.register(
             startDate: IsoDate,
             endDate: IsoDate.nullable(),
             rolloverEnabled: z.boolean(),
+            startTime: TimeHHMM.nullable().openapi({
+                description: 'Default start time (24h HH:MM) stamped onto generated instances',
+            }),
             createdAt: z.string(),
             updatedAt: z.string(),
         })
@@ -45,6 +51,7 @@ export const CreateRecurringTaskSchema = registry.register(
             dayOfMonth: z.number().int().min(1).max(31).nullable().optional(),
             endDate: IsoDate.nullable().optional(),
             rolloverEnabled: z.boolean().optional(),
+            startTime: TimeHHMM.nullable().optional(),
         })
         .openapi('CreateRecurringTaskInput'),
 );

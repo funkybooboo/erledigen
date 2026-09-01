@@ -118,12 +118,15 @@ export {
 } from './types/websocket';
 // Utilities
 export {
+    describeRecurrence,
     formatFrequency,
     formatTags,
+    formatTime12,
     getKindValues,
     getTagsByKind,
     groupTasksByDate,
     hasDeadlineTag,
+    parseRecurrence,
     parseTags,
     resolveTagKind,
     slugify,

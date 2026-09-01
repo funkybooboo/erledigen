@@ -1,4 +1,4 @@
-import type { HttpClient } from '@erledigen/shared';
+import type { HttpClient, Task } from '@erledigen/shared';
 import {
     API_ROUTES,
     type ApiResponse,
@@ -6,6 +6,12 @@ import {
     type RecurringTask,
     type UpdateRecurringTaskInput,
 } from '@erledigen/shared';
+
+/** Instances generated for one template by the generate-all endpoint. */
+export interface GeneratedForTemplate {
+    recurringTaskId: string;
+    tasks: Task[];
+}
 
 export class RecurringTaskService {
     constructor(private http: HttpClient) {}
@@ -35,5 +41,26 @@ export class RecurringTaskService {
 
     async delete(id: string): Promise<void> {
         await this.http.delete<ApiResponse<{ id: string }>>(API_ROUTES.RECURRING_TASK_BY_ID(id));
+    }
+
+    /** Generate missing instances for one template in a date range. */
+    async generate(id: string, startDate: string, endDate: string): Promise<Task[]> {
+        const response = await this.http.post<ApiResponse<Task[]>>(
+            API_ROUTES.RECURRING_TASK_GENERATE(id),
+            { startDate, endDate },
+        );
+        return response.data;
+    }
+
+    /**
+     * Generate missing instances for every template in a date range.
+     * Idempotent server-side; returns only templates with new instances.
+     */
+    async generateAll(startDate: string, endDate: string): Promise<GeneratedForTemplate[]> {
+        const response = await this.http.post<ApiResponse<GeneratedForTemplate[]>>(
+            API_ROUTES.RECURRING_TASKS_GENERATE_ALL,
+            { startDate, endDate },
+        );
+        return response.data;
     }
 }

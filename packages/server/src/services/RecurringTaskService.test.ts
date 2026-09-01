@@ -38,12 +38,18 @@ class FakeTaskRepository {
         this.tasks.push(task);
         return Promise.resolve(task);
     }
+    findByRecurringTaskId(recurringTaskId: string): Promise<Task[]> {
+        return Promise.resolve(this.tasks.filter(t => t.recurringTaskId === recurringTaskId));
+    }
 }
 
 class FakeRecurringTaskRepository {
     store = new Map<string, RecurringTask>();
     findById(id: string): Promise<RecurringTask | null> {
         return Promise.resolve(this.store.get(id) ?? null);
+    }
+    findAll(): Promise<RecurringTask[]> {
+        return Promise.resolve(Array.from(this.store.values()));
     }
 }
 
@@ -117,6 +123,86 @@ describe('RecurringTaskService', () => {
             await expect(
                 service.generateInstances('missing', '2026-03-02', '2026-03-04'),
             ).rejects.toThrow(NotFoundError);
+        });
+
+        it('stamps the template startTime onto every instance', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            const rt = makeRecurringTask({ id: 'rt-t', startTime: '16:00' });
+            recurringRepo.store.set(rt.id, rt);
+
+            const service = new RecurringTaskService(recurringRepo as never, taskRepo as never);
+
+            const created = await service.generateInstances(rt.id, '2026-03-02', '2026-03-03');
+            expect(created).toHaveLength(2);
+            for (const task of created) {
+                expect(task.startTime).toBe('16:00');
+            }
+        });
+
+        it('is idempotent — overlapping ranges never duplicate instances', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            const rt = makeRecurringTask({ id: 'rt-i' });
+            recurringRepo.store.set(rt.id, rt);
+
+            const service = new RecurringTaskService(recurringRepo as never, taskRepo as never);
+
+            await service.generateInstances(rt.id, '2026-03-02', '2026-03-04');
+            const second = await service.generateInstances(rt.id, '2026-03-03', '2026-03-05');
+
+            // Only the newly-covered date (03-05) creates an instance.
+            expect(second.map(t => t.date)).toEqual(['2026-03-05']);
+            expect(taskRepo.tasks).toHaveLength(4); // 02, 03, 04, 05 — no dupes
+        });
+
+        it('skips completed instances too when regenerating', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            const rt = makeRecurringTask({ id: 'rt-c' });
+            recurringRepo.store.set(rt.id, rt);
+
+            const service = new RecurringTaskService(recurringRepo as never, taskRepo as never);
+
+            const first = await service.generateInstances(rt.id, '2026-03-02', '2026-03-02');
+            const instance = first[0];
+            if (instance) instance.completed = true;
+
+            const second = await service.generateInstances(rt.id, '2026-03-02', '2026-03-02');
+            expect(second).toHaveLength(0);
+        });
+    });
+
+    describe('generateAllInstances', () => {
+        it('generates for every template and only reports templates with new instances', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            const daily = makeRecurringTask({ id: 'rt-daily' });
+            const weekly = makeRecurringTask({
+                id: 'rt-weekly',
+                frequency: 'weekly',
+                dayOfWeek: 2,
+                startDate: '2026-03-01',
+            });
+            recurringRepo.store.set(daily.id, daily);
+            recurringRepo.store.set(weekly.id, weekly);
+
+            const service = new RecurringTaskService(recurringRepo as never, taskRepo as never);
+
+            const results = await service.generateAllInstances('2026-03-02', '2026-03-08');
+            // 03-02..03-08: daily creates 7, weekly-on-Tuesday creates 1 (03-03).
+            const byId = new Map(results.map(r => [r.recurringTaskId, r.tasks.length]));
+            expect(byId.get('rt-daily')).toBe(7);
+            expect(byId.get('rt-weekly')).toBe(1);
+        });
+
+        it('returns an empty array when there are no templates', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            const service = new RecurringTaskService(recurringRepo as never, taskRepo as never);
+
+            const results = await service.generateAllInstances('2026-03-02', '2026-03-08');
+            expect(results).toEqual([]);
         });
     });
 });

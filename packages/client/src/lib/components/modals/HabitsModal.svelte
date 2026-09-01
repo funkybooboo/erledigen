@@ -1,9 +1,21 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
-    import { recurringTaskStore, taskStore } from '$lib/stores';
+    import {
+        GENERATE_HORIZON_DAYS,
+        notificationStore,
+        recurringTaskStore,
+        taskStore,
+        preferencesStore,
+    } from '$lib/stores';
     import { Icon } from 'svelte-icons-pack';
-    import { LuPlus, LuPencil, LuTrash2 } from 'svelte-icons-pack/lu';
-    import { WEEKDAY_ABBREVIATIONS, MONTH_NAMES as MONTH_ABBREVIATIONS } from '@erledigen/shared';
+    import { LuPencil, LuPlus, LuRepeat, LuTrash2 } from 'svelte-icons-pack/lu';
+    import {
+        WEEKDAY_ABBREVIATIONS,
+        describeRecurrence,
+        parseRecurrence,
+        type RecurringFrequency,
+        type RecurringTask,
+    } from '@erledigen/shared';
     import { container } from '$lib/container';
     import { onMount } from 'svelte';
 
@@ -14,109 +26,165 @@
     });
 
     const DAY_NAMES = WEEKDAY_ABBREVIATIONS;
-    const MONTH_NAMES = MONTH_ABBREVIATIONS;
 
-    function formatFrequency(habit: { frequency: string; interval: number; dayOfWeek: number | null; dayOfMonth: number | null }): string {
-        const freq = habit.frequency;
-        const interval = habit.interval || 1;
+    // ------------------------------------------------------------------
+    // Shared form state (used by either the "new" form or an edit form —
+    // only one is visible at a time).
+    // ------------------------------------------------------------------
 
-        if (freq === 'daily') {
-            return interval === 1 ? 'Daily' : `Every ${interval} days`;
+    interface HabitForm {
+        text: string;
+        frequency: RecurringFrequency;
+        interval: number;
+        dayOfWeek: number | null;
+        dayOfMonth: number | null;
+        startDate: string;
+        endDate: string;
+        startTime: string;
+        rolloverEnabled: boolean;
+    }
+
+    function emptyForm(): HabitForm {
+        return {
+            text: '',
+            frequency: 'daily',
+            interval: 1,
+            dayOfWeek: null,
+            dayOfMonth: null,
+            startDate: container.dateProvider.today(),
+            endDate: '',
+            startTime: '',
+            rolloverEnabled: false,
+        };
+    }
+
+    let form = $state<HabitForm>(emptyForm());
+    let editingHabitId = $state<string | null>(null);
+    let showForm = $state(false);
+    let saving = $state(false);
+
+    // Select values are strings; keep this in sync with form.dayOfWeek
+    // ('' = any day) so the control and the state never disagree.
+    let dayOfWeekSel = $state('');
+    $effect(() => {
+        dayOfWeekSel = form.dayOfWeek === null ? '' : String(form.dayOfWeek);
+    });
+
+    function onDayOfWeekChange(e: Event) {
+        const value = (e.currentTarget as HTMLSelectElement).value;
+        form.dayOfWeek = value === '' ? null : Number(value);
+    }
+
+    // Live TeuxDeux-style parsing: typing "Water plants every friday at
+    // 9am" prefills the schedule fields and shows a hint.
+    let parsed = $derived(form.text.trim() ? parseRecurrence(form.text.trim()) : null);
+
+    $effect(() => {
+        if (parsed) {
+            form.frequency = parsed.schedule.frequency;
+            form.interval = parsed.schedule.interval;
+            form.dayOfWeek = parsed.schedule.dayOfWeek;
+            form.dayOfMonth = parsed.schedule.dayOfMonth;
+            form.startTime = parsed.schedule.startTime ?? '';
         }
-        if (freq === 'weekly') {
-            if (habit.dayOfWeek !== null && habit.dayOfWeek !== undefined) {
-                return `Weekly on ${DAY_NAMES[habit.dayOfWeek]}`;
-            }
-            return interval === 1 ? 'Weekly' : `Every ${interval} weeks`;
+    });
+
+    function startNew() {
+        form = emptyForm();
+        editingHabitId = null;
+        showForm = true;
+    }
+
+    function startEdit(habit: RecurringTask) {
+        form = {
+            text: habit.text,
+            frequency: habit.frequency,
+            interval: habit.interval,
+            dayOfWeek: habit.dayOfWeek,
+            dayOfMonth: habit.dayOfMonth,
+            startDate: habit.startDate,
+            endDate: habit.endDate ?? '',
+            startTime: habit.startTime ?? '',
+            rolloverEnabled: habit.rolloverEnabled,
+        };
+        editingHabitId = habit.id;
+        showForm = true;
+    }
+
+    function closeForm() {
+        showForm = false;
+        editingHabitId = null;
+        form = emptyForm();
+    }
+
+    function handleFormKeydown(e: KeyboardEvent) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            saveHabit();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            closeForm();
         }
-        if (freq === 'monthly') {
-            if (habit.dayOfMonth !== null && habit.dayOfMonth !== undefined) {
-                return `Monthly on day ${habit.dayOfMonth}`;
-            }
-            return interval === 1 ? 'Monthly' : `Every ${interval} months`;
+    }
+
+    function horizonEnd(): string {
+        const d = new Date(`${container.dateProvider.today()}T00:00:00`);
+        d.setDate(d.getDate() + GENERATE_HORIZON_DAYS);
+        return d.toISOString().split('T')[0] ?? container.dateProvider.today();
+    }
+
+    async function saveHabit() {
+        // A trailing recurrence phrase wins: its clean text becomes the
+        // habit name and its schedule is already prefilled into the form.
+        const name = parsed ? parsed.cleanText : form.text.trim();
+        if (!name || saving) return;
+        saving = true;
+
+        const input = {
+            text: name,
+            frequency: form.frequency,
+            interval: Math.max(1, Number(form.interval) || 1),
+            dayOfWeek: form.frequency === 'weekly' ? form.dayOfWeek : null,
+            dayOfMonth:
+                form.frequency === 'monthly' && form.dayOfMonth !== null
+                    ? Math.min(31, Math.max(1, Number(form.dayOfMonth) || 1))
+                    : null,
+            startDate: form.startDate,
+            endDate: form.endDate || null,
+            startTime: form.startTime || null,
+            rolloverEnabled: form.rolloverEnabled,
+        };
+
+        const result = editingHabitId
+            ? await recurringTaskStore.update(editingHabitId, input)
+            : await recurringTaskStore.create(input);
+
+        saving = false;
+        if (!result) return;
+
+        // Materialize instances for the new/changed schedule right away.
+        // Generation is idempotent, so existing instances are untouched.
+        const tasks = await recurringTaskStore.ensureInstances(
+            input.startDate,
+            horizonEnd(),
+        );
+        if (tasks.length > 0) taskStore.ingest(tasks);
+
+        closeForm();
+    }
+
+    async function deleteHabit(habit: RecurringTask) {
+        if (preferencesStore.deleteConfirmation === 'confirm') {
+            if (!window.confirm(`Delete habit "${habit.text}"?`)) return;
         }
-        if (freq === 'yearly') {
-            return interval === 1 ? 'Yearly' : `Every ${interval} years`;
-        }
-        return freq;
+        await recurringTaskStore.remove(habit.id);
+        notificationStore.push('Habit deleted — existing instances are kept', {
+            kind: 'info',
+        });
     }
 
     function getInstanceCount(habitId: string): number {
         return taskStore.tasks.filter(t => t.recurringTaskId === habitId).length;
-    }
-
-    let showNewForm = $state(false);
-    let newHabitName = $state('');
-    let newHabitFrequency = $state<'daily' | 'weekly' | 'monthly' | 'yearly'>('daily');
-    let newHabitStartDate = $state(container.dateProvider.today());
-    let creating = $state(false);
-
-    function handleNewKeydown(e: KeyboardEvent) {
-        if (e.key === 'Enter' && newHabitName.trim()) {
-            createHabit();
-        } else if (e.key === 'Escape') {
-            cancelNew();
-        }
-    }
-
-    async function createHabit() {
-        if (!newHabitName.trim()) return;
-        creating = true;
-        const result = await recurringTaskStore.create({
-            text: newHabitName.trim(),
-            frequency: newHabitFrequency,
-            startDate: newHabitStartDate,
-        });
-        creating = false;
-        if (result) {
-            newHabitName = '';
-            newHabitFrequency = 'daily';
-            newHabitStartDate = container.dateProvider.today();
-            showNewForm = false;
-        }
-    }
-
-    function cancelNew() {
-        showNewForm = false;
-        newHabitName = '';
-        newHabitFrequency = 'daily';
-        newHabitStartDate = container.dateProvider.today();
-    }
-
-    let editingHabitId = $state<string | null>(null);
-    let editText = $state('');
-    let editFrequency = $state<'daily' | 'weekly' | 'monthly' | 'yearly'>('daily');
-
-    function startEdit(habitId: string, text: string, frequency: string) {
-        editingHabitId = habitId;
-        editText = text;
-        editFrequency = frequency as 'daily' | 'weekly' | 'monthly' | 'yearly';
-    }
-
-    function cancelEdit() {
-        editingHabitId = null;
-        editText = '';
-    }
-
-    function handleEditKeydown(e: KeyboardEvent) {
-        if (e.key === 'Enter' && editText.trim()) {
-            saveEdit();
-        } else if (e.key === 'Escape') {
-            cancelEdit();
-        }
-    }
-
-    async function saveEdit() {
-        if (!editingHabitId || !editText.trim()) return;
-        await recurringTaskStore.update(editingHabitId, {
-            text: editText.trim(),
-            frequency: editFrequency,
-        });
-        editingHabitId = null;
-    }
-
-    async function deleteHabit(id: string) {
-        await recurringTaskStore.remove(id);
     }
 </script>
 
@@ -124,96 +192,145 @@
     <div class="habits">
         <div class="list-header">
             <h3>Recurring Tasks</h3>
-            <button class="icon-btn" onclick={() => (showNewForm = true)} aria-label="New habit">
+            <button class="icon-btn" onclick={startNew} aria-label="New habit">
                 <Icon src={LuPlus} />
             </button>
         </div>
 
-        {#if showNewForm}
+        {#if showForm}
             <div class="inline-form">
-                <input type="text" bind:value={newHabitName} placeholder="Habit name" onkeydown={handleNewKeydown} />
+                <div class="form-row name-row">
+                    <input
+                        type="text"
+                        bind:value={form.text}
+                        placeholder="Habit name (e.g. Water plants every friday at 9am)"
+                        onkeydown={handleFormKeydown}
+                        aria-label="Habit name"
+                    />
+                    {#if parsed}
+                        <span class="recur-hint" title="This will repeat: {parsed.phrase}">
+                            <Icon src={LuRepeat} />
+                            <span>{describeRecurrence(parsed.schedule)}</span>
+                        </span>
+                    {/if}
+                </div>
                 <div class="form-row">
-                    <label for="new-frequency">Frequency</label>
-                    <select id="new-frequency" bind:value={newHabitFrequency}>
+                    <label for="habit-frequency">Repeats</label>
+                    <select id="habit-frequency" bind:value={form.frequency}>
                         <option value="daily">Daily</option>
                         <option value="weekly">Weekly</option>
                         <option value="monthly">Monthly</option>
                         <option value="yearly">Yearly</option>
                     </select>
+                    {#if form.interval > 1 || form.frequency !== 'daily'}
+                        <label for="habit-interval" class="inline-label">every</label>
+                        <input
+                            id="habit-interval"
+                            type="number"
+                            min="1"
+                            max="365"
+                            bind:value={form.interval}
+                            aria-label="Interval"
+                        />
+                    {/if}
+                </div>
+                {#if form.frequency === 'weekly'}
+                    <div class="form-row">
+                        <label for="habit-day-of-week">On day</label>
+                        <select
+                            id="habit-day-of-week"
+                            value={dayOfWeekSel}
+                            onchange={onDayOfWeekChange}
+                        >
+                            <option value="">Any day</option>
+                            {#each DAY_NAMES as day, i}
+                                <option value={i}>{day}</option>
+                            {/each}
+                        </select>
+                    </div>
+                {/if}
+                {#if form.frequency === 'monthly'}
+                    <div class="form-row">
+                        <label for="habit-day-of-month">On day of month</label>
+                        <input
+                            id="habit-day-of-month"
+                            type="number"
+                            min="1"
+                            max="31"
+                            bind:value={form.dayOfMonth}
+                        />
+                    </div>
+                {/if}
+                <div class="form-row">
+                    <label for="habit-start">Start date</label>
+                    <input type="date" id="habit-start" bind:value={form.startDate} />
+                    <label for="habit-end" class="inline-label">End date</label>
+                    <input type="date" id="habit-end" bind:value={form.endDate} />
                 </div>
                 <div class="form-row">
-                    <label for="new-start">Start date</label>
-                    <input type="date" id="new-start" bind:value={newHabitStartDate} />
+                    <label for="habit-time">Time</label>
+                    <input type="time" id="habit-time" bind:value={form.startTime} />
+                    <label class="checkbox-label" for="habit-rollover">
+                        <input type="checkbox" id="habit-rollover" bind:checked={form.rolloverEnabled} />
+                        Rollover incomplete instances
+                    </label>
                 </div>
                 <div class="form-actions">
-                    <button class="btn btn-primary" onclick={createHabit} disabled={!newHabitName.trim() || creating}>
-                        {creating ? 'Creating...' : 'Create'}
+                    <button class="btn btn-primary" onclick={saveHabit} disabled={!form.text.trim() || saving}>
+                        {saving ? 'Saving...' : (editingHabitId ? 'Save' : 'Create')}
                     </button>
-                    <button class="btn btn-secondary" onclick={cancelNew}>Cancel</button>
+                    <button class="btn btn-secondary" onclick={closeForm}>Cancel</button>
                 </div>
             </div>
         {/if}
 
         {#if recurringTaskStore.tasks.length > 0}
             {#each recurringTaskStore.tasks as habit (habit.id)}
-                {#if editingHabitId === habit.id}
-                    <div class="habit-card editing">
-                        <input type="text" bind:value={editText} placeholder="Habit name" onkeydown={handleEditKeydown} />
-                        <div class="form-row">
-                            <label for="edit-frequency-{habit.id}">Frequency</label>
-                            <select id="edit-frequency-{habit.id}" bind:value={editFrequency}>
-                                <option value="daily">Daily</option>
-                                <option value="weekly">Weekly</option>
-                                <option value="monthly">Monthly</option>
-                                <option value="yearly">Yearly</option>
-                            </select>
+                <div class="habit-card" aria-label="{habit.text}, {describeRecurrence(habit)}">
+                    <div class="card-top">
+                        <div class="habit-name">
+                            {habit.text}
+                            <span class="habit-freq">{describeRecurrence(habit)}</span>
                         </div>
-                        <div class="form-actions">
-                            <button class="btn btn-primary" onclick={saveEdit}>Save</button>
-                            <button class="btn btn-secondary" onclick={cancelEdit}>Cancel</button>
+                        <div class="card-actions">
+                            <button class="icon-btn small" onclick={() => startEdit(habit)} aria-label="Edit habit">
+                                <Icon src={LuPencil} />
+                            </button>
+                            <button class="icon-btn small danger" onclick={() => deleteHabit(habit)} aria-label="Delete habit">
+                                <Icon src={LuTrash2} />
+                            </button>
                         </div>
                     </div>
-                {:else}
-                    <div class="habit-card" aria-label="{habit.text}, {habit.frequency}">
-                        <div class="card-top">
-                            <div class="habit-name">
-                                {habit.text}
-                                <span class="habit-freq">{formatFrequency(habit)}</span>
-                            </div>
-                            <div class="card-actions">
-                                <button class="icon-btn small" onclick={() => startEdit(habit.id, habit.text, habit.frequency)} aria-label="Edit habit">
-                                    <Icon src={LuPencil} />
-                                </button>
-                                <button class="icon-btn small danger" onclick={() => deleteHabit(habit.id)} aria-label="Delete habit">
-                                    <Icon src={LuTrash2} />
-                                </button>
-                            </div>
+                    {#if habit.tags.length > 0}
+                        <div class="habit-tags">
+                            {#each habit.tags as tag}
+                                <span class="tag-chip">#{tag}</span>
+                            {/each}
                         </div>
-                        {#if habit.tags.length > 0}
-                            <div class="habit-tags">
-                                {#each habit.tags as tag}
-                                    <span class="tag-chip">#{tag}</span>
-                                {/each}
-                            </div>
+                    {/if}
+                    <div class="habit-meta">
+                        <span>Starts: {habit.startDate}</span>
+                        {#if habit.endDate}
+                            <span>Ends: {habit.endDate}</span>
                         {/if}
-                        <div class="habit-meta">
-                            <span>Starts: {habit.startDate}</span>
-                            {#if habit.endDate}
-                                <span>Ends: {habit.endDate}</span>
-                            {/if}
-                        </div>
-                        <div class="habit-streak">
-                            {#if getInstanceCount(habit.id) > 0}
-                                <span class="streak-badge">{getInstanceCount(habit.id)} instance{getInstanceCount(habit.id) !== 1 ? 's' : ''}</span>
-                            {:else}
-                                <span class="streak-badge empty">No instances yet</span>
-                            {/if}
-                        </div>
+                        {#if habit.rolloverEnabled}
+                            <span>Rollover</span>
+                        {/if}
                     </div>
-                {/if}
+                    <div class="habit-streak">
+                        {#if getInstanceCount(habit.id) > 0}
+                            <span class="streak-badge">{getInstanceCount(habit.id)} instance{getInstanceCount(habit.id) !== 1 ? 's' : ''}</span>
+                        {:else}
+                            <span class="streak-badge empty">No instances yet</span>
+                        {/if}
+                    </div>
+                </div>
             {/each}
-        {:else if !showNewForm}
-            <p class="empty">No recurring tasks yet. Create one above to start building habits.</p>
+        {:else if !showForm}
+            <p class="empty">
+                No habits yet. Add a task that ends with a phrase like "every day" or "every
+                friday at 9am" — or create one above.
+            </p>
         {/if}
     </div>
 </Modal>
@@ -229,11 +346,7 @@
         padding: 12px;
         background: var(--color-surface-dim);
         border: 1px solid var(--color-border);
-        border-radius: 8px;
-    }
-
-    .habit-card.editing {
-        cursor: default;
+        border-radius: 10px;
     }
 
     .habit-name {
@@ -244,15 +357,16 @@
         gap: 8px;
         flex: 1;
         min-width: 0;
+        flex-wrap: wrap;
     }
 
     .habit-freq {
         font-size: 11px;
-        padding: 1px 6px;
-        border-radius: 10px;
+        padding: 1px 8px;
+        border-radius: 999px;
         background: var(--color-accent-light);
         color: var(--color-accent);
-        font-weight: 500;
+        font-weight: 600;
         white-space: nowrap;
     }
 
@@ -265,7 +379,7 @@
     .tag-chip {
         font-size: 11px;
         padding: 1px 6px;
-        border-radius: 10px;
+        border-radius: 999px;
         background: var(--color-surface-hover);
         color: var(--color-text-secondary);
     }
@@ -276,6 +390,7 @@
         margin-top: 6px;
         display: flex;
         gap: 12px;
+        flex-wrap: wrap;
     }
 
     .habit-streak {
@@ -285,9 +400,9 @@
     .streak-badge {
         font-size: 11px;
         padding: 2px 8px;
-        border-radius: 10px;
-        background: var(--color-success-light, #d4edda);
-        color: var(--color-success, #155724);
+        border-radius: 999px;
+        background: var(--color-success-light);
+        color: var(--color-success);
         font-weight: 500;
     }
 
@@ -300,6 +415,11 @@
         display: flex;
         align-items: center;
         gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .name-row {
+        flex-wrap: nowrap;
     }
 
     .form-row label {
@@ -308,11 +428,17 @@
         min-width: 70px;
     }
 
+    .form-row .inline-label {
+        min-width: 0;
+    }
+
     .form-row select,
-    .form-row input[type="date"] {
+    .form-row input[type='date'],
+    .form-row input[type='number'],
+    .form-row input[type='time'] {
         padding: 6px 10px;
         border: 1px solid var(--color-border);
-        border-radius: 6px;
+        border-radius: 8px;
         background: var(--color-surface);
         color: var(--color-text);
         font-size: 13px;
@@ -320,8 +446,48 @@
     }
 
     .form-row select:focus,
-    .form-row input[type="date"]:focus {
+    .form-row input:focus {
         border-color: var(--color-accent);
+    }
+
+    .form-row input[type='number'],
+    .form-row input[type='time'] {
+        width: 90px;
+    }
+
+    .name-row input[type='text'] {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: var(--color-text-secondary);
+        cursor: pointer;
+        min-width: 0 !important;
+    }
+
+    .recur-hint {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: var(--color-accent-light);
+        color: var(--color-accent);
+        font-size: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+        pointer-events: none;
+    }
+
+    .recur-hint :global(svg) {
+        width: 12px;
+        height: 12px;
     }
 
     .icon-btn :global(svg) {

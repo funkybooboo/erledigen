@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount, onDestroy, tick, untrack } from 'svelte';
-    import { taskStore, preferencesStore, dateViewStore } from '$lib/stores';
+    import { taskStore, preferencesStore, dateViewStore, recurringTaskStore, uiStore } from '$lib/stores';
     import { groupTasksByDate, SOMEDAY_KEY } from '@erledigen/shared';
     import { applyFilters } from '$lib/filters';
     import { container } from '$lib/container';
@@ -79,6 +79,19 @@
         }
     });
 
+    // Publish the filtered day-ordered task ids so the global j/k keyboard
+    // navigation (+layout.svelte) knows which task is "next"/"previous"
+    // on screen. Mirrors the render order exactly (filters + window).
+    $effect(() => {
+        const ids: string[] = [];
+        for (const k of dateKeys) {
+            for (const t of tasksByDate.get(k) ?? []) {
+                ids.push(t.id);
+            }
+        }
+        uiStore.setVisibleTasks(ids);
+    });
+
     // Pick a rendered day element near the viewport center to use as a scroll
     // anchor across re-renders (prepending/trimming shifts content).
     function pickAnchorEl(): HTMLElement | null {
@@ -98,17 +111,31 @@
         return best;
     }
 
+    /**
+     * Materialize recurring-task instances for a date range (idempotent
+     * server-side). Fire-and-forget: newly created instances are ingested
+     * into the task store and render on their next reactive pass.
+     */
+    function ensureRecurringInstances(start: string, end: string) {
+        if (start > end) return;
+        void recurringTaskStore.ensureInstances(start, end).then(tasks => {
+            if (tasks.length > 0) taskStore.ingest(tasks);
+        });
+    }
+
     function extendUp() {
         if (isExtendingUp) return;
 
         isExtendingUp = true;
         const newStart = dateOffset(visibleStartDate, -CHUNK_DAYS);
+        const chunkEnd = dateOffset(visibleStartDate, -1);
         const anchor = pickAnchorEl();
         const oldTop = anchor ? anchor.getBoundingClientRect().top : 0;
         visibleStartDate = newStart;
         // Slide: trim the bottom so the rendered span stays bounded.
         const desiredEnd = dateOffset(newStart, MAX_RENDER_DAYS);
         if (visibleEndDate > desiredEnd) visibleEndDate = desiredEnd;
+        ensureRecurringInstances(newStart, chunkEnd);
         // Preserve scroll: prepend above + trim below both shift content;
         // re-anchor the pre-render element to its old screen position.
         tick().then(() => {
@@ -124,6 +151,7 @@
         if (isExtendingDown) return;
 
         isExtendingDown = true;
+        const chunkStart = dateOffset(visibleEndDate, 1);
         const newEnd = dateOffset(visibleEndDate, CHUNK_DAYS);
         // Slide: trim the top so the rendered span stays bounded.
         const desiredStart = dateOffset(newEnd, -MAX_RENDER_DAYS);
@@ -131,6 +159,7 @@
         const oldTop = anchor ? anchor.getBoundingClientRect().top : 0;
         if (desiredStart > visibleStartDate) visibleStartDate = desiredStart;
         visibleEndDate = newEnd;
+        ensureRecurringInstances(chunkStart, newEnd);
         tick().then(() => {
             if (scrollContainer && anchor) {
                 const newTop = anchor.getBoundingClientRect().top;
@@ -217,6 +246,9 @@
 
     onMount(() => {
         scrollContainer = containerEl?.closest('.day-list-area') as HTMLElement | null ?? containerEl?.parentElement ?? null;
+
+        // Habits materialize automatically for the initially visible window.
+        ensureRecurringInstances(visibleStartDate, visibleEndDate);
 
         scrollToToday(false);
         updateFocusedDate();
