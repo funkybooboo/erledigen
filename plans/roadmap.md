@@ -612,7 +612,7 @@ This release introduces the automation features that make Erledigen smart, backe
 - [ ] **Job types:** `rollover`, `generate-recurring`, `purge-deleted`, `send-reminder` (stubbed for v2.2.0).
 - [ ] **Retry with exponential backoff:** Max 3 attempts (configurable). Base delay 5 seconds. Failed jobs marked `dead` after max attempts.
 - [ ] **Startup recovery:** On server start, any `running` jobs (from previous crash) are reset to `pending`. Recurring jobs are re-scheduled if not already queued.
-- [ ] **Configuration:** `JOB_POLL_INTERVAL_MS` (default: 1000), `JOB_MAX_ATTRIES` (default: 3), `JOB_TIMEOUT_MS` (default: 30000).
+- [ ] **Configuration:** `JOB_POLL_INTERVAL_MS` (default: 1000), `JOB_MAX_ATTEMPTS` (default: 3), `JOB_TIMEOUT_MS` (default: 30000).
 
 ### Task Rollover
 - [ ] **Task rollover:**

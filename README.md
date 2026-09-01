@@ -65,6 +65,9 @@ That's it! The client runs at `http://localhost:3000` and the server at `http://
 | `mise run dev-refresh` | Rebuild dev images after changing dependencies |
 | `mise run storybook` | Start Storybook on port 6006 (local, not dockerized) |
 | `mise run check` | Lint + format with Biome (auto-fix) |
+| `mise run spellcheck` | Spell-check the codebase with cspell |
+| `mise run check-links` | Verify all markdown/source links resolve (lychee) |
+| `mise run scan-secrets` | Scan for secrets in the working tree (gitleaks) |
 | `mise run type-check` | Type-check all packages |
 | `mise run test` | Run all unit tests in a container |
 | `mise run test-e2e` | Run Playwright E2E + api tests in the docker test stack |

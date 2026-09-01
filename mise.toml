@@ -1,5 +1,7 @@
 [tools]
 bun = "1.3.10"
+lychee = "0.24.2"
+gitleaks = "8.30.1"
 
 [env]
 # Server
@@ -79,6 +81,18 @@ run = "bun run lint"
 [tasks.biome-check]
 description = "Check lint and format with Biome (no auto-fix, CI mode)"
 run = "bun run check:ci"
+
+[tasks.spellcheck]
+description = "Spell-check the codebase with cspell"
+run = "bun run spellcheck"
+
+[tasks.check-links]
+description = "Verify all markdown/source links resolve (lychee)"
+run = "bun run check-links"
+
+[tasks.scan-secrets]
+description = "Scan for secrets in the working tree (gitleaks detect)"
+run = "bun run scan-secrets"
 
 [tasks.type-check]
 description = "Type-check all packages"
@@ -177,6 +191,9 @@ description = "Run all CI checks (mirrors GitHub Actions ci.yml)"
 depends = ["install-ci"]
 run = """
 mise run biome-check
+mise run spellcheck
+mise run check-links
+mise run scan-secrets
 mise run type-check
 mise run test
 mise run install-playwright

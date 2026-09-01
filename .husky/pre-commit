@@ -1,13 +1,6 @@
-echo "🔍 Running pre-commit validation..."
-
-# Run validation (lint, format, type-check)
-bun run validate
-
-# Check exit code
-if [ $? -ne 0 ]; then
-  echo "❌ Pre-commit validation failed!"
-  echo "💡 Fix the errors above or use 'git commit --no-verify' to skip (not recommended)"
-  exit 1
-fi
-
-echo "✅ Pre-commit validation passed!"
+#!/usr/bin/env sh
+# Fail fast: if the secret scan fails, don't run lint-staged.
+# Run gitleaks via mise so the binary is on PATH (mise manages it).
+set -e
+mise exec -- gitleaks protect --staged --source . --config .gitleaks.toml --no-banner --redact
+bunx lint-staged

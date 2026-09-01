@@ -4,7 +4,7 @@ This document provides a high-level overview of the architecture of the Erledige
 
 ## Monorepo
 
-Erledigen is a monorepo managed with [Bun Workspaces](https://bun.sh/docs/cli/workspaces). This means that the client, server, and shared code are all in the same repository, but are treated as separate packages.
+Erledigen is a monorepo managed with [Bun Workspaces](https://bun.sh/docs/pm/workspaces). This means that the client, server, and shared code are all in the same repository, but are treated as separate packages.
 
 ### Project Structure
 

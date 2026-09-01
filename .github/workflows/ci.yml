@@ -29,6 +29,15 @@ jobs:
             - name: Check code quality (lint + format)
               run: mise run biome-check
 
+            - name: Spell check
+              run: mise run spellcheck
+
+            - name: Verify links
+              run: mise run check-links
+
+            - name: Scan for secrets
+              run: mise run scan-secrets
+
             - name: Type check
               run: mise run type-check
 

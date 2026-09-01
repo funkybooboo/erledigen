@@ -25,4 +25,4 @@ This directory contains the API tests for the Erledigen application, which are w
 
 ## 📚 Learn More
 
-To learn more about our testing strategy and how we use Bruno, check out the [**Testing**](../../docs/05-testing.md) documentation.
+To learn more about our testing strategy and how we use Bruno, check out the [**Testing**](../../docs/devs/standards/testing.md) documentation.

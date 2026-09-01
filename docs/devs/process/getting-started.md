@@ -161,4 +161,4 @@ All tasks are run via `mise run <task>`. Here's the full list:
 
 - **Bug reports**: [Open an issue](https://github.com/funkybooboo/erledigen/issues) with as much detail as possible.
 - **Feature requests**: [Open an issue](https://github.com/funkybooboo/erledigen/issues) to discuss the idea first.
-- **Pull requests**: Fork the repo, create a branch, make your changes, run `bun run validate`, then submit a PR. See [git-workflow.md](./git-workflow.md) for branching conventions and commit standards.
+- **Pull requests**: Fork the repo, create a branch, make your changes, run `bun run validate`, then submit a PR. See [git-workflow.md](../standards/git-workflow.md) for branching conventions and commit standards.
