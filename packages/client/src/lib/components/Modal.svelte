@@ -100,6 +100,7 @@
         box-shadow: var(--shadow-panel);
         max-width: 1400px;
         width: 96vw;
+        height: calc(100vh - 32px);
         max-height: calc(100vh - 32px);
         display: flex;
         flex-direction: column;
