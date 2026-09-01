@@ -40,9 +40,9 @@
         margin-left: 12px;
         padding: 4px 12px;
         background: var(--color-accent);
-        color: white;
+        color: var(--color-on-accent);
         border: none;
-        border-radius: 4px;
+        border-radius: 999px;
         cursor: pointer;
     }
 </style>

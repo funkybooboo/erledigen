@@ -1,51 +1,77 @@
 @import 'tailwindcss';
 
+/* ------------------------------------------------------------------
+ * Design tokens — ported from 37signals' Fizzy (github.com/basecamp/fizzy,
+ * app/assets/stylesheets/_global.css), the same design language behind
+ * Basecamp. Fizzy's OKLCH palette is mapped 1:1 onto this app's existing
+ * token names so every component reskins without any layout change.
+ *
+ *   surface           -> Fizzy canvas (white) / dark canvas
+ *   border            -> Fizzy ink-lighter (their --border token)
+ *   text*             -> Fizzy ink scale
+ *   accent            -> Fizzy --color-link (blue-dark)
+ *   on-accent         -> Fizzy ink-inverted (white light / black dark)
+ *   p1/p2/p3          -> Fizzy red/yellow/blue medium
+ * ------------------------------------------------------------------ */
 @theme {
-    --color-surface: #ffffff;
-    --color-surface-hover: #f5f5f5;
-    --color-surface-dim: #fafafa;
-    --color-background: #f8f8f8;
-    --color-border: #e5e5e5;
-    --color-border-focus: #a0a0a0;
-    --color-text: #1a1a1a;
-    --color-text-secondary: #6b6b6b;
-    --color-text-muted: #a3a3a3;
-    --color-accent: #2563eb;
-    --color-accent-hover: #1d4ed8;
-    --color-accent-light: #dbeafe;
-    --color-danger: #dc2626;
-    --color-danger-light: #fee2e2;
-    --color-success: #16a34a;
-    --color-success-light: #dcfce7;
-    --color-warning: #d97706;
-    --color-warning-light: #fef3c7;
-    --color-p1: #dc2626;
-    --color-p2: #d97706;
-    --color-p3: #2563eb;
+    --color-surface: oklch(100% 0 0);
+    --color-surface-hover: oklch(96% 0.002 252);
+    --color-surface-dim: oklch(98% 0.002 252);
+    --color-background: oklch(97.5% 0.002 252);
+    --color-border: oklch(92% 0.003 254);
+    --color-border-focus: oklch(56% 0.014 260);
+    --color-text: oklch(26% 0.05 264);
+    --color-text-secondary: oklch(66% 0.008 258);
+    --color-text-muted: oklch(84% 0.005 256);
+    --color-accent: oklch(57% 0.1895 260.46);
+    --color-accent-hover: oklch(40% 0.166 262);
+    --color-accent-light: oklch(92% 0.026 254);
+    --color-on-accent: oklch(100% 0 0);
+    --color-danger: oklch(59% 0.19 38);
+    --color-danger-light: oklch(96% 0.013 46);
+    --color-success: oklch(55% 0.162 147);
+    --color-success-light: oklch(96% 0.022 143);
+    --color-warning: oklch(58% 0.156 60);
+    --color-warning-light: oklch(96% 0.034 100);
+    --color-p1: oklch(66% 0.204 40);
+    --color-p2: oklch(74% 0.184 70);
+    --color-p3: oklch(66% 0.196 257.82);
+
+    /* Fizzy's layered soft shadow (light mode), used by panels/modals. */
+    --shadow-panel: 0 0 0 1px oklch(0% 0 0 / 5%),
+        0 2px 2px oklch(0% 0 0 / 5%),
+        4px 4px 8px oklch(0% 0 0 / 5%),
+        8px 8px 16px oklch(0% 0 0 / 5%);
 }
 
 [data-theme="dark"] {
-    --color-surface: #1e1e1e;
-    --color-surface-hover: #2a2a2a;
-    --color-surface-dim: #161616;
-    --color-background: #121212;
-    --color-border: #333333;
-    --color-border-focus: #666666;
-    --color-text: #e5e5e5;
-    --color-text-secondary: #a3a3a3;
-    --color-text-muted: #6b6b6b;
-    --color-accent: #3b82f6;
-    --color-accent-hover: #60a5fa;
-    --color-accent-light: #1e3a5f;
-    --color-danger: #ef4444;
-    --color-danger-light: #3b1818;
-    --color-success: #22c55e;
-    --color-success-light: #15301c;
-    --color-warning: #f59e0b;
-    --color-warning-light: #302410;
-    --color-p1: #ef4444;
-    --color-p2: #f59e0b;
-    --color-p3: #3b82f6;
+    --color-surface: oklch(20% 0.0195 232.58);
+    --color-surface-hover: oklch(25% 0.0204 252);
+    --color-surface-dim: oklch(22% 0.019 236);
+    --color-background: oklch(17% 0.016 232.58);
+    --color-border: oklch(30% 0.0178 260);
+    --color-border-focus: oklch(62% 0.0122 260);
+    --color-text: oklch(96.02% 0.0034 260);
+    --color-text-secondary: oklch(73.97% 0.009 260);
+    --color-text-muted: oklch(62% 0.0122 260);
+    --color-accent: oklch(74% 0.1293 256);
+    --color-accent-hover: oklch(86% 0.068 254);
+    --color-accent-light: oklch(30% 0.0452 262);
+    --color-on-accent: oklch(0% 0 0);
+    --color-danger: oklch(73.95% 0.139 42);
+    --color-danger-light: oklch(30% 0.032 36);
+    --color-success: oklch(73.99% 0.117 145);
+    --color-success-light: oklch(30% 0.03 148);
+    --color-warning: oklch(74.06% 0.136 80);
+    --color-warning-light: oklch(30% 0.026 50);
+    --color-p1: oklch(62% 0.154 40);
+    --color-p2: oklch(62.1% 0.146 70);
+    --color-p3: oklch(62% 0.159 258);
+
+    --shadow-panel: 0 0 0 1px oklch(0% 0 0 / 42%),
+        0 2px 10px -4px oklch(0% 0 0 / 60%),
+        0 4px 15px -6px oklch(0% 0 0 / 70%),
+        0 4px 8px -8px oklch(0% 0 0 / 80%);
 }
 
 /* ------------------------------------------------------------------
@@ -59,36 +85,46 @@
  * ------------------------------------------------------------------ */
 
 .btn {
-    padding: 6px 14px;
-    border: none;
-    border-radius: 6px;
+    padding: 6px 16px;
+    border: 1px solid transparent;
+    border-radius: 999px;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
-    transition: background 0.15s ease;
+    transition: filter 100ms ease-out;
 }
 
 .btn-primary {
     background: var(--color-accent);
-    color: white;
+    color: var(--color-on-accent);
 }
 
 .btn-primary:hover {
-    opacity: 0.9;
+    filter: brightness(0.9);
+}
+
+[data-theme="dark"] .btn-primary:hover {
+    filter: brightness(1.25);
 }
 
 .btn-primary:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
 }
 
+/* Fizzy's default button: white surface, hairline border, ink text. */
 .btn-secondary {
-    background: var(--color-border);
-    color: var(--color-text-secondary);
+    background: var(--color-surface);
+    border-color: var(--color-border);
+    color: var(--color-text);
 }
 
 .btn-secondary:hover {
-    background: var(--color-text-muted);
+    filter: brightness(0.95);
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+    filter: brightness(1.2);
 }
 
 .icon-btn {
@@ -99,7 +135,7 @@
     height: 28px;
     border: none;
     background: transparent;
-    border-radius: 6px;
+    border-radius: 999px;
     color: var(--color-text-secondary);
     cursor: pointer;
     transition: background 0.15s ease, color 0.15s ease;
@@ -157,13 +193,13 @@
     padding: 12px;
     background: var(--color-surface-dim);
     border: 1px solid var(--color-border);
-    border-radius: 8px;
+    border-radius: 10px;
 }
 
 .inline-form input {
     padding: 8px 10px;
     border: 1px solid var(--color-border);
-    border-radius: 6px;
+    border-radius: 8px;
     background: var(--color-surface);
     color: var(--color-text);
     font-size: 13px;
@@ -186,7 +222,7 @@
     }
 
     body {
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI Variable', 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
         color: var(--color-text);
         background-color: var(--color-background);
         margin: 0;

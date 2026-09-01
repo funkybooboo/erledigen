@@ -136,7 +136,7 @@
         align-items: center;
         gap: 8px;
         padding: 6px 4px;
-        border-radius: 4px;
+        border-radius: 6px;
         transition: background-color 0.1s;
         min-height: 36px;
     }
@@ -203,7 +203,7 @@
         font-size: 14px;
         padding: 2px 4px;
         border: 1px solid var(--color-accent);
-        border-radius: 4px;
+        border-radius: 6px;
         outline: none;
         background: var(--color-surface);
         color: var(--color-text);
@@ -256,7 +256,7 @@
         border: none;
         cursor: pointer;
         padding: 2px 4px;
-        border-radius: 3px;
+        border-radius: 6px;
         color: var(--color-text-secondary);
         transition: background-color 0.15s, color 0.15s;
     }

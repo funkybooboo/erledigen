@@ -361,9 +361,9 @@
 
     .save-btn {
         background: var(--color-accent);
-        color: white;
+        color: var(--color-on-accent);
         border: none;
-        border-radius: 6px;
+        border-radius: 999px;
         padding: 8px 20px;
         font-size: 14px;
         font-weight: 500;
@@ -516,7 +516,7 @@
 
     .delete-task-btn:hover {
         background: var(--color-danger);
-        color: white;
+        color: var(--color-on-accent);
     }
 
     .actions-spacer {

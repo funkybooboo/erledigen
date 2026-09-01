@@ -87,7 +87,7 @@
     .modal-backdrop {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.4);
+        background: rgba(0, 0, 0, 0.5);
         display: flex !important;
         align-items: center;
         justify-content: center;
@@ -96,14 +96,27 @@
 
     .modal {
         background: var(--color-surface);
-        border-radius: 8px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        border-radius: 12px;
+        box-shadow: var(--shadow-panel);
         max-width: 1400px;
         width: 96vw;
         max-height: calc(100vh - 32px);
         display: flex;
         flex-direction: column;
         outline: none;
+        animation: modal-in 150ms ease-out;
+    }
+
+    /* Fizzy dialog motion: subtle scale + fade on open. */
+    @keyframes modal-in {
+        from {
+            opacity: 0;
+            transform: scale(0.97);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
     }
 
     .modal-header {
@@ -131,7 +144,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 4px;
+        border-radius: 999px;
         transition: background-color 0.15s, color 0.15s;
     }
 

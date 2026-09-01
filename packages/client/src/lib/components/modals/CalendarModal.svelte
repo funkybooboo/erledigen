@@ -107,9 +107,9 @@
     .today-btn {
         align-self: flex-start;
         background: var(--color-accent);
-        color: white;
+        color: var(--color-on-accent);
         border: none;
-        border-radius: 6px;
+        border-radius: 999px;
         padding: 6px 12px;
         font-size: 13px;
         cursor: pointer;
@@ -189,7 +189,7 @@
 
     .day-cell.selected {
         background: var(--color-accent);
-        color: white;
+        color: var(--color-on-accent);
     }
 
     .day-cell.empty {

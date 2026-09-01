@@ -158,7 +158,7 @@
         top: -40px;
         left: 0;
         background: var(--color-accent);
-        color: white;
+        color: var(--color-on-accent);
         padding: 8px 16px;
         z-index: 200;
         font-size: 14px;
