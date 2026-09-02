@@ -65,18 +65,30 @@
     let addParsed = $derived(addArgument ? parseRecurrence(addArgument) : null);
 
     let running = $state(false);
+    /** Shown when Enter is pressed on "/add" with no argument. */
+    let emptyArgHint = $state(false);
 
     async function runFirstCommand() {
         const command = matchingCommands[0];
         if (!command || running) return;
         if (command.id === 'add') {
-            if (!addArgument) return;
+            if (!addArgument) {
+                emptyArgHint = true;
+                return;
+            }
             running = true;
             const result = await createFromText(addArgument, {
                 date: container.dateProvider.today(),
             });
             running = false;
-            if (!result) return;
+            if (!result) {
+                // Creation failed (network/server). The query is kept so the
+                // user can retry; the toast says what happened.
+                notificationStore.push('Could not create -- the text is kept', {
+                    kind: 'error',
+                });
+                return;
+            }
             if (result.kind === 'habit') {
                 notificationStore.push(habitCreatedText(result.schedule), { kind: 'success' });
             } else {
@@ -99,6 +111,11 @@
     }
 
     // --- search mode ------------------------------------------------------
+
+    // The no-argument hint clears as soon as an argument is typed.
+    $effect(() => {
+        if (addArgument) emptyArgHint = false;
+    });
 
     $effect(() => {
         if (isCommandMode || !query.trim()) {
@@ -136,7 +153,9 @@
         />
 
         {#if isCommandMode}
-            {#if addArgument}
+            {#if emptyArgHint && !addArgument && matchingCommands.length > 0}
+                <p class="empty">Type what to add after /add -- e.g. "/add water the plants".</p>
+            {:else if addArgument}
                 <ul class="results" role="listbox">
                     {#if matchingCommands.length > 0}
                         <li>

@@ -34,7 +34,12 @@
         if (!value) return;
 
         const result = await createFromText(value, { date, someDayGroupId });
-        if (!result) return;
+        if (!result) {
+            // Creation failed (network/server). The text is kept so the
+            // user can retry; the toast says what happened.
+            notificationStore.push('Could not create -- the text is kept', { kind: 'error' });
+            return;
+        }
         text = '';
 
         if (result.kind === 'habit') {
