@@ -41,6 +41,9 @@ jobs:
             - name: Type check
               run: mise run type-check
 
+            - name: Svelte check (fails on warnings)
+              run: mise run svelte-check
+
     unit-tests:
         name: Unit Tests
         runs-on: ubuntu-latest

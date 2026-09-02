@@ -104,6 +104,10 @@ run = "bun run scan-secrets"
 description = "Type-check all packages"
 run = "bun run type-check"
 
+[tasks.svelte-check]
+description = "Svelte diagnostics (a11y, unused CSS, runes misuse) -- fails on warnings"
+run = "bun run check:svelte"
+
 # -- Tests (dockerized: compose.test.yaml, no host volumes) -------------
 
 [tasks.test]
