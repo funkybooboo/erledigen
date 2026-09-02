@@ -92,6 +92,8 @@
         "keycap",
         "Keycap",
         "predev",
+        "worktree",
+        "reflogs",
         "undoable",
         "stackable",
         "strikethrough",
