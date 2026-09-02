@@ -135,8 +135,7 @@
     }
 
     function focusTodayAddInput() {
-        const todayInput = document.querySelector(`#day-${container.dateProvider.today()} .add-input`) as HTMLElement | null;
-        todayInput?.focus();
+        uiStore.requestAddInputFocus(container.dateProvider.today());
     }
 
     function deleteFocusedTask() {

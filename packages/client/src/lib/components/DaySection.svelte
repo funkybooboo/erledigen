@@ -5,7 +5,7 @@
     import { SvelteSet } from 'svelte/reactivity';
     import type { Task } from '@erledigen/shared';
     import { container } from '$lib/container';
-    import { preferencesStore } from '$lib/stores';
+    import { preferencesStore, uiStore } from '$lib/stores';
 
     let { id, dateStr, label, tasks }: { id: string; dateStr: string; label: string; tasks: Task[] } = $props();
 
@@ -29,6 +29,18 @@
     // unrelated re-render. Same trap the recurring stats Map hit.
     let newlyCreatedIds = new SvelteSet<string>();
 
+    // Instance of the section's InlineAddTask, for the store-driven focus
+    // request below (bind:this, no DOM queries).
+    let addInput: InlineAddTask;
+
+    // The global add-task binding (n/a) asks through the store; the section
+    // whose date matches claims the request and focuses its input.
+    $effect(() => {
+        if (uiStore.consumeAddInputFocus(dateStr)) {
+            addInput?.focusInput();
+        }
+    });
+
     function handleTaskCreated(id: string) {
         newlyCreatedIds.add(id);
         setTimeout(() => newlyCreatedIds.delete(id), 600);
@@ -51,7 +63,7 @@
             </div>
         {/each}
     </div>
-    <InlineAddTask date={dateStr} oncreated={handleTaskCreated} />
+    <InlineAddTask bind:this={addInput} date={dateStr} oncreated={handleTaskCreated} />
 </section>
 
 <style>

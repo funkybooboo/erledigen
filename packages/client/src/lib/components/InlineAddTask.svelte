@@ -16,6 +16,13 @@
     let text = $state('');
     let inputEl: HTMLInputElement;
 
+    /** Focus this input from outside -- the global add-task binding (n/a)
+     *  routes here through uiStore.requestAddInputFocus instead of reaching
+     *  into section DOM from the layout. */
+    export function focusInput(): void {
+        inputEl?.focus();
+    }
+
     // Live TeuxDeux-style detection: a trailing recurrence phrase turns the
     // input into a habit. Parsed reactively so the hint updates as you type.
     let parsed = $derived(text.trim() ? parseRecurrence(text.trim()) : null);
