@@ -1,13 +1,13 @@
 /**
  * Single source of truth for every keyboard shortcut in the app.
  *
- * The same registry drives both user-facing surfaces, so they can never
- * drift apart:
+ * The same registry drives all three surfaces, so they can never drift
+ * apart:
  *   - the HelpModal shortcut table (HelpModal.svelte)
  *   - the hover tooltips (`use:tooltip` from lib/tooltip.ts)
- *
- * The keydown handlers in routes/+layout.svelte implement these bindings;
- * if you add or change a binding here, update the handler (and vice versa).
+ *   - the dispatch itself: lib/keyboard.ts matches KeyboardEvents
+ *     against these binding strings, and lib/keybindingActions.ts supplies
+ *     the handler for every id (TypeScript enforces the pairing)
  *
  * Binding string conventions:
  *   - each entry in `bindings` is one *alternate way* to trigger the action
