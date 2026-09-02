@@ -52,6 +52,6 @@ target design if a hosted deployment is ever added.
 ## Local Mirror
 
 `mise run ci` runs everything CI runs, including e2e + api + build + the
-bundle-size check. Run it before opening a PR. Note the port warning in
-[getting-started.md](getting-started.md): CI scripts kill whatever holds
-ports 3000/4000, without asking.
+bundle-size check. Run it before opening a PR. The whole pipeline is
+dockerized (`tools/ci.sh`): no local servers are started or killed, so it
+is safe to run next to a dev stack.

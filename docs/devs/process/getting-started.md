@@ -68,16 +68,20 @@ This starts the docker dev stack (server + client, attached). Source is bind-mou
 > The dev stack publishes ports 3000/4000 on the host -- stop any locally-running servers first (the `predev` bun script does this when running outside docker).
 >
 > **These scripts kill whatever holds ports 3000/4000, without asking**:
-> `predev` (3000+4000), `pretest:e2e*` (4000), and `mise run ci`. Never run
-> them while a dev stack or manual server on those ports belongs to someone
-> else -- check `lsof -ti:3000,4000` first. (The prod stack never collides:
-> single published port, default 8080.)
+> `predev` (3000+4000) and `pretest:e2e*` (4000). Never run them while a dev
+> stack or manual server on those ports belongs to someone else -- check
+> `lsof -ti:3000,4000` first. (The prod stack never collides: single
+> published port, default 8080. `mise run ci` no longer starts or kills any
+> local servers -- its tests run in the dockerized test stack.)
 
 ### Run one service at a time
 
+The dev stack's services are just compose services -- start either one
+attached directly (no dedicated mise task for this):
+
 ```bash
-mise run server   # docker compose up server
-mise run client   # docker compose up client
+docker compose up server
+docker compose up client
 ```
 
 ### Production stack
@@ -98,20 +102,19 @@ mise run prod-stop   # stop (prod-data volume is kept)
 
 ## Available Tasks
 
-All tasks are run via `mise run <task>`. App-running tasks (dev, prod, tests) execute in containers and never touch your host environment; repo-management tasks (install, format, lint, type-check, build, clean, ci) run locally against the working tree.
+All tasks are run via `mise run <task>` (pass arguments with `mise run <task> -- <args>`). App-running tasks (dev, prod, tests) execute in containers and never touch your host environment; repo-management tasks (install, format, lint, type-check, build, clean, ci) run locally against the working tree. Anything with real logic behind it lives in the `tools/` scripts (build, build-images, clean, update-version, release, test-stack, ci) -- mise tasks are thin aliases over those, so you can also call the scripts directly.
 
 ### Dependencies
 | Task | Description |
 |------|-------------|
 | `mise run install` | Install all dependencies (`bun install`) |
 | `mise run install-ci` | Install with a frozen lockfile (what CI uses) |
-| `mise run install-playwright` | Install Playwright browsers (local runs only; the docker test image bundles Chromium) |
+| `mise run install-playwright` | Install Playwright browsers (local runs only; the docker test image bundles Chromium). Arch Linux hosts: run `tools/setup-playwright-arch.sh` first -- it bridges the system libs Playwright's browsers expect |
 
 ### Dev / prod servers (dockerized)
 | Task | Description |
 |------|-------------|
 | `mise run dev` | Start the docker dev stack (server + client, attached) |
-| `mise run client` / `mise run server` | Start just one dev container |
 | `mise run dev-refresh` | Rebuild dev images and recreate dev containers (after changing dependencies) |
 | `mise run prod` / `mise run prod-stop` / `mise run prod-logs` | Build+start / stop / follow the docker prod stack |
 | `mise run storybook` | Start Storybook (port 6006, local) |
@@ -140,13 +143,19 @@ All tasks are run via `mise run <task>`. App-running tasks (dev, prod, tests) ex
 
 The docker test stack (`compose.test.yaml`) is fully self-contained: no bind mounts, no named volumes, `STORAGE_ADAPTER=memory`, and the bundled Chromium from the Playwright image. Local Playwright runs (`bun run test:e2e`) auto-start an ephemeral in-memory server; `bun run test:e2e:no-server` skips spawning servers and attaches to an already-running stack.
 
-### Build / clean / CI
+### Build / clean / CI / release / maintenance
 | Task | Description |
 |------|-------------|
-| `mise run build` | Build all packages (shared + server via bun build, client via vite) |
+| `mise run build` | Build the app packages locally (shared + server via bun build, client via vite) + client bundle-size budget (`tools/build.sh`) |
+| `mise run build-images` | Build docker images without starting a stack: `dev` / `test` / `prod` / `all` (`tools/build-images.sh`) |
 | `mise run build-storybook` | Build Storybook |
-| `mise run clean` | Remove build artifacts, caches, and node_modules |
-| `mise run ci` | Full local CI mirror (mirrors GitHub Actions, incl. e2e + api + build + bundle-size check) |
+| `mise run clean` | Remove all build artifacts, caches, and node_modules (`tools/clean-repo.sh`; `-n` for a dry run) |
+| `mise run ci` | Full local CI mirror -- mirrors GitHub Actions, fully dockerized tests (`tools/ci.sh`) |
+| `mise run update-version` | Bump the version in all four package.json files + bun.lock: `major` / `minor` / `patch` / `X.Y.Z` (`tools/update-version.sh`) |
+| `mise run release` | Cut a release: quality gates + version bump + release commit + annotated tag (`tools/release.sh`; `--full` adds the dockerized integration suite, `--push` pushes) |
+| `mise run doctor` | Pre-flight environment check: tool pins, cross-file version sync (mise.toml/Dockerfile/bun.lock), docker, ports, repo state (`tools/doctor.sh`) |
+| `mise run update-deps` | Update dependencies the safe way (per-workspace `bun update`; `--fresh` re-resolves the lockfile to pull transitive fixes; gates after) (`tools/update-deps.sh`) |
+| `mise run changelog` | Generate release notes from the commit log; `--write` prepends the section to CHANGELOG.md (`tools/changelog.sh`) |
 
 ---
 

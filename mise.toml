@@ -13,29 +13,28 @@ RATE_LIMIT_RPM = "600"
 VITE_API_URL = "http://localhost:4000"
 VITE_PORT = "3000"
 
-# -- Dev / prod servers (dockerized) ------------------------------------------
+# -- How this file is organized -----------------------------------------------
+#
+# mise is the task REGISTRY; the tools/ scripts hold the LOGIC. Anything
+# longer than a plain one-liner (test-stack orchestration, build + bundle
+# budget, version bumps, releases, cleaning, the local CI mirror) lives in
+# tools/*.sh and the tasks below just delegate to it. Pass task arguments
+# through with `mise run <task> -- <args>` (e.g. `mise run update-version --
+# patch`).
 #
 # The app itself runs in containers (compose.yaml); nothing here starts
-# servers on the local filesystem anymore. Repo-management tasks (install,
-# format, lint, type-check, build, clean, ci) further below still run locally
-# against the working tree.
+# servers on the local filesystem anymore.
 #
 # NOTE: the dev stack publishes ports 3000/4000 -- stop any locally-running
 # servers first or the port publish will fail. The prod stack
 # (compose.prod.yaml) is independent: single port 8080 (PROD_PORT), so it
 # can run alongside dev.
 
+# -- Dev / prod servers (dockerized) ------------------------------------------
+
 [tasks.dev]
 description = "Start the docker dev stack (server + client, attached)"
 run = "docker compose up"
-
-[tasks.client]
-description = "Start only the dev client container (attached)"
-run = "docker compose up client"
-
-[tasks.server]
-description = "Start only the dev server container (attached)"
-run = "docker compose up server"
 
 [tasks.prod]
 description = "Build and start the docker prod stack (detached)"
@@ -52,7 +51,7 @@ run = "docker compose -f compose.prod.yaml logs -f"
 [tasks.dev-refresh]
 description = "Rebuild dev images and recreate dev containers (run after changing dependencies)"
 run = """
-docker compose build server client
+tools/build-images.sh dev
 docker compose up -d --force-recreate --remove-orphans server client
 """
 
@@ -74,7 +73,7 @@ run = "bun install --frozen-lockfile"
 description = "Install Playwright browsers"
 run = "bunx playwright install"
 
-# -- Code quality --------------------------------------------------------------
+# -- Code quality (local, one-line wrappers over package.json scripts) --------
 
 [tasks.format]
 description = "Format all files with Biome (auto-fix)"
@@ -112,42 +111,19 @@ run = "bun run check:svelte"
 
 [tasks.test]
 description = "Run all unit tests in a container"
-run = """
-docker compose -f compose.test.yaml build unit
-docker compose -f compose.test.yaml run --rm unit
-"""
+run = "tools/test-stack.sh unit"
 
 [tasks.test-e2e]
 description = "Run Playwright e2e + api tests in the docker test stack"
-run = """
-docker compose -f compose.test.yaml build
-docker compose -f compose.test.yaml up -d server-test client-test
-docker compose -f compose.test.yaml run --rm e2e
-status=$?
-docker compose -f compose.test.yaml down
-exit $status
-"""
+run = "tools/test-stack.sh e2e"
 
 [tasks.test-api]
 description = "Run Bruno API tests against the dockerized test server"
-run = """
-docker compose -f compose.test.yaml build
-docker compose -f compose.test.yaml up -d server-test
-docker compose -f compose.test.yaml run --rm api
-docker compose -f compose.test.yaml down
-"""
+run = "tools/test-stack.sh api"
 
 [tasks.test-all]
 description = "Run Bruno API tests and Playwright e2e tests in the docker test stack"
-run = """
-docker compose -f compose.test.yaml build
-docker compose -f compose.test.yaml up -d server-test client-test
-docker compose -f compose.test.yaml run --rm api
-docker compose -f compose.test.yaml run --rm e2e
-status=$?
-docker compose -f compose.test.yaml down
-exit $status
-"""
+run = "tools/test-stack.sh all"
 
 # -- Tests (local; quick feedback loops that only touch the repo) -------------
 
@@ -162,33 +138,50 @@ run = "bun run test:coverage"
 # -- Clean ---------------------------------------------------------------------
 
 [tasks.clean]
-description = "Remove all build artifacts, caches, and node_modules"
-run = """
-find . -type d -name node_modules -prune -exec rm -rf {} +
-find . -type d -name dist -prune -exec rm -rf {} +
-find . -type d -name build -prune -exec rm -rf {} +
-find . -type d -name .vite -prune -exec rm -rf {} +
-find . -type d -name .biome-cache -prune -exec rm -rf {} +
-find . -type d -name coverage -prune -exec rm -rf {} +
-find . -name '*.tsbuildinfo' -delete
-rm -rf storybook-static *storybook.log
-rm -rf test-results/
-"""
+description = "Remove all build artifacts, caches, and node_modules (tools/clean-repo.sh)"
+run = "tools/clean-repo.sh"
 
 # -- Build ---------------------------------------------------------------------
+# Two different builds: `build` compiles the app packages locally;
+# `build-images` builds the docker images. The compose stacks also build
+# their images on demand, so build-images is for pre-warming or verifying.
 
 [tasks.build]
-description = "Build all packages (shared + server via bun build, client via vite)"
-run = """
-cd packages/shared && bun run build
-cd ../server && bun run build
-cd ../client && bun run build
-"""
+description = "Build the app packages locally (shared/server via bun build, client via vite) + bundle-size budget"
+run = "tools/build.sh"
+
+[tasks.build-images]
+description = "Build docker images for a stack: dev | test | prod | all (tools/build-images.sh)"
+run = "tools/build-images.sh"
 
 [tasks.build-storybook]
 description = "Build Storybook"
 dir = "packages/client"
 run = "bun run build-storybook"
+
+# -- Release -------------------------------------------------------------------
+
+[tasks.update-version]
+description = "Bump the version everywhere: major | minor | patch | X.Y.Z (tools/update-version.sh)"
+run = "tools/update-version.sh"
+
+[tasks.release]
+description = "Cut a release: gates + version bump + commit + tag. Args: [--full] [--push] <bump> (tools/release.sh)"
+run = "tools/release.sh"
+
+# -- Maintenance ----------------------------------------------------------------
+
+[tasks.doctor]
+description = "Pre-flight environment check: tools, version sync, docker, ports, repo state (tools/doctor.sh)"
+run = "tools/doctor.sh"
+
+[tasks.update-deps]
+description = "Update dependencies the safe way. Args: [--fresh] [--yes] [--no-gates] [-n] (tools/update-deps.sh)"
+run = "tools/update-deps.sh"
+
+[tasks.changelog]
+description = "Generate release notes from the commit log. Args: [--write] [<from> [<to>]] (tools/changelog.sh)"
+run = "tools/changelog.sh"
 
 # -- CI ------------------------------------------------------------------------
 
@@ -197,35 +190,6 @@ description = "Run security audit"
 run = "bun audit"
 
 [tasks.ci]
-description = "Run all CI checks (mirrors GitHub Actions ci.yml)"
-depends = ["install-ci"]
-run = """
-mise run biome-check
-mise run spellcheck
-mise run check-links
-mise run scan-secrets
-mise run type-check
-mise run test
-mise run install-playwright
-kill $(lsof -ti:3000,4000) 2>/dev/null || true
-(cd packages/server && bun run start) &
-SERVER_PID=$!
-bunx wait-on http-get://localhost:4000/api/health --timeout 30000
-(cd packages/client && bun run dev) &
-CLIENT_PID=$!
-bunx wait-on http-get://localhost:3000 --timeout 30000
-mise run test-e2e
-mise run test-api
-kill $SERVER_PID $CLIENT_PID 2>/dev/null || true
-mise run build
-CLIENT_SIZE=$(du -sb packages/client/dist 2>/dev/null | cut -f1 || echo "0")
-MAX_SIZE=524288
-echo "Client bundle size: $CLIENT_SIZE bytes"
-if [ $CLIENT_SIZE -gt $MAX_SIZE ]; then
-  echo "Client bundle exceeds $MAX_SIZE bytes (512KB)"
-  exit 1
-fi
-echo "Client bundle size OK"
-mise run build-storybook
-mise run security || echo "warning: security vulnerabilities found - review required"
-"""
+description = "Run all CI checks locally (mirrors GitHub Actions ci.yml; fully dockerized tests)"
+run = "tools/ci.sh"
+

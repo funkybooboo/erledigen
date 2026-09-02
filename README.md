@@ -59,7 +59,6 @@ That's it! The client runs at `http://localhost:3000` and the server at `http://
 | Command | What it does |
 |---------|--------------|
 | `mise run dev` | Start the docker dev stack (server + client) |
-| `mise run client` / `mise run server` | Start just one dev container |
 | `mise run prod` / `mise run prod-stop` | Build + start / stop the docker prod stack |
 | `mise run dev-refresh` | Rebuild dev images after changing dependencies |
 | `mise run storybook` | Start Storybook on port 6006 (local, not dockerized) |
@@ -71,7 +70,13 @@ That's it! The client runs at `http://localhost:3000` and the server at `http://
 | `mise run test` | Run all unit tests in a container |
 | `mise run test-e2e` | Run Playwright E2E + api tests in the docker test stack |
 | `mise run test-api` | Run Bruno API tests in the docker test stack |
-| `mise run build` | Build all packages (local, artifacts in the repo) |
+| `mise run build` | Build the app packages locally (artifacts in the repo) + bundle-size budget |
+| `mise run build-images` | Build docker images without starting a stack: dev / test / prod / all |
+| `mise run update-version` | Bump the version everywhere (major / minor / patch / X.Y.Z) |
+| `mise run release` | Cut a release: gates + version bump + release commit + tag |
+| `mise run doctor` | Pre-flight environment check (tools, versions, docker, ports, repo state) |
+| `mise run update-deps` | Update dependencies the safe way (in-place; `--fresh` re-resolves for transitive fixes) |
+| `mise run changelog` | Generate release notes from the commit log |
 | `mise run ci` | Run the full local CI mirror (local, mirrors GitHub Actions) |
 | `mise run clean` | Remove build artifacts and caches |
 
