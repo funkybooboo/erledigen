@@ -11,6 +11,7 @@
     import { LuFlame, LuPencil, LuPlus, LuRepeat, LuTrash2 } from 'svelte-icons-pack/lu';
     import {
         WEEKDAY_ABBREVIATIONS,
+        addDays,
         describeRecurrence,
         parseRecurrence,
         type RecurringFrequency,
@@ -128,9 +129,10 @@
     }
 
     function horizonEnd(): string {
-        const d = new Date(`${container.dateProvider.today()}T00:00:00`);
-        d.setDate(d.getDate() + GENERATE_HORIZON_DAYS);
-        return d.toISOString().split('T')[0] ?? container.dateProvider.today();
+        // Pure key math: a local-midnight Date read back through
+        // toISOString() lands the horizon a day early in positive UTC
+        // offsets (see shared utils/dateKeys).
+        return addDays(container.dateProvider.today(), GENERATE_HORIZON_DAYS);
     }
 
     async function saveHabit() {
