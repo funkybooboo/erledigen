@@ -117,9 +117,9 @@ function deleteFocusedTask(): boolean {
         }
     }
     if (preferencesStore.deleteConfirmation === 'confirm') {
-        if (window.confirm(`Delete "${task.text}"?`)) {
-            void doDelete();
-        }
+        void uiStore.confirm(`Delete "${task.text}"?`).then(ok => {
+            if (ok) void doDelete();
+        });
     } else {
         void doDelete();
     }
@@ -231,8 +231,9 @@ export function handleGlobalKeydown(e: KeyboardEvent): void {
         return;
     }
 
-    // No shortcuts under an open overlay.
-    if (uiStore.activeModal) {
+    // No shortcuts under an open overlay (a modal or a pending
+    // confirmation).
+    if (uiStore.activeModal || uiStore.confirmRequest) {
         matcher.cancel();
         return;
     }

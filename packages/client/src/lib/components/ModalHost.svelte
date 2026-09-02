@@ -10,6 +10,7 @@
     import SettingsModal from './modals/SettingsModal.svelte';
     import HelpModal from './modals/HelpModal.svelte';
     import TaskDetailModal from './modals/TaskDetailModal.svelte';
+    import ConfirmModal from './modals/ConfirmModal.svelte';
 
     let activeModal = $derived(uiStore.activeModal);
 
@@ -38,4 +39,13 @@
     <HelpModal onclose={close} />
 {:else if activeModal === 'taskDetail'}
     <TaskDetailModal onclose={close} />
+{/if}
+
+<!-- Destructive-action confirmations layer on top of any modal (or on the
+     bare app when triggered by the keyboard delete binding). -->
+{#if uiStore.confirmRequest}
+    <ConfirmModal
+        message={uiStore.confirmRequest.message}
+        confirmLabel={uiStore.confirmRequest.confirmLabel}
+    />
 {/if}

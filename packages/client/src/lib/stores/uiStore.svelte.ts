@@ -30,6 +30,13 @@ class UIStore {
      *  store-driven, so no component reaches into another's DOM by id. */
     addInputFocus = $state<{ date: string } | null>(null);
 
+    /** Pending destructive-action confirmation, rendered as ConfirmModal. */
+    confirmRequest = $state<{
+        message: string;
+        confirmLabel: string;
+        resolve: (ok: boolean) => void;
+    } | null>(null);
+
     focusTask(id: string | null) {
         this.focusedTaskId = id;
     }
@@ -53,6 +60,25 @@ class UIStore {
         if (this.addInputFocus?.date !== date) return false;
         this.addInputFocus = null;
         return true;
+    }
+
+    /** Ask the user to confirm a destructive action through ConfirmModal
+     *  (never window.confirm -- a blocking dialog freezes the whole app,
+     *  including toasts and live sync). Resolves false when dismissed. */
+    confirm(message: string, confirmLabel = 'Delete'): Promise<boolean> {
+        // A second request while one is pending supersedes it.
+        this.resolveConfirm(false);
+        return new Promise(resolve => {
+            this.confirmRequest = { message, confirmLabel, resolve };
+        });
+    }
+
+    /** Settle the pending confirmation (ConfirmModal buttons, or its
+     *  Modal's close paths). */
+    resolveConfirm(ok: boolean) {
+        const request = this.confirmRequest;
+        this.confirmRequest = null;
+        request?.resolve(ok);
     }
 
     openModal(modal: ModalType) {
