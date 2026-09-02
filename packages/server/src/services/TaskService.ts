@@ -37,7 +37,10 @@ export class TaskService {
         return tasks;
     }
 
-    async completeTask(id: string, input: UpdateTaskInput): Promise<Task | null> {
+    /** Update a task; when the last child completes, complete the parent.
+     *  (This is the general PUT /api/tasks/:id path -- the parent roll-up
+     *  is its only completion-specific behavior.) */
+    async updateTask(id: string, input: UpdateTaskInput): Promise<Task | null> {
         const task = await this.taskRepo.update(id, input);
         if (!task) return null;
 

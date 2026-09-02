@@ -1,4 +1,4 @@
-export { addDays, daysBetween, keyFromParts, splitKey, weekdayOf } from './dateKeys';
+export { addDays, dateRangeKeys, daysBetween, keyFromParts, splitKey, weekdayOf } from './dateKeys';
 export { describeRecurrence, formatFrequency, formatTime12 } from './formatFrequency';
 export { formatTags } from './formatTags';
 export { groupTasksByDate } from './groupTasksByDate';

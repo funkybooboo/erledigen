@@ -51,11 +51,7 @@ export {
     UnauthorizedError,
     ValidationError,
 } from './errors/AppError';
-export type {
-    ApiResponse,
-    ErrorResponseBody,
-    TaskQueryParams,
-} from './types/api';
+export type { ApiResponse, ErrorResponseBody } from './types/api';
 // Types
 export type { CreateProjectInput, Project, UpdateProjectInput } from './types/project';
 export type {
@@ -106,6 +102,7 @@ export {
 // Utilities
 export {
     addDays,
+    dateRangeKeys,
     daysBetween,
     describeRecurrence,
     formatFrequency,

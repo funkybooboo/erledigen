@@ -178,12 +178,17 @@ Each of these has cost real debugging time in this repo.
 The TypeScript compiler (`strict`, `noImplicitAny`,
 `useUnknownInCatchVariables`, `exactOptionalPropertyTypes`, ...) and Biome
 (`noExplicitAny`, `useImportType`, `noNonNullAssertion`, `noUnusedVariables`,
-`noUnusedImports`, ...) enforce most of the above automatically.
+`noUnusedImports`, ...) enforce most of the above automatically. Biome's
+`files.includes` covers only `*.ts`/`*.tsx`/`*.json` -- it cannot parse
+`.svelte` files; Svelte components are linted instead by `svelte-check`
+(a11y rules, unused CSS, runes misuse), which CI runs with
+`--fail-on-warnings`.
 
 ```bash
 bun run format      # Biome format (auto-fix)
 bun run lint        # Biome lint (auto-fix)
 bun run type-check  # tsc --noEmit for all packages
+bun run check:svelte  # svelte-check: a11y, unused CSS, runes misuse
 bun run validate    # repo-wide checks (what CI runs)
 ```
 

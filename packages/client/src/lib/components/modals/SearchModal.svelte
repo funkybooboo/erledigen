@@ -6,11 +6,20 @@
     import { describeRecurrence, parseRecurrence, type Task } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
     import { LuCheck, LuCircle, LuPlus, LuRepeat } from 'svelte-icons-pack/lu';
+    import { onMount } from 'svelte';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
     let query = $state('');
     let results = $state<Task[]>([]);
+    let searchInput = $state<HTMLInputElement | undefined>(undefined);
+
+    // Focus programmatically instead of the `autofocus` attribute: the
+    // attribute form is an a11y anti-pattern (it steals focus from assistive
+    // tech without context) and svelte-check flags it.
+    onMount(() => {
+        searchInput?.focus();
+    });
 
     // --- command mode ----------------------------------------------------
     // A leading "/" turns the search box into a command palette. Commands
@@ -122,10 +131,10 @@
         <input
             class="search-input"
             type="text"
+            bind:this={searchInput}
             bind:value={query}
             placeholder="Search tasks... (or type / for commands)"
             aria-label="Search tasks"
-            autofocus
             onkeydown={handleKeydown}
         />
 

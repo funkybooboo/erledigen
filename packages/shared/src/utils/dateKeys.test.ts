@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { addDays, daysBetween, keyFromParts, splitKey, weekdayOf } from './dateKeys';
+import { addDays, dateRangeKeys, daysBetween, keyFromParts, splitKey, weekdayOf } from './dateKeys';
 
 describe('splitKey / keyFromParts', () => {
     it('splits a key into year, 0-based month, day', () => {
@@ -58,5 +58,33 @@ describe('weekdayOf', () => {
     it('agrees across a known week', () => {
         const days = ['2026-09-01', '2026-09-02', '2026-09-03', '2026-09-04', '2026-09-05'];
         expect(days.map(weekdayOf)).toEqual([2, 3, 4, 5, 6]); // Tue..Sat
+    });
+});
+
+describe('dateRangeKeys', () => {
+    it('lists every day in an inclusive range', () => {
+        expect(dateRangeKeys('2026-09-01', '2026-09-04')).toEqual([
+            '2026-09-01',
+            '2026-09-02',
+            '2026-09-03',
+            '2026-09-04',
+        ]);
+    });
+
+    it('rolls across month and year boundaries', () => {
+        expect(dateRangeKeys('2026-12-30', '2027-01-02')).toEqual([
+            '2026-12-30',
+            '2026-12-31',
+            '2027-01-01',
+            '2027-01-02',
+        ]);
+    });
+
+    it('returns a single key for a one-day range', () => {
+        expect(dateRangeKeys('2026-09-01', '2026-09-01')).toEqual(['2026-09-01']);
+    });
+
+    it('returns an empty array for an inverted range instead of looping', () => {
+        expect(dateRangeKeys('2026-09-04', '2026-09-01')).toEqual([]);
     });
 });

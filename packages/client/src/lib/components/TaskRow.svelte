@@ -6,7 +6,7 @@
     import { LuCheck, LuCircle, LuRepeat, LuFileText, LuX } from 'svelte-icons-pack/lu';
     import { tooltip } from '$lib/tooltip';
 
-    let { task, dateStr = '', isNew = false }: { task: Task; dateStr?: string; isNew?: boolean } = $props();
+    let { task, isNew = false }: { task: Task; isNew?: boolean } = $props();
 
     let isEditing = $derived(uiStore.editingTaskId === task.id);
     let isFocused = $derived(uiStore.focusedTaskId === task.id);

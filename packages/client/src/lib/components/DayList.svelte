@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount, onDestroy, tick, untrack } from 'svelte';
     import { taskStore, preferencesStore, dateViewStore, recurringTaskStore, uiStore } from '$lib/stores';
-    import { groupTasksByDate, SOMEDAY_KEY } from '@erledigen/shared';
+    import { addDays, dateRangeKeys, groupTasksByDate, SOMEDAY_KEY } from '@erledigen/shared';
     import { applyFilters } from '$lib/filters';
     import { container } from '$lib/container';
     import DaySection from './DaySection.svelte';
@@ -14,22 +14,12 @@
     // Trigger extension slightly before the edge is reached.
     const ROOT_MARGIN_PX = 400;
 
-    function dateOffset(dateStr: string, days: number): string {
-        const d = new Date(dateStr + 'T00:00:00');
-        d.setDate(d.getDate() + days);
-        return d.toISOString().split('T')[0];
-    }
-
-    function dateRange(start: string, end: string): string[] {
-        const dates: string[] = [];
-        const current = new Date(start + 'T00:00:00');
-        const endDate = new Date(end + 'T00:00:00');
-        while (current <= endDate) {
-            dates.push(current.toISOString().split('T')[0]);
-            current.setDate(current.getDate() + 1);
-        }
-        return dates;
-    }
+    // All day-key arithmetic goes through the shared dateKeys helpers
+    // (addDays / dateRangeKeys): pure Gregorian math with no Date objects.
+    // The previous local implementations built a local-midnight Date and
+    // read it back through toISOString() -- a UTC projection that shifted
+    // every generated key one day into the past in positive-offset host
+    // zones (UTC+ zones), exactly the trap dateKeys exists to prevent.
 
     function formatDateHeader(dateStr: string): string {
         // Delegate to the provider so the weekday/date are anchored to the
@@ -49,15 +39,20 @@
     let tasksByDate = $derived(groupTasksByDate(filteredTasks));
     let dateKeys = $derived([...tasksByDate.keys()].filter(k => k !== SOMEDAY_KEY).sort());
 
-    let visibleStartDate = $state(dateOffset(todayStr, -CHUNK_DAYS));
-    let visibleEndDate = $state(dateOffset(todayStr, CHUNK_DAYS));
+    // The initial window anchors to mount-time today ON PURPOSE: a
+    // timezone preference loading later moves "today" without yanking
+    // the view; navigation requests re-center the window on demand.
+    // svelte-ignore state_referenced_locally
+    let visibleStartDate = $state(addDays(todayStr, -CHUNK_DAYS));
+    // svelte-ignore state_referenced_locally
+    let visibleEndDate = $state(addDays(todayStr, CHUNK_DAYS));
 
     let displayDateKeys = $derived.by(() => {
         // Empty days always render -- nothing is hidden. Every day in the
         // visible window is shown whether it has tasks or not, so the list
         // is always a clean contiguous calendar rail. today and any pending
         // navigation target are inside this range by construction.
-        return dateRange(visibleStartDate, visibleEndDate);
+        return dateRangeKeys(visibleStartDate, visibleEndDate);
     });
 
     // --- infinite scroll state ---
@@ -127,13 +122,13 @@
         if (isExtendingUp) return;
 
         isExtendingUp = true;
-        const newStart = dateOffset(visibleStartDate, -CHUNK_DAYS);
-        const chunkEnd = dateOffset(visibleStartDate, -1);
+        const newStart = addDays(visibleStartDate, -CHUNK_DAYS);
+        const chunkEnd = addDays(visibleStartDate, -1);
         const anchor = pickAnchorEl();
         const oldTop = anchor ? anchor.getBoundingClientRect().top : 0;
         visibleStartDate = newStart;
         // Slide: trim the bottom so the rendered span stays bounded.
-        const desiredEnd = dateOffset(newStart, MAX_RENDER_DAYS);
+        const desiredEnd = addDays(newStart, MAX_RENDER_DAYS);
         if (visibleEndDate > desiredEnd) visibleEndDate = desiredEnd;
         ensureRecurringInstances(newStart, chunkEnd);
         // Preserve scroll: prepend above + trim below both shift content;
@@ -151,10 +146,10 @@
         if (isExtendingDown) return;
 
         isExtendingDown = true;
-        const chunkStart = dateOffset(visibleEndDate, 1);
-        const newEnd = dateOffset(visibleEndDate, CHUNK_DAYS);
+        const chunkStart = addDays(visibleEndDate, 1);
+        const newEnd = addDays(visibleEndDate, CHUNK_DAYS);
         // Slide: trim the top so the rendered span stays bounded.
-        const desiredStart = dateOffset(newEnd, -MAX_RENDER_DAYS);
+        const desiredStart = addDays(newEnd, -MAX_RENDER_DAYS);
         const anchor = pickAnchorEl();
         const oldTop = anchor ? anchor.getBoundingClientRect().top : 0;
         if (desiredStart > visibleStartDate) visibleStartDate = desiredStart;
@@ -235,8 +230,8 @@
                 // of stretching one end, so a far jump never renders thousands
                 // of days at once. Jump instantly since the DOM was replaced.
                 const half = Math.floor(MAX_RENDER_DAYS / 2);
-                visibleStartDate = dateOffset(target, -half);
-                visibleEndDate = dateOffset(target, half);
+                visibleStartDate = addDays(target, -half);
+                visibleEndDate = addDays(target, half);
                 tick().then(() => scrollToDate(target, false));
             } else {
                 scrollToDate(target, true);

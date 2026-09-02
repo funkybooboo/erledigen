@@ -65,7 +65,12 @@
 
     // --- own infinite-scroll window (months) ---
 
+    // The initial window anchors to mount-time today ON PURPOSE: a
+    // timezone preference loading later moves "today" without yanking
+    // the rail; navigation requests re-center the window on demand.
+    // svelte-ignore state_referenced_locally
     let visibleStart = $state(monthOffset(toMonthKey(todayStr), -CHUNK_MONTHS));
+    // svelte-ignore state_referenced_locally
     let visibleEnd = $state(monthOffset(toMonthKey(todayStr), CHUNK_MONTHS));
 
     let rows = $derived(monthRange(visibleStart, visibleEnd));
@@ -345,10 +350,6 @@
     }
 
     .today-dot.visible {
-        background: var(--color-accent);
-    }
-
-    .month-row:hover .today-dot.visible {
         background: var(--color-accent);
     }
 

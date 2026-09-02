@@ -27,7 +27,7 @@ class RecurringTaskStore extends EntityStore<
         super(recurringTaskService);
     }
 
-    get tasks(): RecurringTask[] {
+    get habits(): RecurringTask[] {
         return this.items;
     }
 

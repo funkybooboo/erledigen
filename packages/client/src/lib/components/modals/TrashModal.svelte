@@ -1,6 +1,6 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
-    import { taskStore } from '$lib/stores';
+    import { notificationStore, taskStore } from '$lib/stores';
     import type { Task } from '@erledigen/shared';
     import { PURGE_RETENTION_DAYS } from '@erledigen/shared';
     import { onMount } from 'svelte';
@@ -15,23 +15,30 @@
             deletedTasks = await taskStore.getTrash();
         } catch {
             deletedTasks = [];
+            // An error shown as an empty trash list would read as "nothing
+            // was ever deleted" -- say what actually happened.
+            notificationStore.push('Failed to load deleted tasks', { kind: 'error' });
         } finally {
             loading = false;
         }
     });
 
     async function handleRestore(id: string) {
-        try {
-            const restored = await taskStore.restoreFromTrash(id);
-            if (restored) {
-                deletedTasks = deletedTasks.filter(t => t.id !== id);
-            }
-        } catch {
-            // Show error?
+        // restoreFromTrash reports failure by returning null (it logs and
+        // sets store.error internally), so branch on the result instead of
+        // catching -- a silent no-op here left restore looking like a
+        // no-op button with no explanation.
+        const restored = await taskStore.restoreFromTrash(id);
+        if (restored) {
+            deletedTasks = deletedTasks.filter(t => t.id !== id);
+            notificationStore.push('Task restored', { kind: 'success' });
+        } else {
+            notificationStore.push('Failed to restore task', { kind: 'error' });
         }
     }
 
-    function daysUntilPurge(deletedAt: string): number {
+    function daysUntilPurge(deletedAt: string | null): number {
+        if (deletedAt === null) return 0;
         const deleted = new Date(deletedAt);
         const now = new Date();
         const diff = PURGE_RETENTION_DAYS - Math.floor((now.getTime() - deleted.getTime()) / (1000 * 60 * 60 * 24));
@@ -51,7 +58,7 @@
             <p class="hint">Loading...</p>
         {:else if deletedTasks.length === 0}
             <p class="empty">No recently deleted tasks.</p>
-            <p class="hint">Deleted tasks appear here for {PURGE_RETENTION_DAYS} days before being permanently removed.</p>
+            <p class="hint">Deleted tasks stay here until purged -- purging removes tasks deleted more than {PURGE_RETENTION_DAYS} days ago.</p>
         {:else}
             <ul class="list">
                 {#each deletedTasks as task (task.id)}
@@ -60,7 +67,7 @@
                             <span class="task-text">{task.text}</span>
                             <span class="task-date">{formatDate(task.date)}</span>
                         </div>
-                        <span class="days-left">{daysUntilPurge(task.deletedAt!)}d left</span>
+                        <span class="days-left">{daysUntilPurge(task.deletedAt)}d left</span>
                         <button class="restore-btn" onclick={() => handleRestore(task.id)} aria-label="Restore task">
                             Restore
                         </button>

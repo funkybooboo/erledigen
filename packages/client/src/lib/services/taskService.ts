@@ -43,13 +43,6 @@ export class TaskService {
         const response = await this.http.get<ApiResponse<Task[]>>(API_ROUTES.TASK_TRASH);
         return response.data;
     }
-
-    async purge(): Promise<number> {
-        const response = await this.http.delete<ApiResponse<{ purged: number }>>(
-            API_ROUTES.TASK_PURGE,
-        );
-        return response.data.purged;
-    }
 }
 
 export interface TaskQueryParams {

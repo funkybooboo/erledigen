@@ -32,6 +32,8 @@ tests {
       url: bru.getEnvVar("baseUrl") + bru.getEnvVar("apiPrefix") + "/tasks/" + bru.getVar("rollupParentId"),
       method: "GET",
     });
-    expect(parentRes.getBody().data.completed).to.equal(true);
+    // bru.sendRequest resolves an axios-shaped result: the parsed body is
+    // `data`, not getBody().
+    expect(parentRes.data.data.completed).to.equal(true);
   });
 }

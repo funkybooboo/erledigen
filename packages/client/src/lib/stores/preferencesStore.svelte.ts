@@ -17,9 +17,17 @@ import { PreferencesService } from '$lib/services/preferencesService';
 
 const preferencesService = new PreferencesService(container.httpClient);
 
+/** The preference fields this store actually holds and can save or roll
+ *  back: UserPreferences minus the fixed id/updatedAt and the vestigial
+ *  someDayPanelCollapsed (persisted by the API, but no client code holds
+ *  it). Narrowing the accepted keys keeps save()/persistPreferences from
+ *  Object.assign-ing a field the class never declared -- that would be a
+ *  plain (non-$state, non-reactive) property. */
+type SavablePreferences = Omit<UserPreferences, 'id' | 'updatedAt' | 'someDayPanelCollapsed'>;
+
 /** Fire-and-forget preference persistence. These updates are intentionally
  *  non-blocking and invisible to the UI, so log (don't surface) failures. */
-function persistPreferences(update: Partial<UserPreferences>) {
+function persistPreferences(update: Partial<SavablePreferences>) {
     return preferencesService.update(update).catch(error => {
         container.logger.warn('Failed to persist preferences', {
             keys: Object.keys(update),
@@ -101,37 +109,37 @@ class PreferencesStore {
         }
     }
 
-    async save(partial: Partial<Omit<UserPreferences, 'id' | 'updatedAt'>>) {
-        const current = {
-            id: this.id,
-            theme: this.theme,
-            locale: this.locale,
-            someDayPanelWidth: this.someDayPanelWidth,
-            someDayPanelLastOpenWidth: this.someDayPanelLastOpenWidth,
-            rolloverEnabled: this.rolloverEnabled,
-            showEmptyDays: this.showEmptyDays,
-            deleteConfirmation: this.deleteConfirmation,
-            activeFilters: this.activeFilters,
-            tagKinds: this.tagKinds,
-            tagKindMap: this.tagKindMap,
-            timeFormat: this.timeFormat,
-            timezone: this.timezone,
-            updatedAt: this.updatedAt,
-        };
+    /** Apply `partial` optimistically, persist, and roll back the TOUCHED
+     *  keys on failure. Snapshotting only the touched keys keeps the
+     *  rollback in lockstep with the store's fields; the previous
+     *  hand-maintained full-field snapshot was a third copy of the
+     *  preference list that silently drifted whenever a field was added. */
+    async save(partial: Partial<SavablePreferences>): Promise<void> {
+        const touched = Object.keys(partial) as (keyof SavablePreferences)[];
+        // keyof SavablePreferences is exactly this store's own $state
+        // fields, so the rollback snapshot can read them directly -- no
+        // record cast, and a key the store does not hold cannot enter.
+        const before = Object.fromEntries(
+            touched.map(key => [key, this[key]]),
+        ) as Partial<SavablePreferences>;
 
-        const merged = { ...current, ...partial };
         Object.assign(this, partial);
 
         try {
             const updated = await preferencesService.update(partial);
-            Object.assign(this, updated);
+            // The response carries every persisted field, including
+            // someDayPanelCollapsed which this store does not hold; strip
+            // it so only declared (reactive) fields are assigned.
+            const { someDayPanelCollapsed, ...savable } = updated;
+            void someDayPanelCollapsed;
+            Object.assign(this, savable);
         } catch (error) {
             container.logger.warn('Failed to save preferences -- rolling back', {
+                keys: touched,
                 error: error instanceof Error ? error.message : String(error),
             });
-            Object.assign(this, current);
+            Object.assign(this, before);
         }
-        return merged;
     }
 
     setTheme(theme: ThemeType) {

@@ -56,3 +56,18 @@ export function weekdayOf(dateStr: string): number {
     const [y, m, d] = splitKey(dateStr);
     return new Date(Date.UTC(y, m, d)).getUTCDay();
 }
+
+/**
+ * Inclusive list of date keys from `start` to `end` in calendar order.
+ * Returns an empty array when `start` is after `end`; the cursor always
+ * advances, so the loop can never run away.
+ */
+export function dateRangeKeys(start: string, end: string): string[] {
+    const out: string[] = [];
+    let cursor = start;
+    while (cursor <= end) {
+        out.push(cursor);
+        cursor = addDays(cursor, 1);
+    }
+    return out;
+}

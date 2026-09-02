@@ -54,7 +54,7 @@
 
             {#if activeTags.length > 0}
                 <div class="active-tags">
-                    {#each activeTags as tag}
+                    {#each activeTags as tag (tag)}
                         <button class="tag-pill" onclick={() => removeTag(tag)}>
                             #{tag}
                             <span class="tag-remove">&times;</span>
@@ -80,10 +80,10 @@
             </div>
 
             {#if showSuggestions && suggestions.length > 0}
-                <ul class="suggestions" role="listbox">
-                    {#each suggestions as tag}
+                <ul class="suggestions">
+                    {#each suggestions as tag (tag)}
                         <li>
-                            <button class="suggestion-item" role="option" onclick={() => addTag(tag)}>
+                            <button class="suggestion-item" onclick={() => addTag(tag)}>
                                 #{tag}
                             </button>
                         </li>
@@ -93,7 +93,7 @@
 
             {#if tags.length > 0}
                 <div class="available-tags">
-                    {#each tags as tag}
+                    {#each tags as tag (tag)}
                         {#if !activeTags.includes(tag)}
                             <button class="tag-option" onclick={() => addTag(tag)}>
                                 #{tag}
@@ -261,19 +261,6 @@
 
     .tag-option:hover {
         background: var(--color-border);
-    }
-
-    .checkbox-label {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 14px;
-        cursor: pointer;
-    }
-
-    .checkbox-label input[type="checkbox"] {
-        width: 16px;
-        height: 16px;
     }
 
     .clear-btn {

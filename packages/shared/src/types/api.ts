@@ -15,12 +15,3 @@ export interface ErrorResponseBody {
     code: string;
     details?: unknown;
 }
-
-export interface TaskQueryParams {
-    completed?: boolean;
-    date?: string;
-    tag?: string;
-    someDayGroupId?: string;
-    someday?: boolean;
-    includeDeleted?: boolean;
-}

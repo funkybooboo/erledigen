@@ -22,6 +22,7 @@
         "check-links": "lychee --config lychee.toml .",
         "scan-secrets": "gitleaks detect --source . --config .gitleaks.toml --no-banner --redact",
         "type-check": "bun run type-check:shared && bun run type-check:server && bun run type-check:client",
+        "check:svelte": "bun run --cwd packages/client check:svelte",
         "type-check:client": "bun run --cwd packages/client type-check",
         "type-check:server": "bunx tsc --noEmit -p packages/server/tsconfig.json",
         "type-check:shared": "bunx tsc --noEmit -p packages/shared/tsconfig.json",

@@ -1,6 +1,7 @@
 <script lang="ts">
     import { preferencesStore, someDayGroupStore, taskStore, uiStore } from '$lib/stores';
     import { applyFilters } from '$lib/filters';
+    import { SvelteSet } from 'svelte/reactivity';
     import TaskRow from './TaskRow.svelte';
     import InlineAddTask from './InlineAddTask.svelte';
     import SectionHeader from './SectionHeader.svelte';
@@ -82,7 +83,11 @@
         uiStore.setVisibleSomedayTasks(ids);
     });
 
-    let newlyCreatedIds = $state<Set<string>>(new Set());
+    // SvelteSet (not $state<Set>): Svelte 5 deep-proxies only plain
+    // objects/arrays, so .add()/.delete() on a raw Set never signals and
+    // the 600ms expiry below would leave the flash class on until an
+    // unrelated re-render. Same trap the recurring stats Map hit.
+    let newlyCreatedIds = new SvelteSet<string>();
 
     $effect(() => {
         if (showAddGroupForm && newGroupInput) newGroupInput.focus();
@@ -193,6 +198,11 @@
     </div>
 {:else}
     <aside class="someday-panel" class:resizing={isResizing} style="width: {preferencesStore.someDayPanelWidth}px" aria-label="Someday panel">
+        <!-- Mouse-only by design: the panel itself is fully keyboard-
+             operable via the Cmd/Ctrl+\ toggle (width restore), so a
+             pointer-only drag handle leaves no keyboard user stranded;
+             a dedicated keyboard-resize interaction is future work. -->
+        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
         <div class="resize-handle" role="separator" aria-orientation="vertical" aria-label="Resize Someday panel" use:tooltip={{ label: 'Drag to resize' }} onmousedown={startResize}></div>
         <div class="panel-content">
             <div class="panel-header">
@@ -264,7 +274,7 @@
                         {/if}
                         <div class="group-tasks" role="list">
                             {#each tasks as task (task.id)}
-                                <TaskRow {task} dateStr="" isNew={newlyCreatedIds.has(task.id)} />
+                                <TaskRow {task} isNew={newlyCreatedIds.has(task.id)} />
                             {/each}
                         </div>
                         <InlineAddTask date="" someDayGroupId={group.id} oncreated={handleTaskCreated} />
@@ -285,7 +295,7 @@
                         </div>
                         <div class="group-tasks" role="list">
                             {#each ungroupedTasks as task (task.id)}
-                                <TaskRow {task} dateStr="" isNew={newlyCreatedIds.has(task.id)} />
+                                <TaskRow {task} isNew={newlyCreatedIds.has(task.id)} />
                             {/each}
                         </div>
                         <InlineAddTask date="" oncreated={handleTaskCreated} />

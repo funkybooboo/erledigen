@@ -108,7 +108,7 @@ export class SqliteTaskRepository implements TaskRepository {
                 input.text,
                 input.notes ?? null,
                 toInteger(false),
-                input.date,
+                input.date ?? null,
                 now,
                 now,
                 JSON.stringify(input.tags ?? [...TASK_DEFAULTS.tags]),
