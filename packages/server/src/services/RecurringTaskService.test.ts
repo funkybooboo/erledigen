@@ -352,6 +352,26 @@ describe('RecurringTaskService', () => {
             expect(stats.lastCompletedDate).toBe('2026-03-16');
         });
 
+        it('adjacency bridges pre-start instances after a forward startDate edit', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            // Every 3 days starting 2026-03-04, then the template's start
+            // was edited forward to 2026-03-13, stranding the 03-07 instance
+            // before the new start.
+            const rt = makeRecurringTask({ id: 'rt-e', interval: 3, startDate: '2026-03-13' });
+            recurringRepo.store.set(rt.id, rt);
+            seed(taskRepo, rt.id, '2026-03-07', true);
+            seed(taskRepo, rt.id, '2026-03-13', true);
+
+            const stats = await makeService(recurringRepo, taskRepo).computeStats(rt.id);
+            // 03-13 is the (new) start and on-grid; 03-07 counts as adjacent
+            // only when the walk from a pre-start date lands on the start
+            // itself. The old negative-modulo bug returned a phantom
+            // pre-start occurrence (2026-03-10) and broke the streak.
+            expect(stats.currentStreak).toBe(2);
+            expect(stats.longestStreak).toBe(2);
+        });
+
         it('returns zeroed stats for a template with no instances', async () => {
             const taskRepo = new FakeTaskRepository();
             const recurringRepo = new FakeRecurringTaskRepository();
