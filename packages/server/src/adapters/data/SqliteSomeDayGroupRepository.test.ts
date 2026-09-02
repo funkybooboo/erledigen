@@ -4,7 +4,7 @@ import { runSomeDayGroupRepositoryContractTests } from './contracts/someDayGroup
 import { SqliteSomeDayGroupRepository } from './SqliteSomeDayGroupRepository';
 import { SqliteConnection } from './sqliteConnection';
 
-// Fresh :memory: database per test — full isolation, no file cleanup needed.
+// Fresh :memory: database per test -- full isolation, no file cleanup needed.
 function makeRepo() {
     const connection = new SqliteConnection(':memory:');
     return new SqliteSomeDayGroupRepository(connection.db, new NativeDateProvider());

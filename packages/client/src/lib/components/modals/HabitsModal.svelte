@@ -30,7 +30,7 @@
     const DAY_NAMES = WEEKDAY_ABBREVIATIONS;
 
     // ------------------------------------------------------------------
-    // Shared form state (used by either the "new" form or an edit form —
+    // Shared form state (used by either the "new" form or an edit form --
     // only one is visible at a time).
     // ------------------------------------------------------------------
 
@@ -178,7 +178,7 @@
             if (!window.confirm(`Delete habit "${habit.text}"?`)) return;
         }
         await recurringTaskStore.remove(habit.id);
-        notificationStore.push('Habit deleted — existing instances are kept', {
+        notificationStore.push('Habit deleted -- existing instances are kept', {
             kind: 'info',
         });
     }
@@ -352,7 +352,7 @@
         {:else if !showForm}
             <p class="empty">
                 No habits yet. Add a task that ends with a phrase like "every day" or "every
-                friday at 9am" — or create one above.
+                friday at 9am" -- or create one above.
             </p>
         {/if}
     </div>

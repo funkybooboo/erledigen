@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { get, patch } from './helpers';
 
-test.describe('user preferences — GET /api/preferences', () => {
+test.describe('user preferences -- GET /api/preferences', () => {
     test('returns the default preferences singleton', async ({ request }) => {
         const res = await get(request, '/api/preferences');
         expect(res.status).toBe(200);
@@ -16,7 +16,7 @@ test.describe('user preferences — GET /api/preferences', () => {
     });
 });
 
-test.describe('user preferences — PATCH /api/preferences', () => {
+test.describe('user preferences -- PATCH /api/preferences', () => {
     test('updates a single field and returns the merged preferences', async ({ request }) => {
         // Get current value to restore later.
         const before = await get(request, '/api/preferences');
@@ -82,7 +82,7 @@ test.describe('user preferences — PATCH /api/preferences', () => {
     });
 });
 
-test.describe('user preferences — content negotiation', () => {
+test.describe('user preferences -- content negotiation', () => {
     test('Accept: text/plain returns formatted preferences text', async ({ request }) => {
         const res = await get(request, '/api/preferences', { Accept: 'text/plain' });
         expect(res.status).toBe(200);

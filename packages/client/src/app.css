@@ -1,7 +1,7 @@
 @import 'tailwindcss';
 
 /* ------------------------------------------------------------------
- * Design tokens — ported from 37signals' Fizzy (github.com/basecamp/fizzy,
+ * Design tokens -- ported from 37signals' Fizzy (github.com/basecamp/fizzy,
  * app/assets/stylesheets/_global.css), the same design language behind
  * Basecamp. Fizzy's OKLCH palette is mapped 1:1 onto this app's existing
  * token names so every component reskins without any layout change.

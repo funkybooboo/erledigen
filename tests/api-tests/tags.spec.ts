@@ -5,7 +5,7 @@ test.afterEach(async ({ request }) => {
     await cleanup(request);
 });
 
-test.describe('tags — list (GET /api/tags)', () => {
+test.describe('tags -- list (GET /api/tags)', () => {
     test('returns the sorted union of all task tags', async ({ request }) => {
         await createTask(request, { text: 'A', date: '2026-05-01', tags: ['#zebra', '#alpha'] });
         await createTask(request, { text: 'B', date: '2026-05-01', tags: ['#mango'] });
@@ -32,7 +32,7 @@ test.describe('tags — list (GET /api/tags)', () => {
     });
 });
 
-test.describe('tags — info (GET /api/tags/info)', () => {
+test.describe('tags -- info (GET /api/tags/info)', () => {
     test('returns per-tag counts sorted by name', async ({ request }) => {
         await createTask(request, { text: 'A', date: '2026-05-01', tags: ['#alpha', '#beta'] });
         await createTask(request, { text: 'B', date: '2026-05-01', tags: ['#alpha'] });
@@ -50,7 +50,7 @@ test.describe('tags — info (GET /api/tags/info)', () => {
     });
 });
 
-test.describe('tags — rename (POST /api/tags/rename)', () => {
+test.describe('tags -- rename (POST /api/tags/rename)', () => {
     test('renames a tag across all affected tasks', async ({ request }) => {
         await createTask(request, { text: 'A', date: '2026-05-01', tags: ['#old'] });
         await createTask(request, { text: 'B', date: '2026-05-01', tags: ['#old', '#keep'] });
@@ -76,7 +76,7 @@ test.describe('tags — rename (POST /api/tags/rename)', () => {
     });
 });
 
-test.describe('tags — merge (POST /api/tags/merge)', () => {
+test.describe('tags -- merge (POST /api/tags/merge)', () => {
     test('merges multiple source tags into the target', async ({ request }) => {
         await createTask(request, { text: 'A', date: '2026-05-01', tags: ['#src1'] });
         await createTask(request, { text: 'B', date: '2026-05-01', tags: ['#src2'] });
@@ -119,7 +119,7 @@ test.describe('tags — merge (POST /api/tags/merge)', () => {
     });
 });
 
-test.describe('tags — content negotiation', () => {
+test.describe('tags -- content negotiation', () => {
     test('GET /api/tags Accept: text/plain returns newline-joined tags', async ({ request }) => {
         await createTask(request, { text: 'A', date: '2026-05-01', tags: ['#alpha', '#beta'] });
         const res = await get(request, '/api/tags', { Accept: 'text/plain' });

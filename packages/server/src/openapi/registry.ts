@@ -1,5 +1,5 @@
 /**
- * OpenAPI registry — single instance shared across all schema and path registrations.
+ * OpenAPI registry -- single instance shared across all schema and path registrations.
  *
  * Importing this module has the side effect of calling extendZodWithOpenApi(z),
  * which adds the .openapi() method to all Zod schemas. All schema files must

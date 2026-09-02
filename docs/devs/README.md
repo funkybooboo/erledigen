@@ -1,22 +1,22 @@
 # Developer Documentation
 
-## Standards
-- [Philosophy](./standards/philosophy.md) — feature-by-feature, TDD, core principles
-- [Code Standards](./standards/code-standards.md) — TypeScript, naming, error handling, file organization
-- [Testing](./standards/testing.md) — TDD cycle, test pyramid, tools (Bun, Playwright, Bruno)
-- [Git Workflow](./standards/git-workflow.md) — branching, commits, PRs
-- [Documentation Standards](./standards/documentation-standards.md) — Markdown, JSDoc, ADRs
-- [Diagramming Standards](./standards/diagramming-standards.md) — Mermaid diagrams
+## Start Here
 
-## Architecture
-- [Architecture](./architecture/architecture.md) — monorepo, adapter pattern, shared package
-- [Design Patterns](./architecture/design-patterns.md) — DI, Repository, Adapter, Strategy, Observer, Command, Result
-- [I/O Abstraction](./architecture/io-abstraction.md) — hexagonal architecture, ports & adapters
-- [API Abstraction](./architecture/api-abstraction.md) — wrapping third-party APIs
-- [Functional Programming](./architecture/functional-programming.md) — FP/OOP hybrid, Result/Option types
-- [Twelve-Factor App](./architecture/twelve-factor.md) — 12-factor compliance
+- [Getting Started](./process/getting-started.md) -- setup, mise tasks, running the app
+- [Architecture](./architecture/architecture.md) -- monorepo, adapter pattern, domain model notes
+- [Philosophy](./standards/philosophy.md) -- feature-by-feature, TDD, core principles
+
+## Standards
+
+- [Code Standards](./standards/code-standards.md) -- TypeScript, naming, Svelte and Bun gotchas
+- [Testing](./standards/testing.md) -- test layers, contract suites, tools, flake triage
+- [Git Workflow](./standards/git-workflow.md) -- wt worktrees, commits, PRs
+- [Documentation Standards](./standards/documentation-standards.md) -- how these docs are written
 
 ## Process
-- [Getting Started & Contributing](./process/getting-started.md) — setup, scripts, how to contribute
-- [Feature Development Loop](./process/feature-development-loop.md) — story to production
-- [CI/CD Pipeline](./process/ci-cd-pipeline.md) — quality gates, GitHub Actions, deployment
+
+- [CI/CD Pipeline](./process/ci-cd-pipeline.md) -- quality gates, GitHub Actions, deployment
+
+## Decisions
+
+- [ADRs](./architecture/decisions/README.md) -- immutable records of significant decisions

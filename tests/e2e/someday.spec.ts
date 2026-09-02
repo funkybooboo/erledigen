@@ -111,7 +111,7 @@ test.describe('Someday panel', () => {
     });
 
     test('ungrouped someday tasks render below the named groups', async ({ page }) => {
-        // date null, no someDayGroupId — the Ungrouped safety section.
+        // date null, no someDayGroupId -- the Ungrouped safety section.
         const text = uniq(`${PREFIX} Loose`);
         await createTask(page.request, { text, date: null }, SERVER_URL);
         const panel = await openPanel(page);

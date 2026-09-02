@@ -31,7 +31,7 @@ test.afterEach(async ({ request }) => {
 
 /**
  * Live WebSocket sync between two open tabs. Each mutation must broadcast to
- * every other connected client — and must never double-render in the
+ * every other connected client -- and must never double-render in the
  * originating tab (the optimistic add plus an unfiltered echo used to
  * duplicate the task and crash the keyed each-block).
  */
@@ -50,7 +50,7 @@ test.describe('live sync between open tabs (WebSocket)', () => {
         // The originating tab renders it exactly once (no self-echo dupes).
         await expect(page.locator('.task-row', { hasText: text })).toHaveCount(1);
 
-        // The second tab renders it live — no reload, WS broadcast only.
+        // The second tab renders it live -- no reload, WS broadcast only.
         await expect(tabB.locator('.day-section.today').getByText(text)).toBeVisible();
         await expect(tabB.locator('.task-row', { hasText: text })).toHaveCount(1);
     });

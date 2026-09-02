@@ -6,8 +6,8 @@
  * only when first accessed.
  *
  * This pattern makes it trivial to swap implementations:
- * - Change one line here to switch from Bun → Express
- * - Change one line here to switch from process.env → file config
+ * - Change one line here to switch from Bun -> Express
+ * - Change one line here to switch from process.env -> file config
  * - Business logic stays completely unchanged
  */
 
@@ -129,7 +129,7 @@ export class Container {
     get storageAdapter(): 'sqlite' | 'memory' {
         const value = this.config.get('STORAGE_ADAPTER', 'sqlite');
         if (value !== 'sqlite' && value !== 'memory') {
-            throw new Error(`Invalid STORAGE_ADAPTER "${value}" — expected "sqlite" or "memory"`);
+            throw new Error(`Invalid STORAGE_ADAPTER "${value}" -- expected "sqlite" or "memory"`);
         }
         return value;
     }

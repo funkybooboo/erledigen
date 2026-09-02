@@ -3,7 +3,7 @@
  *
  * Opens the database file, enables WAL for a long-lived server process, and
  * runs pending migrations before anything else touches the schema. A single
- * connection is shared by all Sqlite* repositories — bun:sqlite is
+ * connection is shared by all Sqlite* repositories -- bun:sqlite is
  * synchronous, so no pooling is needed for single-user workloads.
  */
 

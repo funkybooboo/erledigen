@@ -1,5 +1,5 @@
 /**
- * Create a task — or, when the text ends with a recurrence phrase, a habit —
+ * Create a task -- or, when the text ends with a recurrence phrase, a habit --
  * from free-form text.
  *
  * Shared by the inline add inputs and the search/command palette's "/add"

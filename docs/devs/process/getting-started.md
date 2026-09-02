@@ -6,8 +6,8 @@ Welcome to Erledigen! This guide will walk you through setting up your developme
 
 Before you begin, make sure you have the following installed:
 
-- [mise](https://mise.jdx.dev) — the project's task runner and tool version manager (Bun, lychee, and gitleaks are managed automatically by mise)
-- Docker (or podman + a `docker` wrapper) with compose support — the dev, prod, and test stacks all run in containers
+- [mise](https://mise.jdx.dev) -- the project's task runner and tool version manager (Bun, lychee, and gitleaks are managed automatically by mise)
+- Docker (or podman + a `docker` wrapper) with compose support -- the dev, prod, and test stacks all run in containers
 
 ```bash
 # Install mise (macOS with Homebrew)
@@ -63,14 +63,14 @@ The app runs in containers; `mise run dev` is the easiest way to start:
 mise run dev
 ```
 
-This starts the docker dev stack (server + client, attached). Source is bind-mounted, so code edits are picked up live by `bun --watch` (server) and vite HMR (client) — no rebuild needed. The dev database lives in the `dev-data` named volume, never in the repo. After changing dependencies, run `mise run dev-refresh` to rebuild the dev images.
+This starts the docker dev stack (server + client, attached). Source is bind-mounted, so code edits are picked up live by `bun --watch` (server) and vite HMR (client) -- no rebuild needed. The dev database lives in the `dev-data` named volume, never in the repo. After changing dependencies, run `mise run dev-refresh` to rebuild the dev images.
 
-> The dev stack publishes ports 3000/4000 on the host — stop any locally-running servers first (the `predev` bun script does this when running outside docker).
+> The dev stack publishes ports 3000/4000 on the host -- stop any locally-running servers first (the `predev` bun script does this when running outside docker).
 >
 > **These scripts kill whatever holds ports 3000/4000, without asking**:
 > `predev` (3000+4000), `pretest:e2e*` (4000), and `mise run ci`. Never run
 > them while a dev stack or manual server on those ports belongs to someone
-> else — check `lsof -ti:3000,4000` first. (The prod stack never collides:
+> else -- check `lsof -ti:3000,4000` first. (The prod stack never collides:
 > single published port, default 8080.)
 
 ### Run one service at a time
@@ -94,7 +94,7 @@ mise run prod-stop   # stop (prod-data volume is kept)
 *   **Server**: `http://localhost:4000`
 *   **Health Check**: `http://localhost:4000/api/health`
 *   **OpenAPI spec**: `http://localhost:4000/openapi.json` (or `/openapi.yaml`)
-*   **Storybook**: `http://localhost:6006` (`mise run storybook` — local, not dockerized)
+*   **Storybook**: `http://localhost:6006` (`mise run storybook` -- local, not dockerized)
 
 ## Available Tasks
 

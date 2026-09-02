@@ -1,6 +1,6 @@
 # @erledigen/shared
 
-Shared code used by both the `client` and `server` packages. Nothing in here should be environment-specific — it must run in both Bun and the browser.
+Shared code used by both the `client` and `server` packages. Nothing in here should be environment-specific -- it must run in both Bun and the browser.
 
 ## Contents
 
@@ -14,9 +14,9 @@ Shared code used by both the `client` and `server` packages. Nothing in here sho
 
 ## The Golden Rule
 
-If the client needs it **and** the server needs it → put it here.  
-If only the server needs it → `packages/server`.  
-If only the client needs it → `packages/client`.
+If the client needs it **and** the server needs it -> put it here.  
+If only the server needs it -> `packages/server`.  
+If only the client needs it -> `packages/client`.
 
 ## Learn More
 

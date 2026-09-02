@@ -109,7 +109,7 @@ export class BunHttpServer implements HttpServer {
         const startedAt = performance.now();
 
         // CORS preflights are pure plumbing (one per cross-origin mutation)
-        // — skip them to keep the access log useful.
+        // -- skip them to keep the access log useful.
         if (req.method === 'OPTIONS') {
             const responseInit: ResponseInit = this.config.corsHeaders
                 ? { headers: this.config.corsHeaders }

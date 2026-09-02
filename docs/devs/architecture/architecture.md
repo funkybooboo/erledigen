@@ -10,14 +10,14 @@ Erledigen is a monorepo managed with [Bun Workspaces](https://bun.sh/docs/pm/wor
 
 ```
 erledigen/
-├── packages/
-│   ├── client/          # SvelteKit frontend
-│   ├── server/          # Bun API server
-│   └── shared/          # Shared types and utilities
-├── docs/                # Project documentation
-├── tests/               # Playwright api/e2e suites + Bruno collection
-├── plans/               # Roadmap and planning docs
-└── package.json         # Root workspace config
+|-- packages/
+|   |-- client/          # SvelteKit frontend
+|   |-- server/          # Bun API server
+|   \-- shared/          # Shared types and utilities
+|-- docs/                # Project documentation
+|-- tests/               # Playwright api/e2e suites + Bruno collection
+|-- plans/               # Roadmap and planning docs
+\-- package.json         # Root workspace config
 ```
 
 *   **`packages/client`**: A SvelteKit application.
@@ -54,12 +54,12 @@ A cornerstone of our architecture is the **adapter pattern**. This pattern allow
 *   **`UserPreferencesRepository`**: Abstracts data persistence for user settings.
     *   **`InMemoryUserPreferencesRepository`** (server): An in-memory singleton implementation.
     *   **`SqliteUserPreferencesRepository`** (server): SQLite-backed persistence.
-*   **`MetricsAdapter`**: Abstracts metrics collection — **planned**, see [ADR-005](decisions/ADR-005-prometheus-metrics.md) (accepted, not yet implemented).
-*   **`JobQueue`**: Abstracts background job scheduling and processing — **planned**, see [ADR-002](decisions/ADR-002-sqlite-backed-job-queue.md) (accepted, not yet implemented). Recurring-task generation currently happens on demand (client-driven) instead of via jobs.
+*   **`MetricsAdapter`**: Abstracts metrics collection -- **planned**, see [ADR-005](decisions/ADR-005-prometheus-metrics.md) (accepted, not yet implemented).
+*   **`JobQueue`**: Abstracts background job scheduling and processing -- **planned**, see [ADR-002](decisions/ADR-002-sqlite-backed-job-queue.md) (accepted, not yet implemented). Recurring-task generation currently happens on demand (client-driven) instead of via jobs.
 
 ### Benefits of the Adapter Pattern
 
-*   **Flexibility**: We can easily swap out implementations without changing our application's code. For example, the `STORAGE_ADAPTER` env var swaps the in-memory repositories for SQLite-backed ones (see [ADR-001](decisions/ADR-001-sqlite-raw-sql-persistence.md)) — no application code changes.
+*   **Flexibility**: We can easily swap out implementations without changing our application's code. For example, the `STORAGE_ADAPTER` env var swaps the in-memory repositories for SQLite-backed ones (see [ADR-001](decisions/ADR-001-sqlite-raw-sql-persistence.md)) -- no application code changes.
 *   **Testability**: We can easily mock our dependencies in our tests. For example, we can use a `MockHttpClient` to simulate API calls.
 *   **Maintainability**: The separation of concerns makes our code easier to understand, maintain, and reason about.
 
@@ -73,7 +73,7 @@ export const container = new Container()
 
 // Repositories are lazy getters; the STORAGE_ADAPTER env var (sqlite by
 // default, memory for ephemeral/test runs) picks InMemory* vs Sqlite*
-// implementations — see container.initStorage().
+// implementations -- see container.initStorage().
 const taskRepo = container.taskRepository
 ```
 
@@ -114,7 +114,7 @@ Facts that are easy to get wrong when working on the domain, API, or stores.
   Someday, and filters alike.
 - **Dates are local key strings.** A task's `date` is a `yyyy-MM-dd` string in
   local time; `date === null` means the task lives in Someday. Date math goes
-  through the shared `dateProvider` key helpers — never `Date` object
+  through the shared `dateProvider` key helpers -- never `Date` object
   arithmetic (timezone bugs have shipped from that).
 - **Habits materialize as real tasks, idempotently.** A recurring template
   stamps generated instances with its `recurringTaskId` and `startTime`;
@@ -122,7 +122,7 @@ Facts that are easy to get wrong when working on the domain, API, or stores.
   (`TaskRepository.findByRecurringTaskId`), so editing a schedule never
   rewrites already-created instances. Generation is client-driven on demand
   (DayList chunk loads; a +90-day horizon for new habits,
-  `GENERATE_HORIZON_DAYS`) — there is NO server-side scheduler; ADR-002's job
+  `GENERATE_HORIZON_DAYS`) -- there is NO server-side scheduler; ADR-002's job
   queue remains unimplemented.
 - **Realtime skips the originator twice, on purpose.** Mutations publish an
   event on the `EventBus` carrying the requester's `x-client-id`; the server
@@ -142,7 +142,7 @@ The application is designed to follow the principles of a [12-Factor App](https:
 
 *   **Stateless Processes**: The server processes are stateless. Persistent state lives in SQLite (see [ADR-001](decisions/ADR-001-sqlite-raw-sql-persistence.md)). In-memory repositories are for testing only.
 *   **Configurable**: All configuration is stored in the environment (see `EnvConfigProvider`).
-*   **Portable**: It can be easily run in different environments — local dev, Docker, or bare metal.
+*   **Portable**: It can be easily run in different environments -- local dev, Docker, or bare metal.
 *   **Scalable**: The adapter pattern means horizontal scaling is a matter of swapping the SQLite adapter for PostgreSQL (v2.3.0, see [ADR-001](decisions/ADR-001-sqlite-raw-sql-persistence.md)).
 
 ## Observability
@@ -151,8 +151,8 @@ Erledigen's observability roadmap ([ADR-004](decisions/ADR-004-structured-json-l
 
 1.  **Logs**: Plain console logging via `ConsoleLogger`.
 2.  **Health**: A minimal `GET /api/health` returning `{ status: 'ok' }` (rich version with uptime/version/DB status is planned).
-3.  **Metrics**: None yet — a Prometheus-compatible `/api/metrics` endpoint is planned, with a Loki + Prometheus + Grafana stack (`docker-compose.monitoring.yml`) for self-hosted deployments.
+3.  **Metrics**: None yet -- a Prometheus-compatible `/api/metrics` endpoint is planned, with a Loki + Prometheus + Grafana stack (`docker-compose.monitoring.yml`) for self-hosted deployments.
 
 ## Dockerized
 
-The app ships as containers: one multi-stage `Dockerfile` plus three compose files — `compose.yaml` (dev: bind-mounted source, live `bun --watch`/vite HMR, dev DB in a named volume), `compose.prod.yaml` (prod: built artifacts behind a Caddy proxy on a single port), and `compose.test.yaml` (self-contained test stack with `STORAGE_ADAPTER=memory`). `mise run dev` / `prod` / `test-e2e` wrap them; see the root [README](../../../README.md) for details.
+The app ships as containers: one multi-stage `Dockerfile` plus three compose files -- `compose.yaml` (dev: bind-mounted source, live `bun --watch`/vite HMR, dev DB in a named volume), `compose.prod.yaml` (prod: built artifacts behind a Caddy proxy on a single port), and `compose.test.yaml` (self-contained test stack with `STORAGE_ADAPTER=memory`). `mise run dev` / `prod` / `test-e2e` wrap them; see the root [README](../../../README.md) for details.

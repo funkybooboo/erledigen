@@ -2,11 +2,11 @@
  * Recurring task utilities
  *
  * Pure functions for generating task occurrence dates from a RecurringTask
- * template. No I/O — fully unit testable.
+ * template. No I/O -- fully unit testable.
  *
  * All date math operates on `YYYY-MM-DD` keys via `utils/dateKeys` (pure
  * Gregorian `Date.UTC` arithmetic). Never parse keys with
- * `new Date('YYYY-MM-DD')` — that is UTC midnight, which shifts the day
+ * `new Date('YYYY-MM-DD')` -- that is UTC midnight, which shifts the day
  * back by one in negative-offset zones (occurrence dates came back a day
  * early through the HTTP API when the server ran in UTC-6).
  */
@@ -20,8 +20,8 @@ import { addDays, daysBetween, splitKey, weekdayOf } from './dateKeys';
  * A date is an occurrence when it is on the template's interval grid measured
  * from `startDate` AND matches the schedule's day constraints:
  *   - `daysOfWeek` (0-6, 0 = Sunday) filters daily/weekly schedules to the
- *     listed weekdays — null means any day.
- *   - `dayOfMonth` pins monthly schedules to that calendar day — null keeps
+ *     listed weekdays -- null means any day.
+ *   - `dayOfMonth` pins monthly schedules to that calendar day -- null keeps
  *     the start date's day-of-month.
  *
  * @param rt - The recurring task template

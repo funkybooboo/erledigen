@@ -266,7 +266,7 @@
             class:selected={isSelected(mk)}
             data-mk={mk}
             onclick={() => scrollToDateStart(firstOfMonth(mk))}
-            use:tooltip={{ label: `{monthLabel(mk)} {yearOf(mk)} — jump to month` }}
+            use:tooltip={{ label: `{monthLabel(mk)} {yearOf(mk)} -- jump to month` }}
             aria-label="{monthLabel(mk)} {yearOf(mk)}"
             aria-current={isSelected(mk) ? 'true' : undefined}
         >

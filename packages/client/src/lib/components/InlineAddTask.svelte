@@ -31,7 +31,7 @@
         text = '';
 
         if (result.kind === 'habit') {
-            notificationStore.push(`Habit created — ${describeRecurrence(result.schedule)}`, {
+            notificationStore.push(`Habit created -- ${describeRecurrence(result.schedule)}`, {
                 kind: 'success',
             });
             // Flash the instance on this day, matching the plain-task path.
@@ -66,7 +66,7 @@
         class="add-input"
         placeholder="Add a task..."
         onkeydown={handleKeydown}
-        use:tooltip={{ label: 'New task — Enter to add, Esc to cancel', shortcut: 'addTask' }}
+        use:tooltip={{ label: 'New task -- Enter to add, Esc to cancel', shortcut: 'addTask' }}
         maxlength={TASK_CONSTRAINTS.MAX_TEXT_LENGTH}
         aria-label="New task text"
     />

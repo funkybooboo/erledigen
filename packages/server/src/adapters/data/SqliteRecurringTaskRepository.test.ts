@@ -4,7 +4,7 @@ import { runRecurringTaskRepositoryContractTests } from './contracts/recurringTa
 import { SqliteRecurringTaskRepository } from './SqliteRecurringTaskRepository';
 import { SqliteConnection } from './sqliteConnection';
 
-// Fresh :memory: database per test — full isolation, no file cleanup needed.
+// Fresh :memory: database per test -- full isolation, no file cleanup needed.
 function makeRepo() {
     const connection = new SqliteConnection(':memory:');
     return new SqliteRecurringTaskRepository(connection.db, new NativeDateProvider());

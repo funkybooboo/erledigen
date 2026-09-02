@@ -16,8 +16,8 @@
         "@erledigen/shared": "workspace:*",
         "@asteasolutions/zod-to-openapi": "^8.5.0",
         "@types/bun": "latest",
-        "js-yaml": "^4.1.1",
-        "zod": "^4.3.6"
+        "js-yaml": "^4.3.2",
+        "zod": "^4.5.4"
     },
     "devDependencies": {
         "@types/js-yaml": "^4.0.9",

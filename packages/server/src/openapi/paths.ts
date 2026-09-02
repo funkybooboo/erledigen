@@ -1,5 +1,5 @@
 /**
- * OpenAPI path registrations — every API route documented here.
+ * OpenAPI path registrations -- every API route documented here.
  *
  * Importing this module registers all paths with the registry.
  * Import all schema modules first (side-effect: schema registration).
@@ -24,7 +24,7 @@ import { MergeTagsSchema, RenameTagSchema } from './schemas/tag';
 import { CreateTaskSchema, TaskSchema, UpdateTaskSchema } from './schemas/task';
 import { UpdateUserPreferencesSchema, UserPreferencesSchema } from './schemas/userPreferences';
 
-// ── Reusable response configs ──────────────────────────────────────────────────
+// -- Reusable response configs --------------------------------------------------
 
 const notFoundResponse = {
     description: 'Resource not found',
@@ -55,7 +55,7 @@ const deleteSuccessResponse = (description: string) =>
         },
     }) as const;
 
-// ── Health ─────────────────────────────────────────────────────────────────────
+// -- Health ---------------------------------------------------------------------
 
 registry.registerPath({
     method: 'get',
@@ -74,7 +74,7 @@ registry.registerPath({
     },
 });
 
-// ── Tasks ──────────────────────────────────────────────────────────────────────
+// -- Tasks ----------------------------------------------------------------------
 
 const taskDataResponse = {
     description: 'Task',
@@ -172,7 +172,7 @@ registry.registerPath({
     },
 });
 
-// ── Someday Groups ─────────────────────────────────────────────────────────────
+// -- Someday Groups -------------------------------------------------------------
 
 const groupDataResponse = {
     description: 'Someday group',
@@ -256,7 +256,7 @@ registry.registerPath({
     },
 });
 
-// ── Projects ───────────────────────────────────────────────────────────────────
+// -- Projects -------------------------------------------------------------------
 
 const projectDataResponse = {
     description: 'Project',
@@ -372,7 +372,7 @@ registry.registerPath({
     },
 });
 
-// ── Recurring Tasks ────────────────────────────────────────────────────────────
+// -- Recurring Tasks ------------------------------------------------------------
 
 const recurringTaskDataResponse = {
     description: 'Recurring task',
@@ -482,7 +482,7 @@ registry.registerPath({
     },
 });
 
-// ── Tags ───────────────────────────────────────────────────────────────────────
+// -- Tags -----------------------------------------------------------------------
 
 const updatedCountResponse = {
     description: 'Number of tasks updated',
@@ -537,7 +537,7 @@ registry.registerPath({
     },
 });
 
-// ── User Preferences ───────────────────────────────────────────────────────────
+// -- User Preferences -----------------------------------------------------------
 
 const prefsDataResponse = {
     description: 'User preferences',
@@ -579,7 +579,7 @@ registry.registerPath({
     },
 });
 
-// ── OpenAPI spec ───────────────────────────────────────────────────────────────
+// -- OpenAPI spec ---------------------------------------------------------------
 
 registry.registerPath({
     method: 'get',

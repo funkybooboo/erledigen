@@ -3,7 +3,7 @@
  *
  * The app is server-rendered, so elements are present immediately but Svelte
  * event handlers (onclick/onkeydown) are only active after hydration. The
- * layout sets `data-hydrated="true"` on `.app-shell` in onMount — that is the
+ * layout sets `data-hydrated="true"` on `.app-shell` in onMount -- that is the
  * signal that interactive components are ready. Always `await hydrated(page)`
  * before clicking or pressing keys.
  */

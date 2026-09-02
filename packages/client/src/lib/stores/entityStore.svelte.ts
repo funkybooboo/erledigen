@@ -34,7 +34,7 @@ export class EntityStore<T extends { id: string }, CreateInput, UpdateInput> {
         return items;
     }
 
-    /** Log a swallowed operation failure — these are silent to the UI, so
+    /** Log a swallowed operation failure -- these are silent to the UI, so
      *  the log is the only trace something went wrong. */
     protected logFailure(operation: string, error: unknown): void {
         this.logger.warn(`${operation} failed`, {

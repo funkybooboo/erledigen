@@ -4,7 +4,7 @@
 export type RecurringFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly';
 
 /**
- * RecurringTask — a template that generates task instances on a schedule
+ * RecurringTask -- a template that generates task instances on a schedule
  */
 export interface RecurringTask {
     id: string;

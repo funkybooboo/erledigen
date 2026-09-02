@@ -48,7 +48,7 @@ test.describe('hover tooltips', () => {
     test('a modifier binding renders the platform modifier as a chip', async ({ page }) => {
         await hydrated(page);
 
-        // Search's binding is "{mod}+K" / "" — the {mod} token expands to
+        // Search's binding is "{mod}+K" / "" -- the {mod} token expands to
         // "Ctrl+K" (one chip, plus kept) on Linux/Chromium.
         await page.getByRole('button', { name: 'Search', exact: true }).hover();
         const tip = page.locator('.ui-tooltip');

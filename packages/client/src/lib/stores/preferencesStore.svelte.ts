@@ -95,7 +95,7 @@ class PreferencesStore {
             container.setDateProviderTimeZone(this.timezone);
         } catch (error) {
             // Use defaults
-            container.logger.warn('Failed to load preferences — using defaults', {
+            container.logger.warn('Failed to load preferences -- using defaults', {
                 error: error instanceof Error ? error.message : String(error),
             });
         }
@@ -126,7 +126,7 @@ class PreferencesStore {
             const updated = await preferencesService.update(partial);
             Object.assign(this, updated);
         } catch (error) {
-            container.logger.warn('Failed to save preferences — rolling back', {
+            container.logger.warn('Failed to save preferences -- rolling back', {
                 error: error instanceof Error ? error.message : String(error),
             });
             Object.assign(this, current);

@@ -2,18 +2,18 @@
 
 **Status**: Accepted  
 **Date**: 2026-05-09  
-**Context**: v0.7.0/v0.8.0 — Observability infrastructure
+**Context**: v0.7.0/v0.8.0 -- Observability infrastructure
 
 ## Context
 
-Erledigen needs metrics for operational visibility: is the server healthy? Are requests slow? Are background jobs failing? Is the database growing? Currently there's a basic `/api/health` endpoint returning `{ status: "ok" }` — no metrics, no duration tracking, no quantitative health signals.
+Erledigen needs metrics for operational visibility: is the server healthy? Are requests slow? Are background jobs failing? Is the database growing? Currently there's a basic `/api/health` endpoint returning `{ status: "ok" }` -- no metrics, no duration tracking, no quantitative health signals.
 
 The roadmap calls for SQLite persistence (v0.7.0), background job processing (v0.8.0), and eventually multi-user SaaS (v2.3.0+). All of these need metrics: request latency, job queue depth, database health, and application-level counts.
 
 ### Requirements
 
 - Metrics must be scrapeable by any Prometheus-compatible collector
-- No external dependencies required for the default setup — metrics are built into the server
+- No external dependencies required for the default setup -- metrics are built into the server
 - Must work for single-user self-hosted (simple) and multi-user SaaS (scaled)
 - Metrics collection must have negligible performance impact (in-memory counters/histograms)
 - `MetricsAdapter` interface follows the existing adapter pattern
@@ -29,7 +29,7 @@ The roadmap calls for SQLite persistence (v0.7.0), background job processing (v0
 
 ## Decision
 
-**Implement a `MetricsAdapter` interface with a `PrometheusMetricsAdapter` that exposes `/api/metrics` in Prometheus text exposition format.** Pull model only — Prometheus (or any compatible collector) scrapes at its interval.
+**Implement a `MetricsAdapter` interface with a `PrometheusMetricsAdapter` that exposes `/api/metrics` in Prometheus text exposition format.** Pull model only -- Prometheus (or any compatible collector) scrapes at its interval.
 
 ### MetricsAdapter Interface
 
@@ -54,8 +54,8 @@ export interface MetricsAdapter {
 ```
 
 Implementations:
-- `PrometheusMetricsAdapter` — production, in-memory collection, renders Prometheus text format
-- `NullMetricsAdapter` — testing/development, all methods are no-ops
+- `PrometheusMetricsAdapter` -- production, in-memory collection, renders Prometheus text format
+- `NullMetricsAdapter` -- testing/development, all methods are no-ops
 
 ### Metric Naming Convention
 
@@ -111,7 +111,7 @@ All metrics use the `alle_` prefix and follow [Prometheus naming conventions](ht
 
 ### Endpoint Implementation
 
-**`GET /api/metrics`** — Prometheus text exposition format:
+**`GET /api/metrics`** -- Prometheus text exposition format:
 
 ```
 # HELP alle_http_requests_total Total HTTP requests processed
@@ -160,7 +160,7 @@ alle_build_info{version="0.7.0"} 1
 }
 ```
 
-The health endpoint does NOT include Prometheus metrics — those are on a separate endpoint. Health is for uptime monitors (simple status check), metrics are for observability (detailed quantitative data).
+The health endpoint does NOT include Prometheus metrics -- those are on a separate endpoint. Health is for uptime monitors (simple status check), metrics are for observability (detailed quantitative data).
 
 ### Integration Points
 
@@ -168,11 +168,11 @@ Metrics are collected at these points in the request lifecycle:
 
 ```
 Request arrives
-  → Metrics middleware: increment alle_http_requests_active, start timer
-  → Guard checks (rate limiting, etc.)
-  → Route handler processes request
-  → Metrics middleware: observe histogram duration, increment counter, decrement active
-  → Response sent
+  -> Metrics middleware: increment alle_http_requests_active, start timer
+  -> Guard checks (rate limiting, etc.)
+  -> Route handler processes request
+  -> Metrics middleware: observe histogram duration, increment counter, decrement active
+  -> Response sent
 ```
 
 **Container wiring**:
@@ -199,11 +199,11 @@ get metricsAdapter(): MetricsAdapter {
 
 ### Performance Considerations
 
-- **Counters and gauges** are in-memory maps — O(1) updates, negligible overhead
-- **Histograms** use pre-defined bucket arrays — O(k) per observation where k is the number of buckets (~10). For ~100 RPS, this is <1μs per request
-- **Rendering** (`/api/metrics`) iterates all metric entries — suitable for 15-second scrape intervals
-- **No lock contention** — single-process, synchronous Bun runtime. No mutexes needed.
-- **Null adapter** — zero overhead in environments that disable metrics
+- **Counters and gauges** are in-memory maps -- O(1) updates, negligible overhead
+- **Histograms** use pre-defined bucket arrays -- O(k) per observation where k is the number of buckets (~10). For ~100 RPS, this is <1us per request
+- **Rendering** (`/api/metrics`) iterates all metric entries -- suitable for 15-second scrape intervals
+- **No lock contention** -- single-process, synchronous Bun runtime. No mutexes needed.
+- **Null adapter** -- zero overhead in environments that disable metrics
 
 ### Prometheus Scrape Config
 
@@ -228,22 +228,22 @@ When OTEL is added in v2.x:
 - The `PrometheusMetricsAdapter` remains as the default for self-hosted
 - Users choose via `METRICS_ADAPTER=prometheus|otel` env var
 
-No interface changes — just a new implementation class.
+No interface changes -- just a new implementation class.
 
 ## Consequences
 
 ### Positive
-- Standard Prometheus format — works with any Prometheus-compatible collector (Victoria Metrics, Mimir, Thanos, Cortex)
-- No external dependencies — metrics are built into the server
-- Adapter pattern — easy to add OTEL, StatsD, or custom implementations later
-- Performance impact is negligible — in-memory counters, no disk I/O
+- Standard Prometheus format -- works with any Prometheus-compatible collector (Victoria Metrics, Mimir, Thanos, Cortex)
+- No external dependencies -- metrics are built into the server
+- Adapter pattern -- easy to add OTEL, StatsD, or custom implementations later
+- Performance impact is negligible -- in-memory counters, no disk I/O
 - Path normalization prevents label explosion from dynamic URLs
 - Rich health endpoint gives uptime monitors useful context without requiring Prometheus
 
 ### Negative
-- Pull model requires Prometheus to reach Erledigen — doesn't work behind strict firewalls (acceptable for self-hosted)
-- In-memory metrics are lost on server restart — counters reset to zero (mitigated by Prometheus `increase()` function which handles resets)
-- No built-in dashboard — requires Grafana or similar for visualization (addressed by shipped dashboard JSON)
+- Pull model requires Prometheus to reach Erledigen -- doesn't work behind strict firewalls (acceptable for self-hosted)
+- In-memory metrics are lost on server restart -- counters reset to zero (mitigated by Prometheus `increase()` function which handles resets)
+- No built-in dashboard -- requires Grafana or similar for visualization (addressed by shipped dashboard JSON)
 
 ### Mitigations
 - `docker-compose.monitoring.yml` makes Prometheus + Grafana a one-command setup

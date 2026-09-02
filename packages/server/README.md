@@ -2,7 +2,7 @@
 
 The Bun REST API + WebSocket server for Erledigen. Runs on port 4000 and serves the full task management API.
 
-Follows the adapter pattern: route handlers are thin HTTP adapters that delegate to a service layer, which in turn uses repository interfaces from `@erledigen/shared`. The same Zod schemas drive both OpenAPI generation and request validation — no duplication.
+Follows the adapter pattern: route handlers are thin HTTP adapters that delegate to a service layer, which in turn uses repository interfaces from `@erledigen/shared`. The same Zod schemas drive both OpenAPI generation and request validation -- no duplication.
 
 ## Quick Start
 
@@ -12,7 +12,7 @@ mise run server   # dockerized dev container
 ```
 
 The server is available at `http://localhost:4000`. Storage is selected via
-`STORAGE_ADAPTER` (`sqlite` by default — a single `.db` file at `DB_PATH`,
+`STORAGE_ADAPTER` (`sqlite` by default -- a single `.db` file at `DB_PATH`,
 migrations run at boot; `memory` for ephemeral runs and tests).
 
 ## API Overview
@@ -33,19 +33,19 @@ The full OpenAPI 3.1 spec is served at `http://localhost:4000/openapi.yaml` (or 
 
 ```
 src/
-├── adapters/
-│   ├── config/    # EnvConfigProvider (env-var-driven config)
-│   ├── data/      # In-memory + SQLite repositories for every entity,
-│   │              #   shared contract suites, migrations/, SqliteConnection
-│   ├── http/      # HttpRequest / HttpResponse types, BunHttpServer
-│   └── ws/        # BunWebSocketServer + ConnectionManager (broadcast + send)
-├── middleware/    # Rate limiter, security headers
-├── openapi/
-│   └── schemas/   # Zod schemas — single source of truth for spec + validation
-├── presentation/  # Content-negotiated formatters (JSON + plain text)
-├── routes/        # Thin HTTP adapters per resource + openApiRoutes
-├── services/      # Domain services (Task, Tag, RecurringTask, Project, WebSocketManager, EventBus)
-└── utils/         # Error handling, route helpers, validation, recurring utils
+|-- adapters/
+|   |-- config/    # EnvConfigProvider (env-var-driven config)
+|   |-- data/      # In-memory + SQLite repositories for every entity,
+|   |              #   shared contract suites, migrations/, SqliteConnection
+|   |-- http/      # HttpRequest / HttpResponse types, BunHttpServer
+|   \-- ws/        # BunWebSocketServer + ConnectionManager (broadcast + send)
+|-- middleware/    # Rate limiter, security headers
+|-- openapi/
+|   \-- schemas/   # Zod schemas -- single source of truth for spec + validation
+|-- presentation/  # Content-negotiated formatters (JSON + plain text)
+|-- routes/        # Thin HTTP adapters per resource + openApiRoutes
+|-- services/      # Domain services (Task, Tag, RecurringTask, Project, WebSocketManager, EventBus)
+\-- utils/         # Error handling, route helpers, validation, recurring utils
 ```
 
 ## Scripts

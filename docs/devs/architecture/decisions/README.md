@@ -4,7 +4,7 @@ This directory contains Architecture Decision Records (ADRs) for the Erledigen p
 
 ## What is an ADR?
 
-An ADR captures an important architectural decision: what was decided, why, and what the consequences are. ADRs are immutable once accepted — if a decision changes, write a new ADR that supersedes the old one.
+An ADR captures an important architectural decision: what was decided, why, and what the consequences are. ADRs are immutable once accepted -- if a decision changes, write a new ADR that supersedes the old one.
 
 ## Index
 

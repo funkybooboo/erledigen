@@ -1,7 +1,7 @@
 /**
  * Dependency injection container for client
  *
- * Wires up all adapters. Lazy initialization — dependencies are created
+ * Wires up all adapters. Lazy initialization -- dependencies are created
  * only when first accessed. Swap any implementation by changing one line here;
  * business logic stays completely unchanged.
  */

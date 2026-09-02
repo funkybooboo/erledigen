@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { get } from './helpers';
 
-test.describe('meta — platform endpoints', () => {
+test.describe('meta -- platform endpoints', () => {
     test('GET / returns hello text', async ({ request }) => {
         const res = await get(request, '/');
         expect(res.status).toBe(200);
@@ -32,7 +32,7 @@ test.describe('meta — platform endpoints', () => {
     });
 });
 
-test.describe('meta — security headers on every response', () => {
+test.describe('meta -- security headers on every response', () => {
     test('health response carries nosniff / frame / csp headers', async ({ request }) => {
         const res = await get(request, '/api/health');
         expect(res.headers['x-content-type-options']).toBe('nosniff');
@@ -41,7 +41,7 @@ test.describe('meta — security headers on every response', () => {
     });
 });
 
-test.describe('meta — OpenAPI spec is served', () => {
+test.describe('meta -- OpenAPI spec is served', () => {
     test('GET /openapi.json returns a JSON OpenAPI document', async ({ request }) => {
         const res = await get(request, '/openapi.json');
         expect(res.status).toBe(200);

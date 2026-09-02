@@ -17,7 +17,7 @@
     let completedCount = $derived(tasks.filter(t => t.completed).length);
 
     // Distinct from the section's own `id` (day-{dateStr}, used as the
-    // scroll/navigation target) — duplicate DOM ids break getElementById
+    // scroll/navigation target) -- duplicate DOM ids break getElementById
     // and Playwright's strict locators.
     let sectionId = $derived(`day-${dateStr}-header`);
     let dateParts = $derived(container.dateProvider.formatDateParts(dateStr));

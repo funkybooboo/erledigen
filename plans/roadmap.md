@@ -30,34 +30,34 @@ This release focuses on establishing the project's foundation, including the cor
 
 ## v0.2.0: Core Task Model
 
-This release defines the full data model that powers the entire application — tasks, sub-tasks, Someday groups, projects, and recurring tasks.
+This release defines the full data model that powers the entire application -- tasks, sub-tasks, Someday groups, projects, and recurring tasks.
 
 - [x] **Task Model:** Define the complete `Task` type in `packages/shared` with all fields:
     - `id`, `text`, `notes` (markdown), `completed`, `date` (`null` = Someday), `createdAt`, `updatedAt`
-    - `tags: string[]` — first-class tag system; priority is expressed as special tags (`#p1`, `#p2`, `#p3`); projects use `project:` prefix tags
-    - `parentId: string | null` — enables nested sub-tasks
-    - `rolloverEnabled: boolean` — per-task rollover override (default: `true`)
-    - `someDayGroupId: string | null` — which Someday group this task belongs to
+    - `tags: string[]` -- first-class tag system; priority is expressed as special tags (`#p1`, `#p2`, `#p3`); projects use `project:` prefix tags
+    - `parentId: string | null` -- enables nested sub-tasks
+    - `rolloverEnabled: boolean` -- per-task rollover override (default: `true`)
+    - `someDayGroupId: string | null` -- which Someday group this task belongs to
     - `position: number | null`, `state: 'ready' | 'scheduled' | 'done' | null`
     - `recurringTaskId: string | null`, `instanceDate: string | null`
     - `originalScheduledDate: string | null`, `daysLate: number`
     - `dependsOn: string | null`
-    - `startTime: string | null` — ISO 8601 time string (e.g. `"09:00"`); `null` = all-day task
-    - `endTime: string | null` — ISO 8601 time string; `null` = all-day or open-ended
-    - `reminder: { time: string; channels: ('push' | 'email')[] } | null` — stub field; implemented in v2.2.0
-- [x] **SomeDayGroup Model:** Define `SomeDayGroup` — user-created tag-based groups in the Someday panel (`id`, `name`, `description: string | null`, `tag`, `position`, `createdAt`).
+    - `startTime: string | null` -- ISO 8601 time string (e.g. `"09:00"`); `null` = all-day task
+    - `endTime: string | null` -- ISO 8601 time string; `null` = all-day or open-ended
+    - `reminder: { time: string; channels: ('push' | 'email')[] } | null` -- stub field; implemented in v2.2.0
+- [x] **SomeDayGroup Model:** Define `SomeDayGroup` -- user-created tag-based groups in the Someday panel (`id`, `name`, `description: string | null`, `tag`, `position`, `createdAt`).
 - [x] **Project Model:** Define `Project` (`id`, `name`, `description`, `startDate`, `dueDate`, `isActive`, `createdAt`, `completedAt`).
 - [x] **RecurringTask Model:** Define `RecurringTask` template and `RecurringTaskStats` (`currentStreak`, `longestStreak`, `totalCompletions`, `lastCompletedDate`).
-- [x] **UserPreferences Model:** Define `UserPreferences` entity — stores all user-configurable settings and UI state (panel widths, scroll position, active filters, theme, locale, etc.). Single-row entity for single-user mode; per-user in multi-user mode.
+- [x] **UserPreferences Model:** Define `UserPreferences` entity -- stores all user-configurable settings and UI state (panel widths, scroll position, active filters, theme, locale, etc.). Single-row entity for single-user mode; per-user in multi-user mode.
 - [x] **Task CRUD:** Implement Create, Read, Update, Delete in memory. All operations tested with unit tests (written before implementation).
-- [x] **Tag System:** Tags are plain strings stored on tasks. No separate Tag entity needed — tags are derived from task data.
+- [x] **Tag System:** Tags are plain strings stored on tasks. No separate Tag entity needed -- tags are derived from task data.
 - [x] **Someday Support:** Tasks with `date: null` are unscheduled. `someDayGroupId` assigns them to a group.
 - [x] **Sub-task Support:** Tasks with `parentId` are sub-tasks. Completion of all sub-tasks rolls up to parent.
 
 ### Technical Notes & Considerations
 
 - All models live in `packages/shared` to be used by client, server, CLI, and MCP packages.
-- Priority (`#p1`, `#p2`, `#p3`) is a tag convention defined by `DEFAULT_TAG_KINDS` — no separate priority field. Projects use `project:` prefix tags.
+- Priority (`#p1`, `#p2`, `#p3`) is a tag convention defined by `DEFAULT_TAG_KINDS` -- no separate priority field. Projects use `project:` prefix tags.
 - The `tags` array is the primary organizational system across the entire app.
 - `rolloverEnabled` defaults to `true` app-wide; the per-task field overrides the app setting.
 - `startTime`/`endTime` are stored as time-only strings tied to the task's `date`. All-day tasks have both as `null`.
@@ -83,7 +83,7 @@ This release defines the full data model that powers the entire application — 
 
 This release creates the REST API for all entities. The API is designed to be clean, well-documented, and accessible from both browsers and the command line (curl-friendly).
 
-- [x] **Schema-first OpenAPI:** Zod schemas in `packages/server/src/openapi/schemas/` are the single source of truth. The OpenAPI 3.1 spec is generated at startup via `@asteasolutions/zod-to-openapi` and served at `/openapi.yaml` and `/openapi.json`. All request validation in route handlers uses the same schemas — no duplication.
+- [x] **Schema-first OpenAPI:** Zod schemas in `packages/server/src/openapi/schemas/` are the single source of truth. The OpenAPI 3.1 spec is generated at startup via `@asteasolutions/zod-to-openapi` and served at `/openapi.yaml` and `/openapi.json`. All request validation in route handlers uses the same schemas -- no duplication.
 - [x] **Task API:** Full CRUD endpoints for tasks, including filtering by date, tag, completion status, and Someday group.
 - [x] **SomeDayGroup API:** CRUD endpoints for managing Someday groups.
 - [x] **Project API:** CRUD endpoints for projects, plus activate/deactivate.
@@ -91,8 +91,8 @@ This release creates the REST API for all entities. The API is designed to be cl
 - [x] **Tag API:** Derive tags from task data; endpoint to list all tags, rename, merge.
 - [x] **UserPreferences API:** GET and PATCH endpoints for reading and updating user preferences.
 - [x] **Content negotiation (curl-friendly):** All endpoints inspect the `Accept` header:
-    - `application/json` (or no header from a browser) → JSON response (default)
-    - `text/plain` or absent `Accept` (curl default) → human-readable plain text response
+    - `application/json` (or no header from a browser) -> JSON response (default)
+    - `text/plain` or absent `Accept` (curl default) -> human-readable plain text response
     - Example: `GET /tasks/today` with `Accept: text/plain` returns a plain-text task list
 - [x] **Security headers:** All responses include:
     - `X-Content-Type-Options: nosniff`
@@ -113,7 +113,7 @@ This release creates the REST API for all entities. The API is designed to be cl
 
 ### Documentation & ADRs
 
-- ADR: schema-first OpenAPI approach (spec → validators → implementation).
+- ADR: schema-first OpenAPI approach (spec -> validators -> implementation).
 - ADR: content negotiation strategy (curl-friendly plain text).
 - Dev docs: API reference auto-generated from the OpenAPI spec.
 
@@ -141,78 +141,78 @@ This release builds the core three-panel layout and all fundamental task interac
 ### Layout Shell
 
 - [x] **Four-zone layout:**
-    - **Left icon rail** — slim vertical rail with icons that each open a large centered modal (background dims on open, `Esc` or click-outside closes). One modal open at a time.
-    - **Center day list** — the primary working area; fills all space between the two panels.
-    - **Right Someday panel** — collapsible via toggle button or `Ctrl+\`; width saved to `UserPreferences`. *(Resizable drag handle → v0.6.0)*
-    - **Bottom bar** — state display and navigation (see Bottom Bar section below).
+    - **Left icon rail** -- slim vertical rail with icons that each open a large centered modal (background dims on open, `Esc` or click-outside closes). One modal open at a time.
+    - **Center day list** -- the primary working area; fills all space between the two panels.
+    - **Right Someday panel** -- collapsible via toggle button or `Ctrl+\`; width saved to `UserPreferences`. *(Resizable drag handle -> v0.6.0)*
+    - **Bottom bar** -- state display and navigation (see Bottom Bar section below).
 
 - [x] **Active icon highlight:** The active modal's icon has a subtle highlight in the icon rail.
 - [x] **Icon labels:** Shown/hidden via Settings.
 
 ### Bottom Bar
 
-Layout: `erledigen logo | filter chips | task count | ▲ Today | docs ↗`
+Layout: `erledigen logo | filter chips | task count | ^ Today | docs ->`
 
-- [x] **Left:** `erledigen` logo — clicking clears all filters and snaps to today (home button).
-- [x] **Center-left:** active filter chips, each with `×` to dismiss; `[clear all]` when multiple filters active.
-- [x] **Center-right:** status — `12 tasks • 4 done`; when no filters: `March 30 • 12 tasks`.
-- [x] **Right:** `▲ Today` button — visible only when today section is out of viewport. IntersectionObserver wires `todayVisible` in DayList.svelte
-- [x] **Far-right:** `docs ↗` link — opens the Writebook user docs in a new tab.
+- [x] **Left:** `erledigen` logo -- clicking clears all filters and snaps to today (home button).
+- [x] **Center-left:** active filter chips, each with `x` to dismiss; `[clear all]` when multiple filters active.
+- [x] **Center-right:** status -- `12 tasks - 4 done`; when no filters: `March 30 - 12 tasks`.
+- [x] **Right:** `^ Today` button -- visible only when today section is out of viewport. IntersectionObserver wires `todayVisible` in DayList.svelte
+- [x] **Far-right:** `docs ->` link -- opens the Writebook user docs in a new tab.
 
 ### Day List
 
 - [x] **Day section header:** Date label + task count + completed count.
-- [x] **Task row:** Drag handle (⠿) on left (visible on hover), checkbox, text, tag chips, time display for tasks with `startTime`.
-- [x] **Recurring task indicator:** Subtle 🔁 icon after the task text.
+- [x] **Task row:** Drag handle (grip) on left (visible on hover), checkbox, text, tag chips, time display for tasks with `startTime`.
+- [x] **Recurring task indicator:** Subtle recurrence icon after the task text.
 - [x] **Sub-tasks:** Child tasks with `parentId` rendered indented below their parent task.
-- [x] **Empty days:** Render empty day sections between today ±30 days when `showEmptyDays` preference is enabled.
+- [x] **Empty days:** Render empty day sections between today +/-30 days when `showEmptyDays` preference is enabled.
 - [x] **App opens scrolled to today** with a subtle "Today" highlight. `scrollToToday()` called on mount.
 - [x] **`+ add task`** prompt at the bottom of each day section.
 
 ### Task Interactions
 
-- [x] **Click text** → inline edit (Enter saves, Esc cancels).
-- [x] **`e` or detail icon** → floating task detail modal (text, notes, tags, date picker, `startTime`/`endTime` fields, rollover toggle).
-- [x] **Space** → complete task; undo toast (5s) + Cmd+Z.
-- [x] **`d`** → delete task; undo toast (5s) + Cmd+Z. Behavior (instant vs confirm) configurable in Settings — respects `deleteConfirmation` preference.
-- [x] **`n` or `a`** → inline add input appears at bottom of focused day section.
-- [x] **Drag (⠿ handle)** → drag between day sections; drag right to Someday (clears date); drag left from Someday onto a day header to schedule.
+- [x] **Click text** -> inline edit (Enter saves, Esc cancels).
+- [x] **`e` or detail icon** -> floating task detail modal (text, notes, tags, date picker, `startTime`/`endTime` fields, rollover toggle).
+- [x] **Space** -> complete task; undo toast (5s) + Cmd+Z.
+- [x] **`d`** -> delete task; undo toast (5s) + Cmd+Z. Behavior (instant vs confirm) configurable in Settings -- respects `deleteConfirmation` preference.
+- [x] **`n` or `a`** -> inline add input appears at bottom of focused day section.
+- [x] **Drag (grip handle)** -> drag between day sections; drag right to Someday (clears date); drag left from Someday onto a day header to schedule.
 
 ### Someday Panel
 
-- [x] Title "Someday" with collapse button (‹).
+- [x] Title "Someday" with collapse button (<).
 - [x] `+ add group` button at top.
 - [x] Groups rendered with same task rows and interactions as day sections.
 - [x] Ungrouped tasks rendered below groups.
-- [x] Global filter (🏷️) applies to Someday tasks simultaneously with the day list (via shared `applyFilters` utility).
+- [x] Global filter applies to Someday tasks simultaneously with the day list (via shared `applyFilters` utility).
 - [x] Group creation uses inline form instead of browser `prompt()`.
 - [x] Group rename and delete actions.
 
 ### Icon Rail Modals
 
-- [x] 📆 **Calendar** — date picker to jump the day list to any date. Functional.
-- [x] 🗑️ **Trash** — recently deleted tasks with restore; auto-purge after 7 days. Functional.
-- [x] ❓ **Help** — keyboard shortcut reference organized by category. Functional.
+- [x] **Calendar** -- date picker to jump the day list to any date. Functional.
+- [x] **Trash** -- recently deleted tasks with restore; auto-purge after 7 days. Functional.
+- [x] **Help** -- keyboard shortcut reference organized by category. Functional.
 
-- [x] 📅 **Summary** — daily stats: completion percentage, overdue tasks (with days-late count), upcoming deadlines (tasks tagged `#deadline`).
-- [x] 📊 **Projects** — project list view (active and inactive) with task counts, + new project inline form, edit/delete actions, and detail view showing project tasks.
-- [x] 🔁 **Habits** — recurring task list view (name, frequency label, tags, dates) with instance count badges, + new habit inline form, and edit/delete actions.
-- [x] 🔍 **Search** — search tasks by text, notes, and tags; selecting a result scrolls the day list to that task.
-- [x] 🏷️ **Filter** — filter by tags using dynamic `tagKinds` sections (single-behavior kinds render as radio groups, multiple as toggle chips), plus completion status toggle.
-- [x] ⚙️ **Settings** — theme (light/dark/system), auto-rollover toggle, show empty days toggle, panel toggle hint, delete confirmation toggle (instant vs confirm).
+- [x] **Summary** -- daily stats: completion percentage, overdue tasks (with days-late count), upcoming deadlines (tasks tagged `#deadline`).
+- [x] **Projects** -- project list view (active and inactive) with task counts, + new project inline form, edit/delete actions, and detail view showing project tasks.
+- [x] **Habits** -- recurring task list view (name, frequency label, tags, dates) with instance count badges, + new habit inline form, and edit/delete actions.
+- [x] **Search** -- search tasks by text, notes, and tags; selecting a result scrolls the day list to that task.
+- [x] **Filter** -- filter by tags using dynamic `tagKinds` sections (single-behavior kinds render as radio groups, multiple as toggle chips), plus completion status toggle.
+- [x] **Settings** -- theme (light/dark/system), auto-rollover toggle, show empty days toggle, panel toggle hint, delete confirmation toggle (instant vs confirm).
 
 ### TaskDetailModal
 
-- [x] **Text field** — editable task text.
-- [x] **Notes field** — editable markdown notes.
-- [x] **Date picker** — set or clear the task date.
-- [x] **Start time / End time** — time inputs for scheduled tasks.
-- [x] **Tags field** — comma-separated tag input.
-- [x] **Rollover toggle** — per-task auto-rollover override.
-- [x] **Parent task reference** — read-only display when viewing a sub-task.
-- [x] **Recurring task reference** — read-only indicator when viewing a recurring instance.
-- [x] **Sub-task management** — add, complete, and delete child tasks from within the detail modal.
-- [x] **Delete task** — delete button in the modal with undo toast.
+- [x] **Text field** -- editable task text.
+- [x] **Notes field** -- editable markdown notes.
+- [x] **Date picker** -- set or clear the task date.
+- [x] **Start time / End time** -- time inputs for scheduled tasks.
+- [x] **Tags field** -- comma-separated tag input.
+- [x] **Rollover toggle** -- per-task auto-rollover override.
+- [x] **Parent task reference** -- read-only display when viewing a sub-task.
+- [x] **Recurring task reference** -- read-only indicator when viewing a recurring instance.
+- [x] **Sub-task management** -- add, complete, and delete child tasks from within the detail modal.
+- [x] **Delete task** -- delete button in the modal with undo toast.
 
 ### Technical Notes & Considerations
 
@@ -220,7 +220,7 @@ Layout: `erledigen logo | filter chips | task count | ▲ Today | docs ↗`
 - **Svelte 5 runes:** All stores use `$state` class pattern in `.svelte.ts` files. All components use `$props`, `$derived`, `$effect`, `{@render children()}`.
 - **Escape key handling:** `svelte:window` in layout handles global escape; Modal stops propagation only for Tab (focus trap).
 - Optimistic updates for all task mutations.
-- ARIA roles and labels applied to all interactive elements from the start — not retrofitted later.
+- ARIA roles and labels applied to all interactive elements from the start -- not retrofitted later.
 - E2E tests use `data-hydrated` attribute for reliable SvelteKit hydration detection.
 - Storybook stories exist for all 20 components (10 top-level + 10 modals).
 
@@ -240,9 +240,9 @@ Layout: `erledigen logo | filter chips | task count | ▲ Today | docs ↗`
 - [x] Sub-tasks rendered indented below parent tasks in day list.
 - [x] TaskDetailModal: sub-task add/complete/delete and task delete button.
 - [x] Empty days render when preference is enabled.
-- [x] IntersectionObserver wires `todayVisible` for the ▲ Today button.
+- [x] IntersectionObserver wires `todayVisible` for the ^ Today button.
 - [x] Someday panel: inline group creation form; group rename/delete.
-- [x] Summary, Projects, Habits modals: functional list views (streaks → v0.8.0, Kanban/heatmaps → v0.9.0).
+- [x] Summary, Projects, Habits modals: functional list views (streaks -> v0.8.0, Kanban/heatmaps -> v0.9.0).
 
 ---
 
@@ -251,33 +251,33 @@ Layout: `erledigen logo | filter chips | task count | ▲ Today | docs ↗`
 Refactoring pass to fix API mismatches, extract shared types/constants/utilities, add server service layer, WebSocket real-time sync, flexible tag system, and clean up client architecture.
 
 ### Client/Server API Bug Fixes
-- [x] Fix `tagService.getAll()` — wrong response type shape (`{data: {tags: string[]}}` → `ApiResponse<string[]>`)
-- [x] Fix `tagService.rename()` — wrong HTTP method (PUT→POST), wrong body fields (`{oldName,newName}`→`{from,to}`), wrong response type
-- [x] Fix `tagService.merge()` — wrong HTTP method (PUT→POST), wrong body shape (`{sourceTag,targetTag}`→`{sources:string[],target}`), wrong response type
-- [x] Fix `projectService.activate()`/`deactivate()` — wrong HTTP method (PUT→POST)
-- [x] Fix `tagStore` — re-fetch tags after rename/merge instead of using stale return value
+- [x] Fix `tagService.getAll()` -- wrong response type shape (`{data: {tags: string[]}}` -> `ApiResponse<string[]>`)
+- [x] Fix `tagService.rename()` -- wrong HTTP method (PUT->POST), wrong body fields (`{oldName,newName}`->`{from,to}`), wrong response type
+- [x] Fix `tagService.merge()` -- wrong HTTP method (PUT->POST), wrong body shape (`{sourceTag,targetTag}`->`{sources:string[],target}`), wrong response type
+- [x] Fix `projectService.activate()`/`deactivate()` -- wrong HTTP method (PUT->POST)
+- [x] Fix `tagStore` -- re-fetch tags after rename/merge instead of using stale return value
 
-### Shared Package — Types, Constants, Utilities
+### Shared Package -- Types, Constants, Utilities
 - [x] Add `ErrorResponseBody`, `TaskQueryParams`, `RenameTagRequest/Response`, `MergeTagRequest/Response` to `shared/types/api.ts`
 - [x] Add `ThemeType`, `DeleteConfirmationType`, `NotificationPosition`, `TagKind`, `TagKindBehavior` to `shared/types/userPreferences.ts`
 - [x] Add `USER_PREFERENCES_DEFAULTS`, `TASK_DEFAULTS`, `RECURRING_TASK_DEFAULTS`, `PURGE_RETENTION_DAYS`, `DEFAULT_DAY_RANGE`, `DEFAULT_TOAST_DURATION_MS`, `DEFAULT_RATE_LIMIT_RPM`, `DEFAULT_TAG_KINDS`, `DEFAULT_TAG_KIND_MAP`, `SOMEDAY_KEY`, weekday/month name constants, `CONTENT_TYPE_TEXT`, `MAX_SEARCH_RESULTS`, route patterns to `shared/constants.ts`
 - [x] Add `RateLimitError`, `createNotFoundError`, `createValidationError` to shared errors
 - [x] Create `shared/utils/` with `resolveTagKind`, `getTagsByKind`, `getKindValues`, `parseTags`, `formatTags`, `slugify`, `groupTasksByDate`, `isOverdue`, `hasDeadlineTag`, `formatFrequency`
-- [x] Delete `server/adapters/data/defaults.ts` — replaced by shared constants
-- [x] Fix `preferencesStore` — remove local `ActiveFilters` type, use `ThemeType`/`DeleteConfirmationType`/`NotificationPosition` from shared, use `USER_PREFERENCES_DEFAULTS`
-- [x] Fix `filters.ts` — replace local `FilterState` with `ActiveFilters` from shared; filter by tags only (no separate `projectId`/`priority` fields)
+- [x] Delete `server/adapters/data/defaults.ts` -- replaced by shared constants
+- [x] Fix `preferencesStore` -- remove local `ActiveFilters` type, use `ThemeType`/`DeleteConfirmationType`/`NotificationPosition` from shared, use `USER_PREFERENCES_DEFAULTS`
+- [x] Fix `filters.ts` -- replace local `FilterState` with `ActiveFilters` from shared; filter by tags only (no separate `projectId`/`priority` fields)
 
 ### Flexible Tag System
 - [x] Add `TagKind` type (`id`, `name`, `behavior`, `prefix`, `sortOrder`, `color`) to `shared/types/userPreferences.ts`
 - [x] Add `tagKinds: TagKind[]` and `tagKindMap: Record<string, string>` to `UserPreferences`
-- [x] Add `DEFAULT_TAG_KINDS` (priority: single, project: single with `project:` prefix) and `DEFAULT_TAG_KIND_MAP` (`p1/p2/p3` → `priority`) to `shared/constants.ts`
+- [x] Add `DEFAULT_TAG_KINDS` (priority: single, project: single with `project:` prefix) and `DEFAULT_TAG_KIND_MAP` (`p1/p2/p3` -> `priority`) to `shared/constants.ts`
 - [x] Add `resolveTagKind()`, `getTagsByKind()`, `getKindValues()` utilities to `shared/utils/tagKinds.ts`
 - [x] Add `NotificationPosition` type and `notificationPosition` preference
-- [x] Rewrite `FilterModal` to dynamically render sections from `tagKinds` — single-behavior kinds as radio groups, multiple as toggle chips
-- [x] Remove `projectId` and `priority` from `ActiveFilters` — projects and priorities are now just tags, filtered via `tags[]`
-- [x] Remove `setProject()`/`setPriority()` from `preferencesStore` — `toggleTag()`/`setTags()` handle all filtering
-- [x] Remove `Task.projectId` and `RecurringTask.projectId` — project linkage is via `project:` prefix tags
-- [x] Remove `PRIORITY_TAGS` constant and `isPriorityTag()` — replaced by `DEFAULT_TAG_KINDS`/`DEFAULT_TAG_KIND_MAP` and `resolveTagKind()`
+- [x] Rewrite `FilterModal` to dynamically render sections from `tagKinds` -- single-behavior kinds as radio groups, multiple as toggle chips
+- [x] Remove `projectId` and `priority` from `ActiveFilters` -- projects and priorities are now just tags, filtered via `tags[]`
+- [x] Remove `setProject()`/`setPriority()` from `preferencesStore` -- `toggleTag()`/`setTags()` handle all filtering
+- [x] Remove `Task.projectId` and `RecurringTask.projectId` -- project linkage is via `project:` prefix tags
+- [x] Remove `PRIORITY_TAGS` constant and `isPriorityTag()` -- replaced by `DEFAULT_TAG_KINDS`/`DEFAULT_TAG_KIND_MAP` and `resolveTagKind()`
 - [x] Update `BottomBar` to render all active filters as uniform tag chips (no separate project/priority chips)
 - [x] Update server Zod schemas to match: `ActiveFiltersSchema` uses `tags[]` + `showCompleted`, no `projectId`/`priority`; task schemas have no `projectId`
 
@@ -294,19 +294,19 @@ Refactoring pass to fix API mismatches, extract shared types/constants/utilities
 - [x] Connection status notifications (connected, disconnected, reconnecting, synced, error) via `connectionStore`
 
 ### WebSocket Real-Time Sync
-- [x] Add `ConnectionManager` on server — tracks connected clients with connect/disconnect/message callbacks
-- [x] Add `BunWebSocketServer` implementing `WebSocketServer` interface — broadcast and send methods
-- [x] Add `WebSocketManager` service — subscribes to `EventBus.onAny()` and rebroadcasts all events via WebSocket
-- [x] Add `EventBus` service on server — `emit()`, `onAny()`, `on()` for domain event publishing
-- [x] Add WebSocket types to `shared/types/websocket.ts` — `WsServerMessage` discriminated union with event types for task, project, someday group, and recurring task CRUD
-- [x] Add `connectionStore` on client — manages `WebSocketService` lifecycle, connection state, and client ID header
-- [x] Wire WebSocket into server container and `index.ts` — `listen()` upgrades start WebSocket server; domain events broadcast to connected clients
+- [x] Add `ConnectionManager` on server -- tracks connected clients with connect/disconnect/message callbacks
+- [x] Add `BunWebSocketServer` implementing `WebSocketServer` interface -- broadcast and send methods
+- [x] Add `WebSocketManager` service -- subscribes to `EventBus.onAny()` and rebroadcasts all events via WebSocket
+- [x] Add `EventBus` service on server -- `emit()`, `onAny()`, `on()` for domain event publishing
+- [x] Add WebSocket types to `shared/types/websocket.ts` -- `WsServerMessage` discriminated union with event types for task, project, someday group, and recurring task CRUD
+- [x] Add `connectionStore` on client -- manages `WebSocketService` lifecycle, connection state, and client ID header
+- [x] Wire WebSocket into server container and `index.ts` -- `listen()` upgrades start WebSocket server; domain events broadcast to connected clients
 
 ### Server Service Layer
-- [x] Create `server/services/TaskService.ts` — listTasks, completeTask, getTrash, purge
-- [x] Create `server/services/TagService.ts` — listTags, renameTag, mergeTags
-- [x] Create `server/services/RecurringTaskService.ts` — generateInstances
-- [x] Create `server/services/ProjectService.ts` — listProjects
+- [x] Create `server/services/TaskService.ts` -- listTasks, completeTask, getTrash, purge
+- [x] Create `server/services/TagService.ts` -- listTags, renameTag, mergeTags
+- [x] Create `server/services/RecurringTaskService.ts` -- generateInstances
+- [x] Create `server/services/ProjectService.ts` -- listProjects
 - [x] Wire services into Container
 - [x] Add `respondNegotiated()` helper to `routeHelpers.ts`
 - [x] Refactor all route files to thin HTTP adapters calling services
@@ -314,7 +314,7 @@ Refactoring pass to fix API mismatches, extract shared types/constants/utilities
 - [x] Move `formatters.ts` to `server/presentation/formatters.ts`
 
 ### Client Architecture Clean-Up
-- [x] Merge `filterStore` into `preferencesStore` — toggleTag, clearAll, setTags, setShowCompleted, activeFilterCount getter
+- [x] Merge `filterStore` into `preferencesStore` -- toggleTag, clearAll, setTags, setShowCompleted, activeFilterCount getter
 - [x] Add `getTrash()`, `softDelete()`, `restoreFromTrash()`, `purge()` to `taskStore`
 - [x] Update `TrashModal` to use `taskStore` instead of direct `TaskService`
 - [x] Replace inline types in stores with shared input types (`CreateRecurringTaskInput`, `CreateProjectInput`, `CreateSomeDayGroupInput`, etc.)
@@ -345,8 +345,8 @@ This release makes Erledigen fully operable without a mouse, and finalizes the c
 **Navigation**
 | Key | Action |
 |-----|--------|
-| `j` / `↓` | Focus next task |
-| `k` / `↑` | Focus previous task |
+| `j` / down-arrow | Focus next task |
+| `k` / up-arrow | Focus previous task |
 | `J` | Jump to next day section / Someday group |
 | `K` | Jump to previous day section / Someday group |
 | `g t` | Jump to today |
@@ -359,8 +359,8 @@ This release makes Erledigen fully operable without a mouse, and finalizes the c
 | `e` | Open task detail modal |
 | `Space` | Complete / uncomplete task |
 | `d` | Delete task (undo toast) |
-| `r` | Reschedule — open date picker inline |
-| `m` | Move — opens day picker to move to another day |
+| `r` | Reschedule -- open date picker inline |
+| `m` | Move -- opens day picker to move to another day |
 | `1` | Set priority `#p1` |
 | `2` | Set priority `#p2` |
 | `3` | Set priority `#p3` |
@@ -387,7 +387,7 @@ This release makes Erledigen fully operable without a mouse, and finalizes the c
 
 The palette has two modes distinguished by the first character:
 
-**Search mode** (plain text — no `/` prefix):
+**Search mode** (plain text -- no `/` prefix):
 - Fuzzy search across all tasks (title, tags, notes)
 - Results ranked by recency and relevance
 - Selecting a result closes the palette and scrolls day list to that task's day
@@ -411,7 +411,7 @@ The palette has two modes distinguished by the first character:
 | `/help` | Open Help modal |
 
 - Natural language dates and tags parsed in both modes.
-- The palette command list is extensible — new commands are registered by adding to the command registry in `packages/shared`.
+- The palette command list is extensible -- new commands are registered by adding to the command registry in `packages/shared`.
 
 ### Additional Checklist
 - [x] Vim + arrow key navigation: both work simultaneously throughout the app (day list; Someday panel not yet keyboard-navigable).
@@ -423,9 +423,9 @@ The palette has two modes distinguished by the first character:
 - [x] Focus trapped inside modals; Esc closes and returns focus to the trigger element.
 
 ### Technical Notes & Considerations
-- `mousetrap` or `hotkeys-js` for keybinding management. Choose one — ADR it.
+- `mousetrap` or `hotkeys-js` for keybinding management. Choose one -- ADR it.
 - `chrono-node` for natural language date parsing.
-- Command registry pattern: commands are objects `{ prefix: string; description: string; handler: fn }` — makes the palette extensible.
+- Command registry pattern: commands are objects `{ prefix: string; description: string; handler: fn }` -- makes the palette extensible.
 - E2E tests for all keyboard flows (written before implementation).
 
 ### Documentation & ADRs
@@ -451,7 +451,7 @@ This release polishes the three-panel layout, completes drag-and-drop interactio
 
 > **Removed:** drag-and-drop (and the `svelte-dnd-action` dependency) was removed in the frontend simplification (commit `2f3a700`) in favor of true infinite scroll. The items below are kept as the design for whenever drag returns.
 
-- [ ] **Drag handle:** ⠿ grip icon appears on the left of each task row on hover. Only the handle initiates a drag.
+- [ ] **Drag handle:** grip icon appears on the left of each task row on hover. Only the handle initiates a drag.
 - [ ] **Drag between days:** Drag a task from one day section and drop it onto another day's header or task list. The target day section highlights on hover.
 - [ ] **Reorder within a day:** Drag tasks up/down within the same day section to reorder.
 - [ ] **Drag to Someday:** Drag a task rightward into the Someday panel. Task's `date` is cleared on drop (becomes unscheduled). Task lands in the first group or a highlighted group.
@@ -469,7 +469,7 @@ This release polishes the three-panel layout, completes drag-and-drop interactio
 
 ### Filtering
 
-- [ ] **Priority view mode:** Accessible through the 🏷️ Filter modal as a sort option. When "Priority" sort is active, tasks within each day section are ordered `#p1` → `#p2` → `#p3` → untagged, with a subtle left-border accent per priority level.
+- [ ] **Priority view mode:** Accessible through the Filter modal as a sort option. When "Priority" sort is active, tasks within each day section are ordered `#p1` -> `#p2` -> `#p3` -> untagged, with a subtle left-border accent per priority level.
 - [ ] **Date range filter:** Add date range picker to the Filter modal. Filters tasks by date range (from/to), applies to day list and Someday simultaneously.
 - [x] **Filter persistence:** Configurable in Settings (default: persist across sessions in `UserPreferences`).
 
@@ -483,7 +483,7 @@ This release polishes the three-panel layout, completes drag-and-drop interactio
 
 ### Technical Notes & Considerations
 - `svelte-dnd-action` already in use for drag within day sections.
-- Intersection observer for lazy loading — avoid virtual scrolling unless performance requires it.
+- Intersection observer for lazy loading -- avoid virtual scrolling unless performance requires it.
 - CSS custom properties for theme tokens alongside Tailwind.
 - Tailwind's JIT mode for optimal bundle size.
 - Keyboard alternatives (move task with `m` + date picker) are covered in v0.5.0.
@@ -512,8 +512,8 @@ This release implements persistent storage, structured logging and metrics, mult
 - [ ] **In-Memory Adapter:** Already exists; keep for testing and ephemeral sessions.
 - [x] **SQLite Adapter:** Implement a file-based SQLite adapter as the first real persistence layer (see [ADR-001](../docs/devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md)).
     - Zero-config for self-hosted use: single `.db` file on disk (`./data/erledigen.db`, configurable via `DB_PATH`).
-    - Raw SQL via `bun:sqlite` — no ORM (see [ADR-001](../docs/devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md)).
-    - JSON columns for `tags[]`, `reminder`, nested objects — repository handles `JSON.parse`/`JSON.stringify` at the boundary.
+    - Raw SQL via `bun:sqlite` -- no ORM (see [ADR-001](../docs/devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md)).
+    - JSON columns for `tags[]`, `reminder`, nested objects -- repository handles `JSON.parse`/`JSON.stringify` at the boundary.
     - Schema migrations via raw SQL files (see [ADR-003](../docs/devs/architecture/decisions/ADR-003-raw-sql-migrations.md)): sequentially-numbered `.sql` files, forward-only, lightweight runner (~50 LOC).
     - Supports all entities: tasks, sub-tasks, Someday groups, projects, recurring tasks, `UserPreferences`.
     - Indexes on `tasks(date)`, `tasks(some_day_group_id)`, `tasks(parent_id)`, `tasks(recurring_task_id)`, `tasks(deleted_at)`.
@@ -534,7 +534,7 @@ This release implements persistent storage, structured logging and metrics, mult
 - [ ] **Request ID middleware:** Generate a `requestId` (UUID) per HTTP request. Attach to all logs in that request's scope via child logger pattern. Return as `X-Request-Id` response header.
 - [ ] **Request duration logging:** Log method, path, status code, and duration in ms for every HTTP request.
 - [ ] **Job-scoped logging:** Background jobs log with `jobId` and `jobType` in context.
-- [ ] **Child logger pattern:** `RequestLogger` wraps parent logger with default context (request ID, job ID). Services receive child loggers — they don't manage correlation IDs.
+- [ ] **Child logger pattern:** `RequestLogger` wraps parent logger with default context (request ID, job ID). Services receive child loggers -- they don't manage correlation IDs.
 - [ ] **Error logging:** Errors always include `error.message` and `error.stack` in structured context.
 
 ### Metrics
@@ -545,36 +545,36 @@ This release implements persistent storage, structured logging and metrics, mult
 - [ ] **Background job metrics:** `erledigen_jobs_total` (counter by type, status), `erledigen_job_duration_seconds` (histogram by type), `erledigen_jobs_pending` (gauge by type), `erledigen_jobs_running` (gauge).
 - [ ] **Application metrics:** `erledigen_tasks_total` (gauge), `erledigen_ws_connections_active` (gauge), `erledigen_uptime_seconds` (gauge), `erledigen_build_info` (gauge with version label).
 - [ ] **Path normalization:** Dynamic path segments (e.g., `/api/tasks/:id`) normalized to route patterns to prevent label explosion.
-- [ ] **Container wiring:** `container.metricsAdapter` — `METRICS_ENABLED=true` (default) creates `PrometheusMetricsAdapter`, `false` creates `NullMetricsAdapter`.
+- [ ] **Container wiring:** `container.metricsAdapter` -- `METRICS_ENABLED=true` (default) creates `PrometheusMetricsAdapter`, `false` creates `NullMetricsAdapter`.
 
 ### Health Endpoint
 - [ ] **Enhanced `/api/health`:** Rich response including `version`, `uptime`, `database` (type, path, size), `connections` (websocket count), `jobs` (pending, running counts).
 
 ### Export
-- [ ] **JSON** — canonical format; lossless round-trip. All entities included.
-- [ ] **CSV** — flat task list; configurable columns (text, date, tags, priority, completed, notes).
-- [ ] **Markdown** — task list as `- [ ] text #tags` per line, grouped by date.
-- [ ] **iCal / .ics** — tasks with `startTime`/`endTime` exported as VEVENT; all-day tasks as all-day VEVENT.
+- [ ] **JSON** -- canonical format; lossless round-trip. All entities included.
+- [ ] **CSV** -- flat task list; configurable columns (text, date, tags, priority, completed, notes).
+- [ ] **Markdown** -- task list as `- [ ] text #tags` per line, grouped by date.
+- [ ] **iCal / .ics** -- tasks with `startTime`/`endTime` exported as VEVENT; all-day tasks as all-day VEVENT.
 
 ### Import
-- [ ] **JSON** — restore from a previous export.
-- [ ] **CSV** — generic task CSV with column mapping UI.
-- [ ] **iCal / .ics** — parse VEVENT entries into tasks; sets `date`, `startTime`, `endTime`. Works with Google Calendar, Apple Calendar, Outlook exports.
-- [ ] **Todoist CSV** — map Todoist's export columns to Erledigen task fields.
-- [ ] **Things 3 JSON** — map Things 3 export format to Erledigen task fields.
+- [ ] **JSON** -- restore from a previous export.
+- [ ] **CSV** -- generic task CSV with column mapping UI.
+- [ ] **iCal / .ics** -- parse VEVENT entries into tasks; sets `date`, `startTime`, `endTime`. Works with Google Calendar, Apple Calendar, Outlook exports.
+- [ ] **Todoist CSV** -- map Todoist's export columns to Erledigen task fields.
+- [ ] **Things 3 JSON** -- map Things 3 export format to Erledigen task fields.
 
 ### Interfaces
-- [ ] **`ExportAdapter<T>`** interface in `packages/shared` — implement one adapter per format.
-- [ ] **`ImportAdapter<T>`** interface in `packages/shared` — implement one adapter per format.
+- [ ] **`ExportAdapter<T>`** interface in `packages/shared` -- implement one adapter per format.
+- [ ] **`ImportAdapter<T>`** interface in `packages/shared` -- implement one adapter per format.
 
 ### Technical Notes & Considerations
-- SQLite via `bun:sqlite` (built into Bun — no extra dependency). No ORM — raw SQL per [ADR-001](../docs/devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md).
-- Migrations are forward-only raw SQL files per [ADR-003](../docs/devs/architecture/decisions/ADR-003-raw-sql-migrations.md). No `down()` migrations — fix-forward is the policy.
+- SQLite via `bun:sqlite` (built into Bun -- no extra dependency). No ORM -- raw SQL per [ADR-001](../docs/devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md).
+- Migrations are forward-only raw SQL files per [ADR-003](../docs/devs/architecture/decisions/ADR-003-raw-sql-migrations.md). No `down()` migrations -- fix-forward is the policy.
 - Keep PostgreSQL adapter for v2.3.0 when multi-user auth is added. Same repository interfaces, different SQL implementations.
-- The JSON export format is documented and stable — users can rely on it for backups.
-- Import UI: a file picker in ⚙️ Settings > Import/Export with format selection and column mapping for CSV.
+- The JSON export format is documented and stable -- users can rely on it for backups.
+- Import UI: a file picker in Settings > Import/Export with format selection and column mapping for CSV.
 - All import adapters are tested with real export files from the source apps.
-- `Logger` interface stays the same — `ConsoleLogger` implementation gains JSON output. Child logger pattern adds context without changing the interface.
+- `Logger` interface stays the same -- `ConsoleLogger` implementation gains JSON output. Child logger pattern adds context without changing the interface.
 - OTEL SDK is deferred to v2.x (see [ADR-004](../docs/devs/architecture/decisions/ADR-004-structured-json-logging.md)). The current `Logger` interface is OTEL-compatible.
 
 ### Documentation & ADRs
@@ -622,7 +622,7 @@ This release introduces the automation features that make Erledigen smart, backe
 - [ ] **Task rollover:**
     - Incomplete tasks with `rolloverEnabled: true` automatically move to the next day.
     - `originalScheduledDate` is preserved; `daysLate` is calculated and displayed as an overdue badge.
-    - App-wide rollover default configurable in ⚙️ Settings (on/off, trigger time: midnight / 9am / manual).
+    - App-wide rollover default configurable in Settings (on/off, trigger time: midnight / 9am / manual).
     - Per-task override via the task detail modal.
 - [ ] **Rollover job:** Scheduled daily at configured time (default: midnight). Processes all incomplete tasks where `rolloverEnabled=true` and `date < today`.
 
@@ -630,17 +630,17 @@ This release introduces the automation features that make Erledigen smart, backe
 - [x] **Recurring tasks:**
     - Recurring task instances are auto-generated from templates.
     - Generation window: a +90-day horizon (`GENERATE_HORIZON_DAYS`) is generated when a habit is created; the DayList extends it on scroll. Not yet configurable in Settings.
-    - Instances appear in the day list with a 🔁 icon.
-    - Completing an instance updates `RecurringTaskStats` (streak tracking: current streak, longest streak, total completions) — stats are recomputed from instances on read (`GET /api/recurring-tasks/:id/stats`).
+    - Instances appear in the day list with a recurrence icon.
+    - Completing an instance updates `RecurringTaskStats` (streak tracking: current streak, longest streak, total completions) -- stats are recomputed from instances on read (`GET /api/recurring-tasks/:id/stats`).
     - Missing a day breaks the streak.
-    - Habits are created from natural-language phrases ("water plants every friday at 9am") via `parseRecurrence` in `@erledigen/shared` — trailing phrase, live-parsed in every add input and the Habits modal.
-- [x] **Recurring generation:** `generateInstances` is idempotent (skips dates that already have an instance) and is triggered on demand — DayList mount/scroll plus `POST /api/recurring-tasks/generate-all` — instead of by a daily job. Other tabs are notified via the `recurringTask:generated` WebSocket event.
+    - Habits are created from natural-language phrases ("water plants every friday at 9am") via `parseRecurrence` in `@erledigen/shared` -- trailing phrase, live-parsed in every add input and the Habits modal.
+- [x] **Recurring generation:** `generateInstances` is idempotent (skips dates that already have an instance) and is triggered on demand -- DayList mount/scroll plus `POST /api/recurring-tasks/generate-all` -- instead of by a daily job. Other tabs are notified via the `recurringTask:generated` WebSocket event.
 
 ### Trash Purge
 - [ ] **Purge job:** Runs daily at 3am. Permanently deletes tasks where `deletedAt` is older than `PURGE_RETENTION_DAYS` (default: 7).
 
 ### Streak Tracking
-- [x] **Streak tracking:** Current/longest streak and total completions shown as badges in the 🔁 Habits modal (the GitHub-style heatmap remains planned).
+- [x] **Streak tracking:** Current/longest streak and total completions shown as badges in the Habits modal (the GitHub-style heatmap remains planned).
 
 ### Technical Notes & Considerations
 - Job queue is SQLite-backed per [ADR-002](../docs/devs/architecture/decisions/ADR-002-sqlite-backed-job-queue.md). Same database, `jobs` table.
@@ -672,27 +672,27 @@ This release builds the full UI for project management and habit tracking.
 
 **Status:** Partially shipped. Habits: done (list, create/edit/delete with live natural-language schedule parsing, streak badges, weekday/weekend schedules; the heatmap and the "make recurring" toggle remain). Projects: the modal exists with list + create/edit/delete + a detail view showing the project's tasks; the Kanban board, auto-distribution, and dependency indicators remain (activate/deactivate are API flag flips only). Summary: today's completion percentage + upcoming `#deadline` tasks; overdue/streak/holiday sections remain. Calendar: done. Holidays: not started.
 
-- [ ] **Projects modal (📊):**
+- [ ] **Projects modal:**
     - List all projects (active and inactive).
     - Create/edit/delete projects with name, description, start date, due date.
-    - **Project detail:** Kanban board with three columns — Ready, Scheduled, Done.
+    - **Project detail:** Kanban board with three columns -- Ready, Scheduled, Done.
     - Drag tasks between columns.
     - Each scheduled task shows its assigned date.
     - [Activate] button runs the auto-distribution algorithm (spreads tasks across days between start and due date).
     - [Auto-distribute] shows a preview before confirming.
     - Dependency indicators: tasks blocked by incomplete predecessors show a lock icon.
     - Project tasks appear in the day list tagged with the project name (e.g., `#build-erledigen`).
-- [ ] **Habits modal (🔁):**
+- [ ] **Habits modal:**
     - List all recurring task templates with current streak and last completion date.
     - `+ new habit` flow: text + recurrence rule builder (presets: daily, weekly, monthly; custom rrule).
     - **Habit detail:** edit form + stats bar (current streak, longest streak, total completions) + GitHub-style completion heatmap.
     - Promote any existing task to recurring: toggle "Make recurring" in the task detail modal.
-- [ ] **Summary modal (📅):**
+- [ ] **Summary modal:**
     - Completion percentage for today.
     - List of overdue tasks with days-late count.
     - Active streaks for recurring tasks.
     - Upcoming hard deadlines (tasks tagged `#deadline`) and holidays within the next 14 days.
-- [x] **Calendar modal (📆):**
+- [x] **Calendar modal:**
     - A month-grid date picker that jumps the day list to the selected date (and centers it).
     - **Today** is a full view reset: day list centered on today and the month minimap re-centered on the current month.
 - [ ] **Holidays in Settings:**
@@ -756,18 +756,18 @@ This release refines the visual design into a cohesive, calm product and formali
     - Tags are auto-assigned distinct pastel colors on creation.
     - User can override the color for any tag in Settings > Tags.
     - Tag chips in task rows and filter bar reflect the color.
-- [ ] **Tag management screen** (in ⚙️ Settings):
+- [ ] **Tag management screen** (in Settings):
     - List all tags with their colors.
     - Rename, merge (combine two tags), delete, recolor.
-- [ ] **Animations & transitions:** Subtle and purposeful — task completion fade, modal open/close, panel collapse, drag ghost.
+- [ ] **Animations & transitions:** Subtle and purposeful -- task completion fade, modal open/close, panel collapse, drag ghost.
 - [ ] **Visual consistency audit:** Every modal, panel, form, and interaction reviewed against the design system. No orphaned styles.
 - [ ] **Storybook design review:** All components reviewed in Storybook against the design system.
 
 ### User Preferences (Settings)
 - [ ] **Font size:** Small, medium (default), large. Adjusts `--font-size-base` CSS variable globally.
 - [ ] **Task row density:** Compact (tight spacing) vs comfortable (spacious, default).
-- [ ] **Completion animation:** Configurable — strikethrough+fade, stay grayed, or hide immediately.
-- [x] **Delete behavior:** Instant + 5s undo toast (default) vs require confirmation dialog — configurable in Settings (`deleteConfirmation`).
+- [ ] **Completion animation:** Configurable -- strikethrough+fade, stay grayed, or hide immediately.
+- [x] **Delete behavior:** Instant + 5s undo toast (default) vs require confirmation dialog -- configurable in Settings (`deleteConfirmation`).
 - [ ] **Rollover defaults:** App-wide on/off, trigger time (midnight / 9am / manual).
 - [ ] **Empty day visibility:** Show empty days (default) vs hide.
 - [ ] **Filter persistence:** Persist active filters across sessions (default) vs always start fresh.
@@ -776,7 +776,7 @@ This release refines the visual design into a cohesive, calm product and formali
 - [ ] **All preferences persisted** in `UserPreferences` (SQLite). Survive restarts, browser refreshes, and re-logins.
 
 ### Privacy Principle
-- No analytics, no telemetry, no tracking — not even anonymized. Erledigen knows nothing about how you use it except what you explicitly store in your own database.
+- No analytics, no telemetry, no tracking -- not even anonymized. Erledigen knows nothing about how you use it except what you explicitly store in your own database.
 - Document this commitment explicitly in the user docs.
 
 ### Technical Notes & Considerations
@@ -823,7 +823,7 @@ This release ensures Erledigen meets WCAG 2.1 Level AA accessibility standards a
 
 ### Technical Notes & Considerations
 - `axe-core` + `@axe-core/playwright` for automated accessibility testing.
-- Manual screen reader testing is required for full coverage — automation only catches ~30–40% of issues.
+- Manual screen reader testing is required for full coverage -- automation only catches ~30-40% of issues.
 - Retrofit any a11y debt accumulated in earlier releases.
 
 ### Documentation & ADRs
@@ -846,7 +846,7 @@ This release adds infrastructure for multiple languages and locale-aware formatt
 - [ ] **`I18nAdapter` interface** defined in `packages/shared`. Pluggable locale providers implement it.
 - [ ] **String extraction:** All user-facing strings extracted into locale files (`locales/en.json` as the canonical source). No hardcoded strings in components.
 - [ ] **Default locale:** English (`en`). All existing strings catalogued and placed in `en.json`.
-- [ ] **Locale selection:** ⚙️ Settings > Language dropdown. Selected locale stored in `UserPreferences`.
+- [ ] **Locale selection:** Settings > Language dropdown. Selected locale stored in `UserPreferences`.
 - [ ] **Date/time formatting:** Locale-aware using the `Intl` API. Day section headers, task dates, and times respect the selected locale.
 - [ ] **Number formatting:** Task counts and stats use `Intl.NumberFormat`.
 - [ ] **RTL layout architecture:** CSS layout is RTL-ready (logical properties: `margin-inline-start` not `margin-left`). No RTL language ships in this release, but adding one requires only a locale file and `dir="rtl"` on `<html>`.
@@ -875,10 +875,10 @@ This release adds infrastructure for multiple languages and locale-aware formatt
 
 This release adds a time-grid calendar view for tasks with start and end times.
 
-- [ ] **View toggle:** The 📆 Calendar rail icon now offers two modes: `List` (the existing day list) and `Calendar` (time grid). Toggle saved to `UserPreferences`.
+- [ ] **View toggle:** The Calendar rail icon now offers two modes: `List` (the existing day list) and `Calendar` (time grid). Toggle saved to `UserPreferences`.
 - [ ] **Day view:** A 24-hour vertical time grid for a single day. Tasks with `startTime`/`endTime` appear as time-block cards. All-day tasks appear in a row above the grid.
-- [ ] **Week view:** Seven-column time grid (Mon–Sun). Same block display.
-- [ ] **Quick-add from grid:** Click any time slot → inline input with that time pre-filled → creates a task with `startTime` set.
+- [ ] **Week view:** Seven-column time grid (Mon-Sun). Same block display.
+- [ ] **Quick-add from grid:** Click any time slot -> inline input with that time pre-filled -> creates a task with `startTime` set.
 - [ ] **Drag to reschedule:** Drag a time block to a new slot or day. Updates `date`, `startTime`, `endTime` on drop.
 - [ ] **Resize to change duration:** Drag the bottom edge of a block to change `endTime`.
 - [ ] **All-day tasks:** Tasks without `startTime`/`endTime` appear in the all-day row; can be dragged onto the grid to add a time.
@@ -912,7 +912,7 @@ The first stable, fully usable release of Erledigen. Goal: a complete daily driv
 - [ ] **Command palette:** Search, commands (`/` prefix), natural language add/navigate all functional.
 - [ ] **Projects & Habits:** Fully functional project Kanban and habit tracking with streaks.
 - [ ] **Rollover automation:** Incomplete tasks roll over by default; overdue badges shown.
-- [ ] **Tag system:** Full tag management — colors, rename, merge, delete.
+- [ ] **Tag system:** Full tag management -- colors, rename, merge, delete.
 - [ ] **Light & dark themes:** Polished and complete.
 - [ ] **Markdown notes:** Rich notes in task detail.
 - [x] **Trash & undo:** 7-day trash, undo toasts, Cmd+Z.
@@ -947,13 +947,13 @@ Adds a full-featured command-line interface in a new `packages/cli` package.
 
 - [ ] **Package setup:** `packages/cli` using Bun, communicates with the server over HTTP REST.
 - [ ] **Command-based mode:**
-    - `erledigen add "buy milk tomorrow #work #p1"` — natural language task creation
-    - `erledigen list [--today] [--tag work] [--priority p1]` — list tasks
-    - `erledigen complete <id|text>` — complete a task
-    - `erledigen delete <id|text>` — delete a task
-    - `erledigen someday add "learn Rust"` — add to Someday
-    - `erledigen someday list` — list Someday tasks
-    - `erledigen server start|stop|status` — control the server process
+    - `erledigen add "buy milk tomorrow #work #p1"` -- natural language task creation
+    - `erledigen list [--today] [--tag work] [--priority p1]` -- list tasks
+    - `erledigen complete <id|text>` -- complete a task
+    - `erledigen delete <id|text>` -- delete a task
+    - `erledigen someday add "learn Rust"` -- add to Someday
+    - `erledigen someday list` -- list Someday tasks
+    - `erledigen server start|stop|status` -- control the server process
     - All commands support `--format json|plain|csv` for output formatting
 - [ ] **Interactive TUI mode:** Running `erledigen` with no arguments opens a terminal UI for navigating and managing tasks.
     - TUI mirrors the web keyboard shortcuts exactly (same shortcut table from v0.5.0).
@@ -977,14 +977,14 @@ Adds an MCP (Model Context Protocol) server in `packages/mcp` enabling AI-assist
 
 - [ ] **Package setup:** `packages/mcp` exposing all Erledigen capabilities as MCP tools.
 - [ ] **Core tools:** create/update/delete tasks, query tasks by date/tag/priority, manage Someday groups, manage projects, manage recurring tasks.
-- [ ] **AI workflow support** (MCP-only — not in the web UI):
-    - **AI scheduling:** "Schedule all my `#work` tasks for next week" — AI distributes tasks across days.
-    - **Daily briefing:** "What do I have today?" — summarizes tasks, overdue, streaks.
-    - **Batch creation:** "Create a project with these 10 tasks: ..." — AI creates project + tasks at once.
-    - **Smart triage:** "Which overdue tasks should I reschedule vs drop?" — AI helps decide.
+- [ ] **AI workflow support** (MCP-only -- not in the web UI):
+    - **AI scheduling:** "Schedule all my `#work` tasks for next week" -- AI distributes tasks across days.
+    - **Daily briefing:** "What do I have today?" -- summarizes tasks, overdue, streaks.
+    - **Batch creation:** "Create a project with these 10 tasks: ..." -- AI creates project + tasks at once.
+    - **Smart triage:** "Which overdue tasks should I reschedule vs drop?" -- AI helps decide.
 
 ### Documentation & ADRs
-- ADR: No AI in the UI — all AI automation via MCP and CLI only.
+- ADR: No AI in the UI -- all AI automation via MCP and CLI only.
 
 ### Definition of Done
 - All MCP tools implemented and documented.
@@ -998,8 +998,8 @@ Adds browser push and email reminders.
 
 - [ ] **Per-task reminders:** `reminder: { time: string; channels: ('push' | 'email')[] }` field (stubbed in v0.2.0) is now live.
 - [ ] **Browser push notifications:** Web Push API; user grants permission on first use.
-- [ ] **Email reminders:** Configurable email provider via `EmailAdapter` interface (SMTP / Resend / Postmark). Selected and configured in ⚙️ Settings.
-- [ ] **App-wide defaults:** Default reminder time and channels configurable in ⚙️ Settings.
+- [ ] **Email reminders:** Configurable email provider via `EmailAdapter` interface (SMTP / Resend / Postmark). Selected and configured in Settings.
+- [ ] **App-wide defaults:** Default reminder time and channels configurable in Settings.
 - [ ] **Notification management:** View, edit, and cancel scheduled reminders.
 
 ### Technical Notes & Considerations
@@ -1027,7 +1027,7 @@ Adds multi-user support with passwordless authentication.
 ### Security Requirements
 - Passkeys stored per FIDO2 spec. No password is ever stored.
 - Magic links: short-lived (15 min), single-use, HTTPS-only.
-- JWTs stored in httpOnly, Secure, SameSite=Strict cookies — not localStorage.
+- JWTs stored in httpOnly, Secure, SameSite=Strict cookies -- not localStorage.
 - Refresh token rotation: a new refresh token is issued on every use; old token invalidated.
 - CSRF protection via SameSite cookie + custom header check.
 
@@ -1074,9 +1074,9 @@ A dedicated security audit and hardening release. Runs before SaaS billing to en
 
 ## v2.5.0: SaaS & Billing
 
-Erledigen is open-source — anyone can self-host for free. This release adds optional managed hosting with Stripe billing for users who prefer not to self-host.
+Erledigen is open-source -- anyone can self-host for free. This release adds optional managed hosting with Stripe billing for users who prefer not to self-host.
 
-- [ ] **Managed hosting:** Creator's instance available at a public URL. Onboarding flow: sign up → choose plan → Stripe Checkout → access app.
+- [ ] **Managed hosting:** Creator's instance available at a public URL. Onboarding flow: sign up -> choose plan -> Stripe Checkout -> access app.
 - [ ] **`PaymentAdapter` interface** in `packages/server`. Stripe adapter implements it. Self-hosted deployments can swap in a no-op adapter.
 - [ ] **`BILLING_ENABLED` env var:** Set to `false` on self-hosted instances to disable all billing code paths. Billing is completely inert when disabled.
 - [ ] **Stripe integration:**
@@ -1085,7 +1085,7 @@ Erledigen is open-source — anyone can self-host for free. This release adds op
     - Webhook handling for subscription lifecycle: `created`, `updated`, `cancelled`, `payment_failed`.
     - Stripe webhook signature verification on all incoming events.
 - [ ] **Free tier:** Defined limits (e.g., up to N tasks, no recurring tasks, no notifications). Paid tier: unlimited.
-- [ ] **Billing UI** in ⚙️ Settings (visible on managed hosting only):
+- [ ] **Billing UI** in Settings (visible on managed hosting only):
     - Current plan and renewal date.
     - Upgrade / downgrade / cancel flow (via Stripe Customer Portal redirect).
     - Invoice history.
@@ -1096,8 +1096,8 @@ Erledigen is open-source — anyone can self-host for free. This release adds op
 
 ### Security Considerations
 - Stripe webhook signature verified on every event.
-- No card data ever touches our server — all payment handling is Stripe-side.
-- Subscription state is stored locally (plan, status, Stripe customer ID) — nothing sensitive.
+- No card data ever touches our server -- all payment handling is Stripe-side.
+- Subscription state is stored locally (plan, status, Stripe customer ID) -- nothing sensitive.
 
 ### Documentation & ADRs
 - ADR: open-core model (open-source self-host + managed paid tier).
@@ -1117,7 +1117,7 @@ Erledigen is open-source — anyone can self-host for free. This release adds op
 ## v2.6.0: Advanced Automation
 
 - [ ] **2-Day Rule:** Priority rises over time for recurring tasks not completed. Non-recurring tasks roll over to the next day.
-- [ ] **Smart scheduling (MCP-only):** AI-assisted task distribution — suggests how to spread tasks based on capacity, deadlines, and priority. Available via MCP server; not surfaced in the web UI.
+- [ ] **Smart scheduling (MCP-only):** AI-assisted task distribution -- suggests how to spread tasks based on capacity, deadlines, and priority. Available via MCP server; not surfaced in the web UI.
 - [ ] **Conditional tasks:** Set conditions on tasks (e.g., "complete X to unlock Y").
 - [ ] **Capacity planning:** Set a daily task limit; auto-distribution respects it.
 
@@ -1128,8 +1128,8 @@ Erledigen is open-source — anyone can self-host for free. This release adds op
 Pull assignments and due dates from a Canvas LMS instance into Erledigen.
 
 - [ ] **`CanvasCalendarAdapter`** implementing the `ImportAdapter` interface.
-- [ ] **Configuration** in ⚙️ Settings: Canvas instance URL + API token (stored encrypted in the database).
-- [ ] **Sync behavior:** One-way pull only (Canvas → Erledigen). Creates scheduled tasks from Canvas assignments: title, due date, course name as a tag (e.g. `#cs-101`).
+- [ ] **Configuration** in Settings: Canvas instance URL + API token (stored encrypted in the database).
+- [ ] **Sync behavior:** One-way pull only (Canvas -> Erledigen). Creates scheduled tasks from Canvas assignments: title, due date, course name as a tag (e.g. `#cs-101`).
 - [ ] **Scheduled auto-sync:** Configurable interval (e.g., every hour, every day) or manual pull via a "Sync now" button in Settings.
 - [ ] **Deduplication:** Canvas assignment ID stored on imported tasks. Re-syncing does not create duplicates.
 - [ ] **Update handling:** If an assignment's due date changes in Canvas, the corresponding task's date is updated on next sync.

@@ -2,7 +2,7 @@
 
 **Status**: Accepted  
 **Date**: 2026-05-09  
-**Context**: v0.7.0 — Persistence & Data I/O
+**Context**: v0.7.0 -- Persistence & Data I/O
 
 ## Context
 
@@ -33,15 +33,15 @@ Erledigen currently stores all data in-memory (`Map<string, T>` implementations)
 
 ### Rationale
 
-1. **Zero-config deployment.** SQLite is a single `.db` file. Self-hosted users run one command, no database server to configure. `bun:sqlite` is built into Bun — zero dependencies.
+1. **Zero-config deployment.** SQLite is a single `.db` file. Self-hosted users run one command, no database server to configure. `bun:sqlite` is built into Bun -- zero dependencies.
 
 2. **Full control.** Raw SQL means we know exactly what queries execute. No surprising N+1 queries from ORM lazy-loading. No abstraction leaks where the ORM can't express a query we need.
 
-3. **Performance.** `bun:sqlite` is synchronous and extremely fast for single-user workloads. No async overhead, no connection pooling needed. SQLite handles writes sequentially — exactly right for our use case.
+3. **Performance.** `bun:sqlite` is synchronous and extremely fast for single-user workloads. No async overhead, no connection pooling needed. SQLite handles writes sequentially -- exactly right for our use case.
 
 4. **Simplicity.** The Repository pattern already abstracts data access. Each repository receives raw rows and maps to domain types. This is straightforward, debuggable, and has no hidden magic.
 
-5. **Migration path to PostgreSQL.** When v2.3.0 adds multi-user, we write a `PgTaskRepository` that implements the same `TaskRepository` interface. The Container swaps one line. Raw SQL repositories are easy to reason about and port — each query is explicit.
+5. **Migration path to PostgreSQL.** When v2.3.0 adds multi-user, we write a `PgTaskRepository` that implements the same `TaskRepository` interface. The Container swaps one line. Raw SQL repositories are easy to reason about and port -- each query is explicit.
 
 6. **ORMs add complexity we don't need yet.** Drizzle/Kysely solve problems we don't have (type-safe query composition, schema-auto-migrations). Our queries are simple CRUD + a few filter operations. Raw SQL is clearer for this.
 
@@ -61,13 +61,13 @@ Erledigen currently stores all data in-memory (`Map<string, T>` implementations)
 | Nested objects (reminder) | `TEXT` | JSON-encoded object |
 | `null` / `undefined` | `NULL` | Nullable columns |
 
-**Repository implementations**: `SqliteTaskRepository`, `SqliteProjectRepository`, `SqliteSomeDayGroupRepository`, `SqliteRecurringTaskRepository`, `SqliteUserPreferencesRepository` — each implements the existing interface, backed by raw SQL.
+**Repository implementations**: `SqliteTaskRepository`, `SqliteProjectRepository`, `SqliteSomeDayGroupRepository`, `SqliteRecurringTaskRepository`, `SqliteUserPreferencesRepository` -- each implements the existing interface, backed by raw SQL.
 
 **Container wiring**: `STORAGE_ADAPTER` env var selects `memory` (default for tests) or `sqlite`.
 
 **JSON columns**: Tags (`string[]`), reminder (`{ time, channels }`), and any nested objects are stored as JSON `TEXT` columns. The repository is responsible for `JSON.parse`/`JSON.stringify` at the boundary.
 
-**Indexes**: Schema includes indexes on `tasks(date)`, `tasks(some_day_group_id)`, `tasks(parent_id)`, `tasks(recurring_task_id)`, `tasks(deleted_at)` — matching the existing query patterns in `TaskRepository`.
+**Indexes**: Schema includes indexes on `tasks(date)`, `tasks(some_day_group_id)`, `tasks(parent_id)`, `tasks(recurring_task_id)`, `tasks(deleted_at)` -- matching the existing query patterns in `TaskRepository`.
 
 ## Consequences
 
@@ -81,12 +81,12 @@ Erledigen currently stores all data in-memory (`Map<string, T>` implementations)
 
 ### Negative
 - More boilerplate per repository (SQL strings, type mapping functions)
-- No compile-time query validation — errors caught at runtime
+- No compile-time query validation -- errors caught at runtime
 - Schema changes require manual migration files
 - Type mapping between TypeScript and SQLite is manual (no generated types)
 
 ### Mitigations
-- Contract tests: same test suite runs against both `InMemory` and `Sqlite` repositories — catches SQL bugs at test time
+- Contract tests: same test suite runs against both `InMemory` and `Sqlite` repositories -- catches SQL bugs at test time
 - Helper functions for common type mappings (`parseJsonColumn`, `toBoolean`, `toIsoString`) reduce boilerplate
-- Raw SQL migrations are version-controlled and reviewed — see ADR-003
+- Raw SQL migrations are version-controlled and reviewed -- see ADR-003
 - PostgreSQL repositories will have their own set of raw SQL queries, tested the same way
