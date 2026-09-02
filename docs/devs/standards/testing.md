@@ -35,6 +35,12 @@ Our testing approach prioritizes **quality over arbitrary coverage metrics**:
 - NO dependency on external services in unit tests
 - Flaky tests MUST be fixed immediately or disabled and tracked
 
+**Known environmental flake**: locally, vite occasionally binds `::1` only,
+producing intermittent ERR_CONNECTION_REFUSED failures that rotate between
+tests. Triage rule: re-run any connection-looking failure STANDALONE; only a
+standalone repro counts as a real failure (see `tests/README.md` for the
+isolated verification stack).
+
 ### 3. Test-First Mindset
 
 **RULE**: Tests are first-class citizens, not afterthoughts.

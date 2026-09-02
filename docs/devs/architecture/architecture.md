@@ -103,6 +103,39 @@ If the answer is **yes**, put it in `packages/shared`. If the answer is **no**, 
 
 This simple rule ensures that our shared package remains lean and that we maintain a clear separation of concerns.
 
+## Domain Model Notes
+
+Facts that are easy to get wrong when working on the domain, API, or stores.
+
+- **Tags ARE the domain model, not metadata.** Priority is not a field:
+  `p1`/`p2`/`p3` are tags resolved through the tag-kind system
+  (`packages/shared/src/utils/tagKinds.ts`, `DEFAULT_TAG_KIND_MAP`); projects
+  own a `project:`-prefixed tag kind. Free-form tags organize tasks, groups,
+  Someday, and filters alike.
+- **Dates are local key strings.** A task's `date` is a `yyyy-MM-dd` string in
+  local time; `date === null` means the task lives in Someday. Date math goes
+  through the shared `dateProvider` key helpers — never `Date` object
+  arithmetic (timezone bugs have shipped from that).
+- **Habits materialize as real tasks, idempotently.** A recurring template
+  stamps generated instances with its `recurringTaskId` and `startTime`;
+  generation skips dates that already exist
+  (`TaskRepository.findByRecurringTaskId`), so editing a schedule never
+  rewrites already-created instances. Generation is client-driven on demand
+  (DayList chunk loads; a +90-day horizon for new habits,
+  `GENERATE_HORIZON_DAYS`) — there is NO server-side scheduler; ADR-002's job
+  queue remains unimplemented.
+- **Realtime skips the originator twice, on purpose.** Mutations publish an
+  event on the `EventBus` carrying the requester's `x-client-id`; the server
+  broadcast skips that client's socket, AND the client additionally ignores
+  messages whose `originClientId` matches its own id. Stores upsert by id
+  on ingest so an echoed event cannot duplicate rows. Do not remove either
+  skip layer "because the other covers it".
+- **Literal routes must register before `:id` routes** (`/tasks/purge`,
+  `/recurring-tasks/generate-all`) or the literal is parsed as the id.
+- **Zod schemas self-register into the OpenAPI document on import**
+  (zod-to-openapi): a schema referenced only by tests still shows up in
+  `/openapi.json`.
+
 ## 12-Factor App Compliance
 
 The application is designed to follow the principles of a [12-Factor App](https://12factor.net/). This means that it is:

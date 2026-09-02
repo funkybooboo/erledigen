@@ -93,6 +93,8 @@
         "Keycap",
         "predev",
         "worktree",
+        "worktrees",
+        "worktrunk",
         "reflogs",
         "undoable",
         "stackable",

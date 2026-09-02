@@ -66,6 +66,12 @@ mise run dev
 This starts the docker dev stack (server + client, attached). Source is bind-mounted, so code edits are picked up live by `bun --watch` (server) and vite HMR (client) — no rebuild needed. The dev database lives in the `dev-data` named volume, never in the repo. After changing dependencies, run `mise run dev-refresh` to rebuild the dev images.
 
 > The dev stack publishes ports 3000/4000 on the host — stop any locally-running servers first (the `predev` bun script does this when running outside docker).
+>
+> **These scripts kill whatever holds ports 3000/4000, without asking**:
+> `predev` (3000+4000), `pretest:e2e*` (4000), and `mise run ci`. Never run
+> them while a dev stack or manual server on those ports belongs to someone
+> else — check `lsof -ti:3000,4000` first. (The prod stack never collides:
+> single published port, default 8080.)
 
 ### Run one service at a time
 

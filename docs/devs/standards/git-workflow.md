@@ -25,12 +25,18 @@ We use **GitHub Flow** — a simple, modern branching strategy that emphasizes c
    - Direct commits to `main` are **PROHIBITED**
    - All changes go through pull requests
 
-2. **Create feature branch from `main`**
+2. **Create a feature worktree + branch from `main` with `wt`**
+   Every feature — and every parallel agent session — works in its OWN worktree,
+   never in a shared checkout:
+
    ```bash
-   git checkout main
-   git pull origin main
-   git checkout -b feature/user-authentication
+   wt switch -c feature/user-authentication        # create branch + worktree, switch into it
+   wt switch -c -x pi feature/user-authentication  # same, then launch an agent inside it
    ```
+
+   `wt` creates each worktree under `.git/`, so concurrent sessions get
+   isolated indexes and working trees: agents can stage, commit, and rebase
+   without stepping on each other (see "Parallel Work with Worktrees" below).
 
 3. **Work with atomic commits**
    - Make small, focused commits
@@ -55,6 +61,26 @@ We use **GitHub Flow** — a simple, modern branching strategy that emphasizes c
 7. **Deploy automatically**
    - Main branch deploys to production automatically
    - Monitor deployment and rollback if needed
+
+### Parallel Work with Worktrees (`wt`)
+
+**RULE**: features and parallel work happen in `wt` worktrees, merged to
+`main` via pull request. `wt` (worktrunk) is installed on the dev machines
+and manages one worktree per branch.
+
+| Command | What it does |
+|---------|---------------|
+| `wt switch -c <branch>` | Create branch + worktree and switch into it |
+| `wt switch -c -x pi <branch>` | Create and launch an AI agent inside it |
+| `wt switch <branch>` / `wt switch -` (previous) / `wt switch ^` (main) | Hop between worktrees without disturbing them |
+| `wt switch` | Interactive worktree picker |
+| `wt list` | List worktrees and their status |
+| `wt merge <target>` | Squash and fast-forward into target, remove the worktree |
+| `wt remove` | Remove a worktree (deletes the branch when merged) |
+
+The feature loop: `wt switch -c feature/x` -> develop with free commits in
+your own worktree -> push the branch -> open a PR -> squash-merge ->
+`wt remove`. Use the plain-`git` flow below only when `wt` is unavailable.
 
 ---
 
@@ -340,6 +366,12 @@ git commit --amend --no-edit
 
 **RULE**: Use stash to save work-in-progress when switching contexts.
 
+**CAUTION**: `git stash` is only safe in a worktree you own. In a SHARED
+checkout with another session's staged work, `git stash pop` flattens staged
+to unstaged and the index state is lost (see the appendix). With `wt`
+worktrees you should never need to stash — `wt switch` changes context
+without touching the tree.
+
 ```bash
 # Save current changes
 git stash push -m "WIP: user authentication form"
@@ -578,23 +610,19 @@ git cherry-pick -n <commit-hash>
 ### Feature Development
 
 ```bash
-# 1. Start from main
-git checkout main
-git pull origin main
+# 1. Create a feature worktree + branch and switch into it
+wt switch -c feature/task-filtering
 
-# 2. Create feature branch
-git checkout -b feature/task-filtering
-
-# 3. Make changes and commit
+# 2. Make changes and commit (free to rebase/amend: the worktree is yours)
 git add .
 git commit -m "feat(client): add date range filter for tasks"
 
-# 4. Push to remote
+# 3. Push to remote
 git push -u origin feature/task-filtering
 
-# 5. Open PR on GitHub
-# 6. Address review feedback
-# 7. Squash and merge when approved
+# 4. Open a PR on GitHub, address review feedback
+# 5. Squash and merge when approved, then clean up the worktree
+wt remove
 ```
 
 ### Hotfix
@@ -632,3 +660,69 @@ git push --force-with-lease
 ```
 
 This Git workflow ensures clean history, clear communication, and safe collaboration across the team.
+
+---
+
+## Appendix: Sharing a Single Checkout
+
+**RULE**: Do not share a checkout — use `wt` worktrees (above). This appendix
+applies only when multiple agents/sessions end up in ONE checkout with each
+other's work-in-progress in the tree or index. Every rule below was learned
+the hard way.
+
+1. **NEVER `git stash` while another session has STAGED work.** `git stash
+   pop` flattens staged to unstaged and the index state is lost. Recovery if
+   it already happened: find the dangling stash commit with
+   `git fsck --no-reflogs`; its SECOND parent is the index commit;
+   `git read-tree <index-commit>` restores the exact staged state (verify no git
+   processes are running first).
+2. **`git commit --only <paths>` commits the WORKTREE content of those paths**
+   through a temp index (pre-commit hooks see only the listed files, and
+   other files' staged WIP is preserved). TRAP: any UNSTAGED changes inside
+   those paths get swept into your commit — the classic way foreign WIP
+   leaks into a "pure" commit.
+3. **`git checkout HEAD -- <file>` destroys the file's staged index entry.** To
+   reset a worktree file to HEAD while preserving someone's staged content:
+   `git show HEAD:<file> > <file>`.
+4. **Verify purity after any surgical commit:**
+   `git show HEAD -- <file> | grep -E '^\+[^+]'` — every added line must be yours.
+
+### Staged-file surgery
+
+Committing your changes to a file that also holds another session's WIP
+(a plain `commit --only` would sweep their WIP, and their later commit would
+resurrect whatever you removed):
+
+```bash
+# 1. Back up the full worktree copies of the file(s)
+cp <file> /tmp/<file>.bak
+
+# 2. Reset the worktree file to HEAD, KEEPING their staged entry
+git show HEAD:<file> > <file>
+
+# 3. Re-apply ONLY your changes to the file
+
+# 4. Commit only those paths
+#    (this also updates the real-index entries for the committed paths)
+git commit --only -m "<conventional message>" -- <paths>
+
+# 5. Restore the backup (worktree := their WIP + your changes)
+cp /tmp/<file>.bak <file>
+
+# 6. Restore their staged entry against the new HEAD
+git add <paths>
+```
+
+Their WIP stays alive in worktree AND index while your change lands pure;
+when they commit, it does not resurrect what you removed.
+
+### More traps
+
+- **Untracked dependencies**: code can depend on untracked files (a new
+  migration `.sql` is the classic). Committing the code without the
+  dependency breaks every other checkout and the docker build; `git add`
+  untracked dependencies together with the code that needs them.
+- **Vanish races**: if your files seem to vanish mid-session, re-check disk
+  state before assuming data loss — a concurrent git operation raced you.
+  And after concurrent git activity, grep for your key additions: a
+  concurrent commit can land a file version missing your verified lines.

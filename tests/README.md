@@ -111,3 +111,29 @@ host.
   exerciser (manual in the Bruno GUI, or automated via `mise run test-api` /
   `bun run test:api`); the Playwright `tests/api-tests/` suite is the
   automated, asserted version of the same surface.
+- **Flake triage**: locally, vite occasionally binds `::1` only, producing
+  intermittent ERR_CONNECTION_REFUSED failures that rotate between tests.
+  Any connection-looking failure must be re-run STANDALONE; only a standalone
+  repro is a real failure.
+- **Isolated verification stack** — when the dev stack owns 3000/4000, spin
+  your own on alternate ports instead of killing anyone's servers:
+
+  ```sh
+  # Run the server entry DIRECTLY: package-script wrappers spawn a child
+  # that survives `kill $!`.
+  cd packages/server && PORT=4100 STORAGE_ADAPTER=memory bun src/index.ts
+  cd packages/client && VITE_PORT=3100 VITE_API_URL=http://localhost:4100 bun run dev
+
+  PLAYWRIGHT_NO_SERVER=1 \
+  PLAYWRIGHT_API_BASE_URL=http://localhost:4100 \
+  PLAYWRIGHT_E2E_BASE_URL=http://localhost:3100 \
+  bunx playwright test [spec]
+  ```
+
+  Check `lsof -ti:4100,3100` before and after; kill both when done. The
+  client's default API origin is `http://localhost:4000` (`VITE_API_URL`) —
+  without it a manual client talks to whatever server sits on 4000.
+- The local client webServer REUSES an already-running vite on 3000, so an
+  e2e run can attach to your dev browser (phantom page loads, HMR noise).
+  Prefer the isolated stack or the docker test stack when a dev client is
+  running.

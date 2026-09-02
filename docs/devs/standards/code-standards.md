@@ -603,6 +603,50 @@ try {
 </script>
 ```
 
+### 7.3 Runes and Reactivity Gotchas
+
+Each of these has shipped a real bug in this repo.
+
+- **Capture `$derived` values into a local BEFORE the first `await`** in an
+  async event handler. While the handler is suspended, a later write in the
+  same handler (e.g. clearing the input) nulls the derived mid-flight —
+  this caused a crash in the inline habit-hint parser. Snapshot the value
+  first, then await.
+- **Rune-using non-component files must end in `.svelte.ts`.** A plain `.ts`
+  store file silently cannot use `$state`/`$derived`.
+- **Never rely on template whitespace for spacing.** Svelte 5 strips
+  newline-only whitespace between elements; a "g t" chord once rendered as
+  "gt" with no space. Space with CSS (flex `gap`), always.
+- **`getAttribute('aria-pressed')` returns a STRING** — `"false"` is truthy.
+  Compare with `=== 'true'`.
+
+### 7.4 SSR, Hydration, and E2E Assertions
+
+- The app is server-rendered: markup exists before any event handler
+  attaches. `+layout.svelte` sets `data-hydrated="true"` on `.app-shell` in
+  `onMount`; e2e tests must wait for it (see `hydrated()` in
+  `tests/e2e/util.ts`) before interacting — earlier clicks silently do
+  nothing.
+- `bind:value` inputs expose a value, not text content, so a `toContainText`
+  assertion on one can never pass; use `toHaveValue`.
+
+### 7.5 Theming and Shared UI Conventions
+
+- Components must work in BOTH light and dark themes. Prefer the tooltip
+  pattern in `app.css` — ink/surface token inversion serves both themes from
+  one rule — over theme-specific overrides.
+- Keybinding hints come from the single registry in
+  `packages/client/src/lib/keybindings.ts`; the help modal and every tooltip
+  derive from it. Never hand-write a keybinding hint.
+
+### 7.6 Date Handling
+
+Task dates are local `yyyy-MM-dd` key strings. Do date math through the
+shared `dateProvider` helpers (`today()`, `addDays`), never `new Date()`
+arithmetic — deriving dates from `Date` objects shipped a timezone bug in
+the calendar. (`new Date()` is fine for wall-clock display, e.g. the
+bottom-bar clock.)
+
 ---
 
 ## 8. Async/Await Standards
@@ -763,6 +807,41 @@ class InMemoryTaskRepository implements TaskRepository {
   }
 }
 ```
+
+---
+
+## 11. Bun Runtime Gotchas
+
+Each of these has cost real debugging time in this repo.
+
+- **Package-script wrappers leak child processes.** `bun run dev` /
+  `bun run start` spawn a wrapper; `kill $!` kills the wrapper and leaves the
+  real server child alive, still holding the port. When running a server
+  manually, invoke the entry directly (`bun packages/server/src/index.ts`)
+  and verify with `lsof -ti:<port>` after killing (`bun run kill-server-port`
+  reclaims 4000).
+- **`bun build` does not bundle `.sql`.** The server build script copies
+  `src/adapters/data/migrations/` into `dist/` explicitly — a migration that
+  is not committed passes locally (dev runs from source) but breaks every
+  docker and CI build. Always commit migrations together with the code that
+  needs them.
+- **The two storage adapters are not behaviorally identical.**
+  `projects.tag` is UNIQUE in SQLite but not in-memory, so the same POST
+  passes on memory and 500s on SQLite. Any repository-behavior change must
+  extend the contract suites in
+  `packages/server/src/adapters/data/contracts/`, which run against both
+  adapters.
+- **Test code sets `process.env['STORAGE_ADAPTER']` with bracket access** —
+  `noPropertyAccessFromIndexSignature` rejects dot access on index
+  signatures.
+- **Regex: avoid one large alternation with a lazy prefix and nested optional
+  groups.** A Bun/JS backtracking pathology then rejects VALID input (this
+  forced a rewrite of `parseRecurrence`). Build parsers as an ordered array
+  of small anchored regexes, and suspect this first when a parser
+  mysteriously rejects valid input.
+- **The client build is size-gated**: CI fails when `packages/client/dist`
+  exceeds 512KB (see [ci-cd-pipeline.md](../process/ci-cd-pipeline.md)) —
+  think twice before adding dependencies or large static assets.
 
 ---
 
