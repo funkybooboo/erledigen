@@ -6,8 +6,8 @@
  * command so both go through the same TeuxDeux-style parseRecurrence path.
  */
 
-import type { RecurrenceSchedule, RecurringTask, Task } from '@erledigen/shared';
-import { parseRecurrence } from '@erledigen/shared';
+import type { CreateTaskInput, RecurrenceSchedule, RecurringTask, Task } from '@erledigen/shared';
+import { addDays, describeRecurrence, parseRecurrence } from '@erledigen/shared';
 import { container } from '$lib/container';
 import { GENERATE_HORIZON_DAYS, recurringTaskStore, taskStore } from '$lib/stores';
 
@@ -23,10 +23,16 @@ export type CreatedFromText =
     | { kind: 'habit'; habit: RecurringTask; tasks: Task[]; schedule: RecurrenceSchedule }
     | { kind: 'task'; task: Task };
 
+/** The generation horizon end key: pure dateKeys math (no Date round-trip
+ *  through toISOString, which shifts a day in positive UTC offsets). */
 function horizonEnd(from: string): string {
-    const d = new Date(`${from}T00:00:00`);
-    d.setDate(d.getDate() + GENERATE_HORIZON_DAYS);
-    return d.toISOString().split('T')[0] ?? from;
+    return addDays(from, GENERATE_HORIZON_DAYS);
+}
+
+/** Toast copy for a created habit, shared by both entry points so the
+ *  wording (and its e2e assertions) can never drift apart. */
+export function habitCreatedText(schedule: RecurrenceSchedule): string {
+    return `Habit created -- ${describeRecurrence(schedule)}`;
 }
 
 /**
@@ -65,8 +71,8 @@ export async function createFromText(
         };
     }
 
-    const input: Record<string, unknown> = { text, date: options.date || null };
+    const input: CreateTaskInput = { text, date: options.date || null };
     if (options.someDayGroupId) input.someDayGroupId = options.someDayGroupId;
-    const task = await taskStore.create(input as Parameters<typeof taskStore.create>[0]);
+    const task = await taskStore.create(input);
     return task ? { kind: 'task', task } : null;
 }

@@ -2,7 +2,7 @@
     import { tick } from 'svelte';
     import { notificationStore } from '$lib/stores';
     import { TASK_CONSTRAINTS, describeRecurrence, parseRecurrence } from '@erledigen/shared';
-    import { createFromText } from '$lib/createFromText';
+    import { createFromText, habitCreatedText } from '$lib/createFromText';
     import { Icon } from 'svelte-icons-pack';
     import { LuCircle, LuRepeat } from 'svelte-icons-pack/lu';
     import { tooltip } from '$lib/tooltip';
@@ -31,7 +31,7 @@
         text = '';
 
         if (result.kind === 'habit') {
-            notificationStore.push(`Habit created -- ${describeRecurrence(result.schedule)}`, {
+            notificationStore.push(habitCreatedText(result.schedule), {
                 kind: 'success',
             });
             // Flash the instance on this day, matching the plain-task path.

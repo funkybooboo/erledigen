@@ -1,7 +1,7 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
     import { taskStore, uiStore, notificationStore } from '$lib/stores';
-    import { createFromText } from '$lib/createFromText';
+    import { createFromText, habitCreatedText } from '$lib/createFromText';
     import { container } from '$lib/container';
     import { describeRecurrence, parseRecurrence, type Task } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
@@ -78,10 +78,7 @@
             running = false;
             if (!result) return;
             if (result.kind === 'habit') {
-                notificationStore.push(
-                    `Habit created -- ${describeRecurrence(result.schedule)}`,
-                    { kind: 'success' },
-                );
+                notificationStore.push(habitCreatedText(result.schedule), { kind: 'success' });
             } else {
                 notificationStore.push('Task added to today', { kind: 'success' });
             }
