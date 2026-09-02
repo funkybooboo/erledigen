@@ -19,7 +19,8 @@ export class ViteConfigProvider implements ConfigProvider {
      * Get a string configuration value from import.meta.env
      */
     get(key: string, defaultValue?: string): string {
-        const value = import.meta.env[key];
+        // import.meta.env's index signature leaks any; read it typed.
+        const value: string | boolean | undefined = import.meta.env[key];
 
         if (value === undefined) {
             if (defaultValue !== undefined) {

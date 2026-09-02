@@ -24,7 +24,7 @@
 
     onMount(() => {
         recurringTaskStore.fetchAll().then(() => {
-            recurringTaskStore.fetchStats(recurringTaskStore.tasks.map(h => h.id));
+            recurringTaskStore.fetchStats(recurringTaskStore.habits.map(h => h.id));
         });
     });
 
@@ -297,8 +297,8 @@
             </div>
         {/if}
 
-        {#if recurringTaskStore.tasks.length > 0}
-            {#each recurringTaskStore.tasks as habit (habit.id)}
+        {#if recurringTaskStore.habits.length > 0}
+            {#each recurringTaskStore.habits as habit (habit.id)}
                 <div class="habit-card" aria-label="{habit.text}, {describeRecurrence(habit)}">
                     <div class="card-top">
                         <div class="habit-name">

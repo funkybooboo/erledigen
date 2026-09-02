@@ -101,25 +101,21 @@ class PreferencesStore {
         }
     }
 
-    async save(partial: Partial<Omit<UserPreferences, 'id' | 'updatedAt'>>) {
-        const current = {
-            id: this.id,
-            theme: this.theme,
-            locale: this.locale,
-            someDayPanelWidth: this.someDayPanelWidth,
-            someDayPanelLastOpenWidth: this.someDayPanelLastOpenWidth,
-            rolloverEnabled: this.rolloverEnabled,
-            showEmptyDays: this.showEmptyDays,
-            deleteConfirmation: this.deleteConfirmation,
-            activeFilters: this.activeFilters,
-            tagKinds: this.tagKinds,
-            tagKindMap: this.tagKindMap,
-            timeFormat: this.timeFormat,
-            timezone: this.timezone,
-            updatedAt: this.updatedAt,
-        };
+    /** Apply `partial` optimistically, persist, and roll back the TOUCHED
+     *  keys on failure. Snapshotting only the touched keys keeps the
+     *  rollback in lockstep with the store's fields; the previous
+     *  hand-maintained full-field snapshot was a third copy of the
+     *  preference list that silently drifted whenever a field was added. */
+    async save(partial: Partial<Omit<UserPreferences, 'id' | 'updatedAt'>>): Promise<void> {
+        const touched = Object.keys(partial) as (keyof UserPreferences)[];
+        const before = Object.fromEntries(
+            // The store mirrors UserPreferences minus the vestigial
+            // someDayPanelCollapsed (no client code holds it), so the
+            // snapshot reads through a plain record instead of pretending
+            // every UserPreferences key exists on the class.
+            touched.map(key => [key, (this as Record<string, unknown>)[key]]),
+        ) as Partial<UserPreferences>;
 
-        const merged = { ...current, ...partial };
         Object.assign(this, partial);
 
         try {
@@ -127,11 +123,11 @@ class PreferencesStore {
             Object.assign(this, updated);
         } catch (error) {
             container.logger.warn('Failed to save preferences -- rolling back', {
+                keys: touched,
                 error: error instanceof Error ? error.message : String(error),
             });
-            Object.assign(this, current);
+            Object.assign(this, before);
         }
-        return merged;
     }
 
     setTheme(theme: ThemeType) {

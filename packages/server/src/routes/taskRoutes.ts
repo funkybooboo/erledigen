@@ -118,7 +118,7 @@ export function registerTaskRoutes(
             const originClientId = req.headers['x-client-id'];
             const raw = await req.json<unknown>();
             const input = parseBody(UpdateTaskSchema, raw) as UpdateTaskInput;
-            const task = await taskService.completeTask(id, input);
+            const task = await taskService.updateTask(id, input);
             if (!task) throw notFoundError('Task', id);
             refreshStats(task.recurringTaskId);
             eventBus.publish('task:updated', { task }, originClientId);

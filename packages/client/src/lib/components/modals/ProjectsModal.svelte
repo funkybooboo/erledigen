@@ -169,7 +169,7 @@
                 <h4>Tasks ({projectTasks.length})</h4>
                 {#if projectTasks.length > 0}
                     <ul class="task-list">
-                        {#each projectTasks as task}
+                        {#each projectTasks as task (task.id)}
                             <li class="task-item" class:completed={task.completed}>
                                 <span class="task-text">{task.text}</span>
                                 {#if task.date}

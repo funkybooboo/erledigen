@@ -54,7 +54,7 @@
 
             {#if activeTags.length > 0}
                 <div class="active-tags">
-                    {#each activeTags as tag}
+                    {#each activeTags as tag (tag)}
                         <button class="tag-pill" onclick={() => removeTag(tag)}>
                             #{tag}
                             <span class="tag-remove">&times;</span>
@@ -81,7 +81,7 @@
 
             {#if showSuggestions && suggestions.length > 0}
                 <ul class="suggestions">
-                    {#each suggestions as tag}
+                    {#each suggestions as tag (tag)}
                         <li>
                             <button class="suggestion-item" onclick={() => addTag(tag)}>
                                 #{tag}
@@ -93,7 +93,7 @@
 
             {#if tags.length > 0}
                 <div class="available-tags">
-                    {#each tags as tag}
+                    {#each tags as tag (tag)}
                         {#if !activeTags.includes(tag)}
                             <button class="tag-option" onclick={() => addTag(tag)}>
                                 #{tag}

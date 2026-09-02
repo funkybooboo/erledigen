@@ -22,6 +22,11 @@ export function createRateLimiterGuard(requestsPerMinute: number = 60): Guard {
     const buckets = new Map<string, Bucket>();
     const refillIntervalMs = 60_000 / requestsPerMinute;
 
+    // Trust model: X-Forwarded-For/X-Real-IP are honored blindly -- correct
+    // behind the prod Caddy proxy (which sets them), but a DIRECT caller
+    // rotating the header gets fresh buckets. Acceptable for a single-user
+    // app; do not reuse this limiter where callers are untrusted. Clients
+    // that send neither header share the '::1' bucket.
     function getIp(headers: Record<string, string>): string {
         return headers['x-forwarded-for'] ?? headers['x-real-ip'] ?? '::1';
     }

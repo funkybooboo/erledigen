@@ -11,7 +11,6 @@ import {
     ConsoleLogger,
     type DateProvider,
     FetchHttpClient,
-    type HttpClient,
     type Logger,
     LogLevel,
     NativeDateProvider,
@@ -21,7 +20,10 @@ import { resolveApiBaseUrl } from './apiBaseUrl';
 
 export class Container {
     private _config: ConfigProvider | null = null;
-    private _httpClient: HttpClient | null = null;
+    // The client container wires FetchHttpClient concretely (that is its
+    // job); consumers see the HttpClient port through the getter's return
+    // type, so setClientId needs no downcast.
+    private _httpClient: FetchHttpClient | null = null;
     private _logger: Logger | null = null;
     private _dateProvider: DateProvider | null = null;
 
@@ -32,7 +34,7 @@ export class Container {
         return this._config;
     }
 
-    get httpClient(): HttpClient {
+    get httpClient(): FetchHttpClient {
         if (!this._httpClient) {
             const configured = this.config.get('VITE_API_URL', 'http://localhost:4000');
             // Empty string = same-origin deployment (reverse-proxied prod
@@ -77,7 +79,7 @@ export class Container {
     }
 
     setClientId(clientId: string | null): void {
-        const http = this.httpClient as FetchHttpClient;
+        const http = this.httpClient;
         if (clientId) {
             http.setDefaultHeaders({ 'X-Client-ID': clientId });
         } else {
