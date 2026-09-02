@@ -162,8 +162,10 @@ export class BunHttpServer implements HttpServer {
      */
     private logRequest(method: string, path: string, status: number, startedAt: number): void {
         if (!this.logger) return;
-        const durationMs = Number(performance.now() - startedAt).toFixed(1);
-        const context: LogContext = { status, durationMs: Number(durationMs) };
+        // One-decimal milliseconds, without the string round-trip of
+        // Number(x.toFixed(1)).
+        const durationMs = Math.round((performance.now() - startedAt) * 10) / 10;
+        const context: LogContext = { status, durationMs };
         if (status >= 400) {
             this.logger.warn(`${method} ${path} -> ${status}`, context);
         } else {

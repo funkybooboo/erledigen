@@ -57,6 +57,9 @@ function mapRecurringTaskRow(row: RecurringTaskRow): RecurringTask {
         tags: parseJsonColumn<string[]>(row.tags, []),
         frequency: row.frequency as RecurringTask['frequency'],
         interval: row.interval,
+        // Corrupt JSON degrades to [] which the scheduler treats as "any
+        // day" (same as null): the habit keeps generating rather than
+        // crashing reads, and the anomaly is visible in the data.
         daysOfWeek:
             row.days_of_week === null ? null : parseJsonColumn<number[]>(row.days_of_week, []),
         dayOfMonth: row.day_of_month,
