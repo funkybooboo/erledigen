@@ -131,19 +131,11 @@ jobs:
             - name: Install dependencies
               run: mise run install-ci
 
-            - name: Build all packages
+            - name: Build all packages (+ bundle-size budget)
+              # tools/build.sh builds shared/server/client and fails if the
+              # browser payload in packages/client/build/client exceeds
+              # 512 KiB (MAX_CLIENT_BYTES to override).
               run: mise run build
-
-            - name: Check client bundle size
-              run: |
-                  CLIENT_SIZE=$(du -sb packages/client/dist 2>/dev/null | cut -f1 || echo "0")
-                  MAX_SIZE=524288  # 512KB
-                  echo "Client bundle size: $CLIENT_SIZE bytes"
-                  if [ $CLIENT_SIZE -gt $MAX_SIZE ]; then
-                    echo "Client bundle exceeds $MAX_SIZE bytes"
-                    exit 1
-                  fi
-                  echo "Client bundle size OK"
 
     storybook-build:
         name: Storybook Build
