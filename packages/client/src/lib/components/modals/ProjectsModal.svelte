@@ -104,6 +104,16 @@
         selectedProjectId = id;
     }
 
+    /** role="button" promises Enter/Space activation. The card is a div
+     *  because real buttons nest inside it (edit/delete actions), so the
+     *  promised keys are delivered by hand. */
+    function handleCardKeydown(e: KeyboardEvent, id: string) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            selectProject(id);
+        }
+    }
+
     function backToList() {
         selectedProjectId = null;
     }
@@ -211,7 +221,7 @@
                                 </div>
                             </div>
                         {:else}
-                            <div class="project-card" onclick={() => selectProject(project.id)} role="button" tabindex="0" aria-label="{project.name}, active">
+                            <div class="project-card" onclick={() => selectProject(project.id)} onkeydown={(e) => handleCardKeydown(e, project.id)} role="button" tabindex="0" aria-label="{project.name}, active">
                                 <div class="card-top">
                                     <div class="project-name">{project.name}</div>
                                     <div class="card-actions">
@@ -245,7 +255,7 @@
                 <section class="section" aria-label="Inactive projects">
                     <h4 id="projects-inactive-heading">Inactive</h4>
                     {#each inactiveProjects as project (project.id)}
-                        <div class="project-card inactive" onclick={() => selectProject(project.id)} role="button" tabindex="0" aria-label="{project.name}, inactive">
+                        <div class="project-card inactive" onclick={() => selectProject(project.id)} onkeydown={(e) => handleCardKeydown(e, project.id)} role="button" tabindex="0" aria-label="{project.name}, inactive">
                             <div class="card-top">
                                 <div class="project-name">{project.name}</div>
                                 <div class="card-actions">

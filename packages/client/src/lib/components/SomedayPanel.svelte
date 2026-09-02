@@ -198,6 +198,11 @@
     </div>
 {:else}
     <aside class="someday-panel" class:resizing={isResizing} style="width: {preferencesStore.someDayPanelWidth}px" aria-label="Someday panel">
+        <!-- Mouse-only by design: the panel itself is fully keyboard-
+             operable via the Cmd/Ctrl+\ toggle (width restore), so a
+             pointer-only drag handle leaves no keyboard user stranded;
+             a dedicated keyboard-resize interaction is future work. -->
+        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
         <div class="resize-handle" role="separator" aria-orientation="vertical" aria-label="Resize Someday panel" use:tooltip={{ label: 'Drag to resize' }} onmousedown={startResize}></div>
         <div class="panel-content">
             <div class="panel-header">

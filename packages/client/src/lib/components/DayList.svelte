@@ -39,7 +39,12 @@
     let tasksByDate = $derived(groupTasksByDate(filteredTasks));
     let dateKeys = $derived([...tasksByDate.keys()].filter(k => k !== SOMEDAY_KEY).sort());
 
+    // The initial window anchors to mount-time today ON PURPOSE: a
+    // timezone preference loading later moves "today" without yanking
+    // the view; navigation requests re-center the window on demand.
+    // svelte-ignore state_referenced_locally
     let visibleStartDate = $state(addDays(todayStr, -CHUNK_DAYS));
+    // svelte-ignore state_referenced_locally
     let visibleEndDate = $state(addDays(todayStr, CHUNK_DAYS));
 
     let displayDateKeys = $derived.by(() => {

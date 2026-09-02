@@ -129,9 +129,4 @@
         background: var(--color-surface-hover);
         color: var(--color-text-secondary);
     }
-
-    .badge-danger {
-        background: var(--color-danger-light);
-        color: var(--color-danger);
-    }
 </style>

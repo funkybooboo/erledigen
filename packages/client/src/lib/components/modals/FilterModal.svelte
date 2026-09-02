@@ -80,10 +80,10 @@
             </div>
 
             {#if showSuggestions && suggestions.length > 0}
-                <ul class="suggestions" role="listbox">
+                <ul class="suggestions">
                     {#each suggestions as tag}
                         <li>
-                            <button class="suggestion-item" role="option" onclick={() => addTag(tag)}>
+                            <button class="suggestion-item" onclick={() => addTag(tag)}>
                                 #{tag}
                             </button>
                         </li>
@@ -261,19 +261,6 @@
 
     .tag-option:hover {
         background: var(--color-border);
-    }
-
-    .checkbox-label {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 14px;
-        cursor: pointer;
-    }
-
-    .checkbox-label input[type="checkbox"] {
-        width: 16px;
-        height: 16px;
     }
 
     .clear-btn {
