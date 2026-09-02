@@ -23,6 +23,16 @@
 ARG BUN_VERSION=1.3.10
 ARG PLAYWRIGHT_VERSION=1.62.1
 
+# ---- bun binary sources -----------------------------------------------------
+# BuildKit does not support variable expansion in `COPY --from=<image>`
+# ("variable expansion is not supported for --from"), so the bun binaries
+# are provided through real stages -- FROM may use the global ARGs above --
+# and later stages copy from these stage names instead of
+# oven/bun:${BUN_VERSION}. Stages a target never references are not built,
+# so this adds nothing to builds that do not need the binaries.
+FROM oven/bun:${BUN_VERSION} AS bun-dist
+FROM oven/bun:${BUN_VERSION}-alpine AS bun-alpine-dist
+
 # ---- base: workspace manifests + dependencies (shared by all bun stages) ----
 FROM oven/bun:${BUN_VERSION} AS base
 WORKDIR /app
@@ -73,15 +83,14 @@ CMD ["bun", "dist/index.js"]
 # `node build`. bun is copied in ONLY for the production dependency install
 # (it reads bun.lock); the alpine bun binary matches this alpine (musl) base.
 FROM node:24-alpine AS production-client
-# Re-declare so the oven/bun COPY --from references below can use it (global
-# ARGs are only in scope for FROM lines, not inside stages).
-ARG BUN_VERSION
 # 1. Install prod deps for the whole workspace at the monorepo root. Bun's
 #    isolated linker puts each workspace's deps in its own
 #    packages/*/node_modules (symlinks into /app/node_modules/.bun).
+#    bun is copied in ONLY for this install (it reads bun.lock); the alpine
+#    bun binary matches this alpine (musl) base.
 WORKDIR /app
-COPY --from=oven/bun:${BUN_VERSION}-alpine /usr/local/bin/bun /usr/local/bin/bun
-COPY --from=oven/bun:${BUN_VERSION}-alpine /usr/local/bin/bunx /usr/local/bin/bunx
+COPY --from=bun-alpine-dist /usr/local/bin/bun /usr/local/bin/bun
+COPY --from=bun-alpine-dist /usr/local/bin/bunx /usr/local/bin/bunx
 COPY bun.lock package.json ./
 COPY packages/shared/package.json packages/shared/
 COPY packages/server/package.json packages/server/
@@ -101,9 +110,8 @@ CMD ["node", "build"]
 
 # ---- e2e test runner ---------------------------------------------------------
 FROM mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION} AS e2e
-ARG BUN_VERSION
-COPY --from=oven/bun:${BUN_VERSION} /usr/local/bin/bun /usr/local/bin/bun
-COPY --from=oven/bun:${BUN_VERSION} /usr/local/bin/bunx /usr/local/bin/bunx
+COPY --from=bun-dist /usr/local/bin/bun /usr/local/bin/bun
+COPY --from=bun-dist /usr/local/bin/bunx /usr/local/bin/bunx
 WORKDIR /app
 COPY bun.lock package.json ./
 COPY packages/shared/package.json packages/shared/
