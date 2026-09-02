@@ -47,7 +47,7 @@
     <div class="task-list" role="list">
         {#each tasks as task (task.id)}
             <div class="task-row-wrapper" class:sub-task={task.parentId !== null}>
-                <TaskRow {task} {dateStr} isNew={newlyCreatedIds.has(task.id)} />
+                <TaskRow {task} isNew={newlyCreatedIds.has(task.id)} />
             </div>
         {/each}
     </div>

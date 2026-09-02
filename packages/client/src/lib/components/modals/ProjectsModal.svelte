@@ -117,8 +117,6 @@
     function backToList() {
         selectedProjectId = null;
     }
-
-    const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 </script>
 
 <Modal title="Projects" onclose={onclose}>

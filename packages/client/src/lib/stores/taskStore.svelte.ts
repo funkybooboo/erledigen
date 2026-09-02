@@ -178,10 +178,6 @@ class TaskStore {
         return taskService.getTrash();
     }
 
-    async softDelete(id: string): Promise<boolean> {
-        return this.remove(id);
-    }
-
     async restoreFromTrash(id: string): Promise<Task | null> {
         try {
             const task = await taskService.restore(id);
@@ -192,10 +188,6 @@ class TaskStore {
             this.#logger.warn('Failed to restore task', { error: this.error });
             return null;
         }
-    }
-
-    async purge(): Promise<number> {
-        return taskService.purge();
     }
 }
 

@@ -274,7 +274,7 @@
                         {/if}
                         <div class="group-tasks" role="list">
                             {#each tasks as task (task.id)}
-                                <TaskRow {task} dateStr="" isNew={newlyCreatedIds.has(task.id)} />
+                                <TaskRow {task} isNew={newlyCreatedIds.has(task.id)} />
                             {/each}
                         </div>
                         <InlineAddTask date="" someDayGroupId={group.id} oncreated={handleTaskCreated} />
@@ -295,7 +295,7 @@
                         </div>
                         <div class="group-tasks" role="list">
                             {#each ungroupedTasks as task (task.id)}
-                                <TaskRow {task} dateStr="" isNew={newlyCreatedIds.has(task.id)} />
+                                <TaskRow {task} isNew={newlyCreatedIds.has(task.id)} />
                             {/each}
                         </div>
                         <InlineAddTask date="" oncreated={handleTaskCreated} />
