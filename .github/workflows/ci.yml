@@ -65,7 +65,10 @@ jobs:
     e2e-tests:
         name: E2E Tests
         runs-on: ubuntu-latest
-        timeout-minutes: 15
+        # mise run test-e2e builds the compose.test.yaml images from scratch
+        # on a fresh runner (playwright base image + bun install layers)
+        # before running the suite.
+        timeout-minutes: 40
 
         steps:
             - name: Checkout code
@@ -77,36 +80,24 @@ jobs:
             - name: Install dependencies
               run: mise run install-ci
 
-            - name: Install Playwright browsers
-              run: mise run install-playwright
-
-            - name: Start server
-              run: mise run server &
-
-            - name: Wait for server
-              run: bunx wait-on http-get://localhost:4000/api/health --timeout 30000
-
-            - name: Start client
-              run: mise run client &
-
-            - name: Wait for client
-              run: bunx wait-on http-get://localhost:3000 --timeout 30000
-
+            # test-e2e builds and boots the whole compose.test.yaml stack
+            # (server-test + client-test + the playwright runner) with no
+            # host ports -- no manual server/client bootstrap (or local
+            # browser install) is needed or useful. The previous Start/Wait
+            # steps were vestigial from the pre-docker layout: they ran a
+            # SECOND dev stack in the background and timed out waiting for
+            # its image build. The stack mounts nothing, so there is no
+            # playwright-report/ on the host to upload; the exit code is
+            # the only artifact.
             - name: Run E2E tests
               run: mise run test-e2e
-
-            - name: Upload test results
-              uses: actions/upload-artifact@v4
-              if: failure()
-              with:
-                  name: playwright-report
-                  path: tests/e2e/playwright-report/
-                  retention-days: 7
 
     api-tests:
         name: API Tests
         runs-on: ubuntu-latest
-        timeout-minutes: 10
+        # test-api builds compose.test.yaml's server-test image from
+        # scratch on a fresh runner before the Bruno suite runs.
+        timeout-minutes: 20
 
         steps:
             - name: Checkout code
@@ -118,12 +109,10 @@ jobs:
             - name: Install dependencies
               run: mise run install-ci
 
-            - name: Start server
-              run: mise run server &
-
-            - name: Wait for server
-              run: bunx wait-on http-get://localhost:4000/api/health --timeout 30000
-
+            # test-api builds and boots the dockerized server-test stack and
+            # runs the Bruno collection against it in-network. The previous
+            # Start/Wait steps were vestigial from the pre-docker layout and
+            # timed out waiting for a background dev-stack image build.
             - name: Run API tests
               run: mise run test-api
 
