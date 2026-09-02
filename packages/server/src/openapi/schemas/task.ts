@@ -1,5 +1,5 @@
 /**
- * Task entity schemas — used for both OpenAPI documentation and request validation.
+ * Task entity schemas -- used for both OpenAPI documentation and request validation.
  */
 
 import { TASK_CONSTRAINTS } from '@erledigen/shared';
@@ -12,7 +12,7 @@ const ReminderSchema = z
         time: z.string().openapi({ description: 'Reminder time in HH:MM format' }),
         channels: z.array(z.enum(['push', 'email'])),
     })
-    .openapi({ description: 'Stub reminder field — implemented in v2.2.0' });
+    .openapi({ description: 'Stub reminder field -- implemented in v2.2.0' });
 
 export const TaskSchema = registry.register(
     'Task',

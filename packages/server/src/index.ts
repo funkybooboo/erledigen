@@ -12,7 +12,7 @@ const RATE_LIMIT_RPM = container.config.getNumber('RATE_LIMIT_RPM', DEFAULT_RATE
 const server = container.httpServer;
 const logger = container.logger;
 
-// Initialize the storage layer before serving traffic — opens the SQLite
+// Initialize the storage layer before serving traffic -- opens the SQLite
 // database and runs pending migrations (see ADR-003) so a schema failure
 // aborts startup instead of surfacing on the first request.
 container.initStorage();
@@ -44,7 +44,7 @@ registerAllRoutes(server, container);
 
 await server.start(PORT);
 const port = server.getPort();
-if (port === null) throw new Error('Server failed to start — port is null');
+if (port === null) throw new Error('Server failed to start -- port is null');
 logger.info(`Server running at http://localhost:${port}`);
 logger.info(`WebSocket available at ws://localhost:${port}`);
 logger.info('Startup complete', { nodeEnv: NODE_ENV, rateLimitRpm: RATE_LIMIT_RPM });

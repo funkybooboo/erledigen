@@ -8,7 +8,7 @@
  *     absolute origin, e.g. `http://localhost:4000`.
  *   - Single origin (the prod stack): the variable is the EMPTY string.
  *     The reverse proxy (deploy/Caddyfile) serves `/api` and `/ws` next to
- *     the app, so the API is simply "this page's origin" — no host or
+ *     the app, so the API is simply "this page's origin" -- no host or
  *     domain needs to be baked into the image.
  *
  * The localhost fallback only applies outside the browser (SSR), where a

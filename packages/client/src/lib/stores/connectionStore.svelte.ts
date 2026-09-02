@@ -29,7 +29,7 @@ class ConnectionStore {
                     duration: 3000,
                 });
             } else if (status === 'reconnecting' && this.#lastStatus === 'connected') {
-                notificationStore.push('Connection lost — reconnecting...', {
+                notificationStore.push('Connection lost -- reconnecting...', {
                     kind: 'warning',
                     iconType: 'reconnecting',
                     duration: 5000,

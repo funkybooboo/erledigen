@@ -3,7 +3,7 @@ import { type LogContext, type Logger, LogLevel } from './Logger';
 /**
  * Where log lines are written.
  *
- * The logger never touches a sink directly — it formats a line and hands it
+ * The logger never touches a sink directly -- it formats a line and hands it
  * to this interface. That keeps a single choke point for "where do logs go":
  * swap the destination (files, a remote collector, test capture) without
  * touching any call site. The default routes debug/info to stdout and

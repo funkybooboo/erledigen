@@ -2,11 +2,11 @@
 
 **Status**: Accepted  
 **Date**: 2026-05-09  
-**Context**: v0.7.0 — Persistence & Data I/O
+**Context**: v0.7.0 -- Persistence & Data I/O
 
 ## Context
 
-With SQLite as our persistence layer (ADR-001), we need a strategy for evolving the database schema over time. Schema changes are inevitable — new columns, new tables, index changes, data migrations.
+With SQLite as our persistence layer (ADR-001), we need a strategy for evolving the database schema over time. Schema changes are inevitable -- new columns, new tables, index changes, data migrations.
 
 ### Considered Options
 
@@ -26,7 +26,7 @@ With SQLite as our persistence layer (ADR-001), we need a strategy for evolving 
 
 1. **Explicit and reviewable.** Every schema change is a plain SQL file that gets code-reviewed. No magic, no generated diffs, no surprises. What you see is exactly what runs.
 
-2. **No ORM coupling.** Consistent with ADR-001's decision to use raw SQL. Migrations are plain SQL — no schema definition file, no DSL, no generated code.
+2. **No ORM coupling.** Consistent with ADR-001's decision to use raw SQL. Migrations are plain SQL -- no schema definition file, no DSL, no generated code.
 
 3. **Database-agnostic structure.** While migration SQL is database-specific (SQLite vs PostgreSQL), the migration runner and versioning scheme are the same. When we add PostgreSQL, we'll have `migrations/sqlite/` and `migrations/postgresql/` directories. The runner is the same; the SQL changes.
 
@@ -38,10 +38,10 @@ With SQLite as our persistence layer (ADR-001), we need a strategy for evolving 
 
 ```
 packages/server/src/adapters/data/migrations/
-├── 001_initial_schema.sql
-├── 002_add_reminder_to_tasks.sql
-├── 003_add_streak_tracking.sql
-└── ...
+|-- 001_initial_schema.sql
+|-- 002_add_reminder_to_tasks.sql
+|-- 003_add_streak_tracking.sql
+\-- ...
 ```
 
 **Naming convention**: `{sequence}_{descriptive_name}.sql`  
@@ -50,7 +50,7 @@ packages/server/src/adapters/data/migrations/
 
 ### Migration File Format
 
-Each migration file is a plain SQL file. No up/down split — migrations are **forward-only**.
+Each migration file is a plain SQL file. No up/down split -- migrations are **forward-only**.
 
 ```sql
 -- 001_initial_schema.sql
@@ -242,13 +242,13 @@ When PostgreSQL is added (v2.3.0):
 - Contract tests ensure InMemory and Sqlite repositories behave identically
 
 ### Negative
-- Manual SQL writing — no type safety, no autocomplete
+- Manual SQL writing -- no type safety, no autocomplete
 - No automatic "diff this schema vs that schema" tooling
-- Forward-only means no rollback — must write fix-forward migrations
+- Forward-only means no rollback -- must write fix-forward migrations
 - Two sets of migration files when PostgreSQL is added (SQLite + PG)
 
 ### Mitigations
 - Contract tests catch most mistakes
-- `rm data/erledigen.db` during development is instant — no need for rollback
+- `rm data/erledigen.db` during development is instant -- no need for rollback
 - Fix-forward is industry best practice (Facebook, Instagram, GitHub all use it)
-- PostgreSQL migration files will share structure with SQLite files — many will differ only in syntax (`INTEGER` vs `BOOLEAN`, `TEXT` vs `JSONB`, etc.)
+- PostgreSQL migration files will share structure with SQLite files -- many will differ only in syntax (`INTEGER` vs `BOOLEAN`, `TEXT` vs `JSONB`, etc.)

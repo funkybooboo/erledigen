@@ -2,7 +2,7 @@ import type { UpdateUserPreferencesInput, UserPreferences } from '@erledigen/sha
 
 /**
  * Repository interface for UserPreferences persistence.
- * Single-row entity — always id 'default'.
+ * Single-row entity -- always id 'default'.
  */
 export interface UserPreferencesRepository {
     get(): Promise<UserPreferences>;

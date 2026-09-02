@@ -23,7 +23,7 @@
  * plus an optional time suffix:
  *   at 4:00pm / at 4pm / at 16:00 / at noon / at midnight
  *
- * Pure functions, no I/O — fully unit testable.
+ * Pure functions, no I/O -- fully unit testable.
  */
 
 import { WEEKDAY_ABBREVIATIONS, WEEKDAY_NAMES } from '../constants';
@@ -313,7 +313,7 @@ export function parseRecurrence(text: string): ParsedRecurrence | null {
             .slice(0, m.index)
             .replace(/[,;\s]+$/, '')
             .trim();
-        if (!cleanText) return null; // nothing left — not a usable habit
+        if (!cleanText) return null; // nothing left -- not a usable habit
 
         // Phrase in the original text = the matched frequency part plus the
         // peeled-off " at <time>" tail. time.rest is a prefix of trimmed and

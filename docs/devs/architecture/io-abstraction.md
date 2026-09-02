@@ -6,11 +6,11 @@ This document explains how to design business logic that is completely independe
 
 Our I/O abstraction approach prioritizes:
 
-- **Business logic independence** — core logic knows nothing about presentation or storage
-- **Hexagonal architecture** — business logic at center, I/O at edges
-- **Framework agnosticism** — never tied to a specific web framework or UI library
-- **Multiple interfaces** — same logic, many presentations (web, CLI, TUI, desktop)
-- **Testability** — pure business logic is trivially testable
+- **Business logic independence** -- core logic knows nothing about presentation or storage
+- **Hexagonal architecture** -- business logic at center, I/O at edges
+- **Framework agnosticism** -- never tied to a specific web framework or UI library
+- **Multiple interfaces** -- same logic, many presentations (web, CLI, TUI, desktop)
+- **Testability** -- pure business logic is trivially testable
 
 ---
 
@@ -21,37 +21,37 @@ Our I/O abstraction approach prioritizes:
 ### The Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Adapters (I/O)                       │
-│                                                         │
-│  Web API    CLI    TUI    GraphQL    Desktop App       │
-│     │        │      │        │            │            │
-│     └────────┴──────┴────────┴────────────┘            │
-│                      │                                  │
-│              ┌───────▼────────┐                        │
-│              │  Input Ports   │                        │
-│              │ (Interfaces)   │                        │
-│              └───────┬────────┘                        │
-│                      │                                  │
-│         ┌────────────▼───────────────┐                 │
-│         │    Business Logic Core     │                 │
-│         │                             │                 │
-│         │  - Domain Models            │                 │
-│         │  - Use Cases                │                 │
-│         │  - Business Rules           │                 │
-│         └────────────┬────────────────┘                 │
-│                      │                                  │
-│              ┌───────▼────────┐                        │
-│              │  Output Ports  │                        │
-│              │ (Interfaces)   │                        │
-│              └───────┬────────┘                        │
-│                      │                                  │
-│     ┌────────────────┴────────────────┐                │
-│     │                                  │                │
-│  Database    Email    File Storage   Cache             │
-│                                                         │
-│                    Adapters (I/O)                       │
-└─────────────────────────────────────────────────────────┘
+/---------------------------------------------------------\
+|                    Adapters (I/O)                       |
+|                                                         |
+|  Web API    CLI    TUI    GraphQL    Desktop App       |
+|     |        |      |        |            |            |
+|     \--------+------+--------+------------/            |
+|                      |                                  |
+|              /-------v--------\                        |
+|              |  Input Ports   |                        |
+|              | (Interfaces)   |                        |
+|              \-------+--------/                        |
+|                      |                                  |
+|         /------------v---------------\                 |
+|         |    Business Logic Core     |                 |
+|         |                             |                 |
+|         |  - Domain Models            |                 |
+|         |  - Use Cases                |                 |
+|         |  - Business Rules           |                 |
+|         \------------+----------------/                 |
+|                      |                                  |
+|              /-------v--------\                        |
+|              |  Output Ports  |                        |
+|              | (Interfaces)   |                        |
+|              \-------+--------/                        |
+|                      |                                  |
+|     /----------------+----------------\                |
+|     |                                  |                |
+|  Database    Email    File Storage   Cache             |
+|                                                         |
+|                    Adapters (I/O)                       |
+\---------------------------------------------------------/
 ```
 
 ### Layers
@@ -82,7 +82,7 @@ Our I/O abstraction approach prioritizes:
 Domain models are pure data structures with business rules:
 
 ```typescript
-// ✅ GOOD - Pure domain model
+// [OK] GOOD - Pure domain model
 export class Task {
   private constructor(
     public readonly id: string,
@@ -131,7 +131,7 @@ export class Task {
   }
 }
 
-// ❌ BAD - Depends on database
+// (x) BAD - Depends on database
 import { Database } from 'bun:sqlite';  // I/O dependency!
 
 export class Task {
@@ -146,7 +146,7 @@ export class Task {
 Use cases orchestrate business logic without knowing about I/O:
 
 ```typescript
-// ✅ GOOD - Pure use case with injected ports
+// [OK] GOOD - Pure use case with injected ports
 export class CreateTaskUseCase {
   constructor(
     private taskRepository: TaskRepository,  // Output port (interface)
@@ -312,7 +312,7 @@ const useCase = new CreateTaskUseCase(repository, dateProvider);
 ### Web API Adapter (Bun HTTP)
 
 ```typescript
-// Web API adapter translates HTTP → Use Case
+// Web API adapter translates HTTP -> Use Case
 const server = Bun.serve({
   port: 4000,
   async fetch(req: Request): Promise<Response> {
@@ -329,7 +329,7 @@ const server = Bun.serve({
         date: body.date,
       });
 
-      // 3. Translate result → HTTP response
+      // 3. Translate result -> HTTP response
       if (result.isFailure) {
         return new Response(JSON.stringify({ error: result.error.message }), {
           status: 400,
@@ -349,7 +349,7 @@ const server = Bun.serve({
 ### CLI Adapter (Command Line)
 
 ```typescript
-// CLI adapter translates args → Use Case
+// CLI adapter translates args -> Use Case
 import { parseArgs } from 'util';
 
 const { values } = parseArgs({
@@ -366,7 +366,7 @@ const result = await useCase.execute({
   date: values.date!,
 });
 
-// Translate result → console output
+// Translate result -> console output
 if (result.isFailure) {
   console.error(`Error: ${result.error.message}`);
   process.exit(1);
@@ -412,7 +412,7 @@ form.on('submit', async (data) => {
     date: new Date().toISOString().split('T')[0],
   });
 
-  // Translate result → TUI update
+  // Translate result -> TUI update
   if (result.isFailure) {
     // Show error in TUI
     blessed.message({ content: `Error: ${result.error.message}` });
@@ -428,7 +428,7 @@ screen.render();
 ### GraphQL Adapter
 
 ```typescript
-// GraphQL adapter translates queries/mutations → Use Case
+// GraphQL adapter translates queries/mutations -> Use Case
 import { buildSchema } from 'graphql';
 
 const schema = buildSchema(`
@@ -450,7 +450,7 @@ const resolvers = {
     const useCase = container.createTaskUseCase;
     const result = await useCase.execute({ text, date });
 
-    // Translate result → GraphQL response
+    // Translate result -> GraphQL response
     if (result.isFailure) {
       throw new Error(result.error.message);
     }
@@ -508,14 +508,14 @@ Same codebase can be deployed as:
 
 ## Summary: Key Rules
 
-✅ **DO**:
+[OK] **DO**:
 - Keep business logic pure (no I/O imports)
 - Define ports as interfaces
 - Create multiple adapters per port
 - Inject dependencies through constructors
 - Test business logic without I/O
 
-❌ **NEVER**:
+(x) **NEVER**:
 - Import database libraries in business logic
 - Import HTTP libraries in business logic
 - Import UI libraries in business logic

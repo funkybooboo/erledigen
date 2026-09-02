@@ -1,5 +1,5 @@
 /**
- * SomeDayGroup — a user-created group in the Someday panel
+ * SomeDayGroup -- a user-created group in the Someday panel
  *
  * Groups organize unscheduled tasks by topic. Each group is associated
  * with a tag so tasks can be filtered across the app.

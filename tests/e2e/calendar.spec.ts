@@ -56,7 +56,7 @@ test.describe('Calendar modal', () => {
         const cal = modal(page, 'Calendar');
         await expect(cal).toBeVisible();
 
-        // Pick the 15th of next month — far enough out that the day list
+        // Pick the 15th of next month -- far enough out that the day list
         // must extend its render window to reach it.
         await cal.getByRole('button', { name: 'Next month' }).click();
         const target = nextMonthDayISO(15);

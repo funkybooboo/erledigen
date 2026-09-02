@@ -6,30 +6,30 @@ This document defines the complete feature development process from user story t
 
 Our development approach prioritizes:
 
-- **User value first** — start with user stories and acceptance criteria
-- **Test-driven development** — write tests before implementation
-- **Incremental delivery** — ship small, complete features
-- **Quality gates** — automated validation at every step
-- **Continuous deployment** — fast feedback from production
+- **User value first** -- start with user stories and acceptance criteria
+- **Test-driven development** -- write tests before implementation
+- **Incremental delivery** -- ship small, complete features
+- **Quality gates** -- automated validation at every step
+- **Continuous deployment** -- fast feedback from production
 
 ---
 
 ## The Complete Loop: 7 Phases
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                                                             │
-│  1. Story      2. Tests     3. Implement   4. Document     │
-│  Definition    (TDD)        (Red-Green-    (Update)        │
-│                             Refactor)                       │
-│                                                             │
-│        ↓           ↓            ↓              ↓            │
-│                                                             │
-│  5. Code       6. Quality    7. Deploy &                   │
-│  Review        Gates         Monitor                       │
-│                (CI/CD)                                      │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+/-------------------------------------------------------------\
+|                                                             |
+|  1. Story      2. Tests     3. Implement   4. Document     |
+|  Definition    (TDD)        (Red-Green-    (Update)        |
+|                             Refactor)                       |
+|                                                             |
+|        v           v            v              v            |
+|                                                             |
+|  5. Code       6. Quality    7. Deploy &                   |
+|  Review        Gates         Monitor                       |
+|                (CI/CD)                                      |
+|                                                             |
+\-------------------------------------------------------------/
 ```
 
 ---
@@ -116,7 +116,7 @@ them because they feel overwhelmed.
 ## Definition of Done
 
 - [ ] All acceptance criteria pass E2E tests
-- [ ] Unit test coverage ≥ 90% for new code
+- [ ] Unit test coverage >= 90% for new code
 - [ ] Integration tests for API endpoint
 - [ ] Storybook stories for date picker component
 - [ ] User and developer documentation updated
@@ -156,9 +156,9 @@ them because they feel overwhelmed.
 ## Component Structure
 
 ### Client Components
-- `DateRangeFilter` — Main container component
-- `DatePicker` — Reusable date input component
-- `FilterButton` — Apply/Clear filter buttons
+- `DateRangeFilter` -- Main container component
+- `DatePicker` -- Reusable date input component
+- `FilterButton` -- Apply/Clear filter buttons
 
 ### API Changes
 - Modify `GET /api/tasks` handler to accept date range query params
@@ -350,9 +350,9 @@ describe('Date Filter Integration', () => {
 
 **GOAL**: Write minimal code to make tests pass, then refactor for quality.
 
-### Red → Green → Refactor Cycle
+### Red -> Green -> Refactor Cycle
 
-1. **RED**: Run tests — they should fail
+1. **RED**: Run tests -- they should fail
 2. **GREEN**: Write minimal code to pass tests
 3. **REFACTOR**: Improve code quality while keeping tests green
 
@@ -504,11 +504,11 @@ ALL must pass before merge (run locally with `mise run ci`):
 3. **Link Check** (`mise run check-links`)
 4. **Secret Scan** (`mise run scan-secrets`)
 5. **Type Checking** (`mise run type-check`)
-6. **Unit Tests** (`mise run test` — includes repository contract suites against both adapters)
-7. **E2E Tests** (`mise run test-e2e` — Playwright `e2e` + `api` projects)
-8. **API Tests** (`mise run test-api` — Bruno collection)
+6. **Unit Tests** (`mise run test` -- includes repository contract suites against both adapters)
+7. **E2E Tests** (`mise run test-e2e` -- Playwright `e2e` + `api` projects)
+8. **API Tests** (`mise run test-api` -- Bruno collection)
 9. **Build + bundle budget** (`mise run build`, client <= 512KB)
-10. **Security Scan** (`mise run security` — non-blocking)
+10. **Security Scan** (`mise run security` -- non-blocking)
 
 ### AI Agent Reviews
 
@@ -525,11 +525,11 @@ See [ci-cd-pipeline.md](./ci-cd-pipeline.md) for agent details:
 
 ### Merge Criteria
 
-- ✅ All CI checks pass
-- ✅ At least one approval from code owner
-- ✅ All review comments resolved
-- ✅ Branch up to date with main
-- ✅ No merge conflicts
+- [OK] All CI checks pass
+- [OK] At least one approval from code owner
+- [OK] All review comments resolved
+- [OK] Branch up to date with main
+- [OK] No merge conflicts
 
 ---
 
@@ -546,7 +546,7 @@ See [ci-cd-pipeline.md](./ci-cd-pipeline.md) for agent details:
 
 ### Step 7.2: Deploy to Production
 
-- Gradual rollout (10% → 50% → 100%)
+- Gradual rollout (10% -> 50% -> 100%)
 - Monitor error rates
 - Monitor performance metrics
 - Watch user feedback

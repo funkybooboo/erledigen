@@ -50,7 +50,7 @@
 </script>
 
 <footer class="bottom-bar">
-    <button class="logo-btn" onclick={handleHomeClick} use:tooltip={{ label: 'Clear filters and go to today' }} aria-label="Home — clear filters and go to today">
+    <button class="logo-btn" onclick={handleHomeClick} use:tooltip={{ label: 'Clear filters and go to today' }} aria-label="Home -- clear filters and go to today">
         <Icon src={LuSquareCheck} />
         <strong>erledigen</strong>
     </button>

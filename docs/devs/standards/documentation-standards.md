@@ -6,11 +6,12 @@ This document defines the documentation writing guidelines, structure, and best 
 
 Our documentation approach prioritizes:
 
-- **Plain text in Git** — version controlled, reviewable, searchable
-- **Dual perspective** — both user and developer viewpoints
-- **Living documentation** — updated with code changes
-- **Self-service** — enables independent problem-solving
-- **Clarity over cleverness** — simple, direct language
+- **Plain text in Git** -- version controlled, reviewable, searchable
+- **Plain ASCII** -- printable ASCII only (0x20-0x7E): no emoji, smart quotes, or box-drawing characters; use -- for dashes and -> for arrows
+- **Dual perspective** -- both user and developer viewpoints
+- **Living documentation** -- updated with code changes
+- **Self-service** -- enables independent problem-solving
+- **Clarity over cleverness** -- simple, direct language
 
 ---
 
@@ -49,13 +50,13 @@ Our documentation approach prioritizes:
    - Readable decades from now
    - Easy to migrate
 
-❌ **NEVER**:
+(x) **NEVER**:
 - Store docs in Google Docs, Notion, or other external tools
 - Use proprietary formats (.docx, .pages)
 - Keep docs separate from code repository
 - Rely on wikis that aren't version controlled
 
-✅ **ALWAYS**:
+[OK] **ALWAYS**:
 - Write docs in Markdown (.md files)
 - Store docs in Git repository
 - Update docs in same PR as code changes
@@ -69,36 +70,36 @@ Our documentation approach prioritizes:
 
 ```
 erledigen/
-├── docs/
-│   ├── README.md              # Documentation index
-│   ├── devs/                  # Developer documentation
-│   │   ├── README.md
-│   │   ├── standards/         # Coding and process standards
-│   │   │   ├── code-standards.md
-│   │   │   ├── testing.md
-│   │   │   ├── git-workflow.md
-│   │   │   ├── documentation-standards.md
-│   │   │   ├── diagramming-standards.md
-│   │   │   └── philosophy.md
-│   │   ├── architecture/      # System design docs
-│   │   │   ├── architecture.md
-│   │   │   ├── design-patterns.md
-│   │   │   ├── io-abstraction.md
-│   │   │   ├── api-abstraction.md
-│   │   │   ├── functional-programming.md
-│   │   │   └── twelve-factor.md
-│   │   └── process/           # Development process
-│   │       ├── getting-started.md
-│   │       ├── feature-development-loop.md
-│   │       └── ci-cd-pipeline.md
-│   └── users/                 # End-user documentation
-│       ├── README.md
-│       ├── introduction.md
-│       └── design.md
-│
-└── plans/                     # Project planning
-    ├── README.md
-    └── roadmap.md
+|-- docs/
+|   |-- README.md              # Documentation index
+|   |-- devs/                  # Developer documentation
+|   |   |-- README.md
+|   |   |-- standards/         # Coding and process standards
+|   |   |   |-- code-standards.md
+|   |   |   |-- testing.md
+|   |   |   |-- git-workflow.md
+|   |   |   |-- documentation-standards.md
+|   |   |   |-- diagramming-standards.md
+|   |   |   \-- philosophy.md
+|   |   |-- architecture/      # System design docs
+|   |   |   |-- architecture.md
+|   |   |   |-- design-patterns.md
+|   |   |   |-- io-abstraction.md
+|   |   |   |-- api-abstraction.md
+|   |   |   |-- functional-programming.md
+|   |   |   \-- twelve-factor.md
+|   |   \-- process/           # Development process
+|   |       |-- getting-started.md
+|   |       |-- feature-development-loop.md
+|   |       \-- ci-cd-pipeline.md
+|   \-- users/                 # End-user documentation
+|       |-- README.md
+|       |-- introduction.md
+|       \-- design.md
+|
+\-- plans/                     # Project planning
+    |-- README.md
+    \-- roadmap.md
 ```
 
 ---
@@ -157,7 +158,7 @@ Your task list now shows only tasks in your selected date range.
 **Solution**: You need at least one task to use filters
 
 **Problem**: No tasks appear after filtering
-**Solution**: Check your date range — you might not have tasks in that period
+**Solution**: Check your date range -- you might not have tasks in that period
 ```
 
 ### Developer Perspective
@@ -218,9 +219,9 @@ ORDER BY date ASC, created_at ASC;
 
 ## Components
 
-- `DateRangeFilter` — Container component
-- `DatePicker` — Date input with calendar
-- `FilterButton` — Apply/Clear actions
+- `DateRangeFilter` -- Container component
+- `DatePicker` -- Date input with calendar
+- `FilterButton` -- Apply/Clear actions
 
 ## State Management
 
@@ -254,14 +255,14 @@ Filter state stored in:
 
 Use ATX-style headers (# ## ###):
 
-✅ **GOOD**:
+[OK] **GOOD**:
 ```markdown
 # Main Title
 ## Section
 ### Subsection
 ```
 
-❌ **BAD**:
+(x) **BAD**:
 ```markdown
 Main Title
 ==========
@@ -270,17 +271,17 @@ Section
 ```
 
 **RULES**:
-- H1 (#) — Document title (exactly one per file)
-- H2 (##) — Major sections
-- H3 (###) — Subsections
-- H4 (####) — Rarely used
+- H1 (#) -- Document title (exactly one per file)
+- H2 (##) -- Major sections
+- H3 (###) -- Subsections
+- H4 (####) -- Rarely used
 - Never skip header levels (don't go from H2 to H4)
 
 ### Lists
 
 Use dash (-) for unordered lists, 2-space indent for nesting:
 
-✅ **GOOD**:
+[OK] **GOOD**:
 ```markdown
 - First item
 - Second item
@@ -289,7 +290,7 @@ Use dash (-) for unordered lists, 2-space indent for nesting:
 - Third item
 ```
 
-❌ **BAD**:
+(x) **BAD**:
 ```markdown
 * First item
 + Second item
@@ -300,7 +301,7 @@ Use dash (-) for unordered lists, 2-space indent for nesting:
 
 Always specify language for syntax highlighting:
 
-✅ **GOOD**:
+[OK] **GOOD**:
 ````markdown
 ```typescript
 function greet(name: string): string {
@@ -309,7 +310,7 @@ function greet(name: string): string {
 ```
 ````
 
-❌ **BAD**:
+(x) **BAD**:
 ````markdown
 ```
 function greet(name) {
@@ -322,7 +323,7 @@ function greet(name) {
 
 Use reference-style for repeated links:
 
-✅ **GOOD**:
+[OK] **GOOD**:
 ```markdown
 See the [API documentation][api-docs] for details.
 Check the [API documentation][api-docs] reference.
@@ -394,10 +395,10 @@ Use three hyphens for section breaks:
 
 | AC | Test File | Test Method | Status |
 |----|-----------|-------------|--------|
-| AC1 | date-filter.spec.ts | shows date range selector | ✅ |
-| AC2 | date-filter.spec.ts | filters tasks by date | ✅ |
-| AC3 | date-filter.spec.ts | clears filter | ✅ |
-| AC4 | date-filter.spec.ts | persists filter | ✅ |
+| AC1 | date-filter.spec.ts | shows date range selector | [OK] |
+| AC2 | date-filter.spec.ts | filters tasks by date | [OK] |
+| AC3 | date-filter.spec.ts | clears filter | [OK] |
+| AC4 | date-filter.spec.ts | persists filter | [OK] |
 
 ## API Requirements
 
@@ -412,7 +413,7 @@ Use three hyphens for section breaks:
 ## Definition of Done
 
 - [ ] All ACs pass E2E tests
-- [ ] Unit test coverage ≥ 90%
+- [ ] Unit test coverage >= 90%
 - [ ] Documentation updated
 - [ ] Code reviewed and approved
 - [ ] Deployed to production
@@ -619,9 +620,9 @@ markdownlint --config .markdownlint.json docs/**/*.md
 Before merging documentation:
 
 - [ ] Follows directory structure
-- [ ] Uses correct header hierarchy (H1 → H2 → H3)
+- [ ] Uses correct header hierarchy (H1 -> H2 -> H3)
 - [ ] Code blocks specify language
-- [ ] Line length ≤ 100 chars (where reasonable)
+- [ ] Line length <= 100 chars (where reasonable)
 - [ ] No spelling errors
 - [ ] Links are valid (use link checker)
 - [ ] Examples are tested and accurate
@@ -638,9 +639,9 @@ This is a standing commitment across every release.
 
 - **User docs**: Hosted on a Writebook instance. Covers getting started, all features, keyboard shortcuts, import/export, and customization. Linked from the bottom bar of the app.
 - **Dev docs**: Architecture, contributing guide, API reference, adapter contracts, and ADRs. Hosted alongside user docs or in the repo.
-- **ADRs**: Stored in `docs/devs/architecture/decisions/` (see that directory's README for the format and index). Written for every significant technical or product decision. Numbered sequentially (ADR-001, ADR-002, …).
+- **ADRs**: Stored in `docs/devs/architecture/decisions/` (see that directory's README for the format and index). Written for every significant technical or product decision. Numbered sequentially (ADR-001, ADR-002, ...).
 - **In-app help**: The `?` Help modal shows all keyboard shortcuts organized by category. Links at the bottom open the full Writebook docs.
-- **Writebook link**: Bottom bar far-right corner — a small "docs" link that opens the user docs home page.
+- **Writebook link**: Bottom bar far-right corner -- a small "docs" link that opens the user docs home page.
 
 ---
 

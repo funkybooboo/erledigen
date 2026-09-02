@@ -1,7 +1,7 @@
 import type { ActiveFilters, Task } from '@erledigen/shared';
 
 /**
- * Apply tag filters to a task list. Completed tasks are NEVER hidden — they
+ * Apply tag filters to a task list. Completed tasks are NEVER hidden -- they
  * stay visible (just struck-through) so the day's full state is always on
  * screen. Incomplete past-day tasks roll over to the next day via
  * auto-rollover, so there's no overdue state to hide either.

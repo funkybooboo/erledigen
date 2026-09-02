@@ -6,11 +6,11 @@ This document defines the standards for creating diagrams using Mermaid in Markd
 
 Our diagramming approach prioritizes:
 
-- **Plain text diagrams** — version controlled with code
-- **Mermaid syntax** — renders in GitHub, editors, and documentation sites
-- **Clarity over completeness** — show what matters, hide the rest
-- **Living diagrams** — updated with code changes
-- **Consistent style** — recognizable patterns across all diagrams
+- **Plain text diagrams** -- version controlled with code
+- **Mermaid syntax** -- renders in GitHub, editors, and documentation sites
+- **Clarity over completeness** -- show what matters, hide the rest
+- **Living diagrams** -- updated with code changes
+- **Consistent style** -- recognizable patterns across all diagrams
 
 ---
 
@@ -27,12 +27,12 @@ Our diagramming approach prioritizes:
 - **Searchable**: Find diagrams by searching text
 - **No Special Tools**: Edit with any text editor
 
-❌ **NEVER**:
+(x) **NEVER**:
 - Use draw.io, Lucidchart, or other external tools
 - Store diagrams as images (.png, .jpg, .svg exports)
 - Keep diagrams in separate documents from code
 
-✅ **ALWAYS**:
+[OK] **ALWAYS**:
 - Write diagrams in Mermaid syntax
 - Store in `.md` files in `docs/diagrams/`
 - Update diagrams with code changes
@@ -57,7 +57,7 @@ Our diagramming approach prioritizes:
 
 ## 1. System Context Diagrams (C4 Model Level 1)
 
-**PURPOSE**: Show the big picture — your system and its external dependencies.
+**PURPOSE**: Show the big picture -- your system and its external dependencies.
 
 **WHEN**: Create at project start and update when adding external integrations.
 
@@ -328,10 +328,10 @@ erDiagram
 ```
 
 **Relationship Notation**:
-- `||--o{` — One to zero or more
-- `||--|{` — One to one or more
-- `}o--||` — Zero or more to one
-- `}|--|{` — One or more to one or more
+- `||--o{` -- One to zero or more
+- `||--|{` -- One to one or more
+- `}o--||` -- Zero or more to one
+- `}|--|{` -- One or more to one or more
 
 ---
 
@@ -458,7 +458,7 @@ gitGraph
 
 ### Naming Conventions
 
-✅ **GOOD**:
+[OK] **GOOD**:
 ```
 User
 TaskService
@@ -466,7 +466,7 @@ SQLite Database
 HTTP API Server
 ```
 
-❌ **BAD**:
+(x) **BAD**:
 ```
 user (not capitalized)
 task_service (snake_case)
@@ -511,19 +511,19 @@ Use consistent colors:
 
 ```
 docs/diagrams/
-├── architecture/
-│   ├── system-context.md
-│   ├── container-diagram.md
-│   └── component-diagrams.md
-├── flows/
-│   ├── api-request-flows.md
-│   ├── authentication-flow.md
-│   └── task-creation-flow.md
-├── database/
-│   └── schema-erd.md
-└── workflows/
-    ├── git-workflow.md
-    └── user-journeys.md
+|-- architecture/
+|   |-- system-context.md
+|   |-- container-diagram.md
+|   \-- component-diagrams.md
+|-- flows/
+|   |-- api-request-flows.md
+|   |-- authentication-flow.md
+|   \-- task-creation-flow.md
+|-- database/
+|   \-- schema-erd.md
+\-- workflows/
+    |-- git-workflow.md
+    \-- user-journeys.md
 ```
 
 ---
@@ -566,10 +566,10 @@ Before merging diagrams:
 
 Recommended editors for Mermaid diagrams:
 
-1. **VS Code** — with Mermaid extension (live preview)
-2. **Mermaid Live Editor** — https://mermaid.live (online)
-3. **GitHub** — renders automatically in Markdown files
-4. **IntelliJ/WebStorm** — built-in Mermaid support
+1. **VS Code** -- with Mermaid extension (live preview)
+2. **Mermaid Live Editor** -- https://mermaid.live (online)
+3. **GitHub** -- renders automatically in Markdown files
+4. **IntelliJ/WebStorm** -- built-in Mermaid support
 
 ---
 

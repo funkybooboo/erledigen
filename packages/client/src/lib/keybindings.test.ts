@@ -3,7 +3,7 @@ import { formatBinding, modifierLabel, SHORTCUT_SECTIONS, SHORTCUTS } from './ke
 
 /**
  * Invariants of the shortcut registry. The registry is the single source of
- * truth for the HelpModal table AND the hover tooltips — these tests are the
+ * truth for the HelpModal table AND the hover tooltips -- these tests are the
  * guard against the three ways it can silently drift:
  *   1. a shortcut exists but no help section lists it (undocumented feature)
  *   2. a section lists a shortcut twice (help table repeats a row)
@@ -11,7 +11,7 @@ import { formatBinding, modifierLabel, SHORTCUT_SECTIONS, SHORTCUTS } from './ke
  */
 
 /** Keycap names that are not single printable characters. */
-const NAMED_KEYS = new Set(['Enter', 'Esc', 'Space', '↓', '↑']);
+const NAMED_KEYS = new Set(['Enter', 'Esc', 'Space', '\u2193', '\u2191']);
 
 describe('SHORTCUTS registry', () => {
     test('every shortcut is listed in exactly one help section', () => {

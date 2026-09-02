@@ -47,13 +47,13 @@ test.describe('app shell & navigation', () => {
         const bb = page.locator('.bottom-bar');
         await expect(bb).toBeVisible();
         // Clock label renders a time string with a middot separator.
-        await expect(bb.locator('.date-btn')).toContainText(/·|&middot;/);
+        await expect(bb.locator('.date-btn')).toContainText(/\u00B7|&middot;/);
         // Task count copy: "<n> task[s] <m> done".
         await expect(bb.locator('.task-stats')).toContainText(/task/);
     });
 });
 
-test.describe('icon rail — modal open/close toggling', () => {
+test.describe('icon rail -- modal open/close toggling', () => {
     test('clicking Help opens the Help modal, closing it hides the modal', async ({ page }) => {
         await hydrated(page);
         await page.getByRole('button', { name: 'Help', exact: true }).click();

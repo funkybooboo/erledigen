@@ -14,8 +14,8 @@
  * Determine preferred response format from an Accept header.
  *
  * Rules:
- * - Contains "text/plain" → 'text'
- * - Everything else (absent, *\/*,  application/json, etc.) → 'json'
+ * - Contains "text/plain" -> 'text'
+ * - Everything else (absent, *\/*,  application/json, etc.) -> 'json'
  */
 export function negotiate(accept: string | undefined): 'json' | 'text' {
     if (accept?.includes('text/plain')) {

@@ -92,7 +92,7 @@ export class RecurringTaskService {
      * Streaks are measured over the template's materialized instances
      * (what the user has actually seen). Two instances are "adjacent" when
      * the later one is the template's next scheduled occurrence after the
-     * earlier one — a missing day in between breaks the streak. Occurrences
+     * earlier one -- a missing day in between breaks the streak. Occurrences
      * after today never affect current or longest streak (completing a
      * future instance early does not extend a streak yet).
      *
@@ -146,7 +146,7 @@ export class RecurringTaskService {
         }
 
         // "Longest streak" is the best ever, not just the best run that
-        // still exists — uncompleting or deleting an instance must never
+        // still exists -- uncompleting or deleting an instance must never
         // erase the record.
         const existing = await this.recurringTaskRepo.findStats(id);
         const longestStreak = Math.max(existing?.longestStreak ?? 0, computedLongest);

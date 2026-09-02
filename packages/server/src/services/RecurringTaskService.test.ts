@@ -3,7 +3,7 @@ import type { CreateTaskInput, RecurringTask, RecurringTaskStats, Task } from '@
 import { NotFoundError } from '@erledigen/shared';
 import { RecurringTaskService } from './RecurringTaskService';
 
-// Minimal fakes — just the methods the service calls. The real
+// Minimal fakes -- just the methods the service calls. The real
 // InMemoryTaskRepository/RecurringTaskRepository have their own test files.
 
 class FakeTaskRepository {
@@ -169,7 +169,7 @@ describe('RecurringTaskService', () => {
             }
         });
 
-        it('is idempotent — overlapping ranges never duplicate instances', async () => {
+        it('is idempotent -- overlapping ranges never duplicate instances', async () => {
             const taskRepo = new FakeTaskRepository();
             const recurringRepo = new FakeRecurringTaskRepository();
             const rt = makeRecurringTask({ id: 'rt-i' });
@@ -182,7 +182,7 @@ describe('RecurringTaskService', () => {
 
             // Only the newly-covered date (03-05) creates an instance.
             expect(second.map(t => t.date)).toEqual(['2026-03-05']);
-            expect(taskRepo.tasks).toHaveLength(4); // 02, 03, 04, 05 — no dupes
+            expect(taskRepo.tasks).toHaveLength(4); // 02, 03, 04, 05 -- no dupes
         });
 
         it('skips completed instances too when regenerating', async () => {
@@ -342,7 +342,7 @@ describe('RecurringTaskService', () => {
             const rt = makeRecurringTask({ id: 'rt-f', startDate: '2026-03-10' });
             recurringRepo.store.set(rt.id, rt);
             seed(taskRepo, rt.id, '2026-03-14', true);
-            // Completed "early" — after today (2026-03-15).
+            // Completed "early" -- after today (2026-03-15).
             seed(taskRepo, rt.id, '2026-03-16', true);
 
             const stats = await makeService(recurringRepo, taskRepo).computeStats(rt.id);

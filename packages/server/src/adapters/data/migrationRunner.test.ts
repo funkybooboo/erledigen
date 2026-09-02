@@ -22,7 +22,7 @@ describe('runMigrations', () => {
         expect(tables).toContain('_migrations');
     });
 
-    test('is idempotent — re-running applies nothing new', () => {
+    test('is idempotent -- re-running applies nothing new', () => {
         const db = new Database(':memory:');
         runMigrations(db);
 

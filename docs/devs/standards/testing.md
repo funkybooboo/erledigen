@@ -6,11 +6,11 @@ This document defines the comprehensive testing strategy, standards, and tools f
 
 Our testing approach prioritizes **quality over arbitrary coverage metrics**:
 
-- **Test behavior, business logic, and user value** — not implementation details
-- **Zero tolerance for flaky tests** — tests MUST be deterministic and reliable
-- **Test-first mindset** — tests are first-class citizens, not afterthoughts
-- **Real dependencies over mocks** — use actual databases, services, and systems
-- **Meaningful coverage** — 85%+ expected, but 100% of critical paths REQUIRED
+- **Test behavior, business logic, and user value** -- not implementation details
+- **Zero tolerance for flaky tests** -- tests MUST be deterministic and reliable
+- **Test-first mindset** -- tests are first-class citizens, not afterthoughts
+- **Real dependencies over mocks** -- use actual databases, services, and systems
+- **Meaningful coverage** -- 85%+ expected, but 100% of critical paths REQUIRED
 
 ---
 
@@ -72,7 +72,7 @@ We follow a strict testing pyramid distribution:
 
 **SCOPE**: Pure functions, calculations, validations, transformers, business rules.
 
-**TOOLS**: Bun test runner (no Vitest — coverage runs via `bun test --coverage`).
+**TOOLS**: Bun test runner (no Vitest -- coverage runs via `bun test --coverage`).
 
 **REQUIREMENTS**:
 - Every pure function MUST have comprehensive unit tests
@@ -82,18 +82,18 @@ We follow a strict testing pyramid distribution:
 - Use property-based testing for complex algorithms
 
 **WHAT TO TEST**:
-- ✅ Pure business logic and calculations
-- ✅ Data transformations and validators
-- ✅ Domain rules and policies
-- ✅ Utility functions and helpers
-- ✅ Error handling in pure functions
+- [OK] Pure business logic and calculations
+- [OK] Data transformations and validators
+- [OK] Domain rules and policies
+- [OK] Utility functions and helpers
+- [OK] Error handling in pure functions
 
 **WHAT NOT TO TEST**:
-- ❌ Components with side effects
-- ❌ API calls or database operations
-- ❌ Framework code or third-party libraries
-- ❌ Trivial getters/setters
-- ❌ Implementation details
+- (x) Components with side effects
+- (x) API calls or database operations
+- (x) Framework code or third-party libraries
+- (x) Trivial getters/setters
+- (x) Implementation details
 
 ### Integration Tests: 20% of Test Suite
 
@@ -104,7 +104,7 @@ We follow a strict testing pyramid distribution:
 **TOOLS**: Bun test runner, `bun:sqlite`.
 
 **REQUIREMENTS**:
-- Repository tests use a fresh `:memory:` SQLite database per test — no Docker, no file I/O, no shared state
+- Repository tests use a fresh `:memory:` SQLite database per test -- no Docker, no file I/O, no shared state
 - Every repository has a **contract test suite** that runs against BOTH the in-memory and SQLite implementations, so the two adapters can never drift
 - Tests run in milliseconds; cleanup is automatic (`:memory:` databases are garbage-collected)
 
@@ -151,13 +151,13 @@ describe('SqliteTaskRepository', () => {
 - Tests MUST include performance assertions
 
 **WHAT TO TEST**:
-- ✅ Complete user journeys from start to finish
-- ✅ Critical business workflows
-- ✅ User authentication and authorization flows
-- ✅ Error scenarios and recovery paths
-- ✅ Cross-browser compatibility
-- ✅ Performance under realistic conditions
-- ✅ Accessibility compliance (WCAG 2.1 AA)
+- [OK] Complete user journeys from start to finish
+- [OK] Critical business workflows
+- [OK] User authentication and authorization flows
+- [OK] Error scenarios and recovery paths
+- [OK] Cross-browser compatibility
+- [OK] Performance under realistic conditions
+- [OK] Accessibility compliance (WCAG 2.1 AA)
 
 ---
 
@@ -349,13 +349,13 @@ For more information on writing tests, see the [Bruno documentation](https://doc
 
 **MANDATORY STORIES FOR EACH COMPONENT**:
 
-1. **Default State** — component in its normal state
-2. **All Variants** — every visual variant (primary, secondary, danger, etc.)
-3. **All Sizes** — every size option (small, medium, large, etc.)
-4. **Interactive States** — default, hover, active, focus, disabled, loading
-5. **Error States** — validation errors, network errors, etc.
-6. **Edge Cases** — empty state, long content, overflow handling
-7. **Accessibility Test** — keyboard navigation, screen reader support
+1. **Default State** -- component in its normal state
+2. **All Variants** -- every visual variant (primary, secondary, danger, etc.)
+3. **All Sizes** -- every size option (small, medium, large, etc.)
+4. **Interactive States** -- default, hover, active, focus, disabled, loading
+5. **Error States** -- validation errors, network errors, etc.
+6. **Edge Cases** -- empty state, long content, overflow handling
+7. **Accessibility Test** -- keyboard navigation, screen reader support
 
 ```typescript
 // Button.stories.ts
@@ -410,7 +410,7 @@ The ONLY acceptable use of test doubles:
 - External APIs you don't control (payment processors, email services)
 - Even then, create a test adapter implementation, not a mock
 
-❌ **NEVER ALLOWED**:
+(x) **NEVER ALLOWED**:
 ```typescript
 // BAD - Testing implementation details with mocks
 const mockRepository = {
@@ -421,7 +421,7 @@ const mockRepository = {
 expect(mockRepository.save).toHaveBeenCalledTimes(1);
 ```
 
-✅ **REQUIRED**:
+[OK] **REQUIRED**:
 ```typescript
 // GOOD - Test behavior with real implementation
 const repository = new InMemoryTaskRepository();
@@ -444,7 +444,7 @@ expect(retrieved.text).toBe('Test task');
 - Don't assert on the number of function calls
 - Don't test the order of operations (unless it's part of the contract)
 
-❌ **BAD** — Testing implementation:
+(x) **BAD** -- Testing implementation:
 ```typescript
 test('should call setState twice', () => {
   const mockSetState = jest.fn();
@@ -454,7 +454,7 @@ test('should call setState twice', () => {
 });
 ```
 
-✅ **GOOD** — Testing behavior:
+[OK] **GOOD** -- Testing behavior:
 ```typescript
 test('when user clicks button, counter should increment', async () => {
   render(<Counter />);
@@ -516,11 +516,11 @@ describe('Service Tests', () => {
 Tests MUST use descriptive, behavior-focused names:
 
 ```typescript
-// ❌ BAD
+// (x) BAD
 test('test1', () => { /* ... */ });
 test('should work', () => { /* ... */ });
 
-// ✅ GOOD
+// [OK] GOOD
 test('when user provides valid email, should create account', () => { /* ... */ });
 test('when password is too short, should reject with validation error', () => { /* ... */ });
 ```
@@ -567,8 +567,8 @@ ALL of the following MUST pass before merge (as enforced by CI, see [ci-cd-pipel
 4. **Linting passes** (Biome)
 5. **Type checking passes** (TypeScript strict mode)
 6. **Security scans pass** (gitleaks, `bun audit`)
-7. **Performance tests pass** (planned — only the client bundle-size budget is enforced today)
-8. **Accessibility tests pass** (planned — axe-core integration is on the roadmap, v0.12.0)
+7. **Performance tests pass** (planned -- only the client bundle-size budget is enforced today)
+8. **Accessibility tests pass** (planned -- axe-core integration is on the roadmap, v0.12.0)
 
 ### Automated Test Execution
 
@@ -593,9 +593,9 @@ bun run test --coverage
 
 ### The Red-Green-Refactor Cycle
 
-1. **RED** — Write a failing test that defines desired behavior
-2. **GREEN** — Write the minimal code needed to make the test pass
-3. **REFACTOR** — Improve the code while keeping tests green
+1. **RED** -- Write a failing test that defines desired behavior
+2. **GREEN** -- Write the minimal code needed to make the test pass
+3. **REFACTOR** -- Improve the code while keeping tests green
 
 ### TDD at Different Levels
 
@@ -626,7 +626,7 @@ Before merging ANY code, ensure:
 - [ ] API tests cover all endpoints comprehensively
 - [ ] Component stories exist for all UI components
 - [ ] All tests are idempotent and clean up after themselves
-- [ ] Test coverage is ≥ 85% (100% for critical paths)
+- [ ] Test coverage is >= 85% (100% for critical paths)
 - [ ] NO flaky tests exist
 - [ ] CI pipeline passes completely
 - [ ] Tests focus on behavior, not implementation

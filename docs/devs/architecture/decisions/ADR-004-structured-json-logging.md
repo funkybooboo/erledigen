@@ -2,7 +2,7 @@
 
 **Status**: Accepted  
 **Date**: 2026-05-09  
-**Context**: v0.7.0 — Persistence & Data I/O (infrastructure foundation)
+**Context**: v0.7.0 -- Persistence & Data I/O (infrastructure foundation)
 
 ## Context
 
@@ -84,7 +84,7 @@ Every log line is a single JSON object when `LOG_FORMAT=json`:
 When `LOG_FORMAT=text`:
 
 ```
-[2026-05-09T12:34:56.789Z] [INFO] [req_456def] POST /api/tasks 201 12ms — Task created
+[2026-05-09T12:34:56.789Z] [INFO] [req_456def] POST /api/tasks 201 12ms -- Task created
 [2026-05-09T12:34:56.890Z] [DEBUG] [req_456def] Database query completed {"table":"tasks","durationMs":3}
 [2026-05-09T12:34:57.000Z] [ERROR] Background job failed {"jobId":"job_789","jobType":"rollover","error":"Connection timeout"}
 ```
@@ -100,7 +100,7 @@ A new guard/middleware that:
 4. Returns it as an `X-Request-Id` response header
 5. Accepts an incoming `X-Request-Id` header if present (for distributed tracing in v2.x)
 
-**Implementation approach**: The request ID is attached to the `HttpRequest` object and passed to services via the existing container. Services receive a `LogContext` with `requestId` pre-filled. No async local storage — explicit context passing keeps dependencies visible.
+**Implementation approach**: The request ID is attached to the `HttpRequest` object and passed to services via the existing container. Services receive a `LogContext` with `requestId` pre-filled. No async local storage -- explicit context passing keeps dependencies visible.
 
 ### Request Duration Logging
 
@@ -126,7 +126,7 @@ interface Logger {
 }
 ```
 
-No changes. `ConsoleLogger` implementation changes to support JSON output. This is the key architectural point — the interface is stable, the implementation evolves.
+No changes. `ConsoleLogger` implementation changes to support JSON output. This is the key architectural point -- the interface is stable, the implementation evolves.
 
 ### Child Logger Pattern
 
@@ -143,7 +143,7 @@ class RequestLogger implements Logger {
 }
 ```
 
-Route handlers create a child logger with `requestId` baked in, then pass it to services. Services don't need to know about request IDs — they just log with their child logger.
+Route handlers create a child logger with `requestId` baked in, then pass it to services. Services don't need to know about request IDs -- they just log with their child logger.
 
 ### Job Logging
 
@@ -193,8 +193,8 @@ In text mode:
 | `LOG_FORMAT` | `text` in dev, `json` in prod | Log output format |
 | `LOG_LEVEL` | `debug` in dev, `info` in prod | Minimum log level |
 
-`NODE_ENV=development` → `LOG_FORMAT=text`, `LOG_LEVEL=debug`  
-`NODE_ENV=production` → `LOG_FORMAT=json`, `LOG_LEVEL=info`
+`NODE_ENV=development` -> `LOG_FORMAT=text`, `LOG_LEVEL=debug`  
+`NODE_ENV=production` -> `LOG_FORMAT=json`, `LOG_LEVEL=info`
 
 Explicit env vars override the defaults.
 
@@ -215,19 +215,19 @@ OTEL SDK adoption is deferred to v2.x because:
 ## Consequences
 
 ### Positive
-- Logs are machine-parseable in production — works with Loki, Elasticsearch, any JSON log collector
+- Logs are machine-parseable in production -- works with Loki, Elasticsearch, any JSON log collector
 - Request IDs correlate all logs from a single HTTP request
-- Request duration is logged for every request — gives basic performance visibility
-- `Logger` interface unchanged — zero service-level refactoring
+- Request duration is logged for every request -- gives basic performance visibility
+- `Logger` interface unchanged -- zero service-level refactoring
 - Child logger pattern keeps context passing explicit and testable
 - Text mode keeps development ergonomics good
 
 ### Negative
 - Developers must remember to include context objects in log calls
-- JSON logs are harder to read in raw `docker logs` — mitigated by `LOG_FORMAT=text` in dev and log aggregation tools in prod
-- No distributed tracing yet — single-process only until v2.x
+- JSON logs are harder to read in raw `docker logs` -- mitigated by `LOG_FORMAT=text` in dev and log aggregation tools in prod
+- No distributed tracing yet -- single-process only until v2.x
 
 ### Mitigations
 - Code review enforces structured logging discipline (no bare `logger.info('did something')` without context)
 - `docker logs` with `--format` or `jq` for local JSON inspection
-- Child logger pattern reduces boilerplate — context is set once, not repeated per log call
+- Child logger pattern reduces boilerplate -- context is set once, not repeated per log call

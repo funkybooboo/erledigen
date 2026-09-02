@@ -2,15 +2,15 @@
 
 This directory contains the API tests for the Erledigen application, which are written using [Bruno](https://www.usebruno.com/).
 
-## ⚡️ Quick Start
+## Quick Start
 
-**Dockerized (recommended)** — builds the test stack and runs the collection against it:
+**Dockerized (recommended)** -- builds the test stack and runs the collection against it:
 
 ```bash
 mise run test-api
 ```
 
-**Locally** —
+**Locally** --
 
 1.  **Start the server:**
 
@@ -28,6 +28,6 @@ mise run test-api
         bunx @usebruno/cli run . --env local
         ```
 
-## 📚 Learn More
+## Learn More
 
 To learn more about our testing strategy and how we use Bruno, check out the [**Testing**](../../docs/devs/standards/testing.md) documentation.

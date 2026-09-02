@@ -201,7 +201,7 @@ export class SqliteTaskRepository implements TaskRepository {
 
     async findDeleted(maxAgeDays: number = PURGE_RETENTION_DAYS): Promise<Task[]> {
         // Note: the retention window is NOT applied here, matching
-        // InMemoryTaskRepository — findDeleted returns the full trash list;
+        // InMemoryTaskRepository -- findDeleted returns the full trash list;
         // only purgeDeleted enforces the cutoff.
         void maxAgeDays;
         return this.select('WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC');

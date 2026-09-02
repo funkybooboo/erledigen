@@ -6,11 +6,11 @@ This document defines the architectural design patterns used in the Erledigen pr
 
 Our architectural approach prioritizes:
 
-- **Separation of concerns** — clear boundaries between layers
-- **Dependency inversion** — depend on abstractions, not concrete implementations
-- **Testability** — all components can be tested in isolation
-- **Flexibility** — easy to swap implementations without changing business logic
-- **Type safety** — leverage TypeScript's type system for compile-time guarantees
+- **Separation of concerns** -- clear boundaries between layers
+- **Dependency inversion** -- depend on abstractions, not concrete implementations
+- **Testability** -- all components can be tested in isolation
+- **Flexibility** -- easy to swap implementations without changing business logic
+- **Type safety** -- leverage TypeScript's type system for compile-time guarantees
 
 ---
 
@@ -214,11 +214,11 @@ export class FetchHttpClient implements HttpClient {
 - Framework-agnostic core logic
 
 **REAL EXAMPLES IN ERLEDIGEN**:
-- `ConfigProvider` — Environment variable access
-- `HttpClient` — HTTP requests
-- `Logger` — Structured logging
-- `DateProvider` — Date/time operations
-- `TaskRepository` — Data persistence
+- `ConfigProvider` -- Environment variable access
+- `HttpClient` -- HTTP requests
+- `Logger` -- Structured logging
+- `DateProvider` -- Date/time operations
+- `TaskRepository` -- Data persistence
 
 ---
 
@@ -613,14 +613,14 @@ Use this guide to select the appropriate pattern:
 
 ## Anti-Patterns to Avoid
 
-❌ **NEVER**:
+(x) **NEVER**:
 - Use patterns for the sake of using patterns
 - Create unnecessary abstraction layers
 - Implement patterns with `any` types
 - Copy pattern code without understanding it
 - Mix multiple patterns in confusing ways
 
-✅ **ALWAYS**:
+[OK] **ALWAYS**:
 - Choose the simplest solution that works
 - Document why you chose a pattern
 - Keep pattern implementations clean and focused

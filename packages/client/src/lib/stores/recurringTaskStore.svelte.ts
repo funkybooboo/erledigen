@@ -39,7 +39,7 @@ class RecurringTaskStore extends EntityStore<
     stats = new SvelteMap<string, RecurringTaskStats>();
 
     /** Fetch (or refresh) stats for the given habit ids. Failures leave
-     *  existing entries untouched — the modal just shows what it has. */
+     *  existing entries untouched -- the modal just shows what it has. */
     async fetchStats(ids: string[]): Promise<void> {
         await Promise.all(
             ids.map(async id => {

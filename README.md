@@ -1,42 +1,42 @@
-# Erledigen 🕺
+# Erledigen
 
 Welcome to Erledigen, a modern task application that's as fun to develop as it is to use! Inspired by the clean and simple interface of TeuxDeux, Erledigen is a unified task manager built around one idea: **you should only need one place to manage your work and your life**.
 
-The daily list is the execution surface. Someday is the capture net. Habits generate instances into the daily list automatically (projects will too, once auto-distribution lands). Everything is organized with tags — the same tag system works across tasks, groups, Someday, and filters.
+The daily list is the execution surface. Someday is the capture net. Habits generate instances into the daily list automatically (projects will too, once auto-distribution lands). Everything is organized with tags -- the same tag system works across tasks, groups, Someday, and filters.
 
 [![CI](https://github.com/funkybooboo/erledigen/actions/workflows/ci.yml/badge.svg)](https://github.com/funkybooboo/erledigen/actions/workflows/ci.yml)
 
 ---
 
-## 🚀 What's Inside?
+## What's Inside?
 
 Erledigen is a **monorepo** built with a modern tech stack designed for a great developer experience:
 
-*   **Frontend**: [SvelteKit](https://kit.svelte.dev/) + [Svelte 5 runes](https://svelte.dev/) + [Tailwind CSS v4](https://tailwindcss.com/) — a fast, modern, reactive UI.
-*   **Backend**: [Bun](https://bun.sh/) — an incredibly fast JavaScript runtime, bundler, and package manager, all in one.
-*   **Language**: [TypeScript](https://www.typescriptlang.org/) — end-to-end type safety.
-*   **Real-time**: WebSocket sync — every mutation broadcasts to all connected clients instantly.
+*   **Frontend**: [SvelteKit](https://kit.svelte.dev/) + [Svelte 5 runes](https://svelte.dev/) + [Tailwind CSS v4](https://tailwindcss.com/) -- a fast, modern, reactive UI.
+*   **Backend**: [Bun](https://bun.sh/) -- an incredibly fast JavaScript runtime, bundler, and package manager, all in one.
+*   **Language**: [TypeScript](https://www.typescriptlang.org/) -- end-to-end type safety.
+*   **Real-time**: WebSocket sync -- every mutation broadcasts to all connected clients instantly.
 *   **API**: Schema-first [OpenAPI 3.1](https://www.openapis.org/) generated from Zod, served at `/openapi.yaml` and `/openapi.json`.
-*   **Architecture**: [Adapter Pattern](./docs/devs/architecture/architecture.md) — a clean, modular architecture where every subsystem is behind an interface, so implementations can be swapped without touching application code.
-*   **Code Quality**: [Biome](https://biomejs.dev/) — formatting and linting.
+*   **Architecture**: [Adapter Pattern](./docs/devs/architecture/architecture.md) -- a clean, modular architecture where every subsystem is behind an interface, so implementations can be swapped without touching application code.
+*   **Code Quality**: [Biome](https://biomejs.dev/) -- formatting and linting.
 *   **Testing**: [Bun test](https://bun.sh/docs/cli/test) for units, [Playwright](https://playwright.dev/) for E2E, and [Bruno](https://www.usebruno.com/) for API tests.
-*   **Components**: [Storybook](https://storybook.js.org/) — isolated component development and visual review.
+*   **Components**: [Storybook](https://storybook.js.org/) -- isolated component development and visual review.
 
-## 🧩 Key Features
+## Key Features
 
-*   **Daily list** — the primary working area; a continuously-scrolling list of day sections (loads more days as you scroll) with inline add/edit and a month minimap for orientation.
-*   **Someday panel** — a right-side capture net for unscheduled work, organized into tag-based groups; drag-to-resize and collapsible (`Cmd/Ctrl+\\`).
-*   **Tags as the primary organization** — `#p1`/`#p2`/`#p3` priority, `project:`-prefixed project tags, and any free-form tags. One filter system covers everything.
-*   **Projects** — collections of ordered tasks with activate/deactivate and a detail view.
-*   **Habits / recurring tasks** — natural-language templates ("water plants every friday at 9am") that generate instances into the daily list, with streak tracking and a management modal.
-*   **Sub-tasks** — nested tasks under a parent; completion rolls up.
-*   **Command palette** (`Cmd/Ctrl+K` or `/`) — fuzzy search across tasks plus a `/`-prefixed command mode (currently `/add`, with habit phrases like "every day" creating habits).
-*   **Keyboard-first + tooltips** — vim + arrow navigation, `g`-sequences for modals, priority keys `1`/`2`/`3`/`0`, `Cmd/Ctrl+Z` undo; every UI action shows its keybinding on hover.
-*   **Icon-rail modals** — Calendar, Summary, Projects, Habits, Search, Filter, Settings, Trash, Help.
-*   **Trash with undo** — soft delete with a 5s undo toast, restore from Trash, and purge of soft-deleted tasks after 7 days.
-*   **Privacy first** — no analytics, no telemetry, no tracking. Your data stays in your own database.
+*   **Daily list** -- the primary working area; a continuously-scrolling list of day sections (loads more days as you scroll) with inline add/edit and a month minimap for orientation.
+*   **Someday panel** -- a right-side capture net for unscheduled work, organized into tag-based groups; drag-to-resize and collapsible (`Cmd/Ctrl+\\`).
+*   **Tags as the primary organization** -- `#p1`/`#p2`/`#p3` priority, `project:`-prefixed project tags, and any free-form tags. One filter system covers everything.
+*   **Projects** -- collections of ordered tasks with activate/deactivate and a detail view.
+*   **Habits / recurring tasks** -- natural-language templates ("water plants every friday at 9am") that generate instances into the daily list, with streak tracking and a management modal.
+*   **Sub-tasks** -- nested tasks under a parent; completion rolls up.
+*   **Command palette** (`Cmd/Ctrl+K` or `/`) -- fuzzy search across tasks plus a `/`-prefixed command mode (currently `/add`, with habit phrases like "every day" creating habits).
+*   **Keyboard-first + tooltips** -- vim + arrow navigation, `g`-sequences for modals, priority keys `1`/`2`/`3`/`0`, `Cmd/Ctrl+Z` undo; every UI action shows its keybinding on hover.
+*   **Icon-rail modals** -- Calendar, Summary, Projects, Habits, Search, Filter, Settings, Trash, Help.
+*   **Trash with undo** -- soft delete with a 5s undo toast, restore from Trash, and purge of soft-deleted tasks after 7 days.
+*   **Privacy first** -- no analytics, no telemetry, no tracking. Your data stays in your own database.
 
-## ⚡️ Getting Started
+## Getting Started
 
 This project uses [mise](https://mise.jdx.dev) as its task runner and tool version manager. Install it first, then:
 
@@ -80,7 +80,7 @@ your host environment. Repo-management tasks (install, format, lint,
 type-check, build, clean, ci) run locally against the working tree, because
 they manage the repo itself.
 
-## 🐳 Docker
+## Docker
 
 One multi-stage `Dockerfile` at the repo root; compose picks the stage via
 `build.target`:
@@ -93,7 +93,7 @@ One multi-stage `Dockerfile` at the repo root; compose picks the stage via
 | `e2e` | `e2e` runner (test stack) | mcr.microsoft.com/playwright + bun + source |
 
 **Dev** (`compose.yaml`, default): source is bind-mounted, so code edits are
-picked up live by `bun --watch` (server) and vite HMR (client) — no rebuild
+picked up live by `bun --watch` (server) and vite HMR (client) -- no rebuild
 needed. `node_modules` are shielded from the bind mount by anonymous volumes
 seeded from the image; after changing dependencies run `mise run dev-refresh`.
 The dev DB lives in the `dev-data` named volume (`DB_PATH=/data`), never in
@@ -101,12 +101,12 @@ the repo.
 
 **Prod** (`docker compose --profile prod up -d --build`): built artifacts
 only, no bind mounts. `VITE_API_URL` is baked into the client bundle at build
-time — override it (e.g. `VITE_API_URL=https://api.example.com docker compose
+time -- override it (e.g. `VITE_API_URL=https://api.example.com docker compose
 --profile prod up -d --build`) when deploying for real. Prod publishes the
 same ports as dev, so stop dev first. Server data persists in the `prod-data`
 named volume.
 
-**Tests** (`compose.test.yaml`): fully self-contained — no bind mounts, no
+**Tests** (`compose.test.yaml`): fully self-contained -- no bind mounts, no
 named volumes, nothing written to the host. Source is baked into the images,
 the test server runs with `STORAGE_ADAPTER=memory`, and the Playwright runner
 uses the Chromium bundled in the mcr image (no `playwright install` needed
@@ -116,41 +116,41 @@ Version pins to keep in sync:
 
 - `BUN_VERSION` in the `Dockerfile` must match `[tools] bun` in `mise.toml`.
 - `PLAYWRIGHT_VERSION` in the `Dockerfile` must match the `@playwright/test`
-  version in `bun.lock` — bump both together or the bundled browsers fail
+  version in `bun.lock` -- bump both together or the bundled browsers fail
   version validation.
 
 > **Note (this machine):** `docker` here is a `podman` wrapper (rootless,
 > fuse-overlayfs storage). The podman `storage.conf` fix that makes
 > `docker compose build` work on btrfs lives in the dotfiles
-> (`~/.config/containers/storage.conf`) — `mount_program` must be set under
+> (`~/.config/containers/storage.conf`) -- `mount_program` must be set under
 > `[storage.options.overlay]`, not `[storage.options]`.
 
-## 📦 Monorepo Layout
+## Monorepo Layout
 
 ```
 erledigen/
-├── packages/
-│   ├── client/   # SvelteKit frontend (Tailwind CSS, Svelte 5 runes)
-│   ├── server/   # Bun REST API + WebSocket server
-│   └── shared/   # Types, adapter interfaces, constants, universal utilities
-├── docs/         # User + developer documentation, ADRs
-├── tests/        # Playwright E2E + Bruno API test suites
-├── plans/        # Roadmap and planning docs
-└── package.json
+|-- packages/
+|   |-- client/   # SvelteKit frontend (Tailwind CSS, Svelte 5 runes)
+|   |-- server/   # Bun REST API + WebSocket server
+|   \-- shared/   # Types, adapter interfaces, constants, universal utilities
+|-- docs/         # User + developer documentation, ADRs
+|-- tests/        # Playwright E2E + Bruno API test suites
+|-- plans/        # Roadmap and planning docs
+\-- package.json
 ```
 
-## 📚 Learn More
+## Learn More
 
-*   [**Introduction**](./docs/users/introduction.md) — a brief introduction to the project.
-*   [**Product Design**](./docs/users/design.md) — the full product vision, data model, and feature set.
-*   [**Getting Started**](./docs/devs/process/getting-started.md) — detailed setup and run instructions.
-*   [**Architecture**](./docs/devs/architecture/architecture.md) — overview of the project's architecture.
-*   [**Code Standards**](./docs/devs/standards/code-standards.md) — writing clean, consistent, maintainable code.
-*   [**Testing**](./docs/devs/standards/testing.md) — testing strategies and tools.
-*   [**Git Workflow**](./docs/devs/standards/git-workflow.md) — how we work with git and pull requests.
-*   [**Roadmap**](./plans/roadmap.md) — release-by-release development plan.
+*   [**Introduction**](./docs/users/introduction.md) -- a brief introduction to the project.
+*   [**Product Design**](./docs/users/design.md) -- the full product vision, data model, and feature set.
+*   [**Getting Started**](./docs/devs/process/getting-started.md) -- detailed setup and run instructions.
+*   [**Architecture**](./docs/devs/architecture/architecture.md) -- overview of the project's architecture.
+*   [**Code Standards**](./docs/devs/standards/code-standards.md) -- writing clean, consistent, maintainable code.
+*   [**Testing**](./docs/devs/standards/testing.md) -- testing strategies and tools.
+*   [**Git Workflow**](./docs/devs/standards/git-workflow.md) -- how we work with git and pull requests.
+*   [**Roadmap**](./plans/roadmap.md) -- release-by-release development plan.
 
-## 🤝 Contribute
+## Contribute
 
 We'd love for you to join us! Whether you're a seasoned developer or just starting out, there are many ways to contribute to Erledigen. Check out our [**Getting Started**](./docs/devs/process/getting-started.md) guide to learn more.
 

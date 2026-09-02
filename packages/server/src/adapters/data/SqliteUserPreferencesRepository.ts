@@ -140,7 +140,7 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
     }
 
     async reset(): Promise<void> {
-        // With no row persisted, get() serves defaults — equivalent to the
+        // With no row persisted, get() serves defaults -- equivalent to the
         // in-memory reset() that swaps in a fresh defaults object.
         this.db.prepare("DELETE FROM user_preferences WHERE id = 'default'").run();
     }

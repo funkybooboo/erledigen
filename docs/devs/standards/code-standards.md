@@ -21,14 +21,14 @@ Our code should be:
 **Why**: `any` defeats the purpose of TypeScript and allows type errors to slip through.
 
 ```typescript
-// ❌ BAD
+// (x) BAD
 function processData(data: any) {
   return data.value
 }
 
 const result: any = fetchData()
 
-// ✅ GOOD
+// [OK] GOOD
 function processData(data: { value: string }): string {
   return data.value
 }
@@ -39,7 +39,7 @@ const result: Task[] = fetchData()
 **Exceptions**: Use `unknown` for truly unknown types, then narrow with type guards.
 
 ```typescript
-// ✅ Using unknown with type guards
+// [OK] Using unknown with type guards
 function handleError(error: unknown): string {
   if (error instanceof Error) {
     return error.message
@@ -61,22 +61,22 @@ function handleError(error: unknown): string {
 - Catches return statement errors
 
 ```typescript
-// ❌ BAD - inferred return type
+// (x) BAD - inferred return type
 function calculateTotal(items) {
   return items.reduce((sum, item) => sum + item.price, 0)
 }
 
-// ✅ GOOD - explicit return type
+// [OK] GOOD - explicit return type
 function calculateTotal(items: Item[]): number {
   return items.reduce((sum: number, item: Item): number => sum + item.price, 0)
 }
 
-// ✅ GOOD - explicit void
+// [OK] GOOD - explicit void
 function logMessage(message: string): void {
   console.log(message)
 }
 
-// ✅ GOOD - explicit Promise type
+// [OK] GOOD - explicit Promise type
 async function fetchUser(id: string): Promise<User> {
   const response: Response = await fetch(`/api/users/${id}`)
   return response.json() as Promise<User>
@@ -88,17 +88,17 @@ async function fetchUser(id: string): Promise<User> {
 **Rule**: Add explicit type annotations on variables where the type is not immediately obvious.
 
 ```typescript
-// ❌ BAD - unclear type
+// (x) BAD - unclear type
 const config = getConfig()
 
-// ✅ GOOD - explicit type
+// [OK] GOOD - explicit type
 const config: AppConfig = getConfig()
 
-// ✅ OK - type is obvious from literal
+// [OK] OK - type is obvious from literal
 const port: number = 3000
 const name: string = 'Erledigen'
 
-// ✅ OK - type is obvious from constructor
+// [OK] OK - type is obvious from constructor
 const date: Date = new Date()
 const tasks: Task[] = []
 ```
@@ -108,10 +108,10 @@ const tasks: Task[] = []
 **Rule**: Avoid type assertions unless absolutely necessary. When used, document WHY.
 
 ```typescript
-// ❌ BAD - unnecessary assertion
+// (x) BAD - unnecessary assertion
 const user: User = response as User
 
-// ✅ GOOD - narrow with type guard instead
+// [OK] GOOD - narrow with type guard instead
 function isUser(value: unknown): value is User {
   return typeof value === 'object' && value !== null && 'id' in value
 }
@@ -120,7 +120,7 @@ if (isUser(response)) {
   const user: User = response // No assertion needed
 }
 
-// ✅ ACCEPTABLE - necessary for external API with comment
+// [OK] ACCEPTABLE - necessary for external API with comment
 // Bun's native API doesn't provide correct types for json()
 const data: Task = (await request.json()) as Promise<Task>
 ```
@@ -130,12 +130,12 @@ const data: Task = (await request.json()) as Promise<Task>
 **Rule**: Handle `null` and `undefined` explicitly. Never use non-null assertions (`!`) without justification.
 
 ```typescript
-// ❌ BAD - non-null assertion without justification
+// (x) BAD - non-null assertion without justification
 function getUsername(user: User | null): string {
   return user!.name
 }
 
-// ✅ GOOD - explicit null handling
+// [OK] GOOD - explicit null handling
 function getUsername(user: User | null): string {
   if (user === null) {
     throw new Error('User cannot be null')
@@ -143,7 +143,7 @@ function getUsername(user: User | null): string {
   return user.name
 }
 
-// ✅ GOOD - optional chaining with fallback
+// [OK] GOOD - optional chaining with fallback
 function getUsername(user: User | null): string {
   return user?.name ?? 'Anonymous'
 }
@@ -158,12 +158,12 @@ function getUsername(user: User | null): string {
 **Rule**: Names should be descriptive and explicit. Clarity always wins over brevity.
 
 ```typescript
-// ❌ BAD - too terse
+// (x) BAD - too terse
 const usr = getUsr(id)
 const temp = calc(a, b)
 const res = await fetch(url)
 
-// ✅ GOOD - descriptive
+// [OK] GOOD - descriptive
 const user: User = getUserById(id)
 const temperature: number = calculateTemperature(celsius, fahrenheit)
 const response: Response = await fetch(url)
@@ -174,12 +174,12 @@ const response: Response = await fetch(url)
 **Rule**: Function names should be verbs or verb phrases that describe what they do.
 
 ```typescript
-// ❌ BAD
+// (x) BAD
 function user(id: string): User { }
 function data(): Task[] { }
 function validation(input: string): boolean { }
 
-// ✅ GOOD
+// [OK] GOOD
 function getUserById(id: string): User { }
 function getAllTasks(): Task[] { }
 function validateInput(input: string): boolean { }
@@ -191,12 +191,12 @@ function isValidEmail(email: string): boolean { }
 **Rule**: Boolean names should be predicates (is/has/can/should prefix).
 
 ```typescript
-// ❌ BAD
+// (x) BAD
 const active: boolean = true
 const permissions: boolean = checkPermissions()
 function valid(input: string): boolean { }
 
-// ✅ GOOD
+// [OK] GOOD
 const isActive: boolean = true
 const hasPermissions: boolean = checkPermissions()
 function isValid(input: string): boolean { }
@@ -209,11 +209,11 @@ function canEditTask(user: User, task: Task): boolean { }
 **Rule**: Constants should be UPPER_SNAKE_CASE only for truly global constants. Use camelCase for module-level constants.
 
 ```typescript
-// ✅ GOOD - global constants
+// [OK] GOOD - global constants
 const MAX_RETRY_ATTEMPTS: number = 3
 const DEFAULT_TIMEOUT_MS: number = 5000
 
-// ✅ GOOD - module-level constants
+// [OK] GOOD - module-level constants
 const defaultPort: number = 4000
 const apiBaseUrl: string = 'https://api.example.com'
 ```
@@ -229,7 +229,7 @@ const apiBaseUrl: string = 'https://api.example.com'
 **Why**: Interfaces represent the abstraction, not the implementation. They shouldn't be marked differently.
 
 ```typescript
-// ❌ BAD
+// (x) BAD
 interface IUser {
   id: string
   name: string
@@ -239,7 +239,7 @@ interface ITaskRepository {
   findAll(): Promise<Task[]>
 }
 
-// ✅ GOOD
+// [OK] GOOD
 interface User {
   id: string
   name: string
@@ -257,19 +257,19 @@ interface TaskRepository {
 **Why**: ALL_CAPS abbreviations reduce readability in camelCase/PascalCase contexts.
 
 ```typescript
-// ❌ BAD
+// (x) BAD
 const myAPI = createAPI()
 const HTTPClient = new Client()
 const parseURL = (input: string) => { }
 const userID = '123'
 
-// ✅ GOOD
+// [OK] GOOD
 const myApi: Api = createApi()
 const httpClient: HttpClient = new Client()
 const parseUrl = (input: string): URL => { }
 const userId: string = '123'
 
-// ✅ Exceptions - common single abbreviations
+// [OK] Exceptions - common single abbreviations
 const id: string = '123'  // OK
 const url: string = 'https://example.com'  // OK
 const api: Api = createApi()  // OK
@@ -291,21 +291,21 @@ const api: Api = createApi()  // OK
 **Allowed abbreviations:** `id`, `url`, `api`, `http`, `html`, `json`, `xml`, `css`, `sql`, `config`, `repo`, `async`, `sync`, `auth`, `init`, `max`, `min`, `arg`, `param`, `temp`
 
 ```typescript
-// ❌ BAD
+// (x) BAD
 const usr = getUsr()
 const msg = createMsg()
 const err = handleErr()
 const ctx = getCtx()
 const cfg = loadCfg()
 
-// ✅ GOOD
+// [OK] GOOD
 const user: User = getUser()
 const message: string = createMessage()
 const error: Error = handleError()
 const context: Context = getContext()
 const config: Config = loadConfig()
 
-// ✅ GOOD - allowed abbreviations
+// [OK] GOOD - allowed abbreviations
 const userId: string = generateId()
 const apiUrl: string = getUrl()
 const httpClient: HttpClient = createClient()
@@ -316,7 +316,7 @@ const httpClient: HttpClient = createClient()
 **Rule**: Use business domain terminology, not technical jargon.
 
 ```typescript
-// ❌ BAD - technical terms
+// (x) BAD - technical terms
 interface DataRecord {
   id: string
   fields: Record<string, unknown>
@@ -324,7 +324,7 @@ interface DataRecord {
 
 function processRecords(records: DataRecord[]): void { }
 
-// ✅ GOOD - domain terms
+// [OK] GOOD - domain terms
 interface Task {
   id: string
   title: string
@@ -399,7 +399,7 @@ export class FetchHttpClient implements HttpClient {
 **Rule**: Add inline comments to explain WHY, not WHAT or HOW.
 
 ```typescript
-// ❌ BAD - comments explain what the code does (obvious)
+// (x) BAD - comments explain what the code does (obvious)
 // Loop through all tasks
 for (const task of tasks) {
   // Check if task is completed
@@ -409,7 +409,7 @@ for (const task of tasks) {
   }
 }
 
-// ✅ GOOD - comment explains WHY
+// [OK] GOOD - comment explains WHY
 // Include completed tasks from the last 30 days for analytics
 // Older completed tasks are archived and don't need real-time metrics
 const cutoffDate: Date = dateProvider.subtractDays(dateProvider.now(), 30)
@@ -419,7 +419,7 @@ for (const task of tasks) {
   }
 }
 
-// ✅ GOOD - explains non-obvious behavior
+// [OK] GOOD - explains non-obvious behavior
 // Sunday returns 0, but we want weeks to start on Monday
 // Shift Sunday to the end (6) and all other days down by 1
 const dayIndex: number = date.getDay() === 0 ? 6 : date.getDay() - 1
@@ -448,13 +448,13 @@ const dayIndex: number = date.getDay() === 0 ? 6 : date.getDay() - 1
 **Rule**: Files should use kebab-case and match their primary export.
 
 ```
-✅ GOOD
+[OK] GOOD
 task-repository.ts       // exports TaskRepository
 http-client.ts           // exports HttpClient
 error-handler.ts         // exports errorHandler functions
 constants.ts             // exports constants
 
-❌ BAD
+(x) BAD
 TaskRepository.ts        // PascalCase
 task_repository.ts       // snake_case
 taskRepo.ts              // abbreviated
@@ -465,7 +465,7 @@ taskRepo.ts              // abbreviated
 **Rule**: Imports should be organized and use type imports where appropriate.
 
 ```typescript
-// ✅ GOOD - organized imports
+// [OK] GOOD - organized imports
 import type { Task, TaskStatus } from '@/types/task'
 import type { User } from '@/types/user'
 
@@ -487,13 +487,13 @@ import { formatDate } from '@/utils/date'
 **Rule**: Prefer named exports over default exports.
 
 ```typescript
-// ❌ BAD - default export
+// (x) BAD - default export
 export default class TaskRepository { }
 
-// ✅ GOOD - named export
+// [OK] GOOD - named export
 export class TaskRepository { }
 
-// ✅ GOOD - named function exports
+// [OK] GOOD - named function exports
 export function createTask(data: CreateTaskInput): Task { }
 export function deleteTask(id: string): void { }
 ```
@@ -507,12 +507,12 @@ export function deleteTask(id: string): void { }
 **Rule**: Use custom error classes, never throw strings or plain objects.
 
 ```typescript
-// ❌ BAD
+// (x) BAD
 throw 'User not found'
 throw { error: 'Invalid input' }
 throw 404
 
-// ✅ GOOD
+// [OK] GOOD
 throw new NotFoundError('User not found')
 throw new ValidationError('Invalid input', { field: 'email' })
 throw new UnauthorizedError()
@@ -523,14 +523,14 @@ throw new UnauthorizedError()
 **Rule**: Catch blocks receive `unknown`, not `any`. Always handle with type guards.
 
 ```typescript
-// ❌ BAD
+// (x) BAD
 try {
   await riskyOperation()
 } catch (error) {
   console.error(error.message)  // TypeScript error with useUnknownInCatchVariables
 }
 
-// ✅ GOOD
+// [OK] GOOD
 try {
   await riskyOperation()
 } catch (error: unknown) {
@@ -553,13 +553,13 @@ try {
 **Rule**: Component props must have explicit TypeScript types.
 
 ```svelte
-<!-- ❌ BAD -->
+<!-- (x) BAD -->
 <script>
   export let user;
   export let onEdit;
 </script>
 
-<!-- ✅ GOOD -->
+<!-- [OK] GOOD -->
 <script lang="ts">
   import type { User } from '@erledigen/shared';
 
@@ -585,12 +585,12 @@ try {
 
 ```svelte
 <script lang="ts">
-  // ❌ BAD
+  // (x) BAD
   function handleClick(event) {
     event.preventDefault();
   }
 
-  // ✅ GOOD
+  // [OK] GOOD
   function handleClick(event: MouseEvent): void {
     event.preventDefault();
     // Handle click
@@ -609,7 +609,7 @@ Each of these has shipped a real bug in this repo.
 
 - **Capture `$derived` values into a local BEFORE the first `await`** in an
   async event handler. While the handler is suspended, a later write in the
-  same handler (e.g. clearing the input) nulls the derived mid-flight —
+  same handler (e.g. clearing the input) nulls the derived mid-flight --
   this caused a crash in the inline habit-hint parser. Snapshot the value
   first, then await.
 - **Rune-using non-component files must end in `.svelte.ts`.** A plain `.ts`
@@ -617,7 +617,7 @@ Each of these has shipped a real bug in this repo.
 - **Never rely on template whitespace for spacing.** Svelte 5 strips
   newline-only whitespace between elements; a "g t" chord once rendered as
   "gt" with no space. Space with CSS (flex `gap`), always.
-- **`getAttribute('aria-pressed')` returns a STRING** — `"false"` is truthy.
+- **`getAttribute('aria-pressed')` returns a STRING** -- `"false"` is truthy.
   Compare with `=== 'true'`.
 
 ### 7.4 SSR, Hydration, and E2E Assertions
@@ -625,7 +625,7 @@ Each of these has shipped a real bug in this repo.
 - The app is server-rendered: markup exists before any event handler
   attaches. `+layout.svelte` sets `data-hydrated="true"` on `.app-shell` in
   `onMount`; e2e tests must wait for it (see `hydrated()` in
-  `tests/e2e/util.ts`) before interacting — earlier clicks silently do
+  `tests/e2e/util.ts`) before interacting -- earlier clicks silently do
   nothing.
 - `bind:value` inputs expose a value, not text content, so a `toContainText`
   assertion on one can never pass; use `toHaveValue`.
@@ -633,8 +633,8 @@ Each of these has shipped a real bug in this repo.
 ### 7.5 Theming and Shared UI Conventions
 
 - Components must work in BOTH light and dark themes. Prefer the tooltip
-  pattern in `app.css` — ink/surface token inversion serves both themes from
-  one rule — over theme-specific overrides.
+  pattern in `app.css` -- ink/surface token inversion serves both themes from
+  one rule -- over theme-specific overrides.
 - Keybinding hints come from the single registry in
   `packages/client/src/lib/keybindings.ts`; the help modal and every tooltip
   derive from it. Never hand-write a keybinding hint.
@@ -643,7 +643,7 @@ Each of these has shipped a real bug in this repo.
 
 Task dates are local `yyyy-MM-dd` key strings. Do date math through the
 shared `dateProvider` helpers (`today()`, `addDays`), never `new Date()`
-arithmetic — deriving dates from `Date` objects shipped a timezone bug in
+arithmetic -- deriving dates from `Date` objects shipped a timezone bug in
 the calendar. (`new Date()` is fine for wall-clock display, e.g. the
 bottom-bar clock.)
 
@@ -656,13 +656,13 @@ bottom-bar clock.)
 **Rule**: Functions returning Promises must have explicit `Promise<T>` return type.
 
 ```typescript
-// ❌ BAD
+// (x) BAD
 async function fetchUser(id: string) {
   const response = await fetch(`/api/users/${id}`)
   return response.json()
 }
 
-// ✅ GOOD
+// [OK] GOOD
 async function fetchUser(id: string): Promise<User> {
   const response: Response = await fetch(`/api/users/${id}`)
   return response.json() as Promise<User>
@@ -674,17 +674,17 @@ async function fetchUser(id: string): Promise<User> {
 **Rule**: Always await or explicitly handle promises.
 
 ```typescript
-// ❌ BAD - floating promise
+// (x) BAD - floating promise
 function saveUser(user: User): void {
   repository.save(user)  // Promise ignored
 }
 
-// ✅ GOOD - awaited
+// [OK] GOOD - awaited
 async function saveUser(user: User): Promise<void> {
   await repository.save(user)
 }
 
-// ✅ GOOD - explicitly handled
+// [OK] GOOD - explicitly handled
 function saveUser(user: User): void {
   repository.save(user).catch((error: unknown): void => {
     logger.error('Failed to save user', { error })
@@ -742,13 +742,13 @@ bun run validate
 ### Example 1: Function Definition
 
 ```typescript
-// ❌ BAD
+// (x) BAD
 function get(id) {
   const data = fetch(`/api/tasks/${id}`)
   return data.json()
 }
 
-// ✅ GOOD
+// [OK] GOOD
 async function getTaskById(taskId: string): Promise<Task> {
   const response: Response = await fetch(`/api/tasks/${taskId}`)
 
@@ -763,7 +763,7 @@ async function getTaskById(taskId: string): Promise<Task> {
 ### Example 2: Class Definition
 
 ```typescript
-// ❌ BAD
+// (x) BAD
 class Repo {
   private items = []
 
@@ -776,7 +776,7 @@ class Repo {
   }
 }
 
-// ✅ GOOD
+// [OK] GOOD
 /**
  * In-memory repository for managing tasks
  *
@@ -821,7 +821,7 @@ Each of these has cost real debugging time in this repo.
   and verify with `lsof -ti:<port>` after killing (`bun run kill-server-port`
   reclaims 4000).
 - **`bun build` does not bundle `.sql`.** The server build script copies
-  `src/adapters/data/migrations/` into `dist/` explicitly — a migration that
+  `src/adapters/data/migrations/` into `dist/` explicitly -- a migration that
   is not committed passes locally (dev runs from source) but breaks every
   docker and CI build. Always commit migrations together with the code that
   needs them.
@@ -831,7 +831,7 @@ Each of these has cost real debugging time in this repo.
   extend the contract suites in
   `packages/server/src/adapters/data/contracts/`, which run against both
   adapters.
-- **Test code sets `process.env['STORAGE_ADAPTER']` with bracket access** —
+- **Test code sets `process.env['STORAGE_ADAPTER']` with bracket access** --
   `noPropertyAccessFromIndexSignature` rejects dot access on index
   signatures.
 - **Regex: avoid one large alternation with a lazy prefix and nested optional
@@ -840,21 +840,21 @@ Each of these has cost real debugging time in this repo.
   of small anchored regexes, and suspect this first when a parser
   mysteriously rejects valid input.
 - **The client build is size-gated**: CI fails when `packages/client/dist`
-  exceeds 512KB (see [ci-cd-pipeline.md](../process/ci-cd-pipeline.md)) —
+  exceeds 512KB (see [ci-cd-pipeline.md](../process/ci-cd-pipeline.md)) --
   think twice before adding dependencies or large static assets.
 
 ---
 
 ## Summary
 
-- ✅ **Zero `any` types** - Use `unknown` with type guards
-- ✅ **Explicit return types on ALL functions** - Never rely on inference
-- ✅ **Descriptive naming** - Clarity over brevity
-- ✅ **No I- prefix on interfaces** - They're not implementations
-- ✅ **camelCase for abbreviations** - `myApi` not `myAPI`
-- ✅ **JSDoc on exported APIs** - Document public interfaces
-- ✅ **Comment WHY not WHAT** - Explain intent, not mechanics
-- ✅ **Named exports** - Prefer over default exports
-- ✅ **Type-safe error handling** - Custom error classes
+- [OK] **Zero `any` types** - Use `unknown` with type guards
+- [OK] **Explicit return types on ALL functions** - Never rely on inference
+- [OK] **Descriptive naming** - Clarity over brevity
+- [OK] **No I- prefix on interfaces** - They're not implementations
+- [OK] **camelCase for abbreviations** - `myApi` not `myAPI`
+- [OK] **JSDoc on exported APIs** - Document public interfaces
+- [OK] **Comment WHY not WHAT** - Explain intent, not mechanics
+- [OK] **Named exports** - Prefer over default exports
+- [OK] **Type-safe error handling** - Custom error classes
 
 **Remember**: These rules exist to make code more maintainable, less error-prone, and easier to understand. When in doubt, choose the more explicit, more type-safe option.

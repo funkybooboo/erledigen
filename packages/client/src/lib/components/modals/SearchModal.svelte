@@ -70,7 +70,7 @@
             if (!result) return;
             if (result.kind === 'habit') {
                 notificationStore.push(
-                    `Habit created — ${describeRecurrence(result.schedule)}`,
+                    `Habit created -- ${describeRecurrence(result.schedule)}`,
                     { kind: 'success' },
                 );
             } else {

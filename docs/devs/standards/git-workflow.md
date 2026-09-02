@@ -6,17 +6,17 @@ This document defines the Git workflow, branching strategy, commit standards, an
 
 Our Git workflow prioritizes:
 
-- **Clean, linear history** — easy to understand project evolution
-- **Atomic commits** — each commit represents one logical change
-- **Meaningful commit messages** — self-documenting history
-- **Fast iteration** — minimal branching overhead
-- **Safe collaboration** — protected main branch, required reviews
+- **Clean, linear history** -- easy to understand project evolution
+- **Atomic commits** -- each commit represents one logical change
+- **Meaningful commit messages** -- self-documenting history
+- **Fast iteration** -- minimal branching overhead
+- **Safe collaboration** -- protected main branch, required reviews
 
 ---
 
 ## GitHub Flow (Our Branching Strategy)
 
-We use **GitHub Flow** — a simple, modern branching strategy that emphasizes continuous deployment.
+We use **GitHub Flow** -- a simple, modern branching strategy that emphasizes continuous deployment.
 
 ### The Workflow
 
@@ -26,7 +26,7 @@ We use **GitHub Flow** — a simple, modern branching strategy that emphasizes c
    - All changes go through pull requests
 
 2. **Create a feature worktree + branch from `main` with `wt`**
-   Every feature — and every parallel agent session — works in its OWN worktree,
+   Every feature -- and every parallel agent session -- works in its OWN worktree,
    never in a shared checkout:
 
    ```bash
@@ -94,20 +94,20 @@ your own worktree -> push the branch -> open a PR -> squash-merge ->
 
 ### Branch Types
 
-- `feature/` — New features or enhancements
-- `bugfix/` — Bug fixes for existing features
-- `hotfix/` — Urgent production fixes
-- `refactor/` — Code refactoring without behavior changes
-- `docs/` — Documentation changes only
-- `test/` — Test additions or modifications
-- `infra/` — Infrastructure or deployment changes
-- `spike/` — Research or experiments
-- `experiment/` — A/B tests or experimental features
-- `release/` — Release preparation branches
+- `feature/` -- New features or enhancements
+- `bugfix/` -- Bug fixes for existing features
+- `hotfix/` -- Urgent production fixes
+- `refactor/` -- Code refactoring without behavior changes
+- `docs/` -- Documentation changes only
+- `test/` -- Test additions or modifications
+- `infra/` -- Infrastructure or deployment changes
+- `spike/` -- Research or experiments
+- `experiment/` -- A/B tests or experimental features
+- `release/` -- Release preparation branches
 
 ### Examples
 
-✅ **GOOD**:
+[OK] **GOOD**:
 ```bash
 feature/user-authentication
 feature/task-filtering-by-date
@@ -121,7 +121,7 @@ spike/new-architecture-evaluation
 experiment/ab-test-checkout-flow
 ```
 
-❌ **BAD**:
+(x) **BAD**:
 ```bash
 my-changes
 fix-bug
@@ -149,34 +149,34 @@ temp                  (not meaningful)
 
 ### Commit Types
 
-- `feat` — New feature
-- `fix` — Bug fix
-- `docs` — Documentation changes
-- `style` — Code style changes (formatting, whitespace)
-- `refactor` — Code refactoring without behavior changes
-- `perf` — Performance improvements
-- `test` — Test additions or modifications
-- `build` — Build system or dependencies changes
-- `ci` — CI/CD configuration changes
-- `chore` — Other changes (maintenance, tooling)
-- `revert` — Reverts a previous commit
+- `feat` -- New feature
+- `fix` -- Bug fix
+- `docs` -- Documentation changes
+- `style` -- Code style changes (formatting, whitespace)
+- `refactor` -- Code refactoring without behavior changes
+- `perf` -- Performance improvements
+- `test` -- Test additions or modifications
+- `build` -- Build system or dependencies changes
+- `ci` -- CI/CD configuration changes
+- `chore` -- Other changes (maintenance, tooling)
+- `revert` -- Reverts a previous commit
 
 ### Scope (Optional)
 
 The scope specifies which part of the codebase is affected:
 
-- `auth` — Authentication/authorization
-- `api` — API endpoints
-- `ui` — User interface components
-- `db` — Database changes
-- `server` — Server-side code
-- `client` — Client-side code
-- `shared` — Shared code between packages
-- `config` — Configuration files
+- `auth` -- Authentication/authorization
+- `api` -- API endpoints
+- `ui` -- User interface components
+- `db` -- Database changes
+- `server` -- Server-side code
+- `client` -- Client-side code
+- `shared` -- Shared code between packages
+- `config` -- Configuration files
 
 ### Examples
 
-✅ **GOOD**:
+[OK] **GOOD**:
 
 ```
 feat(auth): add OAuth2 integration
@@ -228,7 +228,7 @@ and authentication/authorization checks.
 Coverage increased from 65% to 92%.
 ```
 
-❌ **BAD**:
+(x) **BAD**:
 
 ```
 update stuff
@@ -369,7 +369,7 @@ git commit --amend --no-edit
 **CAUTION**: `git stash` is only safe in a worktree you own. In a SHARED
 checkout with another session's staged work, `git stash pop` flattens staged
 to unstaged and the index state is lost (see the appendix). With `wt`
-worktrees you should never need to stash — `wt switch` changes context
+worktrees you should never need to stash -- `wt switch` changes context
 without touching the tree.
 
 ```bash
@@ -416,7 +416,7 @@ bunx commitlint --edit $1
 
 ### Installing Hooks
 
-Hooks are managed with Husky and activate automatically on `bun install`. No manual setup needed — just clone and install:
+Hooks are managed with Husky and activate automatically on `bun install`. No manual setup needed -- just clone and install:
 
 ```bash
 bun install   # installs deps and activates .husky/ hooks via the "prepare" script
@@ -431,23 +431,23 @@ bun install   # installs deps and activates .husky/ hooks via the "prepare" scri
 ### GitHub Branch Protection Rules
 
 Required settings:
-- ✅ Require pull request before merging
-- ✅ Require approvals (minimum: 1)
-- ✅ Dismiss stale pull request approvals
-- ✅ Require review from code owners
-- ✅ Require status checks to pass
-  - ✅ Linting
-  - ✅ Type checking
-  - ✅ Tests (unit, integration, E2E, API)
-  - ✅ Coverage threshold
-  - ✅ Build succeeds
-- ✅ Require branches to be up to date
-- ✅ Require conversation resolution
-- ✅ Require signed commits (optional but recommended)
-- ✅ Include administrators (no exceptions)
-- ✅ Restrict who can push (no direct pushes)
-- ✅ Allow force pushes: NO
-- ✅ Allow deletions: NO
+- [OK] Require pull request before merging
+- [OK] Require approvals (minimum: 1)
+- [OK] Dismiss stale pull request approvals
+- [OK] Require review from code owners
+- [OK] Require status checks to pass
+  - [OK] Linting
+  - [OK] Type checking
+  - [OK] Tests (unit, integration, E2E, API)
+  - [OK] Coverage threshold
+  - [OK] Build succeeds
+- [OK] Require branches to be up to date
+- [OK] Require conversation resolution
+- [OK] Require signed commits (optional but recommended)
+- [OK] Include administrators (no exceptions)
+- [OK] Restrict who can push (no direct pushes)
+- [OK] Allow force pushes: NO
+- [OK] Allow deletions: NO
 
 ---
 
@@ -579,7 +579,7 @@ git cherry-pick -n <commit-hash>
 
 ## Best Practices Summary
 
-✅ **DO**:
+[OK] **DO**:
 - Keep commits small and focused
 - Write descriptive commit messages
 - Use Conventional Commits format
@@ -591,7 +591,7 @@ git cherry-pick -n <commit-hash>
 - Update tests with code changes
 - Update documentation with code changes
 
-❌ **DON'T**:
+(x) **DON'T**:
 - Commit directly to main
 - Force push to shared branches
 - Create commits with "WIP" or "fix typo" messages (squash them)
@@ -665,7 +665,7 @@ This Git workflow ensures clean history, clear communication, and safe collabora
 
 ## Appendix: Sharing a Single Checkout
 
-**RULE**: Do not share a checkout — use `wt` worktrees (above). This appendix
+**RULE**: Do not share a checkout -- use `wt` worktrees (above). This appendix
 applies only when multiple agents/sessions end up in ONE checkout with each
 other's work-in-progress in the tree or index. Every rule below was learned
 the hard way.
@@ -679,13 +679,13 @@ the hard way.
 2. **`git commit --only <paths>` commits the WORKTREE content of those paths**
    through a temp index (pre-commit hooks see only the listed files, and
    other files' staged WIP is preserved). TRAP: any UNSTAGED changes inside
-   those paths get swept into your commit — the classic way foreign WIP
+   those paths get swept into your commit -- the classic way foreign WIP
    leaks into a "pure" commit.
 3. **`git checkout HEAD -- <file>` destroys the file's staged index entry.** To
    reset a worktree file to HEAD while preserving someone's staged content:
    `git show HEAD:<file> > <file>`.
 4. **Verify purity after any surgical commit:**
-   `git show HEAD -- <file> | grep -E '^\+[^+]'` — every added line must be yours.
+   `git show HEAD -- <file> | grep -E '^\+[^+]'` -- every added line must be yours.
 
 ### Staged-file surgery
 
@@ -723,6 +723,6 @@ when they commit, it does not resurrect what you removed.
   dependency breaks every other checkout and the docker build; `git add`
   untracked dependencies together with the code that needs them.
 - **Vanish races**: if your files seem to vanish mid-session, re-check disk
-  state before assuming data loss — a concurrent git operation raced you.
+  state before assuming data loss -- a concurrent git operation raced you.
   And after concurrent git activity, grep for your key additions: a
   concurrent commit can land a file version missing your verified lines.

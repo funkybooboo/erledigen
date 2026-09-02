@@ -1,5 +1,5 @@
 /**
- * Rate limiting middleware — token-bucket algorithm
+ * Rate limiting middleware -- token-bucket algorithm
  *
  * One bucket per client IP. Configurable via RATE_LIMIT_RPM environment variable.
  * In-memory storage; suitable for single-user mode.
@@ -14,7 +14,7 @@ interface Bucket {
 
 /**
  * Create a token-bucket rate limiter guard.
- * Runs BEFORE the route handler — rejected requests never reach the handler.
+ * Runs BEFORE the route handler -- rejected requests never reach the handler.
  *
  * @param requestsPerMinute - Max requests per minute per IP (default: 60)
  */

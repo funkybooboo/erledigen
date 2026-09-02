@@ -31,7 +31,7 @@ export interface HttpRequest {
  * Represents the response to send back to the client
  *
  * `body` is either a plain text string or a plain data object/array (sent as JSON).
- * `null` is excluded — handlers that produce no body should use an empty string or
+ * `null` is excluded -- handlers that produce no body should use an empty string or
  * an empty object instead.
  */
 export interface HttpResponse {
@@ -48,7 +48,7 @@ export type RouteHandler = (req: HttpRequest) => Promise<HttpResponse> | HttpRes
 
 /**
  * Middleware function type.
- * Runs AFTER a route handler — use it to mutate the response (e.g. add security headers).
+ * Runs AFTER a route handler -- use it to mutate the response (e.g. add security headers).
  * To short-circuit a request before the handler runs, use Guard instead.
  */
 export type Middleware = (req: HttpRequest, res: HttpResponse) => HttpResponse;

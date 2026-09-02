@@ -6,11 +6,11 @@ This document explains how to wrap third-party APIs and services with custom int
 
 Our API abstraction approach prioritizes:
 
-- **Design the API you wish they had** — don't let vendor limitations dictate your domain
-- **Provider independence** — never lock into a single vendor
-- **Consistent interfaces** — same patterns across all external services
-- **Easy provider switching** — change vendors with minimal code changes
-- **Testability** — simple to create test implementations
+- **Design the API you wish they had** -- don't let vendor limitations dictate your domain
+- **Provider independence** -- never lock into a single vendor
+- **Consistent interfaces** -- same patterns across all external services
+- **Easy provider switching** -- change vendors with minimal code changes
+- **Testability** -- simple to create test implementations
 
 ---
 
@@ -20,12 +20,12 @@ Our API abstraction approach prioritizes:
 
 ### Process
 
-1. **Design your ideal interface** — ignore vendor quirks
-2. **Define the contract** — what YOUR application needs
-3. **Create adapter implementations** — translate to vendor APIs
-4. **Add multiple providers** — for flexibility and redundancy
+1. **Design your ideal interface** -- ignore vendor quirks
+2. **Define the contract** -- what YOUR application needs
+3. **Create adapter implementations** -- translate to vendor APIs
+4. **Add multiple providers** -- for flexibility and redundancy
 
-❌ **BAD** — Let vendor API dictate your interface:
+(x) **BAD** -- Let vendor API dictate your interface:
 ```typescript
 // Tightly coupled to Stripe
 async function createPayment(
@@ -43,7 +43,7 @@ async function createPayment(
 }
 ```
 
-✅ **GOOD** — Design perfect interface, adapt to vendors:
+[OK] **GOOD** -- Design perfect interface, adapt to vendors:
 ```typescript
 // Your perfect interface
 interface PaymentService {
@@ -226,7 +226,7 @@ export class StripePaymentService implements PaymentService {
 
   async processPayment(request: PaymentRequest): Promise<PaymentResult> {
     try {
-      // Translate YOUR types → Stripe types
+      // Translate YOUR types -> Stripe types
       const stripeCharge = await this.stripe.charges.create({
         amount: Math.round(request.amount * 100),  // Stripe uses cents
         currency: request.currency.toLowerCase(),
@@ -235,7 +235,7 @@ export class StripePaymentService implements PaymentService {
         metadata: request.metadata ?? {},
       });
 
-      // Translate Stripe types → YOUR types
+      // Translate Stripe types -> YOUR types
       return {
         id: stripeCharge.id,
         status: this.mapStripeStatus(stripeCharge.status),
@@ -328,7 +328,7 @@ export class PayPalPaymentService implements PaymentService {
 
     const orderResponse = await this.client.execute(orderRequest);
 
-    // Translate PayPal → YOUR types
+    // Translate PayPal -> YOUR types
     return {
       id: orderResponse.result.id,
       status: this.mapPayPalStatus(orderResponse.result.status),
@@ -608,14 +608,14 @@ interface PaymentService {
 
 ## Summary: Key Rules
 
-✅ **DO**:
+[OK] **DO**:
 - Design your perfect interface first
 - Use domain types, not vendor types
 - Create adapter per provider
 - Handle vendor quirks in adapters
 - Make switching providers easy
 
-❌ **NEVER**:
+(x) **NEVER**:
 - Expose vendor types in public API
 - Couple business logic to specific provider
 - Skip the abstraction layer

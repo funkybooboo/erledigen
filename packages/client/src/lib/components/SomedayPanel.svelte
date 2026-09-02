@@ -61,7 +61,7 @@
 
     let filteredSomedayTasks = $derived(applyFilters(taskStore.somedayTasks, preferencesStore.activeFilters));
 
-    // Tasks with date=null and no someDayGroupId — rendered in an Ungrouped
+    // Tasks with date=null and no someDayGroupId -- rendered in an Ungrouped
     // section below the named groups so they're never invisible.
     let ungroupedTasks = $derived(filteredSomedayTasks.filter(t => t.someDayGroupId === null));
 
@@ -241,7 +241,7 @@
                                     <Icon src={LuCheck} size={13} />
                                 </button>
                                 <button class="icon-btn" onclick={cancelRenameGroup} use:tooltip={{ label: 'Cancel (Esc)' }} aria-label="Cancel rename">
-                                    ✕
+                                    &#x2715;
                                 </button>
                             </div>
                         {:else}

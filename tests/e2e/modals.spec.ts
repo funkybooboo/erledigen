@@ -30,7 +30,7 @@ test.describe('Settings modal', () => {
             })
             .toBe('dark');
 
-        // Restore theme – the modal also leaves it dirty, so close and reset.
+        // Restore theme - the modal also leaves it dirty, so close and reset.
         await page.request.patch(`${SERVER_URL}/api/preferences`, { data: { theme: origTheme } });
     });
 

@@ -2,7 +2,7 @@
 
 This directory contains the end-to-end tests for the Erledigen application, which are written using [Playwright](https://playwright.dev/).
 
-## ⚡️ Quick Start
+## Quick Start
 
 ```bash
 # Dockerized (recommended): builds the self-contained test stack
@@ -19,6 +19,6 @@ spawning servers:
 bun run test:e2e:no-server
 ```
 
-## 📚 Learn More
+## Learn More
 
 To learn more about our testing strategy and how we use Playwright, check out the [**Testing**](../../docs/devs/standards/testing.md) documentation.

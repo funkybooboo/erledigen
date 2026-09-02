@@ -4,7 +4,7 @@
  * Applies sequentially-numbered .sql files from the migrations/ directory.
  * Forward-only: each migration runs once, in a transaction, and is recorded
  * in the `_migrations` tracking table. A failed migration rolls back and
- * throws, aborting server startup — no partial schema states.
+ * throws, aborting server startup -- no partial schema states.
  */
 
 import type { Database } from 'bun:sqlite';

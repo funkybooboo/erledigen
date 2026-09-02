@@ -6,61 +6,61 @@ This document defines the continuous integration and continuous deployment pipel
 
 Our CI/CD approach prioritizes:
 
-- **Automated quality gates** — no manual approval for checks
-- **Fast feedback** — results in under 5 minutes
-- **Fail fast** — catch errors early in pipeline
-- **Reproducible builds** — same code produces same artifact
-- **Safe deployments** — gradual rollout with monitoring
-- **Zero-downtime** — deploy without service interruption
+- **Automated quality gates** -- no manual approval for checks
+- **Fast feedback** -- results in under 5 minutes
+- **Fail fast** -- catch errors early in pipeline
+- **Reproducible builds** -- same code produces same artifact
+- **Safe deployments** -- gradual rollout with monitoring
+- **Zero-downtime** -- deploy without service interruption
 
 ---
 
 ## Pipeline Overview
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│                   COMMIT TO BRANCH                       │
-└───────────────────┬──────────────────────────────────────┘
-                    │
-                    ▼
-┌──────────────────────────────────────────────────────────┐
-│              CONTINUOUS INTEGRATION (CI)                 │
-│                                                          │
-│  ┌─────────────────┐  ┌─────────────────┐              │
-│  │  Code Quality   │  │  Build & Test   │              │
-│  │  - Lint         │  │  - Type check   │              │
-│  │  - Format       │  │  - Unit tests   │              │
-│  │  - Security     │  │  - Integration  │              │
-│  └─────────────────┘  │  - E2E tests    │              │
-│                       │  - API tests    │              │
-│                       └─────────────────┘              │
-│                                                          │
-│  ┌─────────────────────────────────────────────────────┐│
-│  │           AI Agent Reviews (planned)                ││
-│  │  - Security  - Performance  - Code Quality          ││
-│  │  - Test Quality  - Documentation  - Git Quality     ││
-│  └─────────────────────────────────────────────────────┘│
-└───────────────────┬──────────────────────────────────────┘
-                    │
-                    ▼
-┌──────────────────────────────────────────────────────────┐
-│                   MERGE TO MAIN                          │
-└───────────────────┬──────────────────────────────────────┘
-                    │
-                    ▼
-┌──────────────────────────────────────────────────────────┐
-│          CONTINUOUS DEPLOYMENT (CD)                      │
-│                                                          │
-│  Build Production   →   Deploy Staging   →   Tests      │
-│      Artifact               Auto Deploy       Smoke      │
-│                                              Validate    │
-│                                                  │       │
-│                                                  ▼       │
-│                        Deploy Production (Gradual)       │
-│                        10% → 50% → 100%                 │
-│                                                          │
-│                        Monitor & Alert                   │
-└──────────────────────────────────────────────────────────┘
+/----------------------------------------------------------\
+|                   COMMIT TO BRANCH                       |
+\-------------------+--------------------------------------/
+                    |
+                    v
+/----------------------------------------------------------\
+|              CONTINUOUS INTEGRATION (CI)                 |
+|                                                          |
+|  /-----------------\  /-----------------\              |
+|  |  Code Quality   |  |  Build & Test   |              |
+|  |  - Lint         |  |  - Type check   |              |
+|  |  - Format       |  |  - Unit tests   |              |
+|  |  - Security     |  |  - Integration  |              |
+|  \-----------------/  |  - E2E tests    |              |
+|                       |  - API tests    |              |
+|                       \-----------------/              |
+|                                                          |
+|  /-----------------------------------------------------\|
+|  |           AI Agent Reviews (planned)                ||
+|  |  - Security  - Performance  - Code Quality          ||
+|  |  - Test Quality  - Documentation  - Git Quality     ||
+|  \-----------------------------------------------------/|
+\-------------------+--------------------------------------/
+                    |
+                    v
+/----------------------------------------------------------\
+|                   MERGE TO MAIN                          |
+\-------------------+--------------------------------------/
+                    |
+                    v
+/----------------------------------------------------------\
+|          CONTINUOUS DEPLOYMENT (CD)                      |
+|                                                          |
+|  Build Production   ->   Deploy Staging   ->   Tests      |
+|      Artifact               Auto Deploy       Smoke      |
+|                                              Validate    |
+|                                                  |       |
+|                                                  v       |
+|                        Deploy Production (Gradual)       |
+|                        10% -> 50% -> 100%                 |
+|                                                          |
+|                        Monitor & Alert                   |
+\----------------------------------------------------------/
 ```
 
 ---
@@ -155,12 +155,12 @@ Our CI/CD approach prioritizes:
   run: mise run security
 ```
 
-**What it checks**: `bun audit` for known dependency vulnerabilities. This job is `continue-on-error` — advisories surface for review without blocking merges.
+**What it checks**: `bun audit` for known dependency vulnerabilities. This job is `continue-on-error` -- advisories surface for review without blocking merges.
 **Failure criteria**: (Non-blocking; reviewed)
 
 ### 9. Performance Tests
 
-**Planned** — no automated performance benchmarks exist yet. The bundle-size gate above is the only performance-adjacent check.
+**Planned** -- no automated performance benchmarks exist yet. The bundle-size gate above is the only performance-adjacent check.
 
 ---
 
@@ -207,16 +207,16 @@ for when a hosted deployment exists.
 
 ### Merge Requirements
 
-- ✅ Require pull request before merging
-- ✅ Require approvals: **1 minimum**
-- ✅ Dismiss stale pull request approvals when new commits pushed
-- ✅ Require review from code owners
-- ✅ Require approval of the most recent reviewable push
+- [OK] Require pull request before merging
+- [OK] Require approvals: **1 minimum**
+- [OK] Dismiss stale pull request approvals when new commits pushed
+- [OK] Require review from code owners
+- [OK] Require approval of the most recent reviewable push
 
 ### Status Checks
 
-- ✅ Require status checks to pass before merging
-- ✅ Require branches to be up to date before merging
+- [OK] Require status checks to pass before merging
+- [OK] Require branches to be up to date before merging
 - **Required checks**:
   - `quality-checks` (biome, spellcheck, links, secrets, type-check)
   - `unit-tests` (Bun unit tests incl. repository contract tests)
@@ -229,12 +229,12 @@ for when a hosted deployment exists.
 
 ### Additional Rules
 
-- ✅ Require conversation resolution before merging
-- ✅ Require signed commits (recommended)
-- ✅ Include administrators (no bypass)
-- ✅ Restrict who can push to matching branches
-- ❌ Allow force pushes: **DISABLED**
-- ❌ Allow deletions: **DISABLED**
+- [OK] Require conversation resolution before merging
+- [OK] Require signed commits (recommended)
+- [OK] Include administrators (no bypass)
+- [OK] Restrict who can push to matching branches
+- (x) Allow force pushes: **DISABLED**
+- (x) Allow deletions: **DISABLED**
 
 ---
 
@@ -260,17 +260,17 @@ for when a hosted deployment exists.
 **Strategy**: Gradual rollout (canary deployment)
 
 **Steps**:
-1. **10% traffic** — Deploy to 10% of users
+1. **10% traffic** -- Deploy to 10% of users
    - Monitor error rates
    - Monitor response times
    - Monitor user complaints
    - Duration: 5-10 minutes
 
-2. **50% traffic** — If healthy, deploy to 50%
+2. **50% traffic** -- If healthy, deploy to 50%
    - Continue monitoring
    - Duration: 5-10 minutes
 
-3. **100% traffic** — If healthy, deploy to all users
+3. **100% traffic** -- If healthy, deploy to all users
    - Final monitoring
    - Announcement to team
 

@@ -6,12 +6,12 @@ This document explains how to combine functional programming (FP) and object-ori
 
 Our FP + OOP hybrid approach prioritizes:
 
-- **OOP for organization** — classes and interfaces for structure
-- **FP for computation** — pure functions for logic
-- **Immutability** — prefer immutable data structures
-- **Type safety** — leverage TypeScript's type system
-- **Explicit errors** — no hidden exceptions
-- **Composability** — build complex behavior from simple functions
+- **OOP for organization** -- classes and interfaces for structure
+- **FP for computation** -- pure functions for logic
+- **Immutability** -- prefer immutable data structures
+- **Type safety** -- leverage TypeScript's type system
+- **Explicit errors** -- no hidden exceptions
+- **Composability** -- build complex behavior from simple functions
 
 ---
 
@@ -21,29 +21,29 @@ Our FP + OOP hybrid approach prioritizes:
 
 ### OOP Strengths (What We Use)
 
-- **Encapsulation** — group related data and behavior
-- **Interfaces** — define contracts (ports in hexagonal architecture)
-- **Polymorphism** — swap implementations via interfaces
-- **Dependency Injection** — manage dependencies cleanly
+- **Encapsulation** -- group related data and behavior
+- **Interfaces** -- define contracts (ports in hexagonal architecture)
+- **Polymorphism** -- swap implementations via interfaces
+- **Dependency Injection** -- manage dependencies cleanly
 
 ### FP Strengths (What We Use)
 
-- **Pure Functions** — predictable, testable, composable
-- **Immutability** — no unexpected mutations
-- **Function Composition** — build complex from simple
-- **Explicit State** — no hidden state or side effects
+- **Pure Functions** -- predictable, testable, composable
+- **Immutability** -- no unexpected mutations
+- **Function Composition** -- build complex from simple
+- **Explicit State** -- no hidden state or side effects
 
 ### The Hybrid
 
 ```typescript
-// ✅ OOP for structure
+// [OK] OOP for structure
 export class TaskService {
   constructor(
     private repository: TaskRepository,  // OOP: dependency injection
     private logger: Logger
   ) {}
 
-  // ✅ FP for computation
+  // [OK] FP for computation
   async createTask(input: CreateTaskInput): Promise<Result<Task, ValidationError>> {
     // Pure function for validation
     const validationResult = validateTaskInput(input);
@@ -90,7 +90,7 @@ function buildTask(input: CreateTaskInput, timestamp: string): Task {
 ### Immutable Domain Objects
 
 ```typescript
-// ✅ GOOD - Immutable task
+// [OK] GOOD - Immutable task
 export class Task {
   constructor(
     public readonly id: string,
@@ -133,7 +133,7 @@ console.log(task.completed);      // false (original unchanged)
 console.log(completed.completed); // true (new instance)
 ```
 
-❌ **BAD** — Mutable object:
+(x) **BAD** -- Mutable object:
 ```typescript
 export class Task {
   constructor(
@@ -157,7 +157,7 @@ export class Task {
 ### Immutable Arrays and Objects
 
 ```typescript
-// ✅ GOOD - Create new arrays/objects
+// [OK] GOOD - Create new arrays/objects
 const tasks: Task[] = [task1, task2, task3];
 
 // Add task (new array)
@@ -174,7 +174,7 @@ const withUpdated = tasks.map(t =>
 // Sort (new array)
 const sorted = [...tasks].sort((a, b) => a.date.localeCompare(b.date));
 
-// ❌ BAD - Mutate arrays
+// (x) BAD - Mutate arrays
 tasks.push(task4);         // Mutation!
 tasks.splice(0, 1);        // Mutation!
 tasks[0] = updatedTask;    // Mutation!
@@ -369,23 +369,23 @@ if (task.isSome) {
 ### Pure Functions
 
 ```typescript
-// ✅ Pure function
+// [OK] Pure function
 function calculateDiscount(price: number, discountPercent: number): number {
   return price * (1 - discountPercent / 100);
 }
 
-// ✅ Pure function
+// [OK] Pure function
 function formatCurrency(amount: number): string {
   return `$${amount.toFixed(2)}`;
 }
 
-// ❌ Impure function (depends on external state)
+// (x) Impure function (depends on external state)
 let globalDiscount = 0.1;
 function calculateDiscountImpure(price: number): number {
   return price * (1 - globalDiscount);  // Depends on global state
 }
 
-// ❌ Impure function (has side effects)
+// (x) Impure function (has side effects)
 function calculateDiscountWithLog(price: number, discount: number): number {
   console.log('Calculating discount');  // Side effect!
   return price * (1 - discount / 100);
@@ -429,12 +429,12 @@ console.log(finalPrice);  // "$97.20"
 ### 1. Strict Type Safety
 
 ```typescript
-// ✅ GOOD - Explicit types everywhere
+// [OK] GOOD - Explicit types everywhere
 function calculateTotal(items: Item[]): number {
   return items.reduce((sum: number, item: Item): number => sum + item.price, 0);
 }
 
-// ❌ BAD - Implicit any
+// (x) BAD - Implicit any
 function calculateTotal(items) {  // items: any
   return items.reduce((sum, item) => sum + item.price, 0);
 }
@@ -443,13 +443,13 @@ function calculateTotal(items) {  // items: any
 ### 2. No Null/Undefined (Use Option<T>)
 
 ```typescript
-// ✅ GOOD - Explicit optional
+// [OK] GOOD - Explicit optional
 function findUser(id: string): Option<User> {
   const user = users.get(id);
   return user ? new Some(user) : new None();
 }
 
-// ❌ BAD - Implicit null
+// (x) BAD - Implicit null
 function findUser(id: string): User | null {  // Forgot to check? NPE!
   return users.get(id) ?? null;
 }
@@ -458,7 +458,7 @@ function findUser(id: string): User | null {  // Forgot to check? NPE!
 ### 3. Error Handling Without Exceptions
 
 ```typescript
-// ✅ GOOD - Explicit Result
+// [OK] GOOD - Explicit Result
 function divide(a: number, b: number): Result<number, Error> {
   if (b === 0) {
     return new Failure(new Error('Division by zero'));
@@ -466,7 +466,7 @@ function divide(a: number, b: number): Result<number, Error> {
   return new Success(a / b);
 }
 
-// ❌ BAD - Hidden exception
+// (x) BAD - Hidden exception
 function divide(a: number, b: number): number {
   if (b === 0) {
     throw new Error('Division by zero');  // Easy to forget to catch
@@ -480,7 +480,7 @@ function divide(a: number, b: number): number {
 While TypeScript doesn't have Rust's ownership system, we can follow the principles:
 
 ```typescript
-// ✅ GOOD - Transfer ownership explicitly
+// [OK] GOOD - Transfer ownership explicitly
 class TaskOwnership {
   private task: Task | null;
 
@@ -622,7 +622,7 @@ const taskState = events.reduce((state, event) => {
 
 ## Summary: Best Practices
 
-✅ **DO**:
+[OK] **DO**:
 - Use classes for structure, pure functions for logic
 - Prefer immutable data structures
 - Use Result<T, E> for explicit error handling
@@ -631,7 +631,7 @@ const taskState = events.reduce((state, event) => {
 - Leverage TypeScript's strict mode
 - Make illegal states unrepresentable
 
-❌ **NEVER**:
+(x) **NEVER**:
 - Mutate objects or arrays
 - Use any type
 - Throw exceptions in business logic (use Result)

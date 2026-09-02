@@ -1,5 +1,5 @@
 /**
- * Project — a named collection of tasks linked by tag.
+ * Project -- a named collection of tasks linked by tag.
  * The `tag` field holds the project's tag (e.g. "project:build-erledigen").
  * Tasks belong to this project when their tags array includes `tag`.
  */

@@ -2,7 +2,7 @@
 
 **Status**: Accepted  
 **Date**: 2026-05-09  
-**Context**: v0.8.0 — Automation & beyond
+**Context**: v0.8.0 -- Automation & beyond
 
 ## Context
 
@@ -32,7 +32,7 @@ All of these require: scheduling work for the future, retrying on failure, and s
 
 1. **Reuses existing infrastructure.** We're already shipping SQLite for persistence (ADR-001). The job queue is another table in the same database. No new process, no new dependency, no new failure mode.
 
-2. **Jobs survive restarts.** A job written to the `jobs` table before a crash will be picked up on next server start. This is critical for rollover and recurring task generation — losing those means tasks don't appear.
+2. **Jobs survive restarts.** A job written to the `jobs` table before a crash will be picked up on next server start. This is critical for rollover and recurring task generation -- losing those means tasks don't appear.
 
 3. **Consistent architecture.** The `JobQueue` is defined as an interface (adapter pattern), with `SqliteJobQueue` as the implementation. When PostgreSQL arrives, `PgJobQueue` swaps in with one Container line change, same as the repositories.
 
@@ -43,22 +43,22 @@ All of these require: scheduling work for the future, retrying on failure, and s
 ### Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                     Container                        │
-│                                                      │
-│  jobQueue ──────────► JobQueue (interface)           │
-│                          │                            │
-│                    SqliteJobQueue                     │
-│                          │                            │
-│                       SQLite DB                      │
-│                  (jobs table + data tables)           │
-│                                                      │
-│  jobRunner ─────────► JobRunner (service)            │
-│                          │                            │
-│                    polls JobQueue                     │
-│                    processes jobs                     │
-│                    calls JobHandlers                  │
-└─────────────────────────────────────────────────────┘
+/-----------------------------------------------------\
+|                     Container                        |
+|                                                      |
+|  jobQueue ----------> JobQueue (interface)           |
+|                          |                            |
+|                    SqliteJobQueue                     |
+|                          |                            |
+|                       SQLite DB                      |
+|                  (jobs table + data tables)           |
+|                                                      |
+|  jobRunner ---------> JobRunner (service)            |
+|                          |                            |
+|                    polls JobQueue                     |
+|                    processes jobs                     |
+|                    calls JobHandlers                  |
+\-----------------------------------------------------/
 ```
 
 ### Job Table Schema
@@ -176,17 +176,17 @@ This ensures no work is lost after a crash.
 ### Positive
 - Jobs survive server restarts (written to SQLite before processing)
 - Retry with exponential backoff for transient failures
-- Consistent with adapter pattern — easy swap to PostgreSQL later
+- Consistent with adapter pattern -- easy swap to PostgreSQL later
 - No new infrastructure dependencies
 - Observable: `jobs` table can be queried for status, errors, history
 - Simple concurrency model (single worker) matches single-user workload
 
 ### Negative
 - Polling introduces a small latency (1 second default) between job scheduling and execution
-- Single worker means jobs run sequentially — fine for single-user, needs redesign for multi-user
-- No priority queue — all pending jobs processed in scheduled_at order
+- Single worker means jobs run sequentially -- fine for single-user, needs redesign for multi-user
+- No priority queue -- all pending jobs processed in scheduled_at order
 
 ### Mitigations
 - For latency-sensitive jobs (notifications), the service that creates the job can also immediately trigger a poll cycle
-- Multi-user PostgreSQL redesign is a v2.3.0 concern — the interface isolation means we only rewrite the implementation, not the service layer
+- Multi-user PostgreSQL redesign is a v2.3.0 concern -- the interface isolation means we only rewrite the implementation, not the service layer
 - Priority can be added later with a `priority INTEGER` column and `ORDER BY priority, scheduled_at`
