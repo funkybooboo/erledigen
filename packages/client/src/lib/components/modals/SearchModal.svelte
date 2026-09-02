@@ -65,15 +65,53 @@
     let addParsed = $derived(addArgument ? parseRecurrence(addArgument) : null);
 
     let running = $state(false);
-    /** Shown when Enter is pressed on "/add" with no argument. */
-    let emptyArgHint = $state(false);
 
-    async function runFirstCommand() {
-        const command = matchingCommands[0];
+    // --- keyboard selection ----------------------------------------------
+    // Arrow keys move a selection over the rendered option rows (commands
+    // in command mode, task results in search mode); Enter runs the selected
+    // one. The input keeps DOM focus (combobox pattern), so
+    // aria-activedescendant carries the selection to screen readers.
+
+    let selectedIndex = $state(0);
+
+    /** Number of option rows currently rendered below the input. */
+    let optionCount = $derived.by(() => {
+        if (isCommandMode) {
+            if (addArgument) return matchingCommands.length > 0 ? 1 : 0;
+            return matchingCommands.length;
+        }
+        return results.length;
+    });
+
+    // Any change to the query or the option list resets the selection.
+    $effect(() => {
+        void query;
+        void optionCount;
+        selectedIndex = 0;
+    });
+
+    function optionId(index: number): string {
+        return `search-option-${index}`;
+    }
+
+    function moveSelection(delta: 1 | -1): void {
+        const max = optionCount - 1;
+        if (max < 0) return;
+        selectedIndex = Math.min(max, Math.max(0, selectedIndex + delta));
+        document.getElementById(optionId(selectedIndex))?.scrollIntoView({ block: 'nearest' });
+    }
+
+    /** The selected command, or the first when none is highlighted. */
+    let selectedCommand = $derived(matchingCommands[selectedIndex] ?? matchingCommands[0]);
+
+    async function runSelectedCommand() {
+        const command = selectedCommand;
         if (!command || running) return;
         if (command.id === 'add') {
             if (!addArgument) {
-                emptyArgHint = true;
+                // Enter on a bare command stages it into the input, ready
+                // for its argument.
+                query = `/${command.id} `;
                 return;
             }
             running = true;
@@ -99,23 +137,23 @@
     }
 
     function handleKeydown(e: KeyboardEvent) {
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            moveSelection(e.key === 'ArrowDown' ? 1 : -1);
+            return;
+        }
         if (e.key === 'Enter') {
             e.preventDefault();
             if (isCommandMode) {
-                runFirstCommand();
+                void runSelectedCommand();
             } else {
-                const task = results[0];
+                const task = results[selectedIndex] ?? results[0];
                 if (task) handleSelect(task);
             }
         }
     }
 
     // --- search mode ------------------------------------------------------
-
-    // The no-argument hint clears as soon as an argument is typed.
-    $effect(() => {
-        if (addArgument) emptyArgHint = false;
-    });
 
     $effect(() => {
         if (isCommandMode || !query.trim()) {
@@ -146,6 +184,10 @@
             class="search-input"
             type="text"
             bind:this={searchInput}
+            role="combobox"
+            aria-expanded={optionCount > 0}
+            aria-controls={optionCount > 0 ? 'search-results' : undefined}
+            aria-activedescendant={optionCount > 0 ? optionId(selectedIndex) : undefined}
             bind:value={query}
             placeholder="Search tasks... (or type / for commands)"
             aria-label="Search tasks"
@@ -153,13 +195,18 @@
         />
 
         {#if isCommandMode}
-            {#if emptyArgHint && !addArgument && matchingCommands.length > 0}
-                <p class="empty">Type what to add after /add -- e.g. "/add water the plants".</p>
-            {:else if addArgument}
-                <ul class="results" role="listbox">
+            {#if addArgument}
+                <ul class="results" role="listbox" id="search-results">
                     {#if matchingCommands.length > 0}
                         <li>
-                            <button class="result-item" onclick={runFirstCommand} role="option" aria-selected="true">
+                            <button
+                                class="result-item"
+                                class:selected={selectedIndex === 0}
+                                id={optionId(0)}
+                                onclick={runSelectedCommand}
+                                role="option"
+                                aria-selected="true"
+                            >
                                 <span class="result-checkbox"><Icon src={LuPlus} /></span>
                                 <span class="result-text">Add: {addArgument}</span>
                                 {#if addParsed}
@@ -175,14 +222,16 @@
                     {/if}
                 </ul>
             {:else if matchingCommands.length > 0}
-                <ul class="results" role="listbox">
-                    {#each matchingCommands as command (command.id)}
+                <ul class="results" role="listbox" id="search-results">
+                    {#each matchingCommands as command, i (command.id)}
                         <li>
                             <button
                                 class="result-item"
+                                class:selected={i === selectedIndex}
+                                id={optionId(i)}
                                 onclick={() => (query = `/${command.id} `)}
                                 role="option"
-                                aria-selected="false"
+                                aria-selected={i === selectedIndex}
                             >
                                 <span class="command-name">{command.label}</span>
                                 <span class="command-description">{command.description}</span>
@@ -194,10 +243,17 @@
                 <p class="empty">No such command.</p>
             {/if}
         {:else if results.length > 0}
-            <ul class="results" role="listbox">
-                {#each results as task (task.id)}
+            <ul class="results" role="listbox" id="search-results">
+                {#each results as task, i (task.id)}
                     <li>
-                        <button class="result-item" onclick={() => handleSelect(task)} role="option" aria-selected="false">
+                        <button
+                            class="result-item"
+                            class:selected={i === selectedIndex}
+                            id={optionId(i)}
+                            onclick={() => handleSelect(task)}
+                            role="option"
+                            aria-selected={i === selectedIndex}
+                        >
                             <span class="result-checkbox">{#if task.completed}<Icon src={LuCheck} />{:else}<Icon src={LuCircle} />{/if}</span>
                             <span class="result-text" class:completed={task.completed}>{task.text}</span>
                             {#if task.date}
@@ -264,7 +320,8 @@
         transition: background-color 0.1s;
     }
 
-    .result-item:hover {
+    .result-item:hover,
+    .result-item.selected {
         background: var(--color-surface-hover);
     }
 
