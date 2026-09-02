@@ -2,6 +2,7 @@
     import TaskRow from './TaskRow.svelte';
     import InlineAddTask from './InlineAddTask.svelte';
     import SectionHeader from './SectionHeader.svelte';
+    import { SvelteSet } from 'svelte/reactivity';
     import type { Task } from '@erledigen/shared';
     import { container } from '$lib/container';
     import { preferencesStore } from '$lib/stores';
@@ -22,7 +23,11 @@
     let sectionId = $derived(`day-${dateStr}-header`);
     let dateParts = $derived(container.dateProvider.formatDateParts(dateStr));
 
-    let newlyCreatedIds = $state<Set<string>>(new Set());
+    // SvelteSet (not $state<Set>): Svelte 5 deep-proxies only plain
+    // objects/arrays, so .add()/.delete() on a raw Set never signals and
+    // the 600ms expiry below would leave the flash class on until an
+    // unrelated re-render. Same trap the recurring stats Map hit.
+    let newlyCreatedIds = new SvelteSet<string>();
 
     function handleTaskCreated(id: string) {
         newlyCreatedIds.add(id);

@@ -1,6 +1,7 @@
 <script lang="ts">
     import { preferencesStore, someDayGroupStore, taskStore, uiStore } from '$lib/stores';
     import { applyFilters } from '$lib/filters';
+    import { SvelteSet } from 'svelte/reactivity';
     import TaskRow from './TaskRow.svelte';
     import InlineAddTask from './InlineAddTask.svelte';
     import SectionHeader from './SectionHeader.svelte';
@@ -82,7 +83,11 @@
         uiStore.setVisibleSomedayTasks(ids);
     });
 
-    let newlyCreatedIds = $state<Set<string>>(new Set());
+    // SvelteSet (not $state<Set>): Svelte 5 deep-proxies only plain
+    // objects/arrays, so .add()/.delete() on a raw Set never signals and
+    // the 600ms expiry below would leave the flash class on until an
+    // unrelated re-render. Same trap the recurring stats Map hit.
+    let newlyCreatedIds = new SvelteSet<string>();
 
     $effect(() => {
         if (showAddGroupForm && newGroupInput) newGroupInput.focus();
