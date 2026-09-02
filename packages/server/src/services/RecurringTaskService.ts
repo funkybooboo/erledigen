@@ -17,6 +17,11 @@ interface Occurrence {
 }
 
 export class RecurringTaskService {
+    /** computeStats calls in flight, by template id. Concurrent callers
+     *  (a burst of task mutations, parallel GETs) share one computation
+     *  instead of racing read-modify-write cycles on the same stats row. */
+    readonly #inFlight = new Map<string, Promise<RecurringTaskStats>>();
+
     constructor(
         private recurringTaskRepo: RecurringTaskRepository,
         private taskRepo: TaskRepository,
@@ -98,9 +103,21 @@ export class RecurringTaskService {
      *
      * Recomputing from scratch on every call keeps stats self-healing: any
      * mutation path that forgets to trigger a refresh is corrected on the
-     * next read.
+     * next read. Concurrent calls for the same template coalesce into one
+     * computation, and the result is only persisted when it differs from
+     * what is stored -- repeated reads must not rewrite the same row.
      */
-    async computeStats(id: string): Promise<RecurringTaskStats> {
+    computeStats(id: string): Promise<RecurringTaskStats> {
+        const inFlight = this.#inFlight.get(id);
+        if (inFlight) return inFlight;
+        const computation = this.#computeStats(id).finally(() => {
+            this.#inFlight.delete(id);
+        });
+        this.#inFlight.set(id, computation);
+        return computation;
+    }
+
+    async #computeStats(id: string): Promise<RecurringTaskStats> {
         const rt = await this.recurringTaskRepo.findById(id);
         if (!rt) throw new NotFoundError(`RecurringTask with ID ${id} not found`);
 
@@ -161,7 +178,17 @@ export class RecurringTaskService {
             lastCompletedDate: lastCompleted ? lastCompleted.date : null,
         };
 
-        await this.recurringTaskRepo.upsertStats(stats);
+        // Persist only when something changed. GET /stats recomputes on
+        // every read; a steady state must not rewrite the same row.
+        const unchanged =
+            existing !== null &&
+            existing.currentStreak === stats.currentStreak &&
+            existing.longestStreak === stats.longestStreak &&
+            existing.totalCompletions === stats.totalCompletions &&
+            existing.lastCompletedDate === stats.lastCompletedDate;
+        if (!unchanged) {
+            await this.recurringTaskRepo.upsertStats(stats);
+        }
         return stats;
     }
 }

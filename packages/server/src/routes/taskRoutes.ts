@@ -67,7 +67,17 @@ export function registerTaskRoutes(
         'DELETE',
         API_ROUTES.TASK_PURGE,
         withErrorHandling(async _req => {
+            // Collect affected templates BEFORE the purge empties the trash:
+            // purged instances no longer count for streaks, so their stats
+            // must refresh -- same as the single-delete route below.
+            const trashed = await taskRepo.findDeleted();
+            const affected = [
+                ...new Set(trashed.flatMap(t => (t.recurringTaskId ? [t.recurringTaskId] : []))),
+            ];
             const purged = await taskService.purge();
+            for (const recurringTaskId of affected) {
+                refreshStats(recurringTaskId);
+            }
             return successResponse({ purged });
         }, logger),
     );
