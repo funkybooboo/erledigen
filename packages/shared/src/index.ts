@@ -105,16 +105,23 @@ export {
 } from './types/websocket';
 // Utilities
 export {
+    addDays,
+    daysBetween,
     describeRecurrence,
     formatFrequency,
     formatTags,
     formatTime12,
+    generateOccurrences,
     getTagsByKind,
     groupTasksByDate,
     hasDeadlineTag,
+    keyFromParts,
+    nextOccurrenceIso,
     parseRecurrence,
     parseTags,
     resolveTagKind,
     slugify,
+    splitKey,
+    weekdayOf,
 } from './utils';
 export type { ParsedRecurrence, RecurrenceSchedule } from './utils/parseRecurrence';

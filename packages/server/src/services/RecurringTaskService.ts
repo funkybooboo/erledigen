@@ -1,8 +1,7 @@
 import type { CreateTaskInput, DateProvider, RecurringTaskStats, Task } from '@erledigen/shared';
-import { NotFoundError } from '@erledigen/shared';
+import { generateOccurrences, NotFoundError, nextOccurrenceIso } from '@erledigen/shared';
 import type { RecurringTaskRepository } from '../adapters/data/RecurringTaskRepository';
 import type { TaskRepository } from '../adapters/data/TaskRepository';
-import { generateOccurrences, nextOccurrenceIso } from '../utils/recurringTaskUtils';
 
 /** Instances generated for one template by generateAllInstances. */
 export interface GeneratedForTemplate {

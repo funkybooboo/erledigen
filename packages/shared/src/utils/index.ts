@@ -1,3 +1,4 @@
+export { addDays, daysBetween, keyFromParts, splitKey, weekdayOf } from './dateKeys';
 export { describeRecurrence, formatFrequency, formatTime12 } from './formatFrequency';
 export { formatTags } from './formatTags';
 export { groupTasksByDate } from './groupTasksByDate';
@@ -5,5 +6,6 @@ export { hasDeadlineTag } from './hasDeadlineTag';
 export type { ParsedRecurrence, RecurrenceSchedule } from './parseRecurrence';
 export { parseRecurrence } from './parseRecurrence';
 export { parseTags } from './parseTags';
+export { generateOccurrences, nextOccurrenceIso } from './recurringTaskUtils';
 export { slugify } from './slugify';
 export { getTagsByKind, resolveTagKind } from './tagKinds';

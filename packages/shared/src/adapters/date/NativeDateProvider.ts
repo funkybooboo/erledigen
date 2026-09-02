@@ -1,3 +1,10 @@
+import {
+    addDays as addDaysToKey,
+    daysBetween as daysBetweenKeys,
+    keyFromParts,
+    splitKey,
+    weekdayOf,
+} from '../../utils/dateKeys';
 import type { DateProvider } from './DateProvider';
 
 /**
@@ -81,23 +88,7 @@ export class NativeDateProvider implements DateProvider {
             };
             return `${get('year')}-${get('month')}-${get('day')}`;
         }
-        return `${date.getFullYear()}-${this.pad(date.getMonth() + 1)}-${this.pad(date.getDate())}`;
-    }
-
-    /** Parse a YYYY-MM-DD key into its numeric components. */
-    private splitKey(dateStr: string): [number, number, number] {
-        const parts = dateStr.split('-').map(Number);
-        return [parts[0] ?? 0, (parts[1] ?? 1) - 1, parts[2] ?? 1]; // month is 0-indexed
-    }
-
-    /** Pad a number to 2 digits. */
-    private pad(n: number): string {
-        return String(n).padStart(2, '0');
-    }
-
-    /** Rebuild a YYYY-MM-DD key from UTC year/month/day numbers. */
-    private keyFromUtcParts(y: number, m: number, d: number): string {
-        return `${y}-${this.pad(m + 1)}-${this.pad(d)}`;
+        return keyFromParts(date.getFullYear(), date.getMonth(), date.getDate());
     }
 
     /**
@@ -108,28 +99,8 @@ export class NativeDateProvider implements DateProvider {
      * midnight rounding edge case in exotic formatters.
      */
     private utcNoonFromKey(dateStr: string): Date {
-        const [y, m, d] = this.splitKey(dateStr);
+        const [y, m, d] = splitKey(dateStr);
         return new Date(Date.UTC(y, m, d, 12, 0, 0));
-    }
-
-    /** Get the weekday (0=Sunday .. 6=Saturday) for a calendar date. Zone-independent. */
-    private weekdayOfKey(dateStr: string): number {
-        const [y, m, d] = this.splitKey(dateStr);
-        return new Date(Date.UTC(y, m, d)).getUTCDay();
-    }
-
-    /**
-     * Add days to a calendar date via Date.UTC -- DST-proof, zone-independent.
-     * Negative days supported. Month/year boundaries roll over correctly.
-     */
-    private addDaysToKey(dateStr: string, days: number): string {
-        const [y, m, d] = this.splitKey(dateStr);
-        const shifted = new Date(Date.UTC(y, m, d + days));
-        return this.keyFromUtcParts(
-            shifted.getUTCFullYear(),
-            shifted.getUTCMonth(),
-            shifted.getUTCDate(),
-        );
     }
 
     /**
@@ -143,14 +114,14 @@ export class NativeDateProvider implements DateProvider {
      * Get tomorrow's date in ISO 8601 format (YYYY-MM-DD), in the effective zone.
      */
     tomorrow(): string {
-        return this.addDaysToKey(this.today(), 1);
+        return addDaysToKey(this.today(), 1);
     }
 
     /**
      * Get yesterday's date in ISO 8601 format (YYYY-MM-DD), in the effective zone.
      */
     yesterday(): string {
-        return this.addDaysToKey(this.today(), -1);
+        return addDaysToKey(this.today(), -1);
     }
 
     /**
@@ -160,7 +131,7 @@ export class NativeDateProvider implements DateProvider {
      * @returns New date in ISO 8601 format
      */
     addDays(dateStr: string, days: number): string {
-        return this.addDaysToKey(dateStr, days);
+        return addDaysToKey(dateStr, days);
     }
 
     /**
@@ -169,10 +140,10 @@ export class NativeDateProvider implements DateProvider {
      * @returns Monday of that week in ISO 8601 format
      */
     startOfWeek(dateStr: string): string {
-        const day: number = this.weekdayOfKey(dateStr);
+        const day: number = weekdayOf(dateStr);
         // Sunday returns 0, but weeks start on Monday.
         const diff: number = day === 0 ? -6 : 1 - day;
-        return this.addDaysToKey(dateStr, diff);
+        return addDaysToKey(dateStr, diff);
     }
 
     /**
@@ -181,9 +152,9 @@ export class NativeDateProvider implements DateProvider {
      * @returns Sunday of that week in ISO 8601 format
      */
     endOfWeek(dateStr: string): string {
-        const day: number = this.weekdayOfKey(dateStr);
+        const day: number = weekdayOf(dateStr);
         const diff: number = day === 0 ? 0 : 7 - day;
-        return this.addDaysToKey(dateStr, diff);
+        return addDaysToKey(dateStr, diff);
     }
 
     /**
@@ -194,7 +165,7 @@ export class NativeDateProvider implements DateProvider {
         const monday = this.startOfWeek(this.today());
         const dates: string[] = [];
         for (let i = 0; i < 7; i++) {
-            dates.push(this.addDaysToKey(monday, i));
+            dates.push(addDaysToKey(monday, i));
         }
         return dates;
     }
@@ -327,10 +298,7 @@ export class NativeDateProvider implements DateProvider {
      * @returns Number of days (positive if dateStr2 is after dateStr1)
      */
     daysBetween(dateStr1: string, dateStr2: string): number {
-        const [y1, m1, d1] = this.splitKey(dateStr1);
-        const [y2, m2, d2] = this.splitKey(dateStr2);
-        const ms = Date.UTC(y2, m2, d2) - Date.UTC(y1, m1, d1);
-        return Math.round(ms / (1000 * 60 * 60 * 24));
+        return daysBetweenKeys(dateStr1, dateStr2);
     }
 
     /**
@@ -372,7 +340,7 @@ export class NativeDateProvider implements DateProvider {
         const regex = /^\d{4}-\d{2}-\d{2}$/;
         if (!regex.test(dateStr)) return false;
 
-        const [y, m, d] = this.splitKey(dateStr);
+        const [y, m, d] = splitKey(dateStr);
         const dt = new Date(Date.UTC(y, m, d));
         return dt.getUTCFullYear() === y && dt.getUTCMonth() === m && dt.getUTCDate() === d;
     }

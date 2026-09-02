@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import type { RecurringTask } from '@erledigen/shared';
+import type { RecurringTask } from '../types/recurringTask';
 import { generateOccurrences, nextOccurrenceIso } from './recurringTaskUtils';
 
 function makeTask(overrides: Partial<RecurringTask> = {}): RecurringTask {

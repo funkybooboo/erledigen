@@ -9,7 +9,7 @@ Shared code used by both the `client` and `server` packages. Nothing in here sho
 | `src/types/` | Core data models: `Task`, `Project`, `RecurringTask` (+ `RecurringTaskStats`), `SomeDayGroup`, `UserPreferences`, `ApiResponse`, plus API/WebSocket request types |
 | `src/adapters/` | Adapter interfaces (ports) and universal implementations: `HttpClient`, `Logger`, `DateProvider`, `ConfigProvider` |
 | `src/errors/` | `AppError` base class and typed error subclasses (`ValidationError`, `NotFoundError`, `RateLimitError`, etc.) |
-| `src/utils/` | Pure helpers: `slugify`, `groupTasksByDate`, `parseTags`, `formatTags`, `tagKinds`, `hasDeadlineTag`, `parseRecurrence` (natural-language habit phrases), `formatFrequency`, date/time validation |
+| `src/utils/` | Pure helpers: `slugify`, `groupTasksByDate`, `parseTags`, `formatTags`, `tagKinds`, `hasDeadlineTag`, `parseRecurrence` (natural-language habit phrases), `formatFrequency`, `recurringTaskUtils` (occurrence generation), `dateKeys` (pure YYYY-MM-DD key math), date/time validation |
 | `src/constants.ts` | API route patterns, validation rules, default tag kinds, retention/limits |
 
 ## The Golden Rule
