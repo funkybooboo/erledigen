@@ -48,7 +48,7 @@ export function registerProjectRoutes(
         withErrorHandling(async req => {
             const originClientId = req.headers['x-client-id'];
             const raw = await req.json<unknown>();
-            const input = parseBody(CreateProjectSchema, raw) as unknown as CreateProjectInput;
+            const input = parseBody(CreateProjectSchema, raw) as CreateProjectInput;
             const project = await projectRepo.create(input);
             eventBus.publish('project:created', { project }, originClientId);
             return successResponse(project, 201);
@@ -75,7 +75,7 @@ export function registerProjectRoutes(
             const id = requirePathParam(req, API_ROUTES.PROJECT_ROUTE_PATTERN, 'project');
             const originClientId = req.headers['x-client-id'];
             const raw = await req.json<unknown>();
-            const input = parseBody(UpdateProjectSchema, raw) as unknown as UpdateProjectInput;
+            const input = parseBody(UpdateProjectSchema, raw) as UpdateProjectInput;
             const project = await projectRepo.update(id, input);
             if (!project) throw notFoundError('Project', id);
             eventBus.publish('project:updated', { project }, originClientId);

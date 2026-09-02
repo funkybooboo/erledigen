@@ -69,7 +69,7 @@ export class InMemoryTaskRepository implements TaskRepository {
             text: input.text,
             notes: input.notes ?? null,
             completed: false,
-            date: input.date,
+            date: input.date ?? null,
             createdAt: now,
             updatedAt: now,
             tags: input.tags ?? [...TASK_DEFAULTS.tags],

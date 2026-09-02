@@ -2,6 +2,7 @@
  * UserPreferences entity schemas.
  */
 
+import { isValidTimeZone } from '@erledigen/shared';
 import { z } from 'zod';
 import { registry } from '../registry';
 
@@ -35,6 +36,8 @@ export const UserPreferencesSchema = registry.register(
             activeFilters: ActiveFiltersSchema,
             tagKinds: z.array(TagKindSchema),
             tagKindMap: z.record(z.string(), z.string()),
+            timeFormat: z.enum(['12h', '24h']),
+            timezone: z.string().nullable(),
             updatedAt: z.string(),
         })
         .openapi('UserPreferences'),
@@ -55,6 +58,18 @@ export const UpdateUserPreferencesSchema = registry.register(
             activeFilters: ActiveFiltersSchema.optional(),
             tagKinds: z.array(TagKindSchema).optional(),
             tagKindMap: z.record(z.string(), z.string()).optional(),
+            // timeFormat/timezone were once missing here: parseBody strips
+            // unknown keys, so PATCH silently discarded the user's clock
+            // format and timezone on every save (the client kept them in
+            // memory for the session, which masked it until reload).
+            timeFormat: z.enum(['12h', '24h']).optional(),
+            timezone: z
+                .string()
+                // Reject at the door: a stored bad zone would throw in
+                // NativeDateProvider.setTimeZone on every client load.
+                .refine(isValidTimeZone, { message: 'Unknown IANA timezone' })
+                .nullable()
+                .optional(),
         })
         .openapi('UpdateUserPreferencesInput'),
 );

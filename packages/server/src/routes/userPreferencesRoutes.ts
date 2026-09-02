@@ -32,10 +32,7 @@ export function registerUserPreferencesRoutes(
         API_ROUTES.USER_PREFERENCES,
         withErrorHandling(async req => {
             const raw = await req.json<unknown>();
-            const input = parseBody(
-                UpdateUserPreferencesSchema,
-                raw,
-            ) as unknown as UpdateUserPreferencesInput;
+            const input = parseBody(UpdateUserPreferencesSchema, raw) as UpdateUserPreferencesInput;
             const prefs = await userPreferencesRepo.update(input);
             return successResponse(prefs);
         }, logger),

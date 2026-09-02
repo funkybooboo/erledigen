@@ -48,10 +48,7 @@ export function registerSomeDayGroupRoutes(
         withErrorHandling(async req => {
             const originClientId = req.headers['x-client-id'];
             const raw = await req.json<unknown>();
-            const input = parseBody(
-                CreateSomeDayGroupSchema,
-                raw,
-            ) as unknown as CreateSomeDayGroupInput;
+            const input = parseBody(CreateSomeDayGroupSchema, raw) as CreateSomeDayGroupInput;
             const group = await someDayGroupRepo.create(input);
             eventBus.publish('someDayGroup:created', { group }, originClientId);
             return successResponse(group, 201);
@@ -78,10 +75,7 @@ export function registerSomeDayGroupRoutes(
             const id = requirePathParam(req, API_ROUTES.SOMEDAY_GROUP_ROUTE_PATTERN, 'group');
             const originClientId = req.headers['x-client-id'];
             const raw = await req.json<unknown>();
-            const input = parseBody(
-                UpdateSomeDayGroupSchema,
-                raw,
-            ) as unknown as UpdateSomeDayGroupInput;
+            const input = parseBody(UpdateSomeDayGroupSchema, raw) as UpdateSomeDayGroupInput;
             const group = await someDayGroupRepo.update(id, input);
             if (!group) throw notFoundError('SomeDayGroup', id);
             eventBus.publish('someDayGroup:updated', { group }, originClientId);

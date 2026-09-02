@@ -50,10 +50,7 @@ export function registerRecurringTaskRoutes(
         API_ROUTES.RECURRING_TASKS,
         withErrorHandling(async req => {
             const raw = await req.json<unknown>();
-            const input = parseBody(
-                CreateRecurringTaskSchema,
-                raw,
-            ) as unknown as CreateRecurringTaskInput;
+            const input = parseBody(CreateRecurringTaskSchema, raw) as CreateRecurringTaskInput;
             const task = await recurringTaskRepo.create(input);
             return successResponse(task, 201);
         }, logger),
@@ -110,10 +107,7 @@ export function registerRecurringTaskRoutes(
                 'recurring task',
             );
             const raw = await req.json<unknown>();
-            const input = parseBody(
-                UpdateRecurringTaskSchema,
-                raw,
-            ) as unknown as UpdateRecurringTaskInput;
+            const input = parseBody(UpdateRecurringTaskSchema, raw) as UpdateRecurringTaskInput;
             const task = await recurringTaskRepo.update(id, input);
             if (!task) throw notFoundError('RecurringTask', id);
             return successResponse(task);

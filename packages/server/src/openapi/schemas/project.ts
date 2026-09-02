@@ -51,6 +51,7 @@ export const UpdateProjectSchema = registry.register(
             startDate: z.string().nullable().optional(),
             dueDate: z.string().nullable().optional(),
             isActive: z.boolean().optional(),
+            completedAt: z.string().nullable().optional(),
         })
         .openapi('UpdateProjectInput'),
 );

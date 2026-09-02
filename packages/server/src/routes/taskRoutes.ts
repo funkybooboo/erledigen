@@ -55,7 +55,7 @@ export function registerTaskRoutes(
         withErrorHandling(async req => {
             const raw = await req.json<unknown>();
             const originClientId = req.headers['x-client-id'];
-            const input = parseBody(CreateTaskSchema, raw) as unknown as CreateTaskInput;
+            const input = parseBody(CreateTaskSchema, raw) as CreateTaskInput;
             const task = await taskRepo.create(input);
             eventBus.publish('task:created', { task }, originClientId);
             return successResponse(task, 201);
@@ -117,7 +117,7 @@ export function registerTaskRoutes(
             const id = requirePathParam(req, API_ROUTES.TASK_ROUTE_PATTERN, 'task');
             const originClientId = req.headers['x-client-id'];
             const raw = await req.json<unknown>();
-            const input = parseBody(UpdateTaskSchema, raw) as unknown as UpdateTaskInput;
+            const input = parseBody(UpdateTaskSchema, raw) as UpdateTaskInput;
             const task = await taskService.completeTask(id, input);
             if (!task) throw notFoundError('Task', id);
             refreshStats(task.recurringTaskId);

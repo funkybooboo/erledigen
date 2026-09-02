@@ -59,15 +59,19 @@ export const CreateTaskSchema = registry.register(
                 .string()
                 .min(TASK_CONSTRAINTS.MIN_TEXT_LENGTH)
                 .max(TASK_CONSTRAINTS.MAX_TEXT_LENGTH),
-            date: z.string().nullable().optional(),
+            // default(null): an omitted date means Someday, matching the
+            // in-repo normalization and the CreateTaskInput contract.
+            date: z.string().nullable().default(null),
             notes: z.string().nullable().optional(),
             tags: z.array(z.string()).optional(),
             parentId: z.string().nullable().optional(),
             someDayGroupId: z.string().nullable().optional(),
             position: z.number().int().nullable().optional(),
+            state: z.enum(['ready', 'scheduled', 'done']).nullable().optional(),
             startTime: HhMmTime.nullable().optional(),
             endTime: HhMmTime.nullable().optional(),
             rolloverEnabled: z.boolean().optional(),
+            reminder: ReminderSchema.nullable().optional(),
         })
         .openapi('CreateTaskInput'),
 );
@@ -88,9 +92,11 @@ export const UpdateTaskSchema = registry.register(
             parentId: z.string().nullable().optional(),
             someDayGroupId: z.string().nullable().optional(),
             position: z.number().int().nullable().optional(),
+            state: z.enum(['ready', 'scheduled', 'done']).nullable().optional(),
             startTime: HhMmTime.nullable().optional(),
             endTime: HhMmTime.nullable().optional(),
             rolloverEnabled: z.boolean().optional(),
+            reminder: ReminderSchema.nullable().optional(),
         })
         .openapi('UpdateTaskInput'),
 );
