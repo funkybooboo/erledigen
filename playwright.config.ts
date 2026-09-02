@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Root Playwright config — drives two projects against the same live stack:
+ * Root Playwright config -- drives two projects against the same live stack:
  *
  *   - "api":  black-box HTTP tests against the server  (port 4000)
  *   - "e2e":  browser tests against the SvelteKit client (port 3000)
@@ -10,9 +10,9 @@ import { defineConfig, devices } from '@playwright/test';
  * single worker and serial tests to keep state deterministic. Each test cleans
  * up the resources it creates.
  *
- * `bun run test:e2e`         → runs both projects
- * `bun run test:e2e:api`     → api only
- * `bun run test:e2e:ui`      → e2e only
+ * `bun run test:e2e`         -> runs both projects
+ * `bun run test:e2e:api`     -> api only
+ * `bun run test:e2e:ui`      -> e2e only
  */
 const CHROMIUM = process.env.PLAYWRIGHT_CHROMIUM ?? '/usr/bin/chromium';
 const BUNDLED_CHROMIUM = process.env.PLAYWRIGHT_USE_BUNDLED_CHROMIUM === '1';
@@ -71,9 +71,13 @@ export default defineConfig({
                       // across runs. The pretest:e2e* scripts free the port first.
                       reuseExistingServer: false,
                       timeout: 120_000,
-                      // Ephemeral storage keeps test runs deterministic — no state
+                      // Ephemeral storage keeps test runs deterministic -- no state
                       // leaks between runs from the persistent SQLite file.
-                      env: { STORAGE_ADAPTER: 'memory' },
+                      // The whole suite is one trusted client; the default
+                      // 600 rpm limiter would 429 the habits cleanup bursts
+                      // (each test deletes ~90 generated instances) and
+                      // fail later tests with phantom "missing" entities.
+                      env: { STORAGE_ADAPTER: 'memory', RATE_LIMIT_RPM: '10000' },
                   },
                   {
                       command: 'bun run --cwd packages/client dev',

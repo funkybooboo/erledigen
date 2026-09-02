@@ -16,6 +16,16 @@ test.describe('task CRUD through the UI', () => {
         await expect(page.locator('.day-section.today').getByText(text)).toBeVisible();
         // Input cleared and ready for the next task.
         await expect(input).toHaveValue('');
+
+        // The UI-created task is not tracked by the cleanup helper -- remove
+        // it here so it does not pollute today's list for later tests.
+        const res = await page.request.get(`${SERVER_URL}/api/tasks`);
+        const tasks = (await res.json()).data as Array<{ id: string; text: string }>;
+        for (const t of tasks) {
+            if (t.text === text) {
+                await page.request.delete(`${SERVER_URL}/api/tasks/${t.id}`);
+            }
+        }
     });
 
     test('complete a task toggles its checkbox state', async ({ page }) => {

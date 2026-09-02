@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test';
-import { cleanup, createGroup, del, get, post, put, uniq } from './helpers';
+import { cleanup, createGroup, del, get, post, put, track, uniq } from './helpers';
 
 test.afterEach(async ({ request }) => {
     await cleanup(request);
 });
 
-test.describe('someday-groups — create (POST /api/someday-groups)', () => {
+test.describe('someday-groups -- create (POST /api/someday-groups)', () => {
     test('creates a group with all fields', async ({ request }) => {
         const res = await post(request, '/api/someday-groups', {
             name: 'Reading list',
@@ -14,6 +14,7 @@ test.describe('someday-groups — create (POST /api/someday-groups)', () => {
             description: 'Books to read',
         });
         expect(res.status).toBe(201);
+        track('group', res.body.data.id);
         const g = res.body.data;
         expect(g.id).toBeTruthy();
         expect(g.name).toBe('Reading list');
@@ -30,6 +31,7 @@ test.describe('someday-groups — create (POST /api/someday-groups)', () => {
             position: 1,
         });
         expect(res.status).toBe(201);
+        track('group', res.body.data.id);
         expect(res.body.data.description).toBeNull();
     });
 
@@ -75,7 +77,7 @@ test.describe('someday-groups — create (POST /api/someday-groups)', () => {
     });
 });
 
-test.describe('someday-groups — list & by id', () => {
+test.describe('someday-groups -- list & by id', () => {
     test('GET /api/someday-groups returns all', async ({ request }) => {
         await createGroup(request, { name: uniq('Group'), tag: uniq('g'), position: 0 });
         const res = await get(request, '/api/someday-groups');
@@ -96,7 +98,7 @@ test.describe('someday-groups — list & by id', () => {
     });
 });
 
-test.describe('someday-groups — update', () => {
+test.describe('someday-groups -- update', () => {
     test('PUT updates name, tag, description, position', async ({ request }) => {
         const g = await createGroup(request, { name: 'Orig', tag: 'orig', position: 0 });
         const res = await put(request, `/api/someday-groups/${g.id}`, {
@@ -124,7 +126,7 @@ test.describe('someday-groups — update', () => {
     });
 });
 
-test.describe('someday-groups — delete', () => {
+test.describe('someday-groups -- delete', () => {
     test('DELETE removes the group', async ({ request }) => {
         const g = await createGroup(request, { name: 'Delete me', tag: 'del', position: 0 });
         const res = await del(request, `/api/someday-groups/${g.id}`);
@@ -140,7 +142,7 @@ test.describe('someday-groups — delete', () => {
     });
 });
 
-test.describe('someday-groups — content negotiation', () => {
+test.describe('someday-groups -- content negotiation', () => {
     test('Accept: text/plain returns formatted text', async ({ request }) => {
         await createGroup(request, { name: 'Plain group', tag: 'plain', position: 1 });
         const res = await get(request, '/api/someday-groups', { Accept: 'text/plain' });

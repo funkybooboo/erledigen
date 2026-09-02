@@ -1,3 +1,4 @@
+import type { APIRequestContext } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 import {
     cleanup,
@@ -6,20 +7,45 @@ import {
     get,
     post,
     put,
+    track,
 } from './helpers';
+import type { ApiResult } from './types';
+
+/** POST /api/recurring-tasks, assert 201, and track the template for
+ *  cleanup. (createRecurring tracks automatically but hides the status code,
+ *  which the create tests assert on.) */
+async function postRecurring(
+    request: APIRequestContext,
+    input: Record<string, unknown>,
+): Promise<ApiResult> {
+    const res = await post(request, '/api/recurring-tasks', input);
+    expect(res.status).toBe(201);
+    track('recurring', res.body.data.id);
+    return res;
+}
 
 test.afterEach(async ({ request }) => {
     await cleanup(request);
+    // Deleting a template keeps its instances (by design), and generate
+    // endpoints create instances the helper never tracked -- sweep every
+    // remaining generated instance so the server is spotless for the next
+    // test.
+    const res = await get(request, '/api/tasks');
+    const tasks = (res.body.data ?? []) as Array<{ id: string; recurringTaskId: string | null }>;
+    for (const task of tasks) {
+        if (task.recurringTaskId !== null) {
+            await del(request, `/api/tasks/${task.id}`);
+        }
+    }
 });
 
-test.describe('recurring-tasks — create (POST /api/recurring-tasks)', () => {
+test.describe('recurring-tasks -- create (POST /api/recurring-tasks)', () => {
     test('creates a daily recurring task with defaults', async ({ request }) => {
-        const res = await post(request, '/api/recurring-tasks', {
+        const res = await postRecurring(request, {
             text: 'Standup',
             frequency: 'daily',
             startDate: '2026-01-01',
         });
-        expect(res.status).toBe(201);
         const rt = res.body.data;
         expect(rt.id).toBeTruthy();
         expect(rt.text).toBe('Standup');
@@ -31,35 +57,32 @@ test.describe('recurring-tasks — create (POST /api/recurring-tasks)', () => {
     });
 
     test('accepts weekly with daysOfWeek and interval', async ({ request }) => {
-        const res = await post(request, '/api/recurring-tasks', {
+        const res = await postRecurring(request, {
             text: 'Biweekly review',
             frequency: 'weekly',
             interval: 2,
             daysOfWeek: [1],
             startDate: '2026-01-05',
         });
-        expect(res.status).toBe(201);
         expect(res.body.data.interval).toBe(2);
         expect(res.body.data.daysOfWeek).toEqual([1]);
     });
 
     test('accepts weekday and weekend day sets', async ({ request }) => {
-        const weekdays = await post(request, '/api/recurring-tasks', {
+        const weekdays = await postRecurring(request, {
             text: 'Standup',
             frequency: 'daily',
             daysOfWeek: [1, 2, 3, 4, 5],
             startDate: '2026-01-01',
         });
-        expect(weekdays.status).toBe(201);
         expect(weekdays.body.data.daysOfWeek).toEqual([1, 2, 3, 4, 5]);
 
-        const weekends = await post(request, '/api/recurring-tasks', {
+        const weekends = await postRecurring(request, {
             text: 'Brunch',
             frequency: 'daily',
             daysOfWeek: [0, 6],
             startDate: '2026-01-01',
         });
-        expect(weekends.status).toBe(201);
         expect(weekends.body.data.daysOfWeek).toEqual([0, 6]);
     });
 
@@ -108,7 +131,7 @@ test.describe('recurring-tasks — create (POST /api/recurring-tasks)', () => {
     });
 });
 
-test.describe('recurring-tasks — list & by id', () => {
+test.describe('recurring-tasks -- list & by id', () => {
     test('GET /api/recurring-tasks returns all', async ({ request }) => {
         await createRecurring(request, {
             text: 'List rt',
@@ -137,7 +160,7 @@ test.describe('recurring-tasks — list & by id', () => {
     });
 });
 
-test.describe('recurring-tasks — update', () => {
+test.describe('recurring-tasks -- update', () => {
     test('PUT updates text and interval', async ({ request }) => {
         const rt = await createRecurring(request, {
             text: 'Original',
@@ -171,7 +194,7 @@ test.describe('recurring-tasks — update', () => {
     });
 });
 
-test.describe('recurring-tasks — delete', () => {
+test.describe('recurring-tasks -- delete', () => {
     test('DELETE removes the recurring task', async ({ request }) => {
         const rt = await createRecurring(request, {
             text: 'Delete me',
@@ -191,7 +214,7 @@ test.describe('recurring-tasks — delete', () => {
     });
 });
 
-test.describe('recurring-tasks — generate instances', () => {
+test.describe('recurring-tasks -- generate instances', () => {
     test('creates task instances for each occurrence in range', async ({ request }) => {
         const rt = await createRecurring(request, {
             text: 'Daily standup',
@@ -259,7 +282,7 @@ test.describe('recurring-tasks — generate instances', () => {
     });
 });
 
-test.describe('recurring-tasks — streak stats', () => {
+test.describe('recurring-tasks -- streak stats', () => {
     /** Local-calendar ISO date offset by N days from today. */
     function localDate(offsetDays: number): string {
         const d = new Date();

@@ -45,8 +45,8 @@ test.describe('natural-language habits from the inline input', () => {
         await input.press('Enter');
 
         // A notification confirms the habit was created (4s auto-dismiss,
-        // so assert it first — before waiting on the instance render).
-        await expect(page.getByText('Habit created — Every other day')).toBeVisible({
+        // so assert it first -- before waiting on the instance render).
+        await expect(page.getByText('Habit created -- Every other day')).toBeVisible({
             timeout: 3000,
         });
 
@@ -78,6 +78,11 @@ test.describe('natural-language habits from the inline input', () => {
         await expect(page.locator('.recur-hint')).toHaveText(/Every Friday at 4:00pm/);
         await input.press('Enter');
 
+        // Wait for the app-visible creation signal before reading server
+        // state -- press() returns before the async submit handler's POST
+        // completes, so fetching immediately races the create.
+        await expect(page.getByText('Habit created --')).toBeVisible({ timeout: 3000 });
+
         // Even when today is not a Friday, the habit exists with the right
         // schedule (no instance today is expected).
         const res = await request.get(`${SERVER_URL}/api/recurring-tasks`);
@@ -91,7 +96,7 @@ test.describe('natural-language habits from the inline input', () => {
         expect(habit?.startTime).toBe('16:00');
     });
 
-    test('generate-all is idempotent — no duplicate instances', async ({ request }) => {
+    test('generate-all is idempotent -- no duplicate instances', async ({ request }) => {
         const text = uniq('HabitE2E Idempotent');
         const createRes = await request.post(`${SERVER_URL}/api/recurring-tasks`, {
             data: {
@@ -125,7 +130,7 @@ test.describe('habits modal management', () => {
         const dialog = page.getByRole('dialog', { name: 'Habits', exact: true });
         await expect(dialog).toBeVisible();
 
-        // Create via the form — typing a recurrence phrase prefills the schedule.
+        // Create via the form -- typing a recurrence phrase prefills the schedule.
         const text = uniq('HabitE2E Stretch');
         await dialog.getByLabel('New habit').click();
         await dialog.getByLabel('Habit name').fill(`${text} every day at 7am`);
@@ -160,7 +165,7 @@ test.describe('weekday and weekend habits', () => {
         await expect(page.locator('.recur-hint')).toHaveText(/Weekdays/);
         await input.press('Enter');
 
-        await expect(page.getByText('Habit created — Weekdays')).toBeVisible({ timeout: 3000 });
+        await expect(page.getByText('Habit created -- Weekdays')).toBeVisible({ timeout: 3000 });
 
         const res = await request.get(`${SERVER_URL}/api/recurring-tasks`);
         const habits = (await res.json()).data as Array<{
@@ -181,7 +186,7 @@ test.describe('weekday and weekend habits', () => {
         await expect(page.locator('.recur-hint')).toHaveText(/Weekends/);
         await input.press('Enter');
 
-        await expect(page.getByText('Habit created — Weekends')).toBeVisible({ timeout: 3000 });
+        await expect(page.getByText('Habit created -- Weekends')).toBeVisible({ timeout: 3000 });
 
         const res = await request.get(`${SERVER_URL}/api/recurring-tasks`);
         const habits = (await res.json()).data as Array<{
@@ -257,7 +262,7 @@ test.describe('command palette /add', () => {
 
         // The modal closes and the habit is confirmed + materialized.
         await expect(search).toBeHidden();
-        await expect(page.getByText('Habit created — Every day')).toBeVisible({ timeout: 3000 });
+        await expect(page.getByText('Habit created -- Every day')).toBeVisible({ timeout: 3000 });
         await expect(page.locator('.day-section.today').getByText(text)).toBeVisible();
 
         const res = await request.get(`${SERVER_URL}/api/recurring-tasks`);

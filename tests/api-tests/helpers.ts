@@ -1,5 +1,5 @@
 /**
- * API test helpers — thin wrapper around Playwright's APIRequestContext.
+ * API test helpers -- thin wrapper around Playwright's APIRequestContext.
  *
  * Every helper returns { status, body, headers } so specs can assert on any
  * part of the HTTP response. `body` is parsed as JSON when the Content-Type is
@@ -100,10 +100,33 @@ export async function fetchRaw(
 }
 
 // ---------------------------------------------------------------------------
-// Lifecycle helpers — create an entity and track it for afterEach cleanup.
+// Lifecycle helpers -- create an entity, assert success, and track it for
+// afterEach cleanup. They THROW on unexpected status codes: a silently
+// dropped 429/400/500 used to return `undefined` payloads that made faraway
+// assertions fail with phantom "missing" entities.
 // ---------------------------------------------------------------------------
 
+function assertCreated(res: ApiResult, what: string): void {
+    if (res.status !== 201) {
+        throw new Error(`POST ${what} failed: ${res.status} ${JSON.stringify(res.body)}`);
+    }
+}
+
 const created: Array<{ base: string; kind: string; id: string }> = [];
+
+/** Track an entity created via a raw `post()` so afterEach cleanup deletes
+ *  it. The create* helpers do this automatically; specs that assert on the
+ *  full HTTP response (status code, envelope shape) post directly and must
+ *  register the created id here -- leaked entities pollute every later
+ *  test (e.g. leftover schedules auto-materialize into browser tests' day
+ *  lists). */
+export function track(
+    kind: 'task' | 'project' | 'recurring' | 'group',
+    id: string,
+    base = '',
+): void {
+    created.push({ kind, base, id });
+}
 
 export async function createTask(
     ctx: APIRequestContext,
@@ -111,7 +134,8 @@ export async function createTask(
     base = '',
 ): Promise<BaseEntity> {
     const res = await post(ctx, '/api/tasks', input, base);
-    if (res.status === 201) created.push({ base, kind: 'task', id: res.body.data.id });
+    assertCreated(res, 'task');
+    created.push({ base, kind: 'task', id: res.body.data.id });
     return res.body.data;
 }
 
@@ -121,7 +145,8 @@ export async function createProject(
     base = '',
 ): Promise<BaseEntity> {
     const res = await post(ctx, '/api/projects', input, base);
-    if (res.status === 201) created.push({ base, kind: 'project', id: res.body.data.id });
+    assertCreated(res, 'project');
+    created.push({ base, kind: 'project', id: res.body.data.id });
     return res.body.data;
 }
 
@@ -131,7 +156,8 @@ export async function createRecurring(
     base = '',
 ): Promise<BaseEntity> {
     const res = await post(ctx, '/api/recurring-tasks', input, base);
-    if (res.status === 201) created.push({ base, kind: 'recurring', id: res.body.data.id });
+    assertCreated(res, 'recurring task');
+    created.push({ base, kind: 'recurring', id: res.body.data.id });
     return res.body.data;
 }
 
@@ -141,7 +167,8 @@ export async function createGroup(
     base = '',
 ): Promise<BaseEntity> {
     const res = await post(ctx, '/api/someday-groups', input, base);
-    if (res.status === 201) created.push({ base, kind: 'group', id: res.body.data.id });
+    assertCreated(res, 'someday group');
+    created.push({ base, kind: 'group', id: res.body.data.id });
     return res.body.data;
 }
 
@@ -150,7 +177,7 @@ export async function createGroup(
  * Tracked entities are deleted through the live context passed in (the
  * afterEach `request` fixture), NOT the context that created them: e2e
  * specs seed through `page.request`, which is a different instance than
- * the test's `request` fixture — filtering by creator context silently
+ * the test's `request` fixture -- filtering by creator context silently
  * skipped everything and leaked state across tests. */
 export async function cleanup(ctx: APIRequestContext, base = ''): Promise<void> {
     for (const item of created.splice(0)) {

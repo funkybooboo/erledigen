@@ -1,14 +1,15 @@
 import { expect, test } from '@playwright/test';
-import { cleanup, createProject, del, get, post, put, uniq } from './helpers';
+import { cleanup, createProject, del, get, post, put, track, uniq } from './helpers';
 
 test.afterEach(async ({ request }) => {
     await cleanup(request);
 });
 
-test.describe('projects — create (POST /api/projects)', () => {
+test.describe('projects -- create (POST /api/projects)', () => {
     test('creates a project with auto-generated tag', async ({ request }) => {
         const res = await post(request, '/api/projects', { name: 'Build Erledigen' });
         expect(res.status).toBe(201);
+        track('project', res.body.data.id);
         const p = res.body.data;
         expect(p.id).toBeTruthy();
         expect(p.name).toBe('Build Erledigen');
@@ -27,6 +28,7 @@ test.describe('projects — create (POST /api/projects)', () => {
             dueDate: '2026-12-31',
         });
         expect(res.status).toBe(201);
+        track('project', res.body.data.id);
         expect(res.body.data.tag).toBe('project:custom');
         expect(res.body.data.description).toBe('desc');
         expect(res.body.data.startDate).toBe('2026-01-01');
@@ -47,7 +49,7 @@ test.describe('projects — create (POST /api/projects)', () => {
     });
 });
 
-test.describe('projects — list (GET /api/projects)', () => {
+test.describe('projects -- list (GET /api/projects)', () => {
     test('returns all projects', async ({ request }) => {
         await createProject(request, { name: uniq('Proj') });
         const res = await get(request, '/api/projects');
@@ -67,7 +69,7 @@ test.describe('projects — list (GET /api/projects)', () => {
     });
 });
 
-test.describe('projects — by id', () => {
+test.describe('projects -- by id', () => {
     test('GET /api/projects/:id returns the project', async ({ request }) => {
         const p = await createProject(request, { name: 'Get proj' });
         const res = await get(request, `/api/projects/${p.id}`);
@@ -103,7 +105,7 @@ test.describe('projects — by id', () => {
     });
 });
 
-test.describe('projects — activate / deactivate', () => {
+test.describe('projects -- activate / deactivate', () => {
     test('deactivate then activate toggles isActive', async ({ request }) => {
         const p = await createProject(request, { name: 'Toggle' });
         const off = await post(request, `/api/projects/${p.id}/deactivate`);
@@ -125,7 +127,7 @@ test.describe('projects — activate / deactivate', () => {
     });
 });
 
-test.describe('projects — delete', () => {
+test.describe('projects -- delete', () => {
     test('DELETE removes the project', async ({ request }) => {
         const p = await createProject(request, { name: 'Delete me' });
         const res = await del(request, `/api/projects/${p.id}`);
@@ -141,7 +143,7 @@ test.describe('projects — delete', () => {
     });
 });
 
-test.describe('projects — content negotiation', () => {
+test.describe('projects -- content negotiation', () => {
     test('Accept: text/plain returns formatted text', async ({ request }) => {
         await createProject(request, { name: 'Plain proj' });
         const res = await get(request, '/api/projects', { Accept: 'text/plain' });

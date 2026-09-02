@@ -7,6 +7,7 @@ import {
     get,
     post,
     put,
+    track,
     uniq,
 } from './helpers';
 
@@ -14,13 +15,14 @@ test.afterEach(async ({ request }) => {
     await cleanup(request);
 });
 
-test.describe('tasks — create (POST /api/tasks)', () => {
+test.describe('tasks -- create (POST /api/tasks)', () => {
     test('creates a dated task with defaults', async ({ request }) => {
         const res = await post(request, '/api/tasks', {
             text: 'Buy milk',
             date: '2026-04-06',
         });
         expect(res.status).toBe(201);
+        track('task', res.body.data.id);
         const task = res.body.data;
         expect(task.id).toBeTruthy();
         expect(task.text).toBe('Buy milk');
@@ -37,6 +39,7 @@ test.describe('tasks — create (POST /api/tasks)', () => {
     test('creates a Someday task with date: null', async ({ request }) => {
         const res = await post(request, '/api/tasks', { text: 'Learn piano', date: null });
         expect(res.status).toBe(201);
+        track('task', res.body.data.id);
         expect(res.body.data.date).toBeNull();
     });
 
@@ -51,6 +54,7 @@ test.describe('tasks — create (POST /api/tasks)', () => {
             rolloverEnabled: true,
         });
         expect(res.status).toBe(201);
+        track('task', res.body.data.id);
         expect(res.body.data.tags).toEqual(['#work', '#p1']);
         expect(res.body.data.notes).toBe('Agenda: sprint review');
         expect(res.body.data.startTime).toBe('09:00');
@@ -96,12 +100,13 @@ test.describe('tasks — create (POST /api/tasks)', () => {
             position: 5,
         });
         expect(res.status).toBe(201);
+        track('task', res.body.data.id);
         expect(res.body.data.someDayGroupId).toBe(group.id);
         expect(res.body.data.position).toBe(5);
     });
 });
 
-test.describe('tasks — list (GET /api/tasks)', () => {
+test.describe('tasks -- list (GET /api/tasks)', () => {
     test('returns all tasks wrapped in { data }', async ({ request }) => {
         await createTask(request, { text: uniq('List A'), date: '2026-05-01' });
         const res = await get(request, '/api/tasks');
@@ -160,7 +165,7 @@ test.describe('tasks — list (GET /api/tasks)', () => {
     });
 });
 
-test.describe('tasks — get by id (GET /api/tasks/:id)', () => {
+test.describe('tasks -- get by id (GET /api/tasks/:id)', () => {
     test('returns the task', async ({ request }) => {
         const t = await createTask(request, { text: 'Get me', date: '2026-05-11' });
         const res = await get(request, `/api/tasks/${t.id}`);
@@ -177,7 +182,7 @@ test.describe('tasks — get by id (GET /api/tasks/:id)', () => {
     });
 });
 
-test.describe('tasks — update (PUT /api/tasks/:id)', () => {
+test.describe('tasks -- update (PUT /api/tasks/:id)', () => {
     test('updates text, tags, notes, and completed', async ({ request }) => {
         const t = await createTask(request, { text: 'Original', date: '2026-05-11' });
         const res = await put(request, `/api/tasks/${t.id}`, {
@@ -224,20 +229,20 @@ test.describe('tasks — update (PUT /api/tasks/:id)', () => {
             date: '2026-05-11',
             parentId: parent.id,
         });
-        // Complete child 1 — parent should NOT complete yet
+        // Complete child 1 -- parent should NOT complete yet
         const r1 = await put(request, `/api/tasks/${child1.id}`, { completed: true });
         expect(r1.body.data.completed).toBe(true);
         const parentMid = await get(request, `/api/tasks/${parent.id}`);
         expect(parentMid.body.data.completed).toBe(false);
-        // Complete child 2 — now parent should auto-complete
+        // Complete child 2 -- now parent should auto-complete
         await put(request, `/api/tasks/${child2.id}`, { completed: true });
         const parentFinal = await get(request, `/api/tasks/${parent.id}`);
         expect(parentFinal.body.data.completed).toBe(true);
     });
 });
 
-test.describe('tasks — delete / trash / restore / purge', () => {
-    test('soft-delete hides from default list but keeps gettable? no — 404 after delete', async ({
+test.describe('tasks -- delete / trash / restore / purge', () => {
+    test('soft-delete hides from default list but keeps gettable? no -- 404 after delete', async ({
         request,
     }) => {
         const t = await createTask(request, { text: 'Delete me', date: '2026-05-12' });
@@ -293,7 +298,7 @@ test.describe('tasks — delete / trash / restore / purge', () => {
     });
 });
 
-test.describe('tasks — content negotiation', () => {
+test.describe('tasks -- content negotiation', () => {
     test('Accept: text/plain returns formatted plain text', async ({ request }) => {
         await createTask(request, { text: 'Plain task', date: '2026-05-13' });
         const res = await get(request, '/api/tasks', { Accept: 'text/plain' });
