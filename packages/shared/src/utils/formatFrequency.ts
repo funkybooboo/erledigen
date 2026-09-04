@@ -50,12 +50,13 @@ export function describeRecurrence(schedule: RecurrenceSchedule): string {
 
     if (frequency === 'daily') {
         const label = daysLabel(daysOfWeek);
-        if (label && singleDay(daysOfWeek) === null) {
+        const single = singleDay(daysOfWeek);
+        if (label && single === null) {
             // Multi-day daily schedules read naturally as their label:
             // "Weekdays", "Weekends", "Mon, Wed, Fri".
             text = interval === 1 ? label : `Every ${interval} days on ${label}`;
-        } else if (singleDay(daysOfWeek) !== null) {
-            const day = WEEKDAY_NAMES[singleDay(daysOfWeek) ?? 0] ?? 'day';
+        } else if (single !== null) {
+            const day = WEEKDAY_NAMES[single] ?? 'day';
             text = interval === 1 ? `Every ${day}` : `Every ${interval} days on ${day}`;
         } else if (interval === 1) {
             text = 'Every day';

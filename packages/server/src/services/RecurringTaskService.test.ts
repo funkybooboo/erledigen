@@ -46,6 +46,7 @@ class FakeTaskRepository {
 class FakeRecurringTaskRepository {
     store = new Map<string, RecurringTask>();
     stats = new Map<string, RecurringTaskStats>();
+    upsertCount = 0;
     findById(id: string): Promise<RecurringTask | null> {
         return Promise.resolve(this.store.get(id) ?? null);
     }
@@ -56,6 +57,7 @@ class FakeRecurringTaskRepository {
         return Promise.resolve(this.stats.get(recurringTaskId) ?? null);
     }
     upsertStats(stats: RecurringTaskStats): Promise<void> {
+        this.upsertCount++;
         this.stats.set(stats.recurringTaskId, stats);
         return Promise.resolve();
     }
@@ -352,6 +354,26 @@ describe('RecurringTaskService', () => {
             expect(stats.lastCompletedDate).toBe('2026-03-16');
         });
 
+        it('adjacency bridges pre-start instances after a forward startDate edit', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            // Every 3 days starting 2026-03-04, then the template's start
+            // was edited forward to 2026-03-13, stranding the 03-07 instance
+            // before the new start.
+            const rt = makeRecurringTask({ id: 'rt-e', interval: 3, startDate: '2026-03-13' });
+            recurringRepo.store.set(rt.id, rt);
+            seed(taskRepo, rt.id, '2026-03-07', true);
+            seed(taskRepo, rt.id, '2026-03-13', true);
+
+            const stats = await makeService(recurringRepo, taskRepo).computeStats(rt.id);
+            // 03-13 is the (new) start and on-grid; 03-07 counts as adjacent
+            // only when the walk from a pre-start date lands on the start
+            // itself. The old negative-modulo bug returned a phantom
+            // pre-start occurrence (2026-03-10) and broke the streak.
+            expect(stats.currentStreak).toBe(2);
+            expect(stats.longestStreak).toBe(2);
+        });
+
         it('returns zeroed stats for a template with no instances', async () => {
             const taskRepo = new FakeTaskRepository();
             const recurringRepo = new FakeRecurringTaskRepository();
@@ -366,6 +388,42 @@ describe('RecurringTaskService', () => {
                 totalCompletions: 0,
                 lastCompletedDate: null,
             });
+        });
+
+        it('coalesces concurrent computations into a single upsert', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            const rt = makeRecurringTask({ id: 'rt-c', startDate: '2026-03-10' });
+            recurringRepo.store.set(rt.id, rt);
+            seed(taskRepo, rt.id, '2026-03-14', true);
+            const service = makeService(recurringRepo, taskRepo);
+
+            const [a, b] = await Promise.all([
+                service.computeStats(rt.id),
+                service.computeStats(rt.id),
+            ]);
+            // Both callers share one computation (and one DB write).
+            expect(a).toBe(b);
+            expect(recurringRepo.upsertCount).toBe(1);
+        });
+
+        it('does not rewrite stored stats when nothing changed', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            const rt = makeRecurringTask({ id: 'rt-c', startDate: '2026-03-10' });
+            recurringRepo.store.set(rt.id, rt);
+            seed(taskRepo, rt.id, '2026-03-14', true);
+            const service = makeService(recurringRepo, taskRepo);
+
+            await service.computeStats(rt.id); // first read persists
+            expect(recurringRepo.upsertCount).toBe(1);
+            await service.computeStats(rt.id); // steady state: no rewrite
+            expect(recurringRepo.upsertCount).toBe(1);
+
+            seed(taskRepo, rt.id, '2026-03-15', true); // "today" completion
+            const stats = await service.computeStats(rt.id);
+            expect(stats.currentStreak).toBe(2);
+            expect(recurringRepo.upsertCount).toBe(2);
         });
 
         it('throws NotFoundError for an unknown template', async () => {

@@ -73,10 +73,17 @@ export function nextOccurrenceIso(rt: RecurringTask, afterIso: string): string |
 }
 
 /**
- * Whether a calendar date satisfies the template's schedule. The date is
- * assumed to be on or after the template's start date (callers clamp).
+ * Whether a calendar date satisfies the template's schedule.
+ *
+ * A date strictly before the template's start date is never an occurrence,
+ * whatever the interval math says. This matters because callers do NOT
+ * always clamp: `nextOccurrenceIso` walks from instance dates, and an
+ * instance can predate the template after its startDate is edited forward
+ * -- JS modulo on a negative day count (-3 % 3 === 0) would otherwise count
+ * pre-start dates as on-grid and corrupt streak adjacency.
  */
 function isOccurrence(rt: RecurringTask, dateKey: string): boolean {
+    if (dateKey < rt.startDate) return false;
     const interval = rt.interval > 0 ? rt.interval : 1;
     const start = rt.startDate;
 

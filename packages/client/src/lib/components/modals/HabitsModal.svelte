@@ -6,6 +6,7 @@
         recurringTaskStore,
         taskStore,
         preferencesStore,
+        uiStore,
     } from '$lib/stores';
     import { Icon } from 'svelte-icons-pack';
     import { LuFlame, LuPencil, LuPlus, LuRepeat, LuTrash2 } from 'svelte-icons-pack/lu';
@@ -177,7 +178,7 @@
 
     async function deleteHabit(habit: RecurringTask) {
         if (preferencesStore.deleteConfirmation === 'confirm') {
-            if (!window.confirm(`Delete habit "${habit.text}"?`)) return;
+            if (!(await uiStore.confirm(`Delete habit "${habit.text}"?`))) return;
         }
         await recurringTaskStore.remove(habit.id);
         notificationStore.push('Habit deleted -- existing instances are kept', {

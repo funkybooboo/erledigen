@@ -32,7 +32,11 @@
                 <span class="notification-icon">{@html iconSvg(notification.iconType)}</span>
                 <span class="notification-message">{notification.message}</span>
                 {#if notification.action}
-                    <button class="notification-action" onclick={notification.action.fn} use:tooltip={{ label: notification.action.label, shortcut: 'undo' }}>
+                    <button
+                        class="notification-action"
+                        onclick={() => notificationStore.runAction(notification.id)}
+                        use:tooltip={{ label: notification.action.label, shortcut: 'undo' }}
+                    >
                         {notification.action.label}
                     </button>
                 {/if}

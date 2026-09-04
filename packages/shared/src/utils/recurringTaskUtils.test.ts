@@ -286,5 +286,32 @@ describe('generateOccurrences', () => {
             // No Feb 31 -> next lands on Mar 31.
             expect(nextOccurrenceIso(rt, '2026-01-31')).toBe('2026-03-31');
         });
+
+        it('never returns a date before the template start (edited startDate)', () => {
+            // Instances can predate the template after its startDate is
+            // edited forward. Negative day counts hit JS modulo pitfalls
+            // (-3 % 3 === 0), which without the pre-start guard would make
+            // 2026-02-26 look on-grid for an every-3-days schedule starting
+            // 2026-03-01. The next occurrence must be the start itself.
+            const every3 = makeTask({ frequency: 'daily', interval: 3, startDate: '2026-03-01' });
+            expect(nextOccurrenceIso(every3, '2026-02-25')).toBe('2026-03-01');
+
+            // Same pitfall for even intervals (-4 % 2 === 0).
+            const every2 = makeTask({ frequency: 'daily', interval: 2, startDate: '2026-03-01' });
+            expect(nextOccurrenceIso(every2, '2026-02-24')).toBe('2026-03-01');
+        });
+
+        it('skips pre-start weekdays that match daysOfWeek', () => {
+            // Every Friday starting 2026-03-06; 2026-02-27 is also a Friday
+            // and satisfies the week grid (-7 % 7 === 0) but predates the
+            // start, so the walk must continue to 2026-03-06.
+            const rt = makeTask({
+                frequency: 'weekly',
+                interval: 1,
+                daysOfWeek: [5],
+                startDate: '2026-03-06',
+            });
+            expect(nextOccurrenceIso(rt, '2026-02-20')).toBe('2026-03-06');
+        });
     });
 });

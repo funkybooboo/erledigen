@@ -179,7 +179,7 @@ The table below is the target inventory. Repository adapters (in-memory + SQLite
 
 The command palette (Cmd/Ctrl+K, or `/`) has two modes:
 
-- **Plain text** -> fuzzy search across all tasks (title, tags). Results scroll the day list to the matching task on selection.
+- **Plain text** -> search across all tasks (text, notes, tags; substring match). Results scroll the day list to the matching task on selection, and arrow keys move the selection.
 - **`/` prefix** -> command mode. `/add <text>` creates a task for today -- and a trailing recurrence phrase ("water plants every friday at 9am") creates a habit instead. The command registry in `SearchModal` is extensible; the full command set (`/go`, `/filter`, `/move`, ...) is planned for v0.5.0+ of the roadmap.
 
 ---

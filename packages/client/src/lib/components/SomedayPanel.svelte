@@ -164,7 +164,7 @@
         const msg = taskCount > 0
             ? `Delete "${group.name}" and its ${taskCount} task${taskCount !== 1 ? 's' : ''}? This cannot be undone.`
             : `Delete "${group.name}"? This cannot be undone.`;
-        if (!window.confirm(msg)) return;
+        if (!(await uiStore.confirm(msg))) return;
 
         for (const task of [...tasks]) {
             await taskStore.remove(task.id);

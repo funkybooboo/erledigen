@@ -2,7 +2,7 @@
     import { tick } from 'svelte';
     import { notificationStore } from '$lib/stores';
     import { TASK_CONSTRAINTS, describeRecurrence, parseRecurrence } from '@erledigen/shared';
-    import { createFromText } from '$lib/createFromText';
+    import { createFromText, habitCreatedText } from '$lib/createFromText';
     import { Icon } from 'svelte-icons-pack';
     import { LuCircle, LuRepeat } from 'svelte-icons-pack/lu';
     import { tooltip } from '$lib/tooltip';
@@ -16,6 +16,13 @@
     let text = $state('');
     let inputEl: HTMLInputElement;
 
+    /** Focus this input from outside -- the global add-task binding (n/a)
+     *  routes here through uiStore.requestAddInputFocus instead of reaching
+     *  into section DOM from the layout. */
+    export function focusInput(): void {
+        inputEl?.focus();
+    }
+
     // Live TeuxDeux-style detection: a trailing recurrence phrase turns the
     // input into a habit. Parsed reactively so the hint updates as you type.
     let parsed = $derived(text.trim() ? parseRecurrence(text.trim()) : null);
@@ -27,11 +34,16 @@
         if (!value) return;
 
         const result = await createFromText(value, { date, someDayGroupId });
-        if (!result) return;
+        if (!result) {
+            // Creation failed (network/server). The text is kept so the
+            // user can retry; the toast says what happened.
+            notificationStore.push('Could not create -- the text is kept', { kind: 'error' });
+            return;
+        }
         text = '';
 
         if (result.kind === 'habit') {
-            notificationStore.push(`Habit created -- ${describeRecurrence(result.schedule)}`, {
+            notificationStore.push(habitCreatedText(result.schedule), {
                 kind: 'success',
             });
             // Flash the instance on this day, matching the plain-task path.
