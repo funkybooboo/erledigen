@@ -60,7 +60,7 @@ A cornerstone of our architecture is the **adapter pattern**. This pattern allow
 ### Benefits of the Adapter Pattern
 
 *   **Flexibility**: We can easily swap out implementations without changing our application's code. For example, the `STORAGE_ADAPTER` env var swaps the in-memory repositories for SQLite-backed ones (see [ADR-001](decisions/ADR-001-sqlite-raw-sql-persistence.md)) -- no application code changes.
-*   **Testability**: We can easily mock our dependencies in our tests. For example, we can use a `MockHttpClient` to simulate API calls.
+*   **Testability**: We can easily substitute our dependencies in tests. For example, the same contract suites run against the in-memory repositories and a fresh `:memory:` SQLite database (see the contract-test pattern in [testing.md](../standards/testing.md)) -- no mocks required.
 *   **Maintainability**: The separation of concerns makes our code easier to understand, maintain, and reason about.
 
 ## Dependency Injection

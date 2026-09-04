@@ -125,7 +125,7 @@ All of the following must pass before merging (CI enforces them; see
 4. Biome lint/format
 5. TypeScript strict type-check
 6. Secret scan + link check + spell check
-7. Build + client bundle-size budget (512KB)
+7. Build + client bundle-size budget (576 KiB, browser payload)
 
 Accessibility and performance suites are planned (axe-core integration is on
 the roadmap); the gates above are what is enforced today.
