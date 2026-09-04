@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/sveltekit';
 import DaySection from '$lib/components/DaySection.svelte';
+import { container } from '$lib/container';
 import {
     mockCompletedTask,
     mockOverdueTask,
@@ -26,11 +27,17 @@ export const Default: Story = {
     },
 };
 
+// The component marks a section "today" when its key equals the local
+// date (dateProvider), so derive the story's key the same way --
+// `new Date().toISOString()` is UTC and lags the local date in the
+// evening for negative UTC offsets.
+const todayKey = container.dateProvider.today();
+
 export const Today: Story = {
     args: {
         id: 'day-today',
-        dateStr: new Date().toISOString().split('T')[0],
-        label: 'Today - April 27, 2026',
+        dateStr: todayKey,
+        label: `Today - ${todayKey}`,
         tasks: [mockTask, mockCompletedTask, mockTimeTask],
     },
 };
