@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+# Type-check before pushing. Commits stay fast (pre-commit runs gitleaks +
+# lint-staged); type errors are still caught locally instead of surfacing
+# on a red CI run.
+bun run type-check
