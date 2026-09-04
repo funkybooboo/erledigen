@@ -138,8 +138,12 @@
 
     function handleKeydown(e: KeyboardEvent) {
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-            e.preventDefault();
-            moveSelection(e.key === 'ArrowDown' ? 1 : -1);
+            // Intercept only when options are rendered; with no results the
+            // arrows keep moving the caret naturally in the input.
+            if (optionCount > 0) {
+                e.preventDefault();
+                moveSelection(e.key === 'ArrowDown' ? 1 : -1);
+            }
             return;
         }
         if (e.key === 'Enter') {
