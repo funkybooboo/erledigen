@@ -71,6 +71,9 @@ function parseBindings(shortcuts: typeof SHORTCUTS): ParsedBinding[] {
         for (const binding of shortcut.bindings) {
             const tokens = binding.split(' ');
             parsed.push({
+                // Object.entries widens Record<ShortcutId, _> keys to
+                // string; SHORTCUTS' explicit Record<ShortcutId, Shortcut>
+                // typing makes the cast safe (no runtime behavior change).
                 id: id as ShortcutId,
                 tokens,
                 modifier: tokens.length === 1 && tokens[0].includes('{mod}'),

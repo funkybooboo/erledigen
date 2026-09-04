@@ -106,8 +106,14 @@ function deleteFocusedTask(): boolean {
     const task = getFocusedTask();
     if (!task) return false;
     const taskId = task.id;
-    async function doDelete(): Promise<void> {
-        const taskCopy = { ...task } as Task;
+    // A const arrow, not a hoisted function declaration: TS preserves the
+    // !task narrowing above into arrows created after the guard, so the
+    // clone below needs no type assertion.
+    const doDelete = async (): Promise<void> => {
+        // Clone at delete time: the store's copy can keep changing, but
+        // Undo must restore exactly the state the user saw when they
+        // deleted.
+        const taskCopy: Task = { ...task };
         const success = await taskStore.remove(taskId);
         if (success) {
             notificationStore.push('Task deleted', {
@@ -115,7 +121,7 @@ function deleteFocusedTask(): boolean {
                 action: { label: 'Undo', fn: () => taskStore.restore(taskCopy) },
             });
         }
-    }
+    };
     if (preferencesStore.deleteConfirmation === 'confirm') {
         void uiStore.confirm(`Delete "${task.text}"?`).then(ok => {
             if (ok) void doDelete();
@@ -132,7 +138,7 @@ function openModal(modal: Parameters<typeof uiStore.openModal>[0]): boolean {
 }
 
 /** Every shortcut in the registry, wired to its handler. The Record type
- *  makes an missing/extra entry a compile error. */
+ *  makes a missing/extra entry a compile error. */
 export const keyboardActions: Record<ShortcutId, KeyboardAction> = {
     focusNext: { run: () => moveFocus(1) },
     focusPrev: { run: () => moveFocus(-1) },
