@@ -247,8 +247,10 @@ export function handleGlobalKeydown(e: KeyboardEvent): void {
             if (match.status === 'action') {
                 const action = keyboardActions[match.id];
                 if (!isTypingTarget(e) || action.allowWhileTyping) {
-                    e.preventDefault();
-                    action.run();
+                    // Same contract as the non-modifier path: run() reports
+                    // whether the key was consumed; an unconsumed chord
+                    // keeps its browser default (e.g. native text undo).
+                    if (action.run()) e.preventDefault();
                 }
             }
         }
