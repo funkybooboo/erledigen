@@ -33,6 +33,9 @@ bun run scan-secrets
 step "Type-check (all packages)"
 bun run type-check
 
+step "Svelte check (a11y, unused CSS, runes misuse -- fails on warnings)"
+mise run svelte-check
+
 step "Unit tests (dockerized)"
 "$TOOLS_DIR/test-stack.sh" unit
 
