@@ -134,7 +134,7 @@ jobs:
             - name: Build all packages (+ bundle-size budget)
               # tools/build.sh builds shared/server/client and fails if the
               # browser payload in packages/client/build/client exceeds
-              # 512 KiB (MAX_CLIENT_BYTES to override).
+              # 576 KiB (MAX_CLIENT_BYTES to override).
               run: mise run build
 
     storybook-build:
