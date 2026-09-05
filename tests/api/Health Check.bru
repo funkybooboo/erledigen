@@ -24,12 +24,14 @@ tests {
     expect(res.getBody().data.status).to.equal("ok");
   });
 
-  test("should report uptime, version, database, and connections (ADR-005)", function() {
+  test("should report uptime, version, database, connections, and jobs (ADR-005)", function() {
     const data = res.getBody().data;
     expect(data.uptime).to.be.a("number");
     expect(data.version).to.be.a("string");
     expect(["sqlite", "memory"]).to.include(data.database.type);
     expect(data.connections.websocket).to.be.a("number");
+    expect(data.jobs.pending).to.be.a("number");
+    expect(data.jobs.running).to.be.a("number");
   });
 
   test("should echo a request ID (ADR-004)", function() {

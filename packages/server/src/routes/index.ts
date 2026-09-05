@@ -28,6 +28,7 @@ export function registerAllRoutes(server: HttpServer, container: Container): voi
         sqliteConnection: container.storageAdapter === 'sqlite' ? container.sqliteConnection : null,
         connectionManager: container.connectionManager,
         taskRepository: container.taskRepository,
+        jobQueue: container.jobQueue,
     };
 
     registerOpenApiRoutes(server);

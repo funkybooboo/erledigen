@@ -56,6 +56,10 @@ The relevant variables:
 | `LOG_LEVEL` | server | `debug` in dev, `info` in prod | Minimum log level |
 | `METRICS_ENABLED` | server | `true` | Expose `/api/metrics` (Prometheus text format) and record request metrics; `false` removes the endpoint (see ADR-005) |
 | `APP_VERSION` | server | `0.0.0` | Version reported by `/api/health` and the `erledigen_build_info` metric |
+| `JOB_POLL_INTERVAL_MS` | server | `1000` | Job runner poll interval (see ADR-002) |
+| `JOB_MAX_ATTEMPTS` | server | `3` | Attempts before a job is marked dead |
+| `JOB_RETRY_BASE_DELAY_MS` | server | `5000` | Backoff base: the Nth failed attempt retries after 2^N x this |
+| `JOB_TIMEOUT_MS` | server | `30000` | Per-attempt job handler timeout |
 | `VITE_API_URL` | client | `http://localhost:4000` | API server URL the browser uses |
 | `VITE_PORT` | client | `3000` | Client dev server port |
 

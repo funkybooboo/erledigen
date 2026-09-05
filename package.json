@@ -51,7 +51,7 @@
     },
     "lint-staged": {
         "*.{js,jsx,ts,tsx,svelte,json,jsonc,css}": "biome check --write --no-errors-on-unmatched",
-        "*.{js,jsx,ts,tsx,svelte,json,md,css,sh,toml,yml,yaml}": "cspell lint --no-must-find-files"
+        "*.{js,jsx,ts,tsx,svelte,json,md,css,sh,toml,yml,yaml,sql}": "cspell lint --no-must-find-files"
     },
     "overrides": {
         "picomatch": "^4.0.4",
