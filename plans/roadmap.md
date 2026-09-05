@@ -4,6 +4,43 @@ This document outlines the development roadmap for Erledigen. We use semantic ve
 
 ---
 
+## Where we stand (2026-09-05)
+
+Verified against the tree at `73f459d` (post-merge audit; all CI gates
+green).
+
+- **Shipped complete:** v0.1.0, v0.2.0, v0.3.0, v0.4.0, v0.4.1.
+- **In flight, with remaining scope:**
+    - v0.5.0 -- `J`/`K` section jumps, `r`/`m`/`t` per-task actions,
+      redo, natural-language date parsing, remaining palette commands.
+    - v0.6.0 -- priority sort mode, date-range filter, mobile.
+      (Drag-and-drop was removed; design kept in the section.)
+    - v0.7.0 -- storage half done (SQLite adapter, migrations,
+      contract tests, `UserPreferences` persistence); remaining:
+      structured logging, metrics, enhanced health, export/import.
+    - v0.8.0 -- recurring tasks + streaks shipped on-demand (no job
+      queue); the rollover toggle is inert until rollover ships;
+      remaining: `JobQueue`, rollover, trash purge.
+    - v0.9.0 -- habits + calendar done; remaining: Kanban board,
+      habit heatmap, holidays, summary sections.
+- **Partial:** v0.11.0 (design system, theme system, delete behavior
+  shipped), v0.12.0 (ARIA, focus management, skip link shipped).
+- **Not started:** v0.10.0 (markdown notes), v0.13.0 (i18n), v0.14.0
+  (calendar time-grid).
+
+Features have shipped out of release order throughout v0.x (SQLite and
+recurring tasks are the big ones) -- treat the sections below as a
+feature catalog and choose the next release deliberately, not by
+number.
+
+**Current focus (chosen 2026-09-05):** v0.8.0 automation core plus the
+observability slice it needs -- ADR-002 job queue, task rollover,
+trash purge; ADR-004/005 minimal core (JSON logs, request IDs,
+`MetricsAdapter`, job + HTTP metrics); enhanced health endpoint.
+Export/import follows as the next phase after this one.
+
+---
+
 ## v0.1.0: Foundations
 
 This release focuses on establishing the project's foundation, including the core architecture, development environment, and documentation.
@@ -338,7 +375,7 @@ Refactoring pass to fix API mismatches, extract shared types/constants/utilities
 
 This release makes Erledigen fully operable without a mouse, and finalizes the complete keyboard shortcut system.
 
-**Status:** Largely shipped. A single shortcut registry (`packages/client/src/lib/keybindings.ts`) now drives both the Help modal and hover tooltips on every UI action. Implemented: `j`/`k` + arrows (task focus), `n`/`a`, `Enter` (inline edit), `e` (detail), `Space` (complete), `d` (delete), `1`/`2`/`3`/`0` (priority tags), `g t` (today) + `g s/p/h/c/f/x/o` (modals), `{mod}+K` / `/` (search palette), `?` (help), `{mod}+\` (Someday panel), `Esc`, `{mod}+Z` (undo). Not yet implemented: `J`/`K` section jumps, `r`/`m`/`t` per-task actions. The palette has search mode and `/add` (with natural-language habit phrases); the rest of the command list below is still planned.
+**Status:** Largely shipped. A single shortcut registry (`packages/client/src/lib/keybindings.ts`) now drives both the Help modal and hover tooltips on every UI action. Implemented: `j`/`k` + arrows (task focus), `n`/`a`, `Enter` (inline edit), `e` (detail), `Space` (complete), `d` (delete), `1`/`2`/`3`/`0` (priority tags), `g t` (today) + `g s/p/h/c/f/x/o` (modals), `{mod}+K` / `/` (search palette), `?` (help), `{mod}+\` (Someday panel), `Esc`, `{mod}+Z` (undo). Not yet implemented: `J`/`K` section jumps, `r`/`m`/`t` per-task actions, `{mod}+Shift+Z` (redo). The palette has search mode and `/add` (with natural-language habit phrases); the rest of the command list below is still planned.
 
 ### Complete Keyboard Shortcut Reference
 
@@ -414,7 +451,7 @@ The palette has two modes distinguished by the first character:
 - The palette command list is extensible -- new commands are registered by adding to the command registry in `packages/shared`.
 
 ### Additional Checklist
-- [x] Vim + arrow key navigation: both work simultaneously throughout the app (day list; Someday panel not yet keyboard-navigable).
+- [x] Vim + arrow key navigation: both work simultaneously throughout the app, in the day list and the Someday panel alike (focus navigation and the add-task target follow the focused task's home).
 - [ ] All shortcuts in the table above implemented and working (`J`/`K`, `r`, `m`, `t` remain).
 - [x] Command palette: search mode and command mode (`/` prefix, currently `/add`) both functional.
 - [ ] Natural language date parsing: today, tomorrow, next monday, march 15, in 3 days.
@@ -447,6 +484,8 @@ The palette has two modes distinguished by the first character:
 
 This release polishes the three-panel layout, completes drag-and-drop interactions, implements lazy loading and view modes, and adds responsive behavior.
 
+**Status:** Layout polish shipped (true infinite scroll, resizable + collapsible Someday panel, filter persistence). Drag-and-drop was removed in the frontend simplification (design kept below). Remaining: priority sort mode, date-range filter, mobile/bottom sheets.
+
 ### Drag-and-Drop (from v0.5.0)
 
 > **Removed:** drag-and-drop (and the `svelte-dnd-action` dependency) was removed in the frontend simplification (commit `2f3a700`) in favor of true infinite scroll. The items below are kept as the design for whenever drag returns.
@@ -471,7 +510,7 @@ This release polishes the three-panel layout, completes drag-and-drop interactio
 
 - [ ] **Priority view mode:** Accessible through the Filter modal as a sort option. When "Priority" sort is active, tasks within each day section are ordered `#p1` -> `#p2` -> `#p3` -> untagged, with a subtle left-border accent per priority level.
 - [ ] **Date range filter:** Add date range picker to the Filter modal. Filters tasks by date range (from/to), applies to day list and Someday simultaneously.
-- [x] **Filter persistence:** Configurable in Settings (default: persist across sessions in `UserPreferences`).
+- [x] **Filter persistence:** Active filters persist across sessions in `UserPreferences`. Always on -- the planned "start fresh" Settings toggle is not implemented.
 
 ### Responsiveness
 
@@ -506,6 +545,8 @@ This release polishes the three-panel layout, completes drag-and-drop interactio
 ## v0.7.0: Persistence, Observability & Data I/O
 
 This release implements persistent storage, structured logging and metrics, multi-format data export, and import from popular task managers.
+
+**Status:** The storage half is shipped: SQLite adapter, raw-SQL migrations, adapter contract tests, `STORAGE_ADAPTER` config, and `UserPreferences` persistence (ADR-001/ADR-003). A basic `/api/health` returning `{ status: 'ok' }` exists. Remaining: structured logging, request IDs, metrics (ADR-004/ADR-005), the enhanced health endpoint, and export/import with its Settings UI.
 
 ### Storage
 - [ ] **I/O Abstraction Layer:** Solidify the adapter pattern so the application core is independent of the data source.
@@ -608,6 +649,8 @@ This release implements persistent storage, structured logging and metrics, mult
 ## v0.8.0: Automation & Background Jobs
 
 This release introduces the automation features that make Erledigen smart, backed by a persistent job queue.
+
+**Status:** Recurring tasks and streak tracking shipped WITHOUT the job queue: generation is on-demand and idempotent (DayList mount/scroll plus `POST /api/recurring-tasks/generate-all`), and stats are recomputed from instances on read. The Settings "auto-rollover" toggle and the per-task `rolloverEnabled` field persist but are inert -- no rollover logic moves tasks yet. Remaining: `JobQueue`/`SqliteJobQueue`/`JobRunner` (ADR-002), task rollover, trash purge.
 
 ### Background Job System
 - [ ] **`JobQueue` interface** in `packages/server/src/adapters/jobs/` (see [ADR-002](../docs/devs/architecture/decisions/ADR-002-sqlite-backed-job-queue.md)).
