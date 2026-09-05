@@ -223,6 +223,35 @@ export class SqliteTaskRepository implements TaskRepository {
         return row?.n ?? 0;
     }
 
+    async findRolloverCandidates(today: string): Promise<Task[]> {
+        return this.select(
+            `WHERE deleted_at IS NULL
+             AND completed = 0
+             AND rollover_enabled = 1
+             AND recurring_task_id IS NULL
+             AND date IS NOT NULL
+             AND date < ?
+             ORDER BY date ASC, created_at ASC`,
+            [today],
+        );
+    }
+
+    async rolloverTask(
+        id: string,
+        nextDate: string,
+        originalScheduledDate: string,
+        daysLate: number,
+    ): Promise<Task | null> {
+        const result = this.db
+            .prepare(
+                `UPDATE tasks SET date = ?, original_scheduled_date = ?, days_late = ?,
+                 updated_at = ? WHERE id = ? AND deleted_at IS NULL`,
+            )
+            .run(nextDate, originalScheduledDate, daysLate, this.dateProvider.timestamp(), id);
+        if (result.changes === 0) return null;
+        return this.findById(id);
+    }
+
     async findSomeday(): Promise<Task[]> {
         return this.select('WHERE deleted_at IS NULL AND date IS NULL ORDER BY created_at ASC');
     }

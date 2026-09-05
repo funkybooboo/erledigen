@@ -56,7 +56,7 @@ export function registerTaskRoutes(
             const raw = await req.json<unknown>();
             const originClientId = req.headers['x-client-id'];
             const input = parseBody(CreateTaskSchema, raw) as CreateTaskInput;
-            const task = await taskRepo.create(input);
+            const task = await taskService.createTask(input);
             eventBus.publish('task:created', { task }, originClientId);
             return successResponse(task, 201);
         }, logger),

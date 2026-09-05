@@ -168,6 +168,34 @@ export class InMemoryTaskRepository implements TaskRepository {
         return this.activeTasks().length;
     }
 
+    async findRolloverCandidates(today: string): Promise<Task[]> {
+        return this.activeTasks()
+            .filter(
+                task =>
+                    !task.completed &&
+                    task.rolloverEnabled &&
+                    task.recurringTaskId === null &&
+                    task.date !== null &&
+                    task.date < today,
+            )
+            .sort((a, b) => (a.date ?? '').localeCompare(b.date ?? ''));
+    }
+
+    async rolloverTask(
+        id: string,
+        nextDate: string,
+        originalScheduledDate: string,
+        daysLate: number,
+    ): Promise<Task | null> {
+        const task = this.tasks.get(id);
+        if (task === undefined || task.deletedAt !== null) return null;
+        task.date = nextDate;
+        task.originalScheduledDate = originalScheduledDate;
+        task.daysLate = daysLate;
+        task.updatedAt = this.dateProvider.timestamp();
+        return { ...task };
+    }
+
     async deleteAll(): Promise<void> {
         this.tasks.clear();
         this.idCounter = 0;

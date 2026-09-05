@@ -406,4 +406,85 @@ export function runTaskRepositoryContractTests(makeRepo: () => TaskRepository): 
             expect(await repo.count()).toBe(0);
         });
     });
+
+    describe('findRolloverCandidates', () => {
+        test('returns only overdue incomplete rollover-enabled scheduled tasks', async () => {
+            const repo = makeRepo();
+            await repo.create({ text: 'Eligible', date: '2026-09-03', rolloverEnabled: true });
+            await repo.create({ text: 'Too recent', date: '2026-09-05', rolloverEnabled: true });
+            await repo.create({ text: 'Rollover off', date: '2026-09-03', rolloverEnabled: false });
+            await repo.create({ text: 'Someday', date: null, rolloverEnabled: true });
+            const done = await repo.create({
+                text: 'Completed',
+                date: '2026-09-03',
+                rolloverEnabled: true,
+            });
+            await repo.update(done.id, { completed: true });
+            const instance = await repo.create({
+                text: 'Missed habit',
+                date: '2026-09-03',
+                rolloverEnabled: true,
+                recurringTaskId: 'rt_1',
+                instanceDate: '2026-09-03',
+            });
+
+            const candidates = await repo.findRolloverCandidates('2026-09-05');
+
+            expect(candidates.map(task => task.text)).toEqual(['Eligible']);
+            // Sanity: the recurring instance and the rest stay put.
+            expect(await repo.findById(instance.id)).not.toBeNull();
+        });
+
+        test('excludes soft-deleted tasks', async () => {
+            const repo = makeRepo();
+            const trashed = await repo.create({
+                text: 'Deleted overdue',
+                date: '2026-09-03',
+                rolloverEnabled: true,
+            });
+            await repo.delete(trashed.id);
+
+            expect(await repo.findRolloverCandidates('2026-09-05')).toEqual([]);
+        });
+    });
+
+    describe('rolloverTask', () => {
+        test('moves the date and records rollover bookkeeping', async () => {
+            const repo = makeRepo();
+            const task = await repo.create({
+                text: 'Late',
+                date: '2026-09-03',
+                rolloverEnabled: true,
+            });
+
+            const rolled = await repo.rolloverTask(task.id, '2026-09-05', '2026-09-03', 2);
+
+            expect(rolled?.date).toBe('2026-09-05');
+            expect(rolled?.originalScheduledDate).toBe('2026-09-03');
+            expect(rolled?.daysLate).toBe(2);
+            expect(rolled?.completed).toBe(false);
+        });
+
+        test('preserves the first original date on repeat rollovers', async () => {
+            const repo = makeRepo();
+            const task = await repo.create({
+                text: 'Serially late',
+                date: '2026-09-02',
+                rolloverEnabled: true,
+            });
+
+            await repo.rolloverTask(task.id, '2026-09-04', '2026-09-02', 2);
+            // The service preserves a non-null originalScheduledDate; the
+            // repository just writes what it is told.
+            const rolled = await repo.rolloverTask(task.id, '2026-09-05', '2026-09-02', 3);
+
+            expect(rolled?.originalScheduledDate).toBe('2026-09-02');
+            expect(rolled?.daysLate).toBe(3);
+        });
+
+        test('returns null for an unknown id', async () => {
+            const repo = makeRepo();
+            expect(await repo.rolloverTask('missing', '2026-09-05', '2026-09-04', 1)).toBeNull();
+        });
+    });
 }

@@ -1,13 +1,14 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
     import { preferencesStore } from '$lib/stores';
-    import { isValidTimeZone } from '@erledigen/shared';
+    import { isValidTimeZone, type RolloverTriggerTime } from '@erledigen/shared';
     import { onMount } from 'svelte';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
     let themeSelection = $state(preferencesStore.theme);
     let rolloverEnabled = $state(preferencesStore.rolloverEnabled);
+    let rolloverTriggerTime = $state(preferencesStore.rolloverTriggerTime);
     let deleteConfirmation = $state(preferencesStore.deleteConfirmation);
     let timeFormat = $state(preferencesStore.timeFormat);
     let timezoneInput = $state((preferencesStore.timezone ?? '').toString());
@@ -20,6 +21,7 @@
     $effect(() => {
         themeSelection = preferencesStore.theme;
         rolloverEnabled = preferencesStore.rolloverEnabled;
+        rolloverTriggerTime = preferencesStore.rolloverTriggerTime;
         deleteConfirmation = preferencesStore.deleteConfirmation;
         timeFormat = preferencesStore.timeFormat;
         timezoneInput = (preferencesStore.timezone ?? '').toString();
@@ -57,6 +59,11 @@
     function handleRolloverChange(e: Event) {
         const value = (e.target as HTMLInputElement).checked;
         preferencesStore.save({ rolloverEnabled: value });
+    }
+
+    function handleRolloverTriggerChange(e: Event) {
+        const value = (e.target as HTMLSelectElement).value as RolloverTriggerTime;
+        preferencesStore.save({ rolloverTriggerTime: value });
     }
 
     function handleDeleteConfirmationChange(e: Event) {
@@ -154,6 +161,16 @@
                 <input type="checkbox" checked={rolloverEnabled} onchange={handleRolloverChange} id="rollover-enabled" />
                 <span>Auto-rollover incomplete tasks</span>
             </label>
+            {#if rolloverEnabled}
+                <label class="field">
+                    <span class="label" id="rollover-trigger-label">Rollover time</span>
+                    <select class="select" value={rolloverTriggerTime} onchange={handleRolloverTriggerChange} aria-labelledby="rollover-trigger-label" id="rollover-trigger-select">
+                        <option value="midnight">At midnight (server time)</option>
+                        <option value="9am">At 9am (server time)</option>
+                        <option value="manual">Only at server startup</option>
+                    </select>
+                </label>
+            {/if}
             <label class="field">
                 <span class="label" id="delete-confirm-label">Delete confirmation</span>
                 <select class="select" value={deleteConfirmation} onchange={handleDeleteConfirmationChange} aria-labelledby="delete-confirm-label" id="delete-confirm-select">

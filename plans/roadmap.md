@@ -15,12 +15,13 @@ green).
       redo, natural-language date parsing, remaining palette commands.
     - v0.6.0 -- priority sort mode, date-range filter, mobile.
       (Drag-and-drop was removed; design kept in the section.)
-    - v0.7.0 -- storage half done (SQLite adapter, migrations,
-      contract tests, `UserPreferences` persistence); remaining:
-      structured logging, metrics, enhanced health, export/import.
-    - v0.8.0 -- recurring tasks + streaks shipped on-demand (no job
-      queue); the rollover toggle is inert until rollover ships;
-      remaining: `JobQueue`, rollover, trash purge.
+    - v0.7.0 -- storage + observability shipped (SQLite, migrations,
+      contract tests, preferences persistence, JSON logs, request IDs,
+      `/api/metrics`, enhanced health); remaining: export/import.
+    - v0.8.0 -- shipped: job queue + runner (ADR-002), task rollover
+      (midnight/9am/manual trigger times, startup catch-up), trash
+      purge; recurring generation stays on-demand by design (no
+      generate-recurring job).
     - v0.9.0 -- habits + calendar done; remaining: Kanban board,
       habit heatmap, holidays, summary sections.
 - **Partial:** v0.11.0 (design system, theme system, delete behavior
@@ -33,11 +34,11 @@ recurring tasks are the big ones) -- treat the sections below as a
 feature catalog and choose the next release deliberately, not by
 number.
 
-**Current focus (chosen 2026-09-05):** v0.8.0 automation core plus the
-observability slice it needs -- ADR-002 job queue, task rollover,
-trash purge; ADR-004/005 minimal core (JSON logs, request IDs,
-`MetricsAdapter`, job + HTTP metrics); enhanced health endpoint.
-Export/import follows as the next phase after this one.
+**Current focus (2026-09-05): shipped as PRs #6/#7/#8 -- v0.8.0
+automation core plus the observability slice (ADR-002 job queue, task
+rollover, trash purge; ADR-004/005 JSON logs, request IDs, metrics,
+enhanced health). Next phase after merge: export/import (v0.7.0
+remainder).
 
 ---
 
@@ -546,7 +547,12 @@ This release polishes the three-panel layout, completes drag-and-drop interactio
 
 This release implements persistent storage, structured logging and metrics, multi-format data export, and import from popular task managers.
 
-**Status:** The storage half is shipped: SQLite adapter, raw-SQL migrations, adapter contract tests, `STORAGE_ADAPTER` config, and `UserPreferences` persistence (ADR-001/ADR-003). A basic `/api/health` returning `{ status: 'ok' }` exists. Remaining: structured logging, request IDs, metrics (ADR-004/ADR-005), the enhanced health endpoint, and export/import with its Settings UI.
+**Status:** Storage and observability shipped (PRs #6/#7/#8): SQLite
+adapter, raw-SQL migrations, adapter contract tests, `STORAGE_ADAPTER`
+config, `UserPreferences` persistence (ADR-001/ADR-003), structured JSON
+logging + request IDs (ADR-004), `/api/metrics` with the full metric
+catalog (ADR-005, prefix per ADR-007), and the enhanced health endpoint.
+Remaining: export/import (all formats) with its Settings UI.
 
 ### Storage
 - [ ] **I/O Abstraction Layer:** Solidify the adapter pattern so the application core is independent of the data source.
@@ -571,25 +577,25 @@ This release implements persistent storage, structured logging and metrics, mult
     - All behavioral toggles (rollover, completion animation, delete confirmation, etc.)
 
 ### Structured Logging
-- [ ] **JSON log format:** Upgrade `ConsoleLogger` to emit structured JSON when `LOG_FORMAT=json` (production default), human-readable text when `LOG_FORMAT=text` (development default) (see [ADR-004](../docs/devs/architecture/decisions/ADR-004-structured-json-logging.md)).
-- [ ] **Request ID middleware:** Generate a `requestId` (UUID) per HTTP request. Attach to all logs in that request's scope via child logger pattern. Return as `X-Request-Id` response header.
-- [ ] **Request duration logging:** Log method, path, status code, and duration in ms for every HTTP request.
-- [ ] **Job-scoped logging:** Background jobs log with `jobId` and `jobType` in context.
-- [ ] **Child logger pattern:** `RequestLogger` wraps parent logger with default context (request ID, job ID). Services receive child loggers -- they don't manage correlation IDs.
-- [ ] **Error logging:** Errors always include `error.message` and `error.stack` in structured context.
+- [x] **JSON log format:** Upgrade `ConsoleLogger` to emit structured JSON when `LOG_FORMAT=json` (production default), human-readable text when `LOG_FORMAT=text` (development default) (see [ADR-004](../docs/devs/architecture/decisions/ADR-004-structured-json-logging.md)).
+- [x] **Request ID middleware:** Generate a `requestId` (UUID) per HTTP request. Attach to all logs in that request's scope via child logger pattern. Return as `X-Request-Id` response header.
+- [x] **Request duration logging:** Log method, path, status code, and duration in ms for every HTTP request.
+- [x] **Job-scoped logging:** Background jobs log with `jobId` and `jobType` in context.
+- [x] **Child logger pattern:** `RequestLogger` wraps parent logger with default context (request ID, job ID). Services receive child loggers -- they don't manage correlation IDs.
+- [x] **Error logging:** Errors always include `error.message` and `error.stack` in structured context.
 
 ### Metrics
-- [ ] **`MetricsAdapter` interface** in `packages/shared/src/adapters/metrics/` (see [ADR-005](../docs/devs/architecture/decisions/ADR-005-prometheus-metrics.md)).
-- [ ] **`PrometheusMetricsAdapter`:** In-memory counters, gauges, and histograms. Renders Prometheus text format on `/api/metrics`.
-- [ ] **`NullMetricsAdapter`:** No-op implementation for tests and `METRICS_ENABLED=false`.
-- [ ] **HTTP request metrics:** `erledigen_http_requests_total` (counter by method, path, status), `erledigen_http_request_duration_seconds` (histogram by method, path), `erledigen_http_requests_active` (gauge by method).
-- [ ] **Background job metrics:** `erledigen_jobs_total` (counter by type, status), `erledigen_job_duration_seconds` (histogram by type), `erledigen_jobs_pending` (gauge by type), `erledigen_jobs_running` (gauge).
-- [ ] **Application metrics:** `erledigen_tasks_total` (gauge), `erledigen_ws_connections_active` (gauge), `erledigen_uptime_seconds` (gauge), `erledigen_build_info` (gauge with version label).
-- [ ] **Path normalization:** Dynamic path segments (e.g., `/api/tasks/:id`) normalized to route patterns to prevent label explosion.
-- [ ] **Container wiring:** `container.metricsAdapter` -- `METRICS_ENABLED=true` (default) creates `PrometheusMetricsAdapter`, `false` creates `NullMetricsAdapter`.
+- [x] **`MetricsAdapter` interface** in `packages/shared/src/adapters/metrics/` (see [ADR-005](../docs/devs/architecture/decisions/ADR-005-prometheus-metrics.md)).
+- [x] **`PrometheusMetricsAdapter`:** In-memory counters, gauges, and histograms. Renders Prometheus text format on `/api/metrics`.
+- [x] **`NullMetricsAdapter`:** No-op implementation for tests and `METRICS_ENABLED=false`.
+- [x] **HTTP request metrics:** `erledigen_http_requests_total` (counter by method, path, status), `erledigen_http_request_duration_seconds` (histogram by method, path), `erledigen_http_requests_active` (gauge by method).
+- [x] **Background job metrics:** `erledigen_jobs_total` (counter by type, status), `erledigen_job_duration_seconds` (histogram by type), `erledigen_jobs_pending` (gauge by type), `erledigen_jobs_running` (gauge).
+- [x] **Application metrics:** `erledigen_tasks_total` (gauge), `erledigen_ws_connections_active` (gauge), `erledigen_uptime_seconds` (gauge), `erledigen_build_info` (gauge with version label).
+- [x] **Path normalization:** Dynamic path segments (e.g., `/api/tasks/:id`) normalized to route patterns to prevent label explosion.
+- [x] **Container wiring:** `container.metricsAdapter` -- `METRICS_ENABLED=true` (default) creates `PrometheusMetricsAdapter`, `false` creates `NullMetricsAdapter`.
 
 ### Health Endpoint
-- [ ] **Enhanced `/api/health`:** Rich response including `version`, `uptime`, `database` (type, path, size), `connections` (websocket count), `jobs` (pending, running counts).
+- [x] **Enhanced `/api/health`:** Rich response including `version`, `uptime`, `database` (type, path, size), `connections` (websocket count), `jobs` (pending, running counts).
 
 ### Export
 - [ ] **JSON** -- canonical format; lossless round-trip. All entities included.
@@ -650,24 +656,34 @@ This release implements persistent storage, structured logging and metrics, mult
 
 This release introduces the automation features that make Erledigen smart, backed by a persistent job queue.
 
-**Status:** Recurring tasks and streak tracking shipped WITHOUT the job queue: generation is on-demand and idempotent (DayList mount/scroll plus `POST /api/recurring-tasks/generate-all`), and stats are recomputed from instances on read. The Settings "auto-rollover" toggle and the per-task `rolloverEnabled` field persist but are inert -- no rollover logic moves tasks yet. Remaining: `JobQueue`/`SqliteJobQueue`/`JobRunner` (ADR-002), task rollover, trash purge.
+**Status:** Shipped (PRs #6/#7/#8). The job queue + runner (ADR-002) run
+rollover and trash purge; recurring task generation deliberately stays
+ON-DEMAND (not a job) -- DayList mount/scroll plus `POST
+/api/recurring-tasks/generate-all`. The Settings "auto-rollover" toggle
+and new trigger-time select (midnight / 9am / manual = startup-only)
+now drive the schedule; missed runs are caught up at server startup.
+New tasks default their `rolloverEnabled` from the app-wide preference
+(server-side, `TaskService.createTask`); the per-task override still
+wins. Recurring instances never roll (their occurrence date is fixed
+by `instanceDate`; missed-habit handling belongs to streaks).
 
 ### Background Job System
-- [ ] **`JobQueue` interface** in `packages/server/src/adapters/jobs/` (see [ADR-002](../docs/devs/architecture/decisions/ADR-002-sqlite-backed-job-queue.md)).
-- [ ] **`SqliteJobQueue` implementation:** SQLite-backed persistent job queue (same database as application data).
-- [ ] **`JobRunner` service:** Polls for pending jobs every 1 second (configurable via `JOB_POLL_INTERVAL_MS`). Processes jobs sequentially (single worker, concurrency=1).
-- [ ] **Job types:** `rollover`, `generate-recurring`, `purge-deleted`, `send-reminder` (stubbed for v2.2.0).
-- [ ] **Retry with exponential backoff:** Max 3 attempts (configurable). Base delay 5 seconds. Failed jobs marked `dead` after max attempts.
-- [ ] **Startup recovery:** On server start, any `running` jobs (from previous crash) are reset to `pending`. Recurring jobs are re-scheduled if not already queued.
-- [ ] **Configuration:** `JOB_POLL_INTERVAL_MS` (default: 1000), `JOB_MAX_ATTEMPTS` (default: 3), `JOB_TIMEOUT_MS` (default: 30000).
+- [x] **`JobQueue` interface** in `packages/server/src/adapters/jobs/` (see [ADR-002](../docs/devs/architecture/decisions/ADR-002-sqlite-backed-job-queue.md)).
+- [x] **`SqliteJobQueue` implementation:** SQLite-backed persistent job queue (same database as application data). An `InMemoryJobQueue` serves `STORAGE_ADAPTER=memory` runs; a shared contract suite keeps the two in parity.
+- [x] **`JobRunner` service:** Polls for pending jobs every 1 second (configurable via `JOB_POLL_INTERVAL_MS`). Processes jobs sequentially (single worker, concurrency=1).
+- [x] **Job types:** `rollover`, `purge-deleted` (`generate-recurring` intentionally stays on-demand, not a job; `send-reminder` stubbed for v2.2.0).
+- [x] **Retry with exponential backoff:** Max 3 attempts (configurable). Base delay 5 seconds (`2^attempts * base`). Failed jobs marked `dead` after max attempts.
+- [x] **Startup recovery:** On server start, any `running` jobs (from previous crash) are reset to `pending`. Missed daily runs are caught up immediately; recurring jobs are chain-scheduled by their handler.
+- [x] **Configuration:** `JOB_POLL_INTERVAL_MS` (default: 1000), `JOB_MAX_ATTEMPTS` (default: 3), `JOB_TIMEOUT_MS` (default: 30000), `JOB_RETRY_BASE_DELAY_MS` (default: 5000).
 
 ### Task Rollover
-- [ ] **Task rollover:**
+- [x] **Task rollover:**
     - Incomplete tasks with `rolloverEnabled: true` automatically move to the next day.
-    - `originalScheduledDate` is preserved; `daysLate` is calculated and displayed as an overdue badge.
-    - App-wide rollover default configurable in Settings (on/off, trigger time: midnight / 9am / manual).
-    - Per-task override via the task detail modal.
-- [ ] **Rollover job:** Scheduled daily at configured time (default: midnight). Processes all incomplete tasks where `rolloverEnabled=true` and `date < today`.
+    - `originalScheduledDate` is preserved (the FIRST planned date); `daysLate` is calculated on the server (a per-task overdue badge in the day list remains small UI polish).
+    - App-wide rollover default configurable in Settings (on/off, trigger time: midnight / 9am / manual -- manual means catch-up at server startup only).
+    - Per-task override via the task detail modal; new tasks default from the app-wide preference.
+    - Recurring instances never roll (see Status above).
+- [x] **Rollover job:** Scheduled daily at the configured time (default: midnight, server timezone). Processes all incomplete tasks where `rolloverEnabled=true` and `date < today`.
 
 ### Recurring Task Generation
 - [x] **Recurring tasks:**
@@ -680,7 +696,7 @@ This release introduces the automation features that make Erledigen smart, backe
 - [x] **Recurring generation:** `generateInstances` is idempotent (skips dates that already have an instance) and is triggered on demand -- DayList mount/scroll plus `POST /api/recurring-tasks/generate-all` -- instead of by a daily job. Other tabs are notified via the `recurringTask:generated` WebSocket event.
 
 ### Trash Purge
-- [ ] **Purge job:** Runs daily at 3am. Permanently deletes tasks where `deletedAt` is older than `PURGE_RETENTION_DAYS` (default: 7).
+- [x] **Purge job:** Runs daily at 3am. Permanently deletes tasks where `deletedAt` is older than `PURGE_RETENTION_DAYS` (default: 7).
 
 ### Streak Tracking
 - [x] **Streak tracking:** Current/longest streak and total completions shown as badges in the Habits modal (the GitHub-style heatmap remains planned).
@@ -696,16 +712,16 @@ This release introduces the automation features that make Erledigen smart, backe
 - [ADR-002](../docs/devs/architecture/decisions/ADR-002-sqlite-backed-job-queue.md): SQLite-backed job queue
 
 ### Definition of Done
-- `JobQueue` interface and `SqliteJobQueue` implementation tested.
-- `JobRunner` processes jobs with retry and exponential backoff.
-- Startup recovery resets orphaned `running` jobs.
-- Rollover moves incomplete tasks and tracks `daysLate`.
-- Recurring instances appear in the day list on the correct days.
-- Streak statistics update correctly on completion and missed days.
-- Trash purge runs daily and permanently deletes old soft-deleted tasks.
-- All automation logic has unit tests.
-- Rollover settings configurable and respected.
-- Job metrics visible on `/api/metrics`.
+- [x] `JobQueue` interface and `SqliteJobQueue` implementation tested.
+- [x] `JobRunner` processes jobs with retry and exponential backoff.
+- [x] Startup recovery resets orphaned `running` jobs.
+- [x] Rollover moves incomplete tasks and tracks `daysLate`.
+- [x] Recurring instances appear in the day list on the correct days.
+- [x] Streak statistics update correctly on completion and missed days.
+- [x] Trash purge runs daily and permanently deletes old soft-deleted tasks.
+- [x] All automation logic has unit tests.
+- [x] Rollover settings configurable and respected.
+- [x] Job metrics visible on `/api/metrics`.
 
 ---
 
@@ -946,15 +962,15 @@ The first stable, fully usable release of Erledigen. Goal: a complete daily driv
 
 - [ ] **Feature complete:** All v0.x features integrated and working end-to-end.
 - [x] **SQLite persistence:** All data persists reliably across restarts (ADR-001).
-- [ ] **Background jobs:** Rollover, recurring generation, trash purge run via persistent job queue (ADR-002).
-- [ ] **Structured logging:** JSON logs with request IDs in production (ADR-004).
-- [ ] **Metrics endpoint:** `/api/metrics` exposes Prometheus-format metrics (ADR-005).
-- [ ] **Rich health endpoint:** `/api/health` returns version, uptime, database status, connection counts.
+- [x] **Background jobs:** Rollover and trash purge run via the persistent job queue (ADR-002); recurring generation is on-demand by design.
+- [x] **Structured logging:** JSON logs with request IDs in production (ADR-004).
+- [x] **Metrics endpoint:** `/api/metrics` exposes Prometheus-format metrics (ADR-005).
+- [x] **Rich health endpoint:** `/api/health` returns version, uptime, database status, connection counts.
 - [ ] **Monitoring stack:** `docker-compose.monitoring.yml` ships with Prometheus + Grafana + Loki + Uptime Kuma (ADR-006).
 - [ ] **Full keyboard operation:** Every action reachable without a mouse. All shortcuts from v0.5.0 working.
 - [ ] **Command palette:** Search, commands (`/` prefix), natural language add/navigate all functional.
 - [ ] **Projects & Habits:** Fully functional project Kanban and habit tracking with streaks.
-- [ ] **Rollover automation:** Incomplete tasks roll over by default; overdue badges shown.
+- [x] **Rollover automation:** Incomplete tasks roll over by default; overdue indicators shown (a per-task days-late badge remains small UI polish).
 - [ ] **Tag system:** Full tag management -- colors, rename, merge, delete.
 - [ ] **Light & dark themes:** Polished and complete.
 - [ ] **Markdown notes:** Rich notes in task detail.

@@ -77,7 +77,15 @@ export default defineConfig({
                       // 600 rpm limiter would 429 the habits cleanup bursts
                       // (each test deletes ~90 generated instances) and
                       // fail later tests with phantom "missing" entities.
-                      env: { STORAGE_ADAPTER: 'memory', RATE_LIMIT_RPM: '10000' },
+                      // The job runner polls every JOB_POLL_INTERVAL_MS; the
+                      // huge interval keeps the boot-time rollover catch-up
+                      // from firing mid-suite and moving the past-date tasks
+                      // the specs seed (v0.8.0 automation).
+                      env: {
+                          STORAGE_ADAPTER: 'memory',
+                          RATE_LIMIT_RPM: '10000',
+                          JOB_POLL_INTERVAL_MS: '3600000',
+                      },
                   },
                   {
                       command: 'bun run --cwd packages/client dev',

@@ -22,6 +22,7 @@ interface PreferencesRow {
     some_day_panel_collapsed: number;
     some_day_panel_last_open_width: number;
     rollover_enabled: number;
+    rollover_trigger_time: string;
     show_empty_days: number;
     delete_confirmation: string;
     active_filters: string;
@@ -41,6 +42,7 @@ function mapPreferencesRow(row: PreferencesRow): UserPreferences {
         someDayPanelCollapsed: toBoolean(row.some_day_panel_collapsed),
         someDayPanelLastOpenWidth: row.some_day_panel_last_open_width,
         rolloverEnabled: toBoolean(row.rollover_enabled),
+        rolloverTriggerTime: row.rollover_trigger_time as UserPreferences['rolloverTriggerTime'],
         showEmptyDays: toBoolean(row.show_empty_days),
         deleteConfirmation: row.delete_confirmation as UserPreferences['deleteConfirmation'],
         activeFilters: parseJsonColumn<UserPreferences['activeFilters']>(row.active_filters, {
@@ -67,7 +69,8 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
                 `
                 SELECT id, theme, locale, some_day_panel_width,
                        some_day_panel_collapsed, some_day_panel_last_open_width,
-                       rollover_enabled, show_empty_days, delete_confirmation,
+                       rollover_enabled, rollover_trigger_time, show_empty_days,
+                       delete_confirmation,
                        active_filters, tag_kinds, tag_kind_map, time_format,
                        timezone, updated_at
                 FROM user_preferences
@@ -98,10 +101,11 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
                 INSERT INTO user_preferences
                     (id, theme, locale, some_day_panel_width,
                      some_day_panel_collapsed, some_day_panel_last_open_width,
-                     rollover_enabled, show_empty_days, delete_confirmation,
+                     rollover_enabled, rollover_trigger_time, show_empty_days,
+                     delete_confirmation,
                      active_filters, tag_kinds, tag_kind_map, time_format,
                      timezone, updated_at)
-                VALUES ('default', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES ('default', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     theme = excluded.theme,
                     locale = excluded.locale,
@@ -109,6 +113,7 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
                     some_day_panel_collapsed = excluded.some_day_panel_collapsed,
                     some_day_panel_last_open_width = excluded.some_day_panel_last_open_width,
                     rollover_enabled = excluded.rollover_enabled,
+                    rollover_trigger_time = excluded.rollover_trigger_time,
                     show_empty_days = excluded.show_empty_days,
                     delete_confirmation = excluded.delete_confirmation,
                     active_filters = excluded.active_filters,
@@ -126,6 +131,7 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
                 toInteger(merged.someDayPanelCollapsed),
                 merged.someDayPanelLastOpenWidth,
                 toInteger(merged.rolloverEnabled),
+                merged.rolloverTriggerTime,
                 toInteger(merged.showEmptyDays),
                 merged.deleteConfirmation,
                 JSON.stringify(merged.activeFilters),

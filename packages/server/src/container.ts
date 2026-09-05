@@ -278,7 +278,10 @@ export class Container {
 
     get taskService(): TaskService {
         if (!this._taskService) {
-            this._taskService = new TaskService(this.taskRepository);
+            this._taskService = new TaskService(
+                this.taskRepository,
+                this.userPreferencesRepository,
+            );
         }
         return this._taskService;
     }

@@ -1,8 +1,27 @@
-import type { Task, UpdateTaskInput } from '@erledigen/shared';
+import type { CreateTaskInput, Task, UpdateTaskInput } from '@erledigen/shared';
 import type { TaskRepository } from '../adapters/data/TaskRepository';
+import type { UserPreferencesRepository } from '../adapters/data/UserPreferencesRepository';
 
 export class TaskService {
-    constructor(private taskRepo: TaskRepository) {}
+    constructor(
+        private taskRepo: TaskRepository,
+        private readonly preferencesRepository: UserPreferencesRepository,
+    ) {}
+
+    /** Create a task, applying the app-wide rollover default when the
+     *  caller did not set a per-task override: the Settings "auto-rollover"
+     *  toggle is the default for new tasks, rolloverEnabled stays a
+     *  per-task override (set explicitly in the task detail modal). */
+    async createTask(input: CreateTaskInput): Promise<Task> {
+        const effective: CreateTaskInput =
+            input.rolloverEnabled === undefined
+                ? {
+                      ...input,
+                      rolloverEnabled: (await this.preferencesRepository.get()).rolloverEnabled,
+                  }
+                : input;
+        return this.taskRepo.create(effective);
+    }
 
     async listTasks(query: {
         date?: string | undefined;

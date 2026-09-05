@@ -38,6 +38,9 @@ services:
             # One trusted client (the Playwright runner); the habits cleanup
             # bursts past the default 600 rpm and 429s would flake the suite.
             RATE_LIMIT_RPM: "10000"
+            # Keep the boot-time rollover catch-up from firing mid-suite and
+            # moving the past-date tasks the specs seed (v0.8.0 automation).
+            JOB_POLL_INTERVAL_MS: "3600000"
         healthcheck:
             test: ['CMD', 'bun', '-e', "await fetch('http://localhost:4000/api/health')"]
             interval: 3s
