@@ -1,0 +1,34 @@
+meta {
+  name: Metrics
+  type: http
+  seq: 92
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/metrics
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("should serve Prometheus text format", function() {
+    expect(res.getHeader("content-type")).to.include("text/plain");
+  });
+
+  test("should expose http request metrics with the erledigen_ prefix (ADR-007)", function() {
+    expect(res.getBody()).to.include("# TYPE erledigen_http_requests_total counter");
+  });
+
+  test("should expose uptime and build info", function() {
+    expect(res.getBody()).to.include("erledigen_uptime_seconds");
+    expect(res.getBody()).to.include("erledigen_build_info");
+  });
+
+  test("should have security headers like every other response", function() {
+    expect(res.getHeader("x-content-type-options")).to.equal("nosniff");
+  });
+}

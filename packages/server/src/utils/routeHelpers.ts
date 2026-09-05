@@ -10,6 +10,7 @@ import {
     BadRequestError,
     CONTENT_TYPE_TEXT,
     type Logger,
+    RequestLogger,
 } from '@erledigen/shared';
 import type { HttpRequest, HttpResponse } from '../adapters/http/types';
 import { negotiate } from './contentNegotiation';
@@ -27,7 +28,9 @@ export function withErrorHandling(handler: RouteHandlerFn, logger: Logger): Rout
         try {
             return await handler(req);
         } catch (error) {
-            return errorToResponse(error, logger);
+            // Child logger so every error line carries the request's
+            // correlation ID (see ADR-004) without touching call sites.
+            return errorToResponse(error, new RequestLogger(logger, { requestId: req.requestId }));
         }
     };
 }

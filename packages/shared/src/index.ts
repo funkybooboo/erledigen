@@ -16,10 +16,37 @@ export { FetchHttpClient } from './adapters/http/FetchHttpClient';
 export type { HttpClient, RequestOptions } from './adapters/http/HttpClient';
 export { HttpClientError } from './adapters/http/HttpClient';
 // Adapters - IO
-export { ConsoleLogger, type LoggerDestination } from './adapters/logging/ConsoleLogger';
+export {
+    ConsoleLogger,
+    type LogFormat,
+    type LoggerDestination,
+} from './adapters/logging/ConsoleLogger';
 // Adapters - Logging
 export type { LogContext, Logger } from './adapters/logging/Logger';
 export { LogLevel } from './adapters/logging/Logger';
+export { RequestLogger } from './adapters/logging/RequestLogger';
+// Adapters - Metrics
+export type { MetricsAdapter } from './adapters/metrics/MetricsAdapter';
+export {
+    BUILD_INFO,
+    DB_SIZE_BYTES,
+    HTTP_DURATION_BUCKETS,
+    HTTP_REQUEST_DURATION_SECONDS,
+    HTTP_REQUESTS_ACTIVE,
+    HTTP_REQUESTS_TOTAL,
+    JOB_DURATION_BUCKETS,
+    JOB_DURATION_SECONDS,
+    JOBS_PENDING,
+    JOBS_RUNNING,
+    JOBS_TOTAL,
+    METRIC_HELP,
+    METRIC_PREFIX,
+    TASKS_TOTAL,
+    UPTIME_SECONDS,
+    WS_CONNECTIONS_ACTIVE,
+} from './adapters/metrics/metricNames';
+export { NullMetricsAdapter } from './adapters/metrics/NullMetricsAdapter';
+export { PrometheusMetricsAdapter } from './adapters/metrics/PrometheusMetricsAdapter';
 // Constants
 export {
     API_ROUTES,

@@ -16,6 +16,7 @@ An ADR captures an important architectural decision: what was decided, why, and 
 | [ADR-004](ADR-004-structured-json-logging.md) | Structured JSON Logging & Request Tracing | Accepted | 2026-05-09 |
 | [ADR-005](ADR-005-prometheus-metrics.md) | Prometheus-Compatible Metrics Endpoint | Accepted | 2026-05-09 |
 | [ADR-006](ADR-006-observability-stack.md) | Observability Stack (Loki + Prometheus + Grafana) | Accepted | 2026-05-09 |
+| [ADR-007](ADR-007-metric-prefix.md) | Metric Naming Prefix `erledigen_` (supersedes ADR-005 naming) | Accepted | 2026-09-05 |
 
 ## Creating a New ADR
 

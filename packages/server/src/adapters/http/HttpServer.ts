@@ -6,7 +6,7 @@
  * by changing one line in the container.
  */
 
-import type { Logger } from '@erledigen/shared';
+import type { Logger, MetricsAdapter } from '@erledigen/shared';
 
 import type { Guard, Middleware, RouteHandler } from './types';
 
@@ -18,6 +18,10 @@ export interface HttpServerConfig {
     corsHeaders?: Record<string, string>;
     /** Optional logger for access logging (method, path, status, duration). */
     logger?: Logger;
+    /** Optional metrics adapter: every request (handler, guard
+     *  short-circuit, and 404) is recorded as counter + duration histogram
+     *  with the matched route pattern as the path label (see ADR-005). */
+    metrics?: MetricsAdapter;
 }
 
 /**

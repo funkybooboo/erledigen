@@ -164,6 +164,10 @@ export class InMemoryTaskRepository implements TaskRepository {
         return purged;
     }
 
+    async count(): Promise<number> {
+        return this.activeTasks().length;
+    }
+
     async deleteAll(): Promise<void> {
         this.tasks.clear();
         this.idCounter = 0;
