@@ -205,6 +205,7 @@ describe('user preferences schema', () => {
             someDayPanelCollapsed: false,
             someDayPanelLastOpenWidth: 280,
             rolloverEnabled: true,
+            rolloverTriggerTime: 'midnight',
             showEmptyDays: true,
             deleteConfirmation: 'instant',
             activeFilters: { tags: ['p1'], showCompleted: true },

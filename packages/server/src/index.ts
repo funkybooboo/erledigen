@@ -4,6 +4,9 @@ import { container } from './container';
 import { createRateLimiterGuard } from './middleware/rateLimiter';
 import { createSecurityHeadersMiddleware } from './middleware/securityHeaders';
 import { registerAllRoutes } from './routes/index';
+import { JobScheduler } from './services/JobScheduler';
+import { registerJobHandlers } from './services/jobHandlers';
+import { RolloverService } from './services/RolloverService';
 
 const PORT = container.config.getNumber('PORT', 4000);
 const NODE_ENV = container.config.get('NODE_ENV', 'production');
@@ -36,6 +39,27 @@ server.route('GET', '/', async (): Promise<HttpResponse> => {
 // Register all resource routes (health and metrics included; the old
 // inline /api/health stub now lives in routes/healthRoutes.ts)
 registerAllRoutes(server, container);
+
+// Background jobs (v0.8.0, ADR-002): register handlers, schedule recurring
+// work (catching up runs missed while the server was down), then start the
+// poll loop.
+const rolloverService = new RolloverService(container.taskRepository, container.dateProvider);
+const jobScheduler = new JobScheduler(
+    container.jobQueue,
+    container.userPreferencesRepository,
+    container.dateProvider,
+    container.logger,
+);
+registerJobHandlers(container.jobRunner, {
+    rolloverService,
+    taskRepository: container.taskRepository,
+    scheduler: jobScheduler,
+    dateProvider: container.dateProvider,
+    logger: container.logger,
+});
+await jobScheduler.ensureRolloverScheduled();
+await jobScheduler.ensurePurgeScheduled();
+await container.jobRunner.start();
 
 await server.start(PORT);
 const port = server.getPort();

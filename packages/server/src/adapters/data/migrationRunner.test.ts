@@ -48,6 +48,7 @@ describe('runMigrations', () => {
             '002_add_start_time_to_recurring_tasks.sql',
             '003_recurring_days_of_week.sql',
             '004_jobs_table.sql',
+            '005_rollover_trigger_time.sql',
         ]);
     });
 });

@@ -114,6 +114,7 @@ export const USER_PREFERENCES_DEFAULTS = {
     someDayPanelCollapsed: false,
     someDayPanelLastOpenWidth: 280,
     rolloverEnabled: true,
+    rolloverTriggerTime: 'midnight' as const,
     showEmptyDays: true,
     deleteConfirmation: 'instant' as const,
     activeFilters: {

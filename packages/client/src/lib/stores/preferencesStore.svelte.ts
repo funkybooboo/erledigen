@@ -1,6 +1,7 @@
 import type {
     ActiveFilters,
     DeleteConfirmationType,
+    RolloverTriggerTime,
     TagKind,
     ThemeType,
     TimeFormatType,
@@ -43,6 +44,7 @@ class PreferencesStore {
     someDayPanelWidth = $state<number>(USER_PREFERENCES_DEFAULTS.someDayPanelWidth);
     someDayPanelLastOpenWidth = $state<number>(USER_PREFERENCES_DEFAULTS.someDayPanelLastOpenWidth);
     rolloverEnabled = $state(true);
+    rolloverTriggerTime = $state<RolloverTriggerTime>('midnight');
     showEmptyDays = $state(true);
     deleteConfirmation = $state<DeleteConfirmationType>('instant');
     activeFilters = $state<ActiveFilters>({
@@ -92,6 +94,7 @@ class PreferencesStore {
                 prefs.someDayPanelLastOpenWidth ??
                 USER_PREFERENCES_DEFAULTS.someDayPanelLastOpenWidth;
             this.rolloverEnabled = prefs.rolloverEnabled;
+            this.rolloverTriggerTime = prefs.rolloverTriggerTime ?? 'midnight';
             this.showEmptyDays = prefs.showEmptyDays;
             this.deleteConfirmation = prefs.deleteConfirmation ?? 'instant';
             this.activeFilters = prefs.activeFilters;

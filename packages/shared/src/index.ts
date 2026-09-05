@@ -101,6 +101,7 @@ export {
 export type {
     ActiveFilters,
     DeleteConfirmationType,
+    RolloverTriggerTime,
     TagKind,
     TagKindBehavior,
     ThemeType,

@@ -2,6 +2,10 @@ export type ThemeType = 'light' | 'dark' | 'system';
 export type DeleteConfirmationType = 'instant' | 'confirm';
 export type TimeFormatType = '12h' | '24h';
 
+/** When the daily rollover job runs (server timezone). 'manual' = no
+ *  daily schedule; stale tasks are only caught up at server startup. */
+export type RolloverTriggerTime = 'midnight' | '9am' | 'manual';
+
 /** Validates that a string is a known IANA timezone via Intl. */
 export function isValidTimeZone(timeZone: string): boolean {
     try {
@@ -36,6 +40,7 @@ export interface UserPreferences {
     someDayPanelCollapsed: boolean;
     someDayPanelLastOpenWidth: number;
     rolloverEnabled: boolean;
+    rolloverTriggerTime: RolloverTriggerTime;
     showEmptyDays: boolean;
     deleteConfirmation: DeleteConfirmationType;
     activeFilters: ActiveFilters;

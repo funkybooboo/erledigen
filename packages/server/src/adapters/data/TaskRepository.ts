@@ -34,4 +34,20 @@ export interface TaskRepository {
     /** Number of active (not soft-deleted) tasks. Used by the tasks_total
      *  gauge and the health endpoint (see ADR-005). */
     count(): Promise<number>;
+    /** Incomplete tasks eligible for rollover to `today`: scheduled before
+     *  `today`, rollover enabled, not deleted, and NOT recurring instances
+     *  (their occurrence date is fixed by instanceDate; migrating them
+     *  would duplicate today's generated instance). */
+    findRolloverCandidates(today: string): Promise<Task[]>;
+    /** Move a task to `nextDate` and record its rollover bookkeeping.
+     *  Rollover is the only writer of originalScheduledDate/daysLate:
+     *  `originalScheduledDate` is the date it was FIRST scheduled for
+     *  (preserved across repeats), `daysLate` counts from that date to
+     *  `nextDate`. */
+    rolloverTask(
+        id: string,
+        nextDate: string,
+        originalScheduledDate: string,
+        daysLate: number,
+    ): Promise<Task | null>;
 }

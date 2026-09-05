@@ -10,6 +10,7 @@ test.describe('user preferences -- GET /api/preferences', () => {
         expect(['light', 'dark', 'system']).toContain(prefs.theme);
         expect(['instant', 'confirm']).toContain(prefs.deleteConfirmation);
         expect(['12h', '24h']).toContain(prefs.timeFormat);
+        expect(['midnight', '9am', 'manual']).toContain(prefs.rolloverTriggerTime);
         expect(prefs.activeFilters).toHaveProperty('tags');
         expect(prefs.activeFilters).toHaveProperty('showCompleted');
         expect(Array.isArray(prefs.tagKinds)).toBe(true);
@@ -79,6 +80,18 @@ test.describe('user preferences -- PATCH /api/preferences', () => {
     test('rejects invalid deleteConfirmation enum with 400', async ({ request }) => {
         const res = await patch(request, '/api/preferences', { deleteConfirmation: 'maybe' });
         expect(res.status).toBe(400);
+    });
+
+    test('PATCH rolloverTriggerTime persists and validates', async ({ request }) => {
+        const ok = await patch(request, '/api/preferences', { rolloverTriggerTime: '9am' });
+        expect(ok.status).toBe(200);
+        expect(ok.body.data.rolloverTriggerTime).toBe('9am');
+
+        const bad = await patch(request, '/api/preferences', { rolloverTriggerTime: 'noon' });
+        expect(bad.status).toBe(400);
+
+        // Restore the default for the shared singleton.
+        await patch(request, '/api/preferences', { rolloverTriggerTime: 'midnight' });
     });
 });
 
