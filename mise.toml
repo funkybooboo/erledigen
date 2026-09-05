@@ -55,6 +55,10 @@ tools/build-images.sh dev
 docker compose up -d --force-recreate --remove-orphans server client
 """
 
+[tasks.nuke-db]
+description = "PERMANENTLY delete the dev or prod DB volume (stops the stack first): dev | prod (tools/nuke-db.sh)"
+run = "tools/nuke-db.sh"
+
 [tasks.storybook]
 description = "Start Storybook (port 6006) -- local, not dockerized"
 run = "bun run storybook"

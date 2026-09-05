@@ -61,6 +61,7 @@ That's it! The client runs at `http://localhost:3000` and the server at `http://
 | `mise run dev` | Start the docker dev stack (server + client) |
 | `mise run prod` / `mise run prod-stop` | Build + start / stop the docker prod stack |
 | `mise run dev-refresh` | Rebuild dev images after changing dependencies |
+| `mise run nuke-db` | Permanently delete the dev or prod database (stops the stack; deletes the DB volume) |
 | `mise run storybook` | Start Storybook on port 6006 (local, not dockerized) |
 | `mise run check` | Lint + format with Biome (auto-fix) |
 | `mise run spellcheck` | Spell-check the codebase with cspell |
@@ -102,7 +103,9 @@ picked up live by `bun --watch` (server) and vite HMR (client) -- no rebuild
 needed. `node_modules` are shielded from the bind mount by anonymous volumes
 seeded from the image; after changing dependencies run `mise run dev-refresh`.
 The dev DB lives in the `dev-data` named volume (`DB_PATH=/data`), never in
-the repo.
+the repo. `mise run nuke-db -- dev` stops the stack and deletes that volume
+when you want a truly fresh database (migrations recreate the schema on the
+next start).
 
 **Prod** (`docker compose --profile prod up -d --build`): built artifacts
 only, no bind mounts. `VITE_API_URL` is baked into the client bundle at build
