@@ -8,6 +8,7 @@ function makeRequest(ip?: string): HttpRequest {
     return {
         method: 'GET',
         url: 'http://localhost/api/tasks',
+        requestId: 'req_test',
         headers,
         json: <T>() => Promise.resolve({} as T),
         text: async () => '',
@@ -65,6 +66,7 @@ describe('createRateLimiterGuard', () => {
         const req: HttpRequest = {
             method: 'GET',
             url: 'http://localhost/',
+            requestId: 'req_test',
             headers: { 'x-forwarded-for': '203.0.113.5' },
             json: <T>() => Promise.resolve({} as T),
             text: async () => '',

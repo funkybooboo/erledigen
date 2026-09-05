@@ -14,6 +14,10 @@ export interface HttpRequest {
     method: string;
     url: string;
     headers: Record<string, string>;
+    /** Correlation ID for this request (see ADR-004): the accepted
+     *  incoming `X-Request-Id` header or a freshly generated UUID. Echoed
+     *  back on the response so clients can correlate too. */
+    requestId: string;
 
     /**
      * Parse the request body as JSON

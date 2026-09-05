@@ -14,6 +14,12 @@ async function fetch(server: BunHttpServer, method: string, path: string): Promi
     return globalThis.fetch(`http://localhost:${port}${path}`, { method });
 }
 
+function serverUrl(server: BunHttpServer): string {
+    const port = server.getPort();
+    if (port === null) throw new Error('Server not started');
+    return `http://localhost:${port}`;
+}
+
 describe('BunHttpServer', () => {
     describe('route matching', () => {
         it('matches an exact route', async () => {
@@ -144,6 +150,77 @@ describe('BunHttpServer', () => {
             server.route('GET', '/', async () => ({ status: 200, headers: {}, body: 'ok' }));
             const res = await fetch(server, 'GET', '/');
             expect(res.status).toBe(201);
+            await server.stop();
+        });
+    });
+
+    describe('request IDs (see ADR-004)', () => {
+        it('generates a fresh UUID per request and echoes it as X-Request-Id', async () => {
+            const server = await startServer();
+            server.route('GET', '/', async () => ({ status: 200, headers: {}, body: 'ok' }));
+
+            const first = await fetch(server, 'GET', '/');
+            const second = await fetch(server, 'GET', '/');
+
+            const firstId = first.headers.get('X-Request-Id');
+            const secondId = second.headers.get('X-Request-Id');
+            expect(firstId).toBeDefined();
+            expect(secondId).toBeDefined();
+            expect(firstId).not.toBe(secondId);
+            await server.stop();
+        });
+
+        it('accepts a safe incoming X-Request-Id for tracing', async () => {
+            const server = await startServer();
+            server.route('GET', '/', async () => ({ status: 200, headers: {}, body: 'ok' }));
+
+            const res = await globalThis.fetch(`${serverUrl(server)}/`, {
+                headers: { 'X-Request-Id': 'client-trace-42' },
+            });
+
+            expect(res.headers.get('X-Request-Id')).toBe('client-trace-42');
+            await server.stop();
+        });
+
+        it('replaces an unsafe incoming X-Request-Id with a generated one', async () => {
+            const server = await startServer();
+            server.route('GET', '/', async () => ({ status: 200, headers: {}, body: 'ok' }));
+
+            const res = await globalThis.fetch(`${serverUrl(server)}/`, {
+                headers: { 'X-Request-Id': 'bad id with spaces!' },
+            });
+
+            const echoed = res.headers.get('X-Request-Id') ?? '';
+            expect(echoed).not.toContain(' ');
+            expect(echoed).not.toBe('bad id with spaces!');
+            await server.stop();
+        });
+
+        it('exposes the request ID on HttpRequest', async () => {
+            const server = await startServer();
+            let seen: string | undefined;
+            server.route('GET', '/', req => {
+                seen = req.requestId;
+                return { status: 200, headers: {}, body: 'ok' };
+            });
+
+            await fetch(server, 'GET', '/');
+
+            expect(seen).toBeDefined();
+            await server.stop();
+        });
+
+        it('carries X-Request-Id on 404s and guard short-circuits', async () => {
+            const server = await startServer();
+            const blocker: Guard = () => ({ status: 429, headers: {}, body: 'rate limited' });
+            server.addGuard(blocker);
+            server.route('GET', '/known', async () => ({ status: 200, headers: {}, body: 'ok' }));
+
+            const notFound = await fetch(server, 'GET', '/unknown');
+            const blocked = await fetch(server, 'GET', '/known');
+
+            expect(notFound.headers.get('X-Request-Id')).toBeDefined();
+            expect(blocked.headers.get('X-Request-Id')).toBeDefined();
             await server.stop();
         });
     });

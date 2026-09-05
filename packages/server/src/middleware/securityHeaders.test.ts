@@ -6,6 +6,7 @@ function makeRequest(headers: Record<string, string> = {}): HttpRequest {
     return {
         method: 'GET',
         url: 'http://localhost/',
+        requestId: 'req_test',
         headers,
         json: <T>() => Promise.resolve({} as T),
         text: async () => '',

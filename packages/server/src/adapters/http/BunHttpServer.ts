@@ -24,6 +24,18 @@ function generateClientId(): string {
     return `ws_${Date.now()}_${clientCounter}`;
 }
 
+/** A trusted request ID: alphanumeric plus - and _ (UUID-safe). Anything
+ *  else (or over 64 chars) is replaced -- the value is echoed into response
+ *  headers and log lines, so unbounded/injected values must not flow
+ *  through (see ADR-004, distributed-tracing acceptance). */
+const SAFE_REQUEST_ID = /^[A-Za-z0-9_-]{1,64}$/;
+
+function resolveRequestId(headers: Record<string, string>): string {
+    const incoming = headers['x-request-id'];
+    if (incoming !== undefined && SAFE_REQUEST_ID.test(incoming)) return incoming;
+    return crypto.randomUUID();
+}
+
 export class BunHttpServer implements HttpServer {
     private server: ReturnType<typeof Bun.serve> | null = null;
     private routes: RouteEntry[] = [];
@@ -117,14 +129,19 @@ export class BunHttpServer implements HttpServer {
             return new Response(null, responseInit);
         }
 
+        const requestId = resolveRequestId(Object.fromEntries(req.headers.entries()));
+
         const entry = this.routes.find(r => r.method === req.method && r.regex.test(url.pathname));
 
         if (!entry) {
             const responseInit: ResponseInit =
                 this.config.corsHeaders !== undefined
-                    ? { status: 404, headers: this.config.corsHeaders }
-                    : { status: 404 };
-            this.logRequest(req.method, url.pathname, 404, startedAt);
+                    ? {
+                          status: 404,
+                          headers: { ...this.config.corsHeaders, 'X-Request-Id': requestId },
+                      }
+                    : { status: 404, headers: { 'X-Request-Id': requestId } };
+            this.logRequest(req.method, url.pathname, 404, startedAt, requestId);
             return new Response('Not Found', responseInit);
         }
 
@@ -132,6 +149,7 @@ export class BunHttpServer implements HttpServer {
             method: req.method,
             url: req.url,
             headers: Object.fromEntries(req.headers.entries()),
+            requestId,
             json: <T>() => req.json() as Promise<T>,
             text: () => req.text(),
         };
@@ -139,8 +157,14 @@ export class BunHttpServer implements HttpServer {
         for (const guard of this.guards) {
             const guardResponse = guard(httpReq);
             if (guardResponse !== null) {
-                this.logRequest(req.method, url.pathname, guardResponse.status, startedAt);
-                return this.toNativeResponse(guardResponse);
+                this.logRequest(
+                    req.method,
+                    url.pathname,
+                    guardResponse.status,
+                    startedAt,
+                    requestId,
+                );
+                return this.toNativeResponse(guardResponse, requestId);
             }
         }
 
@@ -150,8 +174,8 @@ export class BunHttpServer implements HttpServer {
             response = middleware(httpReq, response);
         }
 
-        this.logRequest(req.method, url.pathname, response.status, startedAt);
-        return this.toNativeResponse(response);
+        this.logRequest(req.method, url.pathname, response.status, startedAt, requestId);
+        return this.toNativeResponse(response, requestId);
     }
 
     /**
@@ -160,12 +184,18 @@ export class BunHttpServer implements HttpServer {
      * Successful requests log at debug; failures at warn so they stand
      * out on stderr even when debug logging is off.
      */
-    private logRequest(method: string, path: string, status: number, startedAt: number): void {
+    private logRequest(
+        method: string,
+        path: string,
+        status: number,
+        startedAt: number,
+        requestId: string,
+    ): void {
         if (!this.logger) return;
         // One-decimal milliseconds, without the string round-trip of
         // Number(x.toFixed(1)).
         const durationMs = Math.round((performance.now() - startedAt) * 10) / 10;
-        const context: LogContext = { status, durationMs };
+        const context: LogContext = { requestId, method, path, statusCode: status, durationMs };
         if (status >= 400) {
             this.logger.warn(`${method} ${path} -> ${status}`, context);
         } else {
@@ -184,8 +214,12 @@ export class BunHttpServer implements HttpServer {
         return this.server?.port ?? null;
     }
 
-    private toNativeResponse(response: HttpResponse): Response {
-        const headers = { ...this.config.corsHeaders, ...response.headers };
+    private toNativeResponse(response: HttpResponse, requestId: string): Response {
+        const headers = {
+            ...this.config.corsHeaders,
+            ...response.headers,
+            'X-Request-Id': requestId,
+        };
 
         if (typeof response.body === 'object') {
             return Response.json(response.body, {
