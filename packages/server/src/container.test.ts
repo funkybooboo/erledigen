@@ -20,6 +20,8 @@ describe('Container', () => {
         expect(container.projectRepository).toBeDefined();
         expect(container.recurringTaskRepository).toBeDefined();
         expect(container.userPreferencesRepository).toBeDefined();
+        expect(container.jobQueue).toBeDefined();
+        expect(container.jobRunner).toBeDefined();
     });
 
     test('should return same instance on multiple calls (singleton)', () => {

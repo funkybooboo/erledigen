@@ -19,6 +19,8 @@ test.describe('meta -- platform endpoints', () => {
         expect(data.database.type).toBe('memory');
         expect(data.database.sizeBytes).toBeNull();
         expect(typeof data.connections.websocket).toBe('number');
+        expect(typeof data.jobs.pending).toBe('number');
+        expect(typeof data.jobs.running).toBe('number');
     });
 
     test('GET /api/health echoes an incoming request ID (ADR-004)', async ({ request }) => {

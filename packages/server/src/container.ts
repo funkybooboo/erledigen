@@ -44,10 +44,14 @@ import type { TaskRepository } from './adapters/data/TaskRepository';
 import type { UserPreferencesRepository } from './adapters/data/UserPreferencesRepository';
 import { BunHttpServer } from './adapters/http/BunHttpServer';
 import type { HttpServer } from './adapters/http/HttpServer';
+import { InMemoryJobQueue } from './adapters/jobs/InMemoryJobQueue';
+import type { JobQueue } from './adapters/jobs/JobQueue';
+import { SqliteJobQueue } from './adapters/jobs/SqliteJobQueue';
 import { BunWebSocketServer } from './adapters/ws/BunWebSocketServer';
 import { ConnectionManager } from './adapters/ws/ConnectionManager';
 import type { WebSocketServer } from './adapters/ws/WebSocketServer';
 import { EventBus } from './services/EventBus';
+import { DEFAULT_JOB_RUNNER_CONFIG, JobRunner } from './services/JobRunner';
 import { ProjectService } from './services/ProjectService';
 import { RecurringTaskService } from './services/RecurringTaskService';
 import { TagService } from './services/TagService';
@@ -308,6 +312,8 @@ export class Container {
     private _connectionManager: ConnectionManager | null = null;
     private _wsManager: WebSocketManager | null = null;
     private _wsServer: WebSocketServer | null = null;
+    private _jobQueue: JobQueue | null = null;
+    private _jobRunner: JobRunner | null = null;
 
     get eventBus(): EventBus {
         if (!this._eventBus) {
@@ -345,6 +351,49 @@ export class Container {
             );
         }
         return this._wsServer;
+    }
+
+    /**
+     * Get the persistent job queue (ADR-002). Implementation follows the
+     * storage adapter: SQLite table in the application database (jobs
+     * survive restarts), or the ephemeral in-memory queue for
+     * STORAGE_ADAPTER=memory runs.
+     */
+    get jobQueue(): JobQueue {
+        if (!this._jobQueue) {
+            const maxAttempts = this.config.getNumber('JOB_MAX_ATTEMPTS', 3);
+            this._jobQueue =
+                this.storageAdapter === 'sqlite'
+                    ? new SqliteJobQueue(this.sqliteConnection.db, this.dateProvider, maxAttempts)
+                    : new InMemoryJobQueue(this.dateProvider, maxAttempts);
+        }
+        return this._jobQueue;
+    }
+
+    /**
+     * Get the job runner: polls the queue every JOB_POLL_INTERVAL_MS and
+     * executes registered handlers with retry/backoff/timeout (ADR-002).
+     * Handlers register before start(); index.ts starts the runner once
+     * handlers exist.
+     */
+    get jobRunner(): JobRunner {
+        if (!this._jobRunner) {
+            this._jobRunner = new JobRunner(this.jobQueue, this.logger, this.metricsAdapter, {
+                pollIntervalMs: this.config.getNumber(
+                    'JOB_POLL_INTERVAL_MS',
+                    DEFAULT_JOB_RUNNER_CONFIG.pollIntervalMs,
+                ),
+                retryBaseDelayMs: this.config.getNumber(
+                    'JOB_RETRY_BASE_DELAY_MS',
+                    DEFAULT_JOB_RUNNER_CONFIG.retryBaseDelayMs,
+                ),
+                timeoutMs: this.config.getNumber(
+                    'JOB_TIMEOUT_MS',
+                    DEFAULT_JOB_RUNNER_CONFIG.timeoutMs,
+                ),
+            });
+        }
+        return this._jobRunner;
     }
 
     /**
