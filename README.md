@@ -107,12 +107,17 @@ the repo. `mise run nuke-db -- dev` stops the stack and deletes that volume
 when you want a truly fresh database (migrations recreate the schema on the
 next start).
 
-**Prod** (`docker compose --profile prod up -d --build`): built artifacts
-only, no bind mounts. `VITE_API_URL` is baked into the client bundle at build
-time -- override it (e.g. `VITE_API_URL=https://api.example.com docker compose
---profile prod up -d --build`) when deploying for real. Prod publishes the
-same ports as dev, so stop dev first. Server data persists in the `prod-data`
-named volume.
+**Prod** (`compose.prod.yaml`, `mise run prod`): built artifacts only, no
+bind mounts, behind a Caddy reverse proxy (single published port, default
+8080 -- never collides with dev). The client is built same-origin by default;
+for a split-origin deployment pass an absolute URL as the `client` build
+arg:
+
+    docker compose -f compose.prod.yaml build --build-arg VITE_API_URL=https://api.example.com client
+    docker compose -f compose.prod.yaml up -d
+
+Server data persists in the `prod-data` named volume; `mise run nuke-db --
+prod` stops the stack and deletes it.
 
 **Tests** (`compose.test.yaml`): fully self-contained -- no bind mounts, no
 named volumes, nothing written to the host. Source is baked into the images,
