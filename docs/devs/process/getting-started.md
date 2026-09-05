@@ -63,7 +63,7 @@ The app runs in containers; `mise run dev` is the easiest way to start:
 mise run dev
 ```
 
-This starts the docker dev stack (server + client, attached). Source is bind-mounted, so code edits are picked up live by `bun --watch` (server) and vite HMR (client) -- no rebuild needed. The dev database lives in the `dev-data` named volume, never in the repo. After changing dependencies, run `mise run dev-refresh` to rebuild the dev images.
+This starts the docker dev stack (server + client, attached). Source is bind-mounted, so code edits are picked up live by `bun --watch` (server) and vite HMR (client) -- no rebuild needed. The dev database lives in the `dev-data` named volume, never in the repo. After changing dependencies, run `mise run dev-refresh` to rebuild the dev images. To blow the dev DB away entirely, run `mise run nuke-db -- dev` (stops the stack and deletes the volume; a fresh schema is created on the next start).
 
 > The dev stack publishes ports 3000/4000 on the host -- stop any locally-running servers first (the `predev` bun script does this when running outside docker).
 >
@@ -90,6 +90,7 @@ docker compose up client
 mise run prod        # build + start (detached), single published port (default 8080, behind Caddy)
 mise run prod-logs   # follow logs
 mise run prod-stop   # stop (prod-data volume is kept)
+mise run nuke-db -- prod   # PERMANENTLY delete the prod DB (stops the stack, deletes prod-data)
 ```
 
 ## Development URLs
@@ -117,6 +118,7 @@ All tasks are run via `mise run <task>` (pass arguments with `mise run <task> --
 | `mise run dev` | Start the docker dev stack (server + client, attached) |
 | `mise run dev-refresh` | Rebuild dev images and recreate dev containers (after changing dependencies) |
 | `mise run prod` / `mise run prod-stop` / `mise run prod-logs` | Build+start / stop / follow the docker prod stack |
+| `mise run nuke-db` | PERMANENTLY delete the dev or prod database: stops the stack, deletes the `dev-data` / `prod-data` volume (`--yes` skips the typed confirmation) |
 | `mise run storybook` | Start Storybook (port 6006, local) |
 
 ### Code quality (local)
