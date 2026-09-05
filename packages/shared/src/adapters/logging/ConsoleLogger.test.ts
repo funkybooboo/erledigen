@@ -94,3 +94,69 @@ describe('ConsoleLogger', () => {
         expect(dest.outLines.length).toBe(1);
     });
 });
+
+describe('ConsoleLogger (JSON format, see ADR-004)', () => {
+    it('emits one parseable JSON object per line with the required fields', () => {
+        const dest = createCaptureDestination();
+        const logger = new ConsoleLogger(LogLevel.INFO, dest, 'json');
+
+        logger.info('task created', { id: '42' });
+
+        const parsed = JSON.parse(dest.outLines.at(0) ?? '{}') as {
+            timestamp: string;
+            level: string;
+            message: string;
+            context: Record<string, unknown>;
+        };
+        expect(parsed.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+        expect(parsed.level).toBe('info');
+        expect(parsed.message).toBe('task created');
+        expect(parsed.context).toEqual({ id: '42' });
+    });
+
+    it('always includes a context object so the line schema is stable', () => {
+        const dest = createCaptureDestination();
+        const logger = new ConsoleLogger(LogLevel.INFO, dest, 'json');
+
+        logger.info('no context');
+
+        const parsed = JSON.parse(dest.outLines.at(0) ?? '{}') as {
+            context: Record<string, unknown>;
+        };
+        expect(parsed.context).toEqual({});
+    });
+
+    it('merges Error message and stack into the context', () => {
+        const dest = createCaptureDestination();
+        const logger = new ConsoleLogger(LogLevel.ERROR, dest, 'json');
+
+        logger.error('request failed', new Error('boom'), { path: '/api/tasks' });
+
+        const parsed = JSON.parse(dest.errLines.at(0) ?? '{}') as {
+            context: Record<string, unknown>;
+        };
+        expect(parsed.context['path']).toBe('/api/tasks');
+        expect(parsed.context['error']).toBe('boom');
+        expect(typeof parsed.context['stack']).toBe('string');
+    });
+
+    it('respects the minimum level in JSON mode too', () => {
+        const dest = createCaptureDestination();
+        const logger = new ConsoleLogger(LogLevel.WARN, dest, 'json');
+
+        logger.info('suppressed');
+        logger.warn('shown');
+
+        expect(dest.outLines.length).toBe(0);
+        expect(dest.errLines.length).toBe(1);
+    });
+
+    it('keeps the human-readable text format as the default', () => {
+        const dest = createCaptureDestination();
+        const logger = new ConsoleLogger(LogLevel.INFO, dest);
+
+        logger.info('plain');
+
+        expect(dest.outLines.at(0)).toMatch(/\[INFO\] plain$/);
+    });
+});

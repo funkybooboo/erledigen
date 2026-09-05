@@ -17,6 +17,7 @@ import {
     type DateProvider,
     FetchHttpClient,
     type HttpClient,
+    type LogFormat,
     type Logger,
     LogLevel,
     NativeDateProvider,
@@ -178,7 +179,18 @@ export class Container {
                     : env === 'production'
                       ? LogLevel.INFO
                       : LogLevel.DEBUG;
-            this._logger = new ConsoleLogger(logLevel);
+            // LOG_FORMAT: explicit env var wins; otherwise JSON in production,
+            // human-readable text in development (see ADR-004).
+            const configuredFormat = this.config.get('LOG_FORMAT', '');
+            const format: LogFormat =
+                configuredFormat === 'json'
+                    ? 'json'
+                    : configuredFormat === 'text'
+                      ? 'text'
+                      : env === 'production'
+                        ? 'json'
+                        : 'text';
+            this._logger = new ConsoleLogger(logLevel, undefined, format);
         }
         return this._logger;
     }

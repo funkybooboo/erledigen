@@ -1,5 +1,8 @@
 import { type LogContext, type Logger, LogLevel } from './Logger';
 
+/** Log line output format (see ADR-004). */
+export type LogFormat = 'text' | 'json';
+
 /**
  * Where log lines are written.
  *
@@ -32,13 +35,16 @@ const consoleDestination: LoggerDestination = {
 export class ConsoleLogger implements Logger {
     protected minLevel: LogLevel;
     private destination: LoggerDestination;
+    private format: LogFormat;
 
     constructor(
         minLevel: LogLevel = LogLevel.INFO,
         destination: LoggerDestination = consoleDestination,
+        format: LogFormat = 'text',
     ) {
         this.minLevel = minLevel;
         this.destination = destination;
+        this.format = format;
     }
 
     private shouldLog(level: LogLevel): boolean {
@@ -54,19 +60,45 @@ export class ConsoleLogger implements Logger {
         return `[${timestamp}] [${level.toUpperCase()}] ${message}${contextStr}`;
     }
 
+    /** One JSON object per line (see ADR-004): machine-parseable by log
+     *  collectors (Loki, Elasticsearch). `context` is always present so the
+     *  line schema is stable; error details are merged into it. */
+    private formatJsonLine(level: LogLevel, message: string, context?: LogContext): string {
+        return JSON.stringify({
+            timestamp: new Date().toISOString(),
+            level,
+            message,
+            context: context ?? {},
+        });
+    }
+
+    private emit(
+        level: LogLevel,
+        sink: 'out' | 'err',
+        message: string,
+        context?: LogContext,
+    ): void {
+        const line =
+            this.format === 'json'
+                ? this.formatJsonLine(level, message, context)
+                : this.formatMessage(level, message, context);
+        if (sink === 'out') this.destination.out(line);
+        else this.destination.err(line);
+    }
+
     debug(message: string, context?: LogContext): void {
         if (!this.shouldLog(LogLevel.DEBUG)) return;
-        this.destination.out(this.formatMessage(LogLevel.DEBUG, message, context));
+        this.emit(LogLevel.DEBUG, 'out', message, context);
     }
 
     info(message: string, context?: LogContext): void {
         if (!this.shouldLog(LogLevel.INFO)) return;
-        this.destination.out(this.formatMessage(LogLevel.INFO, message, context));
+        this.emit(LogLevel.INFO, 'out', message, context);
     }
 
     warn(message: string, context?: LogContext): void {
         if (!this.shouldLog(LogLevel.WARN)) return;
-        this.destination.err(this.formatMessage(LogLevel.WARN, message, context));
+        this.emit(LogLevel.WARN, 'err', message, context);
     }
 
     error(message: string, error?: Error | unknown, context?: LogContext): void {
@@ -77,6 +109,6 @@ export class ConsoleLogger implements Logger {
                 ? { ...context, error: error.message, stack: error.stack }
                 : { ...context, error };
 
-        this.destination.err(this.formatMessage(LogLevel.ERROR, message, errorContext));
+        this.emit(LogLevel.ERROR, 'err', message, errorContext);
     }
 }
