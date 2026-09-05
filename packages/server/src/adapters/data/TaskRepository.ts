@@ -31,4 +31,7 @@ export interface TaskRepository {
     restore(id: string): Promise<Task | null>;
     findDeleted(maxAgeDays?: number): Promise<Task[]>;
     purgeDeleted(maxAgeDays?: number): Promise<number>;
+    /** Number of active (not soft-deleted) tasks. Used by the tasks_total
+     *  gauge and the health endpoint (see ADR-005). */
+    count(): Promise<number>;
 }

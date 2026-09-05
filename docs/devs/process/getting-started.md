@@ -52,6 +52,10 @@ The relevant variables:
 | `STORAGE_ADAPTER` | server | `sqlite` | `sqlite` (persistent) or `memory` (ephemeral; forced in test runs) |
 | `DB_PATH` | server | `./data/erledigen.db` (dev container: `/data/erledigen.db`) | SQLite database file |
 | `RATE_LIMIT_RPM` | server | `600` | Requests per minute per client |
+| `LOG_FORMAT` | server | `text` in dev, `json` in prod | Log line format (`json` for log collectors; see ADR-004) |
+| `LOG_LEVEL` | server | `debug` in dev, `info` in prod | Minimum log level |
+| `METRICS_ENABLED` | server | `true` | Expose `/api/metrics` (Prometheus text format) and record request metrics; `false` removes the endpoint (see ADR-005) |
+| `APP_VERSION` | server | `0.0.0` | Version reported by `/api/health` and the `erledigen_build_info` metric |
 | `VITE_API_URL` | client | `http://localhost:4000` | API server URL the browser uses |
 | `VITE_PORT` | client | `3000` | Client dev server port |
 

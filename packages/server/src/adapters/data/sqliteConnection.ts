@@ -8,18 +8,20 @@
  */
 
 import { Database } from 'bun:sqlite';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, statSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { runMigrations } from './migrationRunner';
 
 export class SqliteConnection {
     public readonly db: Database;
+    public readonly dbPath: string;
 
     /**
      * @param dbPath - File path to the database, or ':memory:' for an
      *   ephemeral in-file-system database (used by tests)
      */
     constructor(dbPath: string) {
+        this.dbPath = dbPath;
         if (dbPath !== ':memory:') {
             mkdirSync(dirname(dbPath), { recursive: true });
         }
@@ -32,5 +34,16 @@ export class SqliteConnection {
 
     close(): void {
         this.db.close();
+    }
+
+    /** Size of the database file in bytes, or null when the database is
+     *  in-memory (health endpoint and db_size_bytes gauge, ADR-005). */
+    sizeBytes(): number | null {
+        if (this.dbPath === ':memory:') return null;
+        try {
+            return statSync(this.dbPath).size;
+        } catch {
+            return null;
+        }
     }
 }

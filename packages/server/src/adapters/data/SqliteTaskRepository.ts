@@ -216,6 +216,13 @@ export class SqliteTaskRepository implements TaskRepository {
         return result.changes;
     }
 
+    async count(): Promise<number> {
+        const row = this.db
+            .prepare('SELECT COUNT(*) AS n FROM tasks WHERE deleted_at IS NULL')
+            .get() as { n: number } | null;
+        return row?.n ?? 0;
+    }
+
     async findSomeday(): Promise<Task[]> {
         return this.select('WHERE deleted_at IS NULL AND date IS NULL ORDER BY created_at ASC');
     }

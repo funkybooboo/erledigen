@@ -5,7 +5,12 @@
  * Supports WebSocket upgrades via ConnectionManager injection.
  */
 
-import type { LogContext, Logger } from '@erledigen/shared';
+import type { LogContext, Logger, MetricsAdapter } from '@erledigen/shared';
+import {
+    HTTP_REQUEST_DURATION_SECONDS,
+    HTTP_REQUESTS_ACTIVE,
+    HTTP_REQUESTS_TOTAL,
+} from '@erledigen/shared';
 import { pathToRegex } from '../../utils/pathUtils';
 import type { ConnectionManager } from '../ws/ConnectionManager';
 import type { HttpServer, HttpServerConfig } from './HttpServer';
@@ -13,6 +18,10 @@ import type { Guard, HttpRequest, HttpResponse, Middleware, RouteHandler } from 
 
 interface RouteEntry {
     method: string;
+    /** The registered route pattern ('/api/tasks/:id') -- metrics label
+     *  value after normalization, so dynamic segments don't explode the
+     *  label set (see ADR-005). */
+    path: string;
     regex: RegExp;
     handler: RouteHandler;
 }
@@ -44,9 +53,11 @@ export class BunHttpServer implements HttpServer {
     private config: HttpServerConfig;
     private connectionManager: ConnectionManager | null = null;
     private logger: Logger | null;
+    private metrics: MetricsAdapter | null;
 
     constructor(config: HttpServerConfig = {}) {
         this.logger = config.logger ?? null;
+        this.metrics = config.metrics ?? null;
         this.config = {
             corsOrigin: config.corsOrigin || '*',
             corsHeaders: config.corsHeaders || {
@@ -66,7 +77,7 @@ export class BunHttpServer implements HttpServer {
     }
 
     route(method: string, path: string, handler: RouteHandler): void {
-        this.routes.push({ method, regex: pathToRegex(path), handler });
+        this.routes.push({ method, path, regex: pathToRegex(path), handler });
     }
 
     addGuard(guard: Guard): void {
@@ -131,6 +142,10 @@ export class BunHttpServer implements HttpServer {
 
         const requestId = resolveRequestId(Object.fromEntries(req.headers.entries()));
 
+        // In-flight gauge goes up before any response path can return (and
+        // back down in finishRequest), so it tracks requests, not routes.
+        this.metrics?.incrementGauge(HTTP_REQUESTS_ACTIVE, { method: req.method });
+
         const entry = this.routes.find(r => r.method === req.method && r.regex.test(url.pathname));
 
         if (!entry) {
@@ -141,7 +156,7 @@ export class BunHttpServer implements HttpServer {
                           headers: { ...this.config.corsHeaders, 'X-Request-Id': requestId },
                       }
                     : { status: 404, headers: { 'X-Request-Id': requestId } };
-            this.logRequest(req.method, url.pathname, 404, startedAt, requestId);
+            this.finishRequest(req.method, url.pathname, 'unmatched', 404, startedAt, requestId);
             return new Response('Not Found', responseInit);
         }
 
@@ -157,9 +172,10 @@ export class BunHttpServer implements HttpServer {
         for (const guard of this.guards) {
             const guardResponse = guard(httpReq);
             if (guardResponse !== null) {
-                this.logRequest(
+                this.finishRequest(
                     req.method,
                     url.pathname,
+                    entry.path,
                     guardResponse.status,
                     startedAt,
                     requestId,
@@ -174,27 +190,53 @@ export class BunHttpServer implements HttpServer {
             response = middleware(httpReq, response);
         }
 
-        this.logRequest(req.method, url.pathname, response.status, startedAt, requestId);
+        this.finishRequest(
+            req.method,
+            url.pathname,
+            entry.path,
+            response.status,
+            startedAt,
+            requestId,
+        );
         return this.toNativeResponse(response, requestId);
     }
 
     /**
-     * Access log for every HTTP request, including 404s and guard
-     * short-circuits (rate limits) which route middleware never sees.
-     * Successful requests log at debug; failures at warn so they stand
-     * out on stderr even when debug logging is off.
+     * Single exit path for access logging and request metrics (see
+     * ADR-004/005). The metrics path label is the registered route pattern
+     * (the raw pathname only for unmatched requests), so dynamic segments
+     * cannot explode the label set. Covers handler responses, guard
+     * short-circuits (e.g. rate limits), and 404s -- none of which route
+     * middleware ever sees. Successful requests log at debug; failures
+     * at warn so they stand out on stderr even when debug logging is off.
      */
-    private logRequest(
+    private finishRequest(
         method: string,
         path: string,
+        normalizedPath: string,
         status: number,
         startedAt: number,
         requestId: string,
     ): void {
-        if (!this.logger) return;
         // One-decimal milliseconds, without the string round-trip of
         // Number(x.toFixed(1)).
         const durationMs = Math.round((performance.now() - startedAt) * 10) / 10;
+
+        if (this.metrics) {
+            this.metrics.incrementCounter(HTTP_REQUESTS_TOTAL, {
+                method,
+                path: normalizedPath,
+                status_code: String(status),
+            });
+            this.metrics.observeHistogram(
+                HTTP_REQUEST_DURATION_SECONDS,
+                { method, path: normalizedPath },
+                durationMs / 1000,
+            );
+            this.metrics.decrementGauge(HTTP_REQUESTS_ACTIVE, { method });
+        }
+
+        if (!this.logger) return;
         const context: LogContext = { requestId, method, path, statusCode: status, durationMs };
         if (status >= 400) {
             this.logger.warn(`${method} ${path} -> ${status}`, context);

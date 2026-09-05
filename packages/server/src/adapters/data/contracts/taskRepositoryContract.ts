@@ -388,4 +388,22 @@ export function runTaskRepositoryContractTests(makeRepo: () => TaskRepository): 
             expect(await repo.findByTags(['#nonexistent'])).toEqual([]);
         });
     });
+
+    describe('count', () => {
+        test('counts only active (not soft-deleted) tasks', async () => {
+            const repo = makeRepo();
+            await repo.create({ text: 'One', date: '2026-04-06' });
+            await repo.create({ text: 'Two', date: null });
+            const doomed = await repo.create({ text: 'Doomed', date: '2026-04-07' });
+            expect(await repo.count()).toBe(3);
+
+            await repo.delete(doomed.id);
+            expect(await repo.count()).toBe(2);
+        });
+
+        test('counts zero on an empty repository', async () => {
+            const repo = makeRepo();
+            expect(await repo.count()).toBe(0);
+        });
+    });
 }

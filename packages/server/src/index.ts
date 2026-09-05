@@ -1,4 +1,4 @@
-import { API_ROUTES, type ApiResponse, DEFAULT_RATE_LIMIT_RPM } from '@erledigen/shared';
+import { DEFAULT_RATE_LIMIT_RPM } from '@erledigen/shared';
 import type { HttpResponse } from './adapters/http/types';
 import { container } from './container';
 import { createRateLimiterGuard } from './middleware/rateLimiter';
@@ -33,13 +33,8 @@ server.route('GET', '/', async (): Promise<HttpResponse> => {
     return { status: 200, headers: {}, body: 'Hello from Bun Server!' };
 });
 
-// Health check
-server.route('GET', API_ROUTES.HEALTH, async (): Promise<HttpResponse> => {
-    const response: ApiResponse<{ status: string }> = { data: { status: 'ok' } };
-    return { status: 200, headers: {}, body: response };
-});
-
-// Register all resource routes
+// Register all resource routes (health and metrics included; the old
+// inline /api/health stub now lives in routes/healthRoutes.ts)
 registerAllRoutes(server, container);
 
 await server.start(PORT);

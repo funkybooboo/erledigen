@@ -14,8 +14,9 @@ export const TASK_CONSTRAINTS = {
  * API routes
  */
 export const API_ROUTES = {
-    // Health
+    // Health & metrics
     HEALTH: '/api/health',
+    METRICS: '/api/metrics',
 
     // Tasks
     TASKS: '/api/tasks',

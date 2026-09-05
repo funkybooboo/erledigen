@@ -20,7 +20,10 @@ import {
     type LogFormat,
     type Logger,
     LogLevel,
+    type MetricsAdapter,
     NativeDateProvider,
+    NullMetricsAdapter,
+    PrometheusMetricsAdapter,
 } from '@erledigen/shared';
 import { EnvConfigProvider } from './adapters/config/EnvConfigProvider';
 import { InMemoryProjectRepository } from './adapters/data/InMemoryProjectRepository';
@@ -55,6 +58,10 @@ import { WebSocketManager } from './services/WebSocketManager';
  * Dependency injection container
  */
 export class Container {
+    /** Wall-clock instant of container construction -- the uptime origin for
+     *  the health endpoint and uptime_seconds gauge (see ADR-005). */
+    public readonly startedAt: number = Date.now();
+
     private _config: ConfigProvider | null = null;
     private _httpServer: HttpServer | null = null;
     private _httpClient: HttpClient | null = null;
@@ -65,6 +72,7 @@ export class Container {
     private _userPreferencesRepository: UserPreferencesRepository | null = null;
     private _sqliteConnection: SqliteConnection | null = null;
     private _logger: Logger | null = null;
+    private _metricsAdapter: MetricsAdapter | null = null;
     private _dateProvider: DateProvider | null = null;
     private _taskService: TaskService | null = null;
     private _tagService: TagService | null = null;
@@ -89,9 +97,35 @@ export class Container {
     get httpServer(): HttpServer {
         if (!this._httpServer) {
             const corsOrigin = this.config.get('CORS_ORIGIN', '*');
-            this._httpServer = new BunHttpServer({ corsOrigin, logger: this.logger });
+            this._httpServer = new BunHttpServer({
+                corsOrigin,
+                logger: this.logger,
+                metrics: this.metricsAdapter,
+            });
         }
         return this._httpServer;
+    }
+
+    /** Whether metrics collection is enabled (METRICS_ENABLED, default
+     *  true). When false the adapter is a no-op and the /api/metrics
+     *  route is not registered (see ADR-005). */
+    get metricsEnabled(): boolean {
+        return this.config.getBoolean('METRICS_ENABLED', true);
+    }
+
+    /**
+     * Get the metrics adapter (for request/job/application metrics).
+     * Lazy-initializes on first access: Prometheus adapter when metrics
+     * are enabled (carrying APP_VERSION for build_info), null adapter
+     * otherwise (see ADR-005).
+     */
+    get metricsAdapter(): MetricsAdapter {
+        if (!this._metricsAdapter) {
+            this._metricsAdapter = this.metricsEnabled
+                ? new PrometheusMetricsAdapter(this.config.get('APP_VERSION', '0.0.0'))
+                : new NullMetricsAdapter();
+        }
+        return this._metricsAdapter;
     }
 
     /**

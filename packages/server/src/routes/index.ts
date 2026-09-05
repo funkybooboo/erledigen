@@ -8,6 +8,8 @@
 import type { Logger } from '@erledigen/shared';
 import type { HttpServer } from '../adapters/http/HttpServer';
 import type { Container } from '../container';
+import { registerHealthRoutes, type ServerStatusDeps } from './healthRoutes';
+import { registerMetricsRoutes } from './metricsRoutes';
 import { registerOpenApiRoutes } from './openApiRoutes';
 import { registerProjectRoutes } from './projectRoutes';
 import { registerRecurringTaskRoutes } from './recurringTaskRoutes';
@@ -19,7 +21,22 @@ import { registerUserPreferencesRoutes } from './userPreferencesRoutes';
 export function registerAllRoutes(server: HttpServer, container: Container): void {
     const logger: Logger = container.logger;
 
+    const statusDeps: ServerStatusDeps = {
+        version: container.config.get('APP_VERSION', '0.0.0'),
+        startedAt: container.startedAt,
+        storageAdapter: container.storageAdapter,
+        sqliteConnection: container.storageAdapter === 'sqlite' ? container.sqliteConnection : null,
+        connectionManager: container.connectionManager,
+        taskRepository: container.taskRepository,
+    };
+
     registerOpenApiRoutes(server);
+    registerHealthRoutes(server, statusDeps);
+    // The metrics endpoint only exists when collection is on; a disabled
+    // endpoint 404s instead of serving an empty payload (see ADR-005).
+    if (container.metricsEnabled) {
+        registerMetricsRoutes(server, container.metricsAdapter, statusDeps);
+    }
     registerTaskRoutes(
         server,
         container.taskRepository,

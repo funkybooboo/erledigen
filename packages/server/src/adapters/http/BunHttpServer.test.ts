@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'bun:test';
+import { PrometheusMetricsAdapter } from '@erledigen/shared';
 import { BunHttpServer } from './BunHttpServer';
 import type { Guard, HttpResponse, Middleware } from './types';
 
@@ -221,6 +222,85 @@ describe('BunHttpServer', () => {
 
             expect(notFound.headers.get('X-Request-Id')).toBeDefined();
             expect(blocked.headers.get('X-Request-Id')).toBeDefined();
+            await server.stop();
+        });
+    });
+
+    describe('request metrics (see ADR-005)', () => {
+        it('records counter, duration histogram, and normalized route paths', async () => {
+            const metrics = new PrometheusMetricsAdapter();
+            const server = new BunHttpServer({ metrics });
+            await server.start(0);
+            server.route('GET', '/api/tasks/:id', async () => ({
+                status: 200,
+                headers: {},
+                body: 'ok',
+            }));
+
+            // Two different concrete paths must land in ONE normalized
+            // series -- dynamic segments must not explode the label set.
+            await fetch(server, 'GET', '/api/tasks/abc123');
+            await fetch(server, 'GET', '/api/tasks/xyz789');
+            await fetch(server, 'GET', '/nope');
+
+            const out = metrics.render();
+            expect(out).toContain(
+                'erledigen_http_requests_total{method="GET",path="/api/tasks/:id",status_code="200"} 2',
+            );
+            expect(out).toContain(
+                'erledigen_http_requests_total{method="GET",path="unmatched",status_code="404"} 1',
+            );
+            expect(out).toContain(
+                'erledigen_http_request_duration_seconds_count{method="GET",path="/api/tasks/:id"} 2',
+            );
+            await server.stop();
+        });
+
+        it('returns the in-flight gauge to zero after requests complete', async () => {
+            const metrics = new PrometheusMetricsAdapter();
+            const server = new BunHttpServer({ metrics });
+            await server.start(0);
+            server.route('GET', '/', async () => ({ status: 200, headers: {}, body: 'ok' }));
+
+            await fetch(server, 'GET', '/');
+
+            expect(metrics.render()).toContain('erledigen_http_requests_active{method="GET"} 0');
+            await server.stop();
+        });
+
+        it('records guard short-circuits against the matched route pattern', async () => {
+            const metrics = new PrometheusMetricsAdapter();
+            const server = new BunHttpServer({ metrics });
+            await server.start(0);
+            const blocker: Guard = () => ({ status: 429, headers: {}, body: 'rate limited' });
+            server.addGuard(blocker);
+            server.route('GET', '/api/tasks', async () => ({
+                status: 200,
+                headers: {},
+                body: 'ok',
+            }));
+
+            await fetch(server, 'GET', '/api/tasks');
+
+            expect(metrics.render()).toContain(
+                'erledigen_http_requests_total{method="GET",path="/api/tasks",status_code="429"} 1',
+            );
+            await server.stop();
+        });
+
+        it('skips CORS preflights in metrics (they are plumbing)', async () => {
+            const metrics = new PrometheusMetricsAdapter();
+            const server = new BunHttpServer({ metrics });
+            await server.start(0);
+            server.route('GET', '/api/tasks', async () => ({
+                status: 200,
+                headers: {},
+                body: 'ok',
+            }));
+
+            await fetch(server, 'OPTIONS', '/api/tasks');
+
+            expect(metrics.render()).toBe('');
             await server.stop();
         });
     });

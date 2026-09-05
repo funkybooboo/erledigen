@@ -8,10 +8,37 @@ test.describe('meta -- platform endpoints', () => {
         expect(res.body).toBe('Hello from Bun Server!');
     });
 
-    test('GET /api/health returns ok status', async ({ request }) => {
+    test('GET /api/health returns ok with status details', async ({ request }) => {
         const res = await get(request, '/api/health');
         expect(res.status).toBe(200);
-        expect(res.body).toEqual({ data: { status: 'ok' } });
+        const data = res.body.data;
+        expect(data.status).toBe('ok');
+        expect(typeof data.uptime).toBe('number');
+        expect(typeof data.version).toBe('string');
+        // The api project boots the server with STORAGE_ADAPTER=memory.
+        expect(data.database.type).toBe('memory');
+        expect(data.database.sizeBytes).toBeNull();
+        expect(typeof data.connections.websocket).toBe('number');
+    });
+
+    test('GET /api/health echoes an incoming request ID (ADR-004)', async ({ request }) => {
+        const res = await get(request, '/api/health', { 'X-Request-Id': 'meta-trace-42' });
+        expect(res.headers['x-request-id']).toBe('meta-trace-42');
+    });
+
+    test('GET /api/metrics serves Prometheus text with live request series', async ({
+        request,
+    }) => {
+        // Exercise a real route first so the request counter has a series.
+        await get(request, '/api/health');
+        const res = await get(request, '/api/metrics');
+        expect(res.status).toBe(200);
+        expect(res.headers['content-type']).toContain('text/plain');
+        expect(res.body).toContain('# TYPE erledigen_http_requests_total counter');
+        expect(res.body).toContain('path="/api/health"');
+        expect(res.body).toContain('erledigen_uptime_seconds');
+        expect(res.body).toContain('erledigen_tasks_total');
+        expect(res.body).toContain('erledigen_build_info');
     });
 
     test('unknown route returns 404 with CORS headers', async ({ request }) => {
