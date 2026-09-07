@@ -1,10 +1,34 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <!-- Erledigen mark: a Bauhaus "E" built from pills (the app's button
        shape language) in the Fizzy palette. Crossbars = p1/p2/p3,
-       spine = on-accent, badge = ink. -->
-  <rect width="512" height="512" rx="112" fill="#17233C"/>
-  <rect x="108" y="108" width="296" height="76" rx="38" fill="#F3570A"/>
-  <rect x="108" y="218" width="246" height="76" rx="38" fill="#F29100"/>
-  <rect x="108" y="328" width="320" height="76" rx="38" fill="#398FFF"/>
-  <rect x="108" y="108" width="76" height="296" rx="38" fill="#FFFFFF"/>
+       spine = on-accent, badge = ink.
+
+       Fills are the app.css theme tokens hardcoded to their sRGB values
+       (a favicon renders outside the app, so it cannot use the live CSS
+       variables; the light values below are exactly the light-token
+       colors). The embedded prefers-color-scheme media query switches to
+       the dark-theme token values, mirroring the in-app Logo component
+       so the mark matches whatever theme it is seen in. Raster fallbacks
+       (favicon.ico, favicon-*.png, apple-touch-icon.png) carry only the
+       light palette -- raster icons cannot adapt. -->
+  <style>
+    .badge { fill: #17233C; }
+    .spine { fill: #FFFFFF; }
+    .p1 { fill: #F3570A; }
+    .p2 { fill: #F29100; }
+    .p3 { fill: #398FFF; }
+    @media (prefers-color-scheme: dark) {
+      /* Dark-theme token values from app.css [data-theme="dark"] */
+      .badge { fill: #F0F2F4; }
+      .spine { fill: #000000; }
+      .p1 { fill: #D16036; }
+      .p2 { fill: #BD7300; }
+      .p3 { fill: #4385E4; }
+    }
+  </style>
+  <rect class="badge" width="512" height="512" rx="112"/>
+  <rect class="p1" x="108" y="108" width="296" height="76" rx="38"/>
+  <rect class="p2" x="108" y="218" width="246" height="76" rx="38"/>
+  <rect class="p3" x="108" y="328" width="320" height="76" rx="38"/>
+  <rect class="spine" x="108" y="108" width="76" height="296" rx="38"/>
 </svg>
