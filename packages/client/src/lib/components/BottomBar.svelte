@@ -3,7 +3,8 @@
     import { taskStore, preferencesStore, dateViewStore } from '$lib/stores';
     import { container } from '$lib/container';
     import { Icon } from 'svelte-icons-pack';
-    import { LuX, LuSquareCheck } from 'svelte-icons-pack/lu';
+    import { LuX } from 'svelte-icons-pack/lu';
+    import Logo from '$lib/components/Logo.svelte';
     import { tooltip } from '$lib/tooltip';
 
     let totalTasks = $derived(taskStore.tasks.length);
@@ -51,7 +52,7 @@
 
 <footer class="bottom-bar">
     <button class="logo-btn" onclick={handleHomeClick} use:tooltip={{ label: 'Clear filters and go to today' }} aria-label="Home -- clear filters and go to today">
-        <Icon src={LuSquareCheck} />
+        <Logo size={18} />
         <strong>erledigen</strong>
     </button>
 
@@ -104,11 +105,6 @@
         border-radius: 4px;
         color: var(--color-text);
         transition: background-color 0.15s;
-    }
-
-    .logo-btn :global(svg) {
-        width: 16px;
-        height: 16px;
     }
 
     .logo-btn:hover {
