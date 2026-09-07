@@ -28,6 +28,23 @@
             resolved = theme;
         }
         document.documentElement.setAttribute('data-theme', resolved);
+
+        // A favicon is fetched before the app knows its theme setting, so
+        // favicon.svg guesses from the browser's scheme via an embedded
+        // media query. That guess is wrong whenever the in-app theme
+        // disagrees with the browser, leaving the tab showing the other
+        // variant of the mark than the in-app Logo does. Once the theme
+        // is resolved, point the tab at the matching variant (derived from
+        // the existing href so any asset base is preserved) so the mark
+        // always agrees with the app.
+        const iconLink = document.querySelector('link[rel="icon"][type="image/svg+xml"]');
+        const iconHref = iconLink?.getAttribute('href');
+        if (iconLink && iconHref) {
+            iconLink.setAttribute(
+                'href',
+                iconHref.replace(/favicon(?:-light|-dark)?\.svg$/, `favicon-${resolved}.svg`),
+            );
+        }
     }
 
     onMount(() => {
