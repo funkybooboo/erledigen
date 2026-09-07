@@ -130,6 +130,7 @@ export {
 // Utilities
 export {
     addDays,
+    addMonths,
     dateRangeKeys,
     daysBetween,
     describeRecurrence,
@@ -141,6 +142,8 @@ export {
     groupTasksByDate,
     hasDeadlineTag,
     keyFromParts,
+    monthKeyOf,
+    monthRangeKeys,
     nextOccurrenceIso,
     parseRecurrence,
     parseTags,

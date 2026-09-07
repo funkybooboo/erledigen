@@ -71,3 +71,50 @@ export function dateRangeKeys(start: string, end: string): string[] {
     }
     return out;
 }
+
+/**
+ * The `YYYY-MM` month key containing a `YYYY-MM-DD` date key.
+ */
+export function monthKeyOf(dateStr: string): string {
+    return dateStr.slice(0, 7);
+}
+
+/**
+ * Parse a `YYYY-MM` month key into `[year, month]` (month 1-based).
+ */
+function splitMonthKey(monthKey: string): [number, number] {
+    const parts = monthKey.split('-').map(Number);
+    return [parts[0] ?? 1, parts[1] ?? 1];
+}
+
+/**
+ * Add months to a `YYYY-MM` month key (negative supported). Pure
+ * Gregorian arithmetic on the key, same contract as addDays -- no Date
+ * objects, no DST, rolls year boundaries correctly.
+ *
+ * Precondition: a well-formed `YYYY-MM` key within the representable
+ * range (the minimap navigates a bounded window around the current era).
+ */
+export function addMonths(monthKey: string, months: number): string {
+    const [y, m] = splitMonthKey(monthKey);
+    // Linear month index; JS % is negative for negative indices, so the
+    // result is only meaningful for indices >= 0 (see precondition).
+    const idx = (y - 1) * 12 + (m - 1) + months;
+    const ny = Math.floor(idx / 12) + 1;
+    const nm = (idx % 12) + 1;
+    return `${ny}-${String(nm).padStart(2, '0')}`;
+}
+
+/**
+ * Inclusive list of month keys from `start` to `end` in calendar order.
+ * Same contract as dateRangeKeys: empty when `start` is after `end`.
+ */
+export function monthRangeKeys(start: string, end: string): string[] {
+    const out: string[] = [];
+    let cursor = start;
+    while (cursor <= end) {
+        out.push(cursor);
+        cursor = addMonths(cursor, 1);
+    }
+    return out;
+}

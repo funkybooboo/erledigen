@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount, onDestroy, tick, untrack } from 'svelte';
+    import { addMonths, monthKeyOf, monthRangeKeys } from '@erledigen/shared';
     import { dateViewStore, preferencesStore } from '$lib/stores';
-    import { container } from '$lib/container';
     import { tooltip } from '$lib/tooltip';
 
     // Month granularity: each row is one month. The minimap has its OWN
@@ -17,29 +17,7 @@
     // the minimap's own overflow and make the sentinel always intersect.
     const ROOT_MARGIN_PX = 120;
 
-    // --- month math (operates on "YYYY-MM" keys) ---
-
-    function toMonthKey(dateStr: string): string {
-        return dateStr.slice(0, 7); // YYYY-MM
-    }
-
-    function monthOffset(monthKey: string, months: number): string {
-        const [y, m] = monthKey.split('-').map(Number) as [number, number];
-        const idx = (y - 1) * 12 + (m - 1) + months;
-        const ny = Math.floor(idx / 12) + 1;
-        const nm = (idx % 12) + 1;
-        return `${ny}-${String(nm).padStart(2, '0')}`;
-    }
-
-    function monthRange(start: string, end: string): string[] {
-        const out: string[] = [];
-        let cur = start;
-        while (cur <= end) {
-            out.push(cur);
-            cur = monthOffset(cur, 1);
-        }
-        return out;
-    }
+    // --- month math: pure key arithmetic lives in shared dateKeys ---
 
     function monthLabel(monthKey: string): string {
         const m = Number(monthKey.slice(5, 7));
@@ -57,11 +35,10 @@
 
     // --- today (reactive to timezone preference) ---
 
-    const todayStr = $derived.by(() => {
-        preferencesStore.timezone;
-        return container.dateProvider.today();
-    });
-    const todayMonth = $derived(toMonthKey(todayStr));
+    // Reactive to timezone changes through the preferences store's today
+    // getter (it anchors on the timezone preference).
+    const todayStr = $derived(preferencesStore.today);
+    const todayMonth = $derived(monthKeyOf(todayStr));
 
     // --- own infinite-scroll window (months) ---
 
@@ -69,14 +46,14 @@
     // timezone preference loading later moves "today" without yanking
     // the rail; navigation requests re-center the window on demand.
     // svelte-ignore state_referenced_locally
-    let visibleStart = $state(monthOffset(toMonthKey(todayStr), -CHUNK_MONTHS));
+    let visibleStart = $state(addMonths(monthKeyOf(todayStr), -CHUNK_MONTHS));
     // svelte-ignore state_referenced_locally
-    let visibleEnd = $state(monthOffset(toMonthKey(todayStr), CHUNK_MONTHS));
+    let visibleEnd = $state(addMonths(monthKeyOf(todayStr), CHUNK_MONTHS));
 
-    let rows = $derived(monthRange(visibleStart, visibleEnd));
+    let rows = $derived(monthRangeKeys(visibleStart, visibleEnd));
 
     // --- single selected month (the month centered in DayList's viewport) ---
-    const selectedMonth = $derived(dateViewStore.focusedDate ? toMonthKey(dateViewStore.focusedDate) : null);
+    const selectedMonth = $derived(dateViewStore.focusedDate ? monthKeyOf(dateViewStore.focusedDate) : null);
 
     // Keep enough months rendered to show the focused month (so DayList
     // scrolling tracks the selection) WITHOUT fighting the manual-browse
@@ -87,13 +64,13 @@
         if (!sel) return;
         untrack(() => {
             if (sel < visibleStart) {
-                visibleStart = monthOffset(sel, -CHUNK_MONTHS);
-                const desiredEnd = monthOffset(visibleStart, MAX_RENDER_MONTHS);
+                visibleStart = addMonths(sel, -CHUNK_MONTHS);
+                const desiredEnd = addMonths(visibleStart, MAX_RENDER_MONTHS);
                 if (visibleEnd > desiredEnd) visibleEnd = desiredEnd;
             }
             if (sel > visibleEnd) {
-                visibleEnd = monthOffset(sel, CHUNK_MONTHS);
-                const desiredStart = monthOffset(visibleEnd, -MAX_RENDER_MONTHS);
+                visibleEnd = addMonths(sel, CHUNK_MONTHS);
+                const desiredStart = addMonths(visibleEnd, -MAX_RENDER_MONTHS);
                 if (visibleStart < desiredStart) visibleStart = desiredStart;
             }
         });
@@ -111,16 +88,16 @@
         const target = dateViewStore.pendingScrollTarget;
         if (!target) return;
         const center = dateViewStore.centerMinimap;
-        const mk = toMonthKey(target);
+        const mk = monthKeyOf(target);
         untrack(() => {
             if (mk < visibleStart) {
-                visibleStart = monthOffset(mk, -CHUNK_MONTHS);
-                const desiredEnd = monthOffset(visibleStart, MAX_RENDER_MONTHS);
+                visibleStart = addMonths(mk, -CHUNK_MONTHS);
+                const desiredEnd = addMonths(visibleStart, MAX_RENDER_MONTHS);
                 if (visibleEnd > desiredEnd) visibleEnd = desiredEnd;
             }
             if (mk > visibleEnd) {
-                visibleEnd = monthOffset(mk, CHUNK_MONTHS);
-                const desiredStart = monthOffset(visibleEnd, -MAX_RENDER_MONTHS);
+                visibleEnd = addMonths(mk, CHUNK_MONTHS);
+                const desiredStart = addMonths(visibleEnd, -MAX_RENDER_MONTHS);
                 if (visibleStart < desiredStart) visibleStart = desiredStart;
             }
             if (center) {
@@ -171,11 +148,11 @@
         // root margin never transitions and the callback never re-triggers.
         topObserver?.unobserve(sentinelTopEl);
         extendingUp = true;
-        const next = monthOffset(visibleStart, -CHUNK_MONTHS);
+        const next = addMonths(visibleStart, -CHUNK_MONTHS);
         const anchor = pickAnchorEl();
         const oldTop = anchor ? anchor.getBoundingClientRect().top : 0;
         visibleStart = next;
-        const desiredEnd = monthOffset(next, MAX_RENDER_MONTHS);
+        const desiredEnd = addMonths(next, MAX_RENDER_MONTHS);
         if (visibleEnd > desiredEnd) visibleEnd = desiredEnd;
         tick().then(() => {
             if (scrollContainer && anchor) {
@@ -191,8 +168,8 @@
         if (extendingDown) return;
         bottomObserver?.unobserve(sentinelBottomEl);
         extendingDown = true;
-        const next = monthOffset(visibleEnd, CHUNK_MONTHS);
-        const desiredStart = monthOffset(next, -MAX_RENDER_MONTHS);
+        const next = addMonths(visibleEnd, CHUNK_MONTHS);
+        const desiredStart = addMonths(next, -MAX_RENDER_MONTHS);
         const anchor = pickAnchorEl();
         const oldTop = anchor ? anchor.getBoundingClientRect().top : 0;
         if (desiredStart > visibleStart) visibleStart = desiredStart;
