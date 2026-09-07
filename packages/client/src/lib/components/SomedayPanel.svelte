@@ -7,7 +7,7 @@
     import SectionHeader from './SectionHeader.svelte';
     import { Icon } from 'svelte-icons-pack';
     import { LuPencil, LuTrash2, LuCheck } from 'svelte-icons-pack/lu';
-    import type { SomeDayGroup } from '@erledigen/shared';
+    import { slugify, type SomeDayGroup } from '@erledigen/shared';
     import { tooltip } from '$lib/tooltip';
 
     let showAddGroupForm = $state(false);
@@ -104,7 +104,7 @@
     function submitNewGroup() {
         const name = newGroupName.trim();
         if (!name) return;
-        const tag = name.toLowerCase().replace(/\s+/g, '-');
+        const tag = slugify(name);
         someDayGroupStore.create({ name, tag, position: groups.length });
         newGroupName = '';
         showAddGroupForm = false;
@@ -124,7 +124,7 @@
         if (!editingGroupId) return;
         const name = editGroupName.trim();
         if (name) {
-            const tag = name.toLowerCase().replace(/\s+/g, '-');
+            const tag = slugify(name);
             someDayGroupStore.update(editingGroupId, { name, tag });
         }
         editingGroupId = null;

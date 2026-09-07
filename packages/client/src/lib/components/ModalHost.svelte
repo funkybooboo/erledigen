@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { uiStore, taskStore, type ModalType } from '$lib/stores';
+    import { uiStore } from '$lib/stores';
     import SummaryModal from './modals/SummaryModal.svelte';
     import ProjectsModal from './modals/ProjectsModal.svelte';
     import HabitsModal from './modals/HabitsModal.svelte';
