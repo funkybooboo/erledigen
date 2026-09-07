@@ -3,6 +3,7 @@
     import { notificationStore, taskStore } from '$lib/stores';
     import type { Task } from '@erledigen/shared';
     import { PURGE_RETENTION_DAYS } from '@erledigen/shared';
+    import { container } from '$lib/container';
     import { onMount } from 'svelte';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
@@ -47,8 +48,9 @@
 
     function formatDate(dateStr: string | null): string {
         if (!dateStr) return 'Someday';
-        const d = new Date(dateStr + 'T00:00:00');
-        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        // Stored date keys format through the provider (UTC-anchored
+        // label), not local Date parsing.
+        return container.dateProvider.formatDate(dateStr, 'short');
     }
 </script>
 
