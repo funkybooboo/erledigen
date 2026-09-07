@@ -24,6 +24,7 @@ import {
     taskStore,
     uiStore,
 } from '$lib/stores';
+import { deleteTaskWithUndo } from '$lib/taskActions';
 
 /** What a shortcut does. run() returns whether the key was consumed (the
  *  dispatcher preventDefaults only then). allowWhileTyping lifts the
@@ -105,30 +106,7 @@ function setPriorityTag(tag: 'p1' | 'p2' | 'p3' | null): boolean {
 function deleteFocusedTask(): boolean {
     const task = getFocusedTask();
     if (!task) return false;
-    const taskId = task.id;
-    // A const arrow, not a hoisted function declaration: TS preserves the
-    // !task narrowing above into arrows created after the guard, so the
-    // clone below needs no type assertion.
-    const doDelete = async (): Promise<void> => {
-        // Clone at delete time: the store's copy can keep changing, but
-        // Undo must restore exactly the state the user saw when they
-        // deleted.
-        const taskCopy: Task = { ...task };
-        const success = await taskStore.remove(taskId);
-        if (success) {
-            notificationStore.push('Task deleted', {
-                kind: 'info',
-                action: { label: 'Undo', fn: () => taskStore.restore(taskCopy) },
-            });
-        }
-    };
-    if (preferencesStore.deleteConfirmation === 'confirm') {
-        void uiStore.confirm(`Delete "${task.text}"?`).then(ok => {
-            if (ok) void doDelete();
-        });
-    } else {
-        void doDelete();
-    }
+    void deleteTaskWithUndo(task);
     return true;
 }
 
@@ -187,11 +165,7 @@ export const keyboardActions: Record<ShortcutId, KeyboardAction> = {
     // Deliberately usable while typing (Gmail-style Cmd+K):
     toggleSomedayPanel: {
         run: () => {
-            if (preferencesStore.someDayPanelWidth === 0) {
-                preferencesStore.setPanelWidth(preferencesStore.someDayPanelLastOpenWidth || 280);
-            } else {
-                preferencesStore.setPanelWidth(0);
-            }
+            preferencesStore.toggleSomeDayPanel();
             return true;
         },
         allowWhileTyping: true,

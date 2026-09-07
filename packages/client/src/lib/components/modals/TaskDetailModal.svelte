@@ -1,6 +1,7 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
     import { taskStore, uiStore, notificationStore } from '$lib/stores';
+    import { deleteTaskWithUndo } from '$lib/taskActions';
     import {
         TASK_CONSTRAINTS,
         formatTags,
@@ -117,20 +118,15 @@
     }
 
     async function handleDeleteSubTask(subTask: Task) {
-        await taskStore.remove(subTask.id);
+        await deleteTaskWithUndo(subTask);
     }
 
     async function handleDeleteTask() {
         if (!task) return;
-        const removedTask: Task = { ...task };
-        const success = await taskStore.remove(task.id);
-        if (success) {
-            notificationStore.push('Task deleted', {
-                kind: 'info',
-                action: { label: 'Undo', fn: () => taskStore.restore(removedTask) },
-            });
-        }
-        uiStore.closeModal();
+        const outcome = await deleteTaskWithUndo(task);
+        // A declined confirmation keeps the modal open (the user still
+        // holds unsaved edits); every settled delete closes it.
+        if (outcome !== 'declined') uiStore.closeModal();
     }
 </script>
 

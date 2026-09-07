@@ -119,3 +119,45 @@ test.describe('task CRUD through the UI', () => {
         await expect(page.locator('.task-row', { hasText: text }).locator('.tag-chip', { hasText: '#e2e' })).toBeVisible();
     });
 });
+test.describe('delete confirmation preference', () => {
+    test.afterEach(async ({ request }) => {
+        // The preference persists on the shared test server; restore the
+        // default so later specs are not affected.
+        await request.patch(`${SERVER_URL}/api/preferences`, {
+            data: { deleteConfirmation: 'instant' },
+        });
+    });
+
+    test('row delete honors the "Ask before deleting" preference', async ({ page }) => {
+        const text = uniq('UiConfirmDelete');
+        const task = await createTask(page.request, { text, date: todayISO() }, SERVER_URL);
+        await page.request.patch(`${SERVER_URL}/api/preferences`, {
+            data: { deleteConfirmation: 'confirm' },
+        });
+        await hydrated(page);
+
+        const row = page.locator('.task-row', { hasText: text }).first();
+        const dialog = modal(page, 'Confirm');
+
+        // Declining the dialog keeps the task.
+        await row.getByRole('button', { name: 'Delete task' }).click();
+        await expect(dialog).toBeVisible();
+        await dialog.getByRole('button', { name: 'Cancel' }).click();
+        await expect(row).toBeVisible();
+        let res = await page.request.get(`${SERVER_URL}/api/tasks/${task.id}`);
+        expect(res.status()).toBe(200);
+
+        // Confirming deletes it; the Undo toast restores it.
+        await row.getByRole('button', { name: 'Delete task' }).click();
+        await dialog.getByRole('button', { name: 'Delete', exact: true }).click();
+        await expect(row).toHaveCount(0);
+        res = await page.request.get(`${SERVER_URL}/api/tasks/${task.id}`);
+        expect(res.status()).toBe(404);
+
+        const notif = page.locator('.notification', { hasText: 'Task deleted' });
+        await notif.getByRole('button', { name: 'Undo' }).click();
+        await expect(page.locator('.task-row', { hasText: text })).toBeVisible();
+        res = await page.request.get(`${SERVER_URL}/api/tasks/${task.id}`);
+        expect(res.status()).toBe(200);
+    });
+});
