@@ -1,0 +1,31 @@
+meta {
+  name: Export - Invalid Format
+  type: http
+  seq: 104
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/export?format=xml
+  body: none
+  auth: none
+}
+
+params:query {
+  format: xml
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("should reject an unknown format with 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+
+  test("should return the standard error envelope", function() {
+    const body = res.getBody();
+    expect(body.error).to.be.a("string");
+    expect(body.code).to.be.a("string");
+  });
+}

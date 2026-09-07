@@ -1,0 +1,38 @@
+meta {
+  name: Export CSV
+  type: http
+  seq: 101
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/export?format=csv
+  body: none
+  auth: none
+}
+
+params:query {
+  format: csv
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("should return 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("should serve text/csv as an attachment", function() {
+    expect(res.getHeader("content-type")).to.include("text/csv");
+    expect(res.getHeader("content-disposition")).to.include("attachment");
+    expect(res.getHeader("content-disposition")).to.include(".csv");
+  });
+
+  test("should start with a header row ending with updatedAt", function() {
+    const body = res.getBody();
+    const firstLine = body.split("\r\n")[0];
+    expect(firstLine.startsWith("id,text")).to.be.true;
+    expect(firstLine.endsWith("createdAt,updatedAt")).to.be.true;
+  });
+}

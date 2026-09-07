@@ -1,0 +1,31 @@
+meta {
+  name: Export Markdown
+  type: http
+  seq: 102
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/export?format=md
+  body: none
+  auth: none
+}
+
+params:query {
+  format: md
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("should return 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("should serve text/markdown as an attachment", function() {
+    expect(res.getHeader("content-type")).to.include("text/markdown");
+    expect(res.getHeader("content-disposition")).to.include("attachment");
+    expect(res.getHeader("content-disposition")).to.include(".md");
+  });
+}

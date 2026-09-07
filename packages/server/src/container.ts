@@ -52,6 +52,7 @@ import { BunWebSocketServer } from './adapters/ws/BunWebSocketServer';
 import { ConnectionManager } from './adapters/ws/ConnectionManager';
 import type { WebSocketServer } from './adapters/ws/WebSocketServer';
 import { EventBus } from './services/EventBus';
+import { ExportService } from './services/ExportService';
 import { DEFAULT_JOB_RUNNER_CONFIG, JobRunner } from './services/JobRunner';
 import { ProjectService } from './services/ProjectService';
 import { RecurringTaskService } from './services/RecurringTaskService';
@@ -84,6 +85,7 @@ export class Container {
     private _tagService: TagService | null = null;
     private _recurringTaskService: RecurringTaskService | null = null;
     private _projectService: ProjectService | null = null;
+    private _exportService: ExportService | null = null;
 
     /**
      * Get the configuration provider
@@ -313,6 +315,21 @@ export class Container {
             this._projectService = new ProjectService(this.projectRepository);
         }
         return this._projectService;
+    }
+
+    /** Export service (see ADR-008): snapshot assembly + format dispatch. */
+    get exportService(): ExportService {
+        if (!this._exportService) {
+            this._exportService = new ExportService(
+                this.taskRepository,
+                this.someDayGroupRepository,
+                this.projectRepository,
+                this.recurringTaskRepository,
+                this.userPreferencesRepository,
+                this.dateProvider,
+            );
+        }
+        return this._exportService;
     }
 
     private _eventBus: EventBus<WsServerEventMap> | null = null;
