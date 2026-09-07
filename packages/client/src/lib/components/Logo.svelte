@@ -13,10 +13,12 @@
 
 <!-- The Erledigen mark: a Bauhaus "E" built from pills (the app's button
      shape language). Geometry mirrors static/favicon.svg 1:1, but the fills
-     use live theme tokens -- the favicon hardcodes the light palette because
-     a browser tab can't see this app's CSS, and here the badge/spine invert
-     with the theme (ink/surface inversion, the app.css tooltip pattern).
-     The light-theme token values are exactly the favicon's hex colors. -->
+     use live theme tokens, so this mark follows the in-app theme setting;
+     the favicon's embedded prefers-color-scheme media query follows the
+     browser's scheme, and both use the same token mapping (badge = ink,
+     spine = on-accent, pills = p1/p2/p3 -- the ink/surface inversion of
+     app.css). The token values are exactly the favicon's hardcoded hexes,
+     light and dark. -->
 <svg
     width={size}
     height={size}
