@@ -57,6 +57,15 @@ class PreferencesStore {
     timezone = $state<string | null>(null);
     updatedAt = $state(new Date().toISOString());
 
+    /** Reactive "today" date key: reading this.timezone anchors the
+     *  reactive dependency, so callers' $derived re-run when the user's
+     *  zone preference changes and re-resolve today through the date
+     *  provider's live zone. */
+    get today(): string {
+        void this.timezone;
+        return container.dateProvider.today();
+    }
+
     toggleTag(tag: string) {
         if (this.activeFilters.tags.includes(tag)) {
             this.activeFilters = {
