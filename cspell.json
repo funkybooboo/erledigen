@@ -125,6 +125,8 @@
         "prio",
         "prometheus",
         "promtail",
+        "refetch",
+        "refetches",
         "reflog",
         "reflogs",
         "regenerable",

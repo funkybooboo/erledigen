@@ -1,0 +1,54 @@
+meta {
+  name: Import Things JSON
+  type: http
+  seq: 106
+}
+
+post {
+  url: {{baseUrl}}{{apiPrefix}}/import?format=things-json
+  body: text
+  auth: none
+}
+body:text {
+[
+  {
+    "uuid": "u1",
+    "type": "to-do",
+    "title": "Bruno things done",
+    "subtitle": "",
+    "notes": "",
+    "status": "completed",
+    "start": "Anytime",
+    "start_date": "2026-03-01",
+    "deadline": null,
+    "stop_date": null,
+    "created": "2026-02-01 00:00:00",
+    "modified": "2026-03-02 00:00:00"
+  },
+  {
+    "uuid": "u2",
+    "type": "to-do",
+    "title": "Bruno things canceled",
+    "subtitle": "",
+    "notes": "",
+    "status": "canceled",
+    "start": "Someday",
+    "start_date": null,
+    "deadline": null,
+    "stop_date": null,
+    "created": "2026-02-01 00:00:00",
+    "modified": "2026-02-01 00:00:00"
+  }
+]
+}
+
+assert {
+  res.status: eq 200}
+
+tests {
+  test("should keep completed state and land canceled in the trash", function() {
+    expect(res.getStatus()).to.equal(200);
+    const body = res.getBody();
+    expect(body.data.created).to.equal(2);
+  });
+}

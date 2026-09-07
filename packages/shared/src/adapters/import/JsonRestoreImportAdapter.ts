@@ -444,9 +444,15 @@ export class JsonRestoreImportAdapter implements ImportAdapter<ExportSnapshot> {
             userPreferences: validateUserPreferences(doc.userPreferences),
         };
 
-        const taskIds = snapshot.tasks.map(t => t.id);
-        if (new Set(taskIds).size !== taskIds.length) {
-            throw new ImportValidationError('Invalid snapshot: duplicate task ids');
+        for (const [kind, ids] of [
+            ['task', snapshot.tasks.map(t => t.id)],
+            ['someDayGroup', snapshot.someDayGroups.map(g => g.id)],
+            ['project', snapshot.projects.map(p => p.id)],
+            ['recurringTask', snapshot.recurringTasks.map(r => r.id)],
+        ] as const) {
+            if (new Set(ids).size !== ids.length) {
+                throw new ImportValidationError(`Invalid snapshot: duplicate ${kind} ids`);
+            }
         }
 
         validateReferences(snapshot);

@@ -1,0 +1,31 @@
+meta {
+  name: Import Todoist CSV
+  type: http
+  seq: 105
+}
+
+post {
+  url: {{baseUrl}}{{apiPrefix}}/import?format=todoist-csv
+  body: text
+  auth: none
+}
+body:text {
+TYPE,CONTENT,DESCRIPTION,PRIORITY,INDENT,AUTHOR,RESPONSIBLE,DATE,DATE_LANG,TIMEZONE
+task,@errands Bruno todoist import task @home,From Bruno,2,1,,,2026-03-14 17:00,en,Europe/Berlin
+task,Bruno todoist subtask,,4,2,,,,
+task,Bruno recurring undated,Recurring,3,1,,,every Monday,en,Europe/Berlin
+}
+
+assert {
+  res.status: eq 200}
+
+tests {
+  test("should import additively with warnings", function() {
+    expect(res.getStatus()).to.equal(200);
+    const body = res.getBody();
+    expect(body.data.mode).to.equal("import");
+    expect(body.data.created).to.equal(3);
+    expect(body.data.warnings.length).to.equal(1);
+    expect(body.data.warnings[0].message).to.include("every Monday");
+  });
+}

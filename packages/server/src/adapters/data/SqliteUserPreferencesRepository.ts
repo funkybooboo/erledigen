@@ -150,6 +150,13 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
     }
 
     async restore(prefs: UserPreferences): Promise<void> {
+        this.restoreSync(prefs);
+        return Promise.resolve();
+    }
+
+    /** Synchronous core, for composing multi-table restore transactions
+     *  (ADR-009) -- see SqliteTaskRepository.replaceAllSync. */
+    restoreSync(prefs: UserPreferences): void {
         // Verbatim write of the snapshot's preferences, updatedAt included
         // (update() stamps a fresh timestamp; a restore must not).
         this.write({ ...prefs });

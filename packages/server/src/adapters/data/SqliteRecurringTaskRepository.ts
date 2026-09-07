@@ -133,6 +133,13 @@ export class SqliteRecurringTaskRepository implements RecurringTaskRepository {
     }
 
     async replaceAll(recurringTasks: RecurringTask[]): Promise<void> {
+        this.replaceAllSync(recurringTasks);
+        return Promise.resolve();
+    }
+
+    /** Synchronous core, for composing multi-table restore transactions
+     *  (ADR-009) -- see SqliteTaskRepository.replaceAllSync. */
+    replaceAllSync(recurringTasks: RecurringTask[]): void {
         const insert = this.db.prepare(
             `
             INSERT INTO recurring_tasks (${RECURRING_TASK_COLUMNS})

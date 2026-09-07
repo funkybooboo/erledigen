@@ -1,0 +1,25 @@
+meta {
+  name: Import CSV with Mapping
+  type: http
+  seq: 108
+}
+
+post {
+  url: {{baseUrl}}{{apiPrefix}}/import?format=csv&mapping=text:0,date:1
+  body: text
+  auth: none
+}
+body:text {
+idea,when
+Bruno mapped csv row,2026-04-02
+}
+
+assert {
+  res.status: eq 200}
+
+tests {
+  test("should map columns by index", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.created).to.equal(1);
+  });
+}

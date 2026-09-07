@@ -187,6 +187,15 @@ export class SqliteTaskRepository implements TaskRepository {
     }
 
     async replaceAll(tasks: Task[]): Promise<void> {
+        this.replaceAllSync(tasks);
+        return Promise.resolve();
+    }
+
+    /** Synchronous core, for composing multi-table restore transactions
+     *  (ADR-009): an async facade cannot throw inside a bun:sqlite
+     *  transaction callback (the rejection escapes the callback, which
+     *  commits). Callers composing the all-tables restore use this. */
+    replaceAllSync(tasks: Task[]): void {
         const insert = this.db.prepare(
             `
             INSERT INTO tasks (${TASK_COLUMNS})

@@ -96,6 +96,13 @@ export class SqliteProjectRepository implements ProjectRepository {
     }
 
     async replaceAll(projects: Project[]): Promise<void> {
+        this.replaceAllSync(projects);
+        return Promise.resolve();
+    }
+
+    /** Synchronous core, for composing multi-table restore transactions
+     *  (ADR-009) -- see SqliteTaskRepository.replaceAllSync. */
+    replaceAllSync(projects: Project[]): void {
         const insert = this.db.prepare(
             `
             INSERT INTO projects (${PROJECT_COLUMNS})
