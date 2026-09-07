@@ -3,14 +3,17 @@
        shape language) in the Fizzy palette. Crossbars = p1/p2/p3,
        spine = on-accent, badge = ink.
 
-       Fills are the app.css theme tokens hardcoded to their sRGB values
-       (a favicon renders outside the app, so it cannot use the live CSS
-       variables; the light values below are exactly the light-token
-       colors). The embedded prefers-color-scheme media query switches to
-       the dark-theme token values, mirroring the in-app Logo component
-       so the mark matches whatever theme it is seen in. Raster fallbacks
-       (favicon.ico, favicon-*.png, apple-touch-icon.png) carry only the
-       light palette -- raster icons cannot adapt. -->
+       This is the icon the tab shows before hydration: the fills are the
+       app.css theme tokens hardcoded to their sRGB values (a favicon
+       renders outside the app, so it cannot use the live CSS variables)
+       and the embedded prefers-color-scheme media query follows the
+       browser's scheme -- the best guess available before the app's
+       theme setting is known. Once the app has resolved its theme,
+       +layout.svelte points the tab at favicon-light.svg or
+       favicon-dark.svg (same palettes, no media query) so the mark
+       matches the in-app Logo. Raster fallbacks (favicon.ico,
+       favicon-*.png, apple-touch-icon.png) carry only the light palette
+       -- raster icons cannot adapt. -->
   <style>
     .badge { fill: #17233C; }
     .spine { fill: #FFFFFF; }

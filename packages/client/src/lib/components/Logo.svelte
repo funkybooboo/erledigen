@@ -12,12 +12,14 @@
 </script>
 
 <!-- The Erledigen mark: a Bauhaus "E" built from pills (the app's button
-     shape language). Geometry mirrors static/favicon.svg 1:1, but the fills
-     use live theme tokens, so this mark follows the in-app theme setting;
-     the favicon's embedded prefers-color-scheme media query follows the
-     browser's scheme, and both use the same token mapping (badge = ink,
+     shape language). Geometry mirrors the favicon files 1:1, and the fills
+     use live theme tokens, so this mark follows the in-app theme setting.
+     The tab icon agrees with it: before hydration favicon.svg guesses from
+     the browser's scheme via an embedded media query, and once the app
+     resolves the theme, +layout.svelte points the tab at favicon-light.svg
+     or favicon-dark.svg. All three use the same token mapping (badge = ink,
      spine = on-accent, pills = p1/p2/p3 -- the ink/surface inversion of
-     app.css). The token values are exactly the favicon's hardcoded hexes,
+     app.css), and the hardcoded favicon values are the tokens' sRGB hexes,
      light and dark. -->
 <svg
     width={size}

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Erledigen mark, light variant: favicon.svg's palette with its
+       prefers-color-scheme media query resolved to light. The hydrated app
+       points the tab's icon link at this file when the resolved theme is
+       light (+layout.svelte applyTheme), so the tab matches the in-app
+       Logo rather than the browser's scheme. Values are the light app.css
+       theme tokens hardcoded to their sRGB values (a favicon renders
+       outside the app and cannot use the live CSS variables). -->
+  <rect width="512" height="512" rx="112" fill="#17233C"/>
+  <rect x="108" y="108" width="296" height="76" rx="38" fill="#F3570A"/>
+  <rect x="108" y="218" width="246" height="76" rx="38" fill="#F29100"/>
+  <rect x="108" y="328" width="320" height="76" rx="38" fill="#398FFF"/>
+  <rect x="108" y="108" width="76" height="296" rx="38" fill="#FFFFFF"/>
+</svg>
