@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { cleanup, createTask, del, uniq } from '../api-tests/helpers';
+import { cleanup, createProject, createTask, del, uniq } from '../api-tests/helpers';
 import { hydrated, modal, SERVER_URL, todayISO } from './util';
 
 test.afterEach(async ({ request }) => {
@@ -134,5 +134,33 @@ test.describe('Trash modal', () => {
         const restoreButtons = trash.getByRole('button', { name: 'Restore task' });
         await expect(restoreButtons.first()).toBeVisible();
         expect(await restoreButtons.count()).toBeGreaterThanOrEqual(2);
+    });
+});
+
+test.describe('Projects modal', () => {
+    test('deleting a project asks for confirmation and can be declined', async ({ page }) => {
+        const name = uniq('ConfirmDelete Project');
+        const project = await createProject(page.request, { name }, SERVER_URL);
+        await hydrated(page);
+        await page.getByRole('button', { name: 'Projects', exact: true }).click();
+        const projects = modal(page, 'Projects');
+        const card = projects.locator('.project-card', { hasText: name });
+        await expect(card).toBeVisible();
+
+        // Decline: the project survives.
+        await card.getByRole('button', { name: 'Delete project' }).click();
+        const dialog = modal(page, 'Confirm');
+        await expect(dialog).toBeVisible();
+        await expect(dialog).toContainText(`Delete "${name}"?`);
+        await dialog.getByRole('button', { name: 'Cancel' }).click();
+        let res = await page.request.get(`${SERVER_URL}/api/projects/${project.id}`);
+        expect(res.status()).toBe(200);
+
+        // Confirm: the project is gone server-side.
+        await card.getByRole('button', { name: 'Delete project' }).click();
+        await dialog.getByRole('button', { name: 'Delete', exact: true }).click();
+        await expect(card).toHaveCount(0);
+        res = await page.request.get(`${SERVER_URL}/api/projects/${project.id}`);
+        expect(res.status()).toBe(404);
     });
 });

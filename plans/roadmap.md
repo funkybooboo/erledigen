@@ -9,6 +9,12 @@ This document outlines the development roadmap for Erledigen. We use semantic ve
 Verified against the tree at `73f459d` (post-merge audit; all CI gates
 green).
 
+- **Package version tracks the roadmap** (decision, 2026-09-07):
+  `package.json` carries the LAST SHIPPED roadmap milestone -- 0.8.0
+  since the automation slice merged; interim PRs (branding, code
+  cleanup) do not bump it. Cut the next release with
+  `mise run release`, which bumps every manifest, bun.lock, and the
+  runtime `version.ts` stamp together.
 - **Shipped complete:** v0.1.0, v0.2.0, v0.3.0, v0.4.0, v0.4.1.
 - **In flight, with remaining scope:**
     - v0.5.0 -- `J`/`K` section jumps, `r`/`m`/`t` per-task actions,

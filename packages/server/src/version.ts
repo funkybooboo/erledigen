@@ -7,4 +7,4 @@
  * build_info, OpenAPI info) can never drift from the release. The
  * APP_VERSION env var still wins when a deployment needs to override it.
  */
-export const APP_VERSION = '1.0.0';
+export const APP_VERSION = '0.8.0';

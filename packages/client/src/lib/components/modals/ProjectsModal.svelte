@@ -1,6 +1,6 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
-    import { projectStore, taskStore } from '$lib/stores';
+    import { projectStore, taskStore, uiStore } from '$lib/stores';
     import { Icon } from 'svelte-icons-pack';
     import { LuPlus, LuPencil, LuTrash2, LuArrowLeft } from 'svelte-icons-pack/lu';
     import { onMount } from 'svelte';
@@ -94,6 +94,13 @@
     }
 
     async function deleteProject(id: string) {
+        const project = projectStore.projects.find(p => p.id === id);
+        if (!project) return;
+        // Deletion is irreversible, so it confirms like the Someday-group
+        // delete -- but the message does not count tasks: deleting a
+        // project leaves its tasks in place (they keep the project tag),
+        // so there is nothing destructive beyond the project itself.
+        if (!(await uiStore.confirm(`Delete "${project.name}"?`))) return;
         await projectStore.remove(id);
         if (selectedProjectId === id) {
             selectedProjectId = null;

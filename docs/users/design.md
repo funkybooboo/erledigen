@@ -218,7 +218,7 @@ The Calendar rail icon opens a month-grid date picker: picking a date scrolls (a
 ```
 erledigen/
 |-- packages/
-|   |-- client/   # SvelteKit frontend (Tailwind CSS, Svelte 5 runes)
+|   |-- client/   # SvelteKit frontend (scoped CSS, Svelte 5 runes)
 |   |-- server/   # Bun REST API + WebSocket server
 |   \-- shared/   # Types, adapter interfaces, constants, universal utilities
 |-- docs/         # User + developer docs; ADRs in docs/devs/architecture/decisions/

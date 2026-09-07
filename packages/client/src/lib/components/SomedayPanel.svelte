@@ -163,6 +163,10 @@
             : `Delete "${group.name}"? This cannot be undone.`;
         if (!(await uiStore.confirm(msg))) return;
 
+        // KNOWN ROUGH EDGE (design debt, deliberate for now): the tasks go
+        // one by one, so a group delete costs N HTTP round-trips and N
+        // separate undo entries (the toast history restores them one at a
+        // time, newest first). A batch delete endpoint collapses both.
         for (const task of [...tasks]) {
             await taskStore.remove(task.id);
         }

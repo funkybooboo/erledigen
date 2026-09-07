@@ -1,10 +1,13 @@
-@import 'tailwindcss';
-
 /* ------------------------------------------------------------------
  * Design tokens -- ported from 37signals' Fizzy (github.com/basecamp/fizzy,
  * app/assets/stylesheets/_global.css), the same design language behind
  * Basecamp. Fizzy's OKLCH palette is mapped 1:1 onto this app's existing
  * token names so every component reskins without any layout change.
+ *
+ * Plain :root custom properties: Tailwind v4 used to provide these
+ * through its @theme directive, but the app never used a single utility
+ * class, so the engine (and its accidental utility collisions) is gone
+ * (see the reset note at the bottom for what was kept).
  *
  *   surface           -> Fizzy canvas (white) / dark canvas
  *   border            -> Fizzy ink-lighter (their --border token)
@@ -13,7 +16,7 @@
  *   on-accent         -> Fizzy ink-inverted (white light / black dark)
  *   p1/p2/p3          -> Fizzy red/yellow/blue medium
  * ------------------------------------------------------------------ */
-@theme {
+:root {
     --color-surface: oklch(100% 0 0);
     --color-surface-hover: oklch(96% 0.002 252);
     --color-surface-dim: oklch(98% 0.002 252);
@@ -272,6 +275,208 @@
 }
 
 @layer base {
+    /* ------------------------------------------------------------------
+     * Reset -- verbatim Tailwind v4.3.3 preflight, inlined when Tailwind
+     * was dropped (the app rendered on top of these rules for its whole
+     * life: universal box-sizing/border/margin/padding, form controls
+     * inheriting fonts, svg/img display:block, list-style:none, etc.).
+     * Kept in @layer base so component styles (unlayered) keep beating
+     * the reset, exactly as they did under Tailwind. Do not trim rules
+     * without checking what the components implicitly rely on.
+     * ------------------------------------------------------------------ */
+
+    *,:after,:before,::backdrop {
+        box-sizing:border-box;
+        border:0 solid;
+        margin:0;
+        padding:0;
+    }
+    ::file-selector-button {
+        box-sizing:border-box;
+        border:0 solid;
+        margin:0;
+        padding:0;
+    }
+    html,:host {
+        -webkit-text-size-adjust:100%;
+        tab-size:4;
+        line-height:1.5;
+        font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Noto Sans', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        font-feature-settings:normal;
+        font-variation-settings:normal;
+        -webkit-tap-highlight-color:transparent;
+    }
+    hr {
+        height:0;
+        color:inherit;
+        border-top-width:1px;
+    }
+    abbr:where([title]) {
+        -webkit-text-decoration:underline dotted;
+        text-decoration:underline dotted;
+    }
+    h1,h2,h3,h4,h5,h6 {
+        font-size:inherit;
+        font-weight:inherit;
+    }
+    a {
+        color:inherit;
+        -webkit-text-decoration:inherit;
+        -webkit-text-decoration:inherit;
+        -webkit-text-decoration:inherit;
+        -webkit-text-decoration:inherit;
+        text-decoration:inherit;
+    }
+    b,strong {
+        font-weight:bolder;
+    }
+    code,kbd,samp,pre {
+        font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-feature-settings:normal;
+        font-variation-settings:normal;
+        font-size:1em;
+    }
+    small {
+        font-size:80%;
+    }
+    sub,sup {
+        vertical-align:baseline;
+        font-size:75%;
+        line-height:0;
+        position:relative;
+    }
+    sub {
+        bottom:-.25em;
+    }
+    sup {
+        top:-.5em;
+    }
+    table {
+        text-indent:0;
+        border-color:inherit;
+        border-collapse:collapse;
+    }
+    :-moz-focusring:where(:not(iframe)) {
+        outline:auto;
+    }
+    progress {
+        vertical-align:baseline;
+    }
+    summary {
+        display:list-item;
+    }
+    ol,ul,menu {
+        list-style:none;
+    }
+    img,svg,video,canvas,audio,iframe,embed,object {
+        vertical-align:middle;
+        display:block;
+    }
+    img,video {
+        max-width:100%;
+        height:auto;
+    }
+    button,input,select,optgroup,textarea {
+        font:inherit;
+        font-feature-settings:inherit;
+        font-variation-settings:inherit;
+        letter-spacing:inherit;
+        color:inherit;
+        opacity:1;
+        background-color:#0000;
+        border-radius:0;
+    }
+    ::file-selector-button {
+        font:inherit;
+        font-feature-settings:inherit;
+        font-variation-settings:inherit;
+        letter-spacing:inherit;
+        color:inherit;
+        opacity:1;
+        background-color:#0000;
+        border-radius:0;
+    }
+    :where(select:is([multiple],[size])) optgroup {
+        font-weight:bolder;
+    }
+    :where(select:is([multiple],[size])) optgroup option {
+        padding-inline-start:20px;
+    }
+    ::file-selector-button {
+        margin-inline-end:4px;
+    }
+    ::placeholder {
+        opacity:1;
+    }
+    @supports (not ((-webkit-appearance:-apple-pay-button))) or (contain-intrinsic-size:1px) {
+        ::placeholder { color:currentColor }
+        @supports (color:color-mix(in lab, red, red)) { ::placeholder{color:color-mix(in oklab, currentcolor 50%, transparent)} }
+    }
+    textarea {
+        resize:vertical;
+    }
+    ::-webkit-search-decoration {
+        -webkit-appearance:none;
+    }
+    ::-webkit-date-and-time-value {
+        min-height:1lh;
+        text-align:inherit;
+    }
+    ::-webkit-datetime-edit {
+        display:inline-flex;
+    }
+    ::-webkit-datetime-edit-fields-wrapper {
+        padding:0;
+    }
+    ::-webkit-datetime-edit {
+        padding-block:0;
+    }
+    ::-webkit-datetime-edit-year-field {
+        padding-block:0;
+    }
+    ::-webkit-datetime-edit-month-field {
+        padding-block:0;
+    }
+    ::-webkit-datetime-edit-day-field {
+        padding-block:0;
+    }
+    ::-webkit-datetime-edit-hour-field {
+        padding-block:0;
+    }
+    ::-webkit-datetime-edit-minute-field {
+        padding-block:0;
+    }
+    ::-webkit-datetime-edit-second-field {
+        padding-block:0;
+    }
+    ::-webkit-datetime-edit-millisecond-field {
+        padding-block:0;
+    }
+    ::-webkit-datetime-edit-meridiem-field {
+        padding-block:0;
+    }
+    ::-webkit-calendar-picker-indicator {
+        line-height:1;
+    }
+    :-moz-ui-invalid {
+        box-shadow:none;
+    }
+    button,input:where([type=button],[type=reset],[type=submit]) {
+        appearance:button;
+    }
+    ::file-selector-button {
+        appearance:button;
+    }
+    ::-webkit-inner-spin-button {
+        height:auto;
+    }
+    ::-webkit-outer-spin-button {
+        height:auto;
+    }
+    [hidden]:where(:not([hidden=until-found])) {
+        display:none!important;
+    }
+
     * {
         box-sizing: border-box;
     }
