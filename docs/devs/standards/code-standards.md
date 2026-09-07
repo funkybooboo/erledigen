@@ -194,3 +194,10 @@ bun run validate    # repo-wide checks (what CI runs)
 ```
 
 When in doubt, choose the more explicit, more type-safe option.
+
+**Lint blind spot**: the same `files.includes` limit means Biome's
+`noUnusedImports` never sees `.svelte` script blocks, and svelte-check
+does not flag unused imports either -- this shipped three dead imports
+(including two never-called validation helpers) before the 2026-09
+review. When touching a component's import list, double-check every
+import by hand.

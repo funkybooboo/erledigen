@@ -54,8 +54,13 @@ A cornerstone of our architecture is the **adapter pattern**. This pattern allow
 *   **`UserPreferencesRepository`**: Abstracts data persistence for user settings.
     *   **`InMemoryUserPreferencesRepository`** (server): An in-memory singleton implementation.
     *   **`SqliteUserPreferencesRepository`** (server): SQLite-backed persistence.
-*   **`MetricsAdapter`**: Abstracts metrics collection -- **planned**, see [ADR-005](decisions/ADR-005-prometheus-metrics.md) (accepted, not yet implemented).
-*   **`JobQueue`**: Abstracts background job scheduling and processing -- **planned**, see [ADR-002](decisions/ADR-002-sqlite-backed-job-queue.md) (accepted, not yet implemented). Recurring-task generation currently happens on demand (client-driven) instead of via jobs.
+*   **`MetricsAdapter`**: Abstracts metrics collection (see [ADR-005](decisions/ADR-005-prometheus-metrics.md)).
+    *   `PrometheusMetricsAdapter` (shared): Prometheus text-exposition metrics for HTTP, jobs, and application gauges; served at `/api/metrics` (the endpoint is removed when `METRICS_ENABLED=false`).
+    *   `NullMetricsAdapter` (shared): no-op for metrics-disabled deployments.
+*   **`JobQueue`**: Abstracts background job scheduling and processing (see [ADR-002](decisions/ADR-002-sqlite-backed-job-queue.md)).
+    *   `SqliteJobQueue` (server): jobs persist in the application database and survive restarts.
+    *   `InMemoryJobQueue` (server): ephemeral queue for `STORAGE_ADAPTER=memory` runs.
+    *   The `JobRunner` polls the queue and executes handlers with retry/backoff/dead-letter; the `JobScheduler` chain-schedules the recurring rollover and trash-purge jobs. Recurring-task generation stays client-driven on demand by design -- there is no generate-recurring job.
 
 ### Benefits of the Adapter Pattern
 
@@ -132,6 +137,12 @@ Facts that are easy to get wrong when working on the domain, API, or stores.
   skip layer "because the other covers it".
 - **Literal routes must register before `:id` routes** (`/tasks/purge`,
   `/recurring-tasks/generate-all`) or the literal is parsed as the id.
+- **Routes talk to repositories directly for plain CRUD.** A service exists
+  only where a mutation spans entities or adds behavior beyond persistence:
+  `TaskService` (app-default rollover on create, parent completion roll-up),
+  `RecurringTaskService` (instance generation, streak stats), `TagService`
+  (derived tag operations), and the job classes (`RolloverService`,
+  `JobScheduler`, `JobRunner`). Do not add pass-through services.
 - **Zod schemas self-register into the OpenAPI document on import**
   (zod-to-openapi): a schema referenced only by tests still shows up in
   `/openapi.json`.
@@ -140,18 +151,18 @@ Facts that are easy to get wrong when working on the domain, API, or stores.
 
 The application is designed to follow the principles of a [12-Factor App](https://12factor.net/). This means that it is:
 
-*   **Stateless Processes**: The server processes are stateless. Persistent state lives in SQLite (see [ADR-001](decisions/ADR-001-sqlite-raw-sql-persistence.md)). In-memory repositories are for testing only.
+*   **Stateless Processes**: The server processes are stateless. Persistent state lives in SQLite (see [ADR-001](decisions/ADR-001-sqlite-raw-sql-persistence.md)). In-memory repositories are for tests and ephemeral runs (the docker test stack serves the API with `STORAGE_ADAPTER=memory`).
 *   **Configurable**: All configuration is stored in the environment (see `EnvConfigProvider`).
 *   **Portable**: It can be easily run in different environments -- local dev, Docker, or bare metal.
 *   **Scalable**: The adapter pattern means horizontal scaling is a matter of swapping the SQLite adapter for PostgreSQL (v2.3.0, see [ADR-001](decisions/ADR-001-sqlite-raw-sql-persistence.md)).
 
 ## Observability
 
-Erledigen's observability roadmap ([ADR-004](decisions/ADR-004-structured-json-logging.md), [ADR-005](decisions/ADR-005-prometheus-metrics.md), [ADR-006](decisions/ADR-006-observability-stack.md)) is accepted but **not yet implemented**. Today:
+The observability core shipped in v0.8.0 ([ADR-004](decisions/ADR-004-structured-json-logging.md) structured logs with request IDs, [ADR-005](decisions/ADR-005-prometheus-metrics.md) Prometheus metrics); the self-hosted monitoring stack ([ADR-006](decisions/ADR-006-observability-stack.md)) remains future work. Today:
 
-1.  **Logs**: Plain console logging via `ConsoleLogger`.
-2.  **Health**: A minimal `GET /api/health` returning `{ status: 'ok' }` (rich version with uptime/version/DB status is planned).
-3.  **Metrics**: None yet -- a Prometheus-compatible `/api/metrics` endpoint is planned, with a Loki + Prometheus + Grafana stack (`docker-compose.monitoring.yml`) for self-hosted deployments.
+1.  **Logs**: `ConsoleLogger` renders JSON or human-readable text (`LOG_FORMAT`; JSON in production), and request handlers log through a `RequestLogger` child logger carrying the request's correlation ID.
+2.  **Health**: Rich `GET /api/health` -- status, version, uptime, database details, WebSocket connection count, and job-queue depth.
+3.  **Metrics**: `GET /api/metrics` in Prometheus text-exposition format -- HTTP request counters/latency and in-flight gauges, job metrics, and application gauges (uptime, tasks, WebSocket connections, DB size). Set `METRICS_ENABLED=false` to remove the endpoint entirely. The Loki + Prometheus + Grafana stack (`docker-compose.monitoring.yml`) for self-hosted deployments is still planned.
 
 ## Dockerized
 
