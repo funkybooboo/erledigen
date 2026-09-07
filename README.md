@@ -12,7 +12,7 @@ The daily list is the execution surface. Someday is the capture net. Habits gene
 
 Erledigen is a **monorepo** built with a modern tech stack designed for a great developer experience:
 
-*   **Frontend**: [SvelteKit](https://kit.svelte.dev/) + [Svelte 5 runes](https://svelte.dev/) + [Tailwind CSS v4](https://tailwindcss.com/) -- a fast, modern, reactive UI.
+*   **Frontend**: [SvelteKit](https://kit.svelte.dev/) + [Svelte 5 runes](https://svelte.dev/) -- a fast, modern, reactive UI; hand-written scoped CSS over OKLCH design tokens (no utility framework).
 *   **Backend**: [Bun](https://bun.sh/) -- an incredibly fast JavaScript runtime, bundler, and package manager, all in one.
 *   **Language**: [TypeScript](https://www.typescriptlang.org/) -- end-to-end type safety.
 *   **Real-time**: WebSocket sync -- every mutation broadcasts to all connected clients instantly.
@@ -144,7 +144,7 @@ Version pins to keep in sync:
 ```
 erledigen/
 |-- packages/
-|   |-- client/   # SvelteKit frontend (Tailwind CSS, Svelte 5 runes)
+|   |-- client/   # SvelteKit frontend (scoped CSS, Svelte 5 runes)
 |   |-- server/   # Bun REST API + WebSocket server
 |   \-- shared/   # Types, adapter interfaces, constants, universal utilities
 |-- docs/         # User + developer documentation, ADRs
