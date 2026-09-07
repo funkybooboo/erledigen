@@ -4,11 +4,10 @@
     import {
         TASK_CONSTRAINTS,
         formatTags,
-        isValidTimeString,
         isValidTimeRange,
         parseTags,
     } from '@erledigen/shared';
-    import type { Task } from '@erledigen/shared';
+    import type { Task, UpdateTaskInput } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
     import { LuTrash2, LuPlus, LuCheck, LuCircle } from 'svelte-icons-pack/lu';
 
@@ -26,7 +25,14 @@
     let newSubTaskText = $state('');
     let subTaskInputEl: HTMLInputElement | null = $state(null);
 
-    let subTasks = $derived(task ? taskStore.tasks.filter(t => t.parentId === task!.id) : []);
+    let subTasks = $derived.by(() => {
+        // Snapshot the id: after the null guard, `task` is narrowed only
+        // until the closure below -- a mutable $state reference the
+        // compiler cannot assume stays non-null inside the callback.
+        if (task === null) return [];
+        const parentId = task.id;
+        return taskStore.tasks.filter(t => t.parentId === parentId);
+    });
     let subTaskStats = $derived({
         completed: subTasks.filter(t => t.completed).length,
         total: subTasks.length,
@@ -56,7 +62,15 @@
 
     async function handleSave() {
         if (!task) return;
-        const updates: Record<string, unknown> = {};
+        // The time inputs are type="time", so the HH:MM format is
+        // guaranteed; the RANGE is the real client-side guard (the server
+        // schema checks format only).
+        if (!isValidTimeRange(editStartTime || null, editEndTime || null)) {
+            notificationStore.push('End time cannot be before start time', { kind: 'error' });
+            return;
+        }
+
+        const updates: UpdateTaskInput = {};
 
         if (editText.trim() !== task.text) updates.text = editText.trim();
         if (editNotes.trim() !== (task.notes ?? '')) updates.notes = editNotes.trim() || null;
