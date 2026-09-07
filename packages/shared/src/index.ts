@@ -11,10 +11,21 @@ export { ConfigError } from './adapters/config/ConfigProvider';
 export type { DateProvider } from './adapters/date/DateProvider';
 export { DateProviderError } from './adapters/date/DateProvider';
 export { NativeDateProvider } from './adapters/date/NativeDateProvider';
+export {
+    type CsvColumn,
+    CsvExportAdapter,
+    DEFAULT_CSV_COLUMNS,
+} from './adapters/export/CsvExportAdapter';
+// Adapters - Export / Import
+export type { ExportAdapter } from './adapters/export/ExportAdapter';
+export { IcalExportAdapter } from './adapters/export/IcalExportAdapter';
+export { JsonExportAdapter } from './adapters/export/JsonExportAdapter';
+export { MarkdownExportAdapter } from './adapters/export/MarkdownExportAdapter';
 export { FetchHttpClient } from './adapters/http/FetchHttpClient';
 // Adapters - HTTP Client
 export type { HttpClient, RequestOptions } from './adapters/http/HttpClient';
 export { HttpClientError } from './adapters/http/HttpClient';
+export type { ImportAdapter } from './adapters/import/ImportAdapter';
 // Adapters - IO
 export {
     ConsoleLogger,
@@ -79,6 +90,9 @@ export {
     ValidationError,
 } from './errors/AppError';
 export type { ApiResponse, ErrorResponseBody } from './types/api';
+// Types - export/import contract (ADR-008)
+export type { ExportFormat, ExportSnapshot } from './types/export';
+export { EXPORT_FORMAT_META, EXPORT_FORMATS } from './types/export';
 // Types
 export type { CreateProjectInput, Project, UpdateProjectInput } from './types/project';
 export type {

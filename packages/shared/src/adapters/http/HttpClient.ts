@@ -70,6 +70,17 @@ export interface HttpClient {
      * @throws HttpClientError if the request fails or returns non-2xx status
      */
     delete<T>(url: string, options?: RequestOptions): Promise<T>;
+
+    /**
+     * Make a GET request returning the raw response body as text
+     * (file downloads -- e.g. export documents, which are CSV, Markdown,
+     * iCal, or JSON, and only the JSON one parses).
+     * @param url - The URL to request (can be relative or absolute)
+     * @param options - Optional request options
+     * @returns Promise that resolves to the raw body text
+     * @throws HttpClientError if the request fails or returns non-2xx status
+     */
+    getText(url: string, options?: RequestOptions): Promise<string>;
 }
 
 /**

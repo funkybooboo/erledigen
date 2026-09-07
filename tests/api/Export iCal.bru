@@ -1,0 +1,38 @@
+meta {
+  name: Export iCal
+  type: http
+  seq: 103
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/export?format=ics
+  body: none
+  auth: none
+}
+
+params:query {
+  format: ics
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("should return 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("should serve text/calendar as an attachment", function() {
+    expect(res.getHeader("content-type")).to.include("text/calendar");
+    expect(res.getHeader("content-disposition")).to.include("attachment");
+    expect(res.getHeader("content-disposition")).to.include(".ics");
+  });
+
+  test("should wrap content in a VCALENDAR", function() {
+    const body = res.getBody();
+    expect(body).to.include("BEGIN:VCALENDAR");
+    expect(body).to.include("VERSION:2.0");
+    expect(body).to.include("END:VCALENDAR");
+  });
+}

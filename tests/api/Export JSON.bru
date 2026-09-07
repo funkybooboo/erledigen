@@ -1,0 +1,46 @@
+meta {
+  name: Export JSON
+  type: http
+  seq: 100
+}
+
+get {
+  url: {{baseUrl}}{{apiPrefix}}/export?format=json
+  body: none
+  auth: none
+}
+
+params:query {
+  format: json
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("should return 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("should serve the canonical snapshot unwrapped, as an attachment", function() {
+    expect(res.getHeader("content-type")).to.include("application/json");
+    expect(res.getHeader("content-disposition")).to.include("attachment");
+    expect(res.getHeader("content-disposition")).to.include(".json");
+  });
+
+  test("should carry the ADR-008 snapshot markers and every entity kind", function() {
+    const snapshot = res.getBody();
+    expect(snapshot.format).to.equal("erledigen-export");
+    expect(snapshot.version).to.equal(1);
+    expect(Array.isArray(snapshot.tasks)).to.be.true;
+    expect(Array.isArray(snapshot.someDayGroups)).to.be.true;
+    expect(Array.isArray(snapshot.projects)).to.be.true;
+    expect(Array.isArray(snapshot.recurringTasks)).to.be.true;
+    expect(snapshot.userPreferences.id).to.equal("default");
+  });
+
+  test("should have security headers like every other response", function() {
+    expect(res.getHeader("x-content-type-options")).to.equal("nosniff");
+  });
+}

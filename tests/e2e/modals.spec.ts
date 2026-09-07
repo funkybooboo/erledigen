@@ -41,6 +41,21 @@ test.describe('Settings modal', () => {
         await expect(settings.locator('#tz-input')).toBeVisible();
         await expect(settings.locator('#time-format-select')).toBeVisible();
     });
+
+    test('exporting downloads the JSON backup with a dated filename', async ({ page }) => {
+        await hydrated(page);
+        await page.getByRole('button', { name: 'Settings', exact: true }).click();
+        const settings = modal(page, 'Settings');
+
+        const downloadPromise = page.waitForEvent('download');
+        await settings.getByRole('button', { name: 'Download JSON backup' }).click();
+        const download = await downloadPromise;
+
+        // The blob download carries the server-side naming convention.
+        expect(download.suggestedFilename()).toMatch(
+            /^erledigen-export-\d{4}-\d{2}-\d{2}\.json$/,
+        );
+    });
 });
 
 test.describe('Search modal', () => {

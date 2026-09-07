@@ -1,7 +1,13 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
     import { preferencesStore } from '$lib/stores';
-    import { isValidTimeZone, type RolloverTriggerTime } from '@erledigen/shared';
+    import { container } from '$lib/container';
+    import { ExportService } from '$lib/services/exportService';
+    import {
+        isValidTimeZone,
+        type ExportFormat,
+        type RolloverTriggerTime,
+    } from '@erledigen/shared';
     import { onMount } from 'svelte';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
@@ -92,6 +98,33 @@
             tzInvalid = true;
         }
     }
+
+    // -- Export (ADR-008) ---------------------------------------------------------
+
+    const exportService = new ExportService(container.httpClient, container.dateProvider);
+    let exportError = $state<string | null>(null);
+    let exporting = $state<ExportFormat | null>(null);
+
+    /** Fetch the export document and hand it to the browser as a download.
+     *  Works for both deployment shapes (split-origin dev, proxied prod):
+     *  the body arrives as text and the Blob is same-origin either way. */
+    async function downloadExport(format: ExportFormat): Promise<void> {
+        exportError = null;
+        exporting = format;
+        try {
+            const download = await exportService.export(format);
+            const url = URL.createObjectURL(new Blob([download.text], { type: download.contentType }));
+            const anchor = document.createElement('a');
+            anchor.href = url;
+            anchor.download = download.filename;
+            anchor.click();
+            URL.revokeObjectURL(url);
+        } catch {
+            exportError = 'Export failed -- check that the server is reachable.';
+        } finally {
+            exporting = null;
+        }
+    }
 </script>
 
 <Modal title="Settings" onclose={onclose}>
@@ -180,6 +213,55 @@
             </label>
         </fieldset>
 
+        <fieldset class="section">
+            <legend class="section-heading">Export</legend>
+            <p class="hint">
+                Download your data. JSON is the complete backup (every entity,
+                trash included); CSV, Markdown, and iCal are task views.
+            </p>
+            <div class="export-buttons">
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    onclick={() => downloadExport('json')}
+                    disabled={exporting !== null}
+                    aria-label="Download JSON backup"
+                >
+                    {exporting === 'json' ? 'Exporting...' : 'JSON (backup)'}
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    onclick={() => downloadExport('csv')}
+                    disabled={exporting !== null}
+                    aria-label="Download CSV export"
+                >
+                    CSV
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    onclick={() => downloadExport('md')}
+                    disabled={exporting !== null}
+                    aria-label="Download Markdown export"
+                >
+                    Markdown
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    onclick={() => downloadExport('ics')}
+                    disabled={exporting !== null}
+                    aria-label="Download iCal export"
+                >
+                    iCal
+                </button>
+            </div>
+            {#if exportError}
+                <span class="hint invalid" role="alert">{exportError}</span>
+            {/if}
+        </fieldset>
+
         <section class="section" aria-label="Panel settings">
             <h3 class="section-heading">Panel</h3>
             <p class="hint">Toggle the Someday panel with <kbd>Ctrl</kbd>+<kbd>\</kbd></p>
@@ -256,6 +338,12 @@
 
     .hint.invalid {
         color: var(--color-danger);
+    }
+
+    .export-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
     }
 
     .tz-input {

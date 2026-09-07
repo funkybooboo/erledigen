@@ -10,6 +10,7 @@ import type { HttpServer } from '../adapters/http/HttpServer';
 import type { HttpResponse } from '../adapters/http/types';
 import type { Container } from '../container';
 import { APP_VERSION } from '../version';
+import { registerExportRoutes } from './exportRoutes';
 import { registerHealthRoutes, type ServerStatusDeps } from './healthRoutes';
 import { registerMetricsRoutes } from './metricsRoutes';
 import { registerOpenApiRoutes } from './openApiRoutes';
@@ -78,4 +79,5 @@ export function registerAllRoutes(server: HttpServer, container: Container): voi
     );
     registerTagRoutes(server, container.tagService, container.eventBus, logger);
     registerUserPreferencesRoutes(server, container.userPreferencesRepository, logger);
+    registerExportRoutes(server, container.exportService, logger);
 }
