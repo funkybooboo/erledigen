@@ -7,6 +7,7 @@
  */
 
 import { describe, expect, test } from 'bun:test';
+import type { UserPreferences } from '@erledigen/shared';
 import type { UserPreferencesRepository } from '../UserPreferencesRepository';
 
 export function runUserPreferencesRepositoryContractTests(
@@ -91,6 +92,26 @@ export function runUserPreferencesRepositoryContractTests(
     });
 
     describe('reset', () => {
+        describe('restore (ADR-009 restore write path)', () => {
+            test('stores the snapshot preferences verbatim, updatedAt included', async () => {
+                const repo = makeRepo();
+                const current = await repo.get();
+                const snapshotPrefs = {
+                    ...current,
+                    theme: 'dark',
+                    someDayPanelWidth: 321,
+                    timezone: 'America/Denver',
+                    updatedAt: '2026-01-15T09:00:00.000Z',
+                } as UserPreferences;
+                await repo.restore(snapshotPrefs);
+                const restored = await repo.get();
+                expect(restored.theme).toBe('dark');
+                expect(restored.someDayPanelWidth).toBe(321);
+                expect(restored.timezone).toBe('America/Denver');
+                expect(restored.updatedAt).toBe('2026-01-15T09:00:00.000Z');
+            });
+        });
+
         test('restores default preferences', async () => {
             const repo = makeRepo();
             await repo.update({ theme: 'dark', locale: 'fr' });

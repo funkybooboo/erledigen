@@ -53,6 +53,17 @@ export class InMemoryProjectRepository implements ProjectRepository {
         return updated;
     }
 
+    async replaceAll(projects: Project[]): Promise<void> {
+        this.projects.clear();
+        for (const project of projects) {
+            this.projects.set(project.id, { ...project });
+        }
+        this.idCounter = projects.reduce(
+            (max, project) => Math.max(max, Number.parseInt(project.id, 10) || 0),
+            0,
+        );
+    }
+
     async delete(id: string): Promise<boolean> {
         return this.projects.delete(id);
     }

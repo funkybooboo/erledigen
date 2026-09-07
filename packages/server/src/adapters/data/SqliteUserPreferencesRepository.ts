@@ -94,7 +94,13 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
             tagKindMap: input.tagKindMap ? { ...input.tagKindMap } : { ...current.tagKindMap },
             updatedAt: this.dateProvider.timestamp(),
         };
+        this.write(merged);
+        return this.get();
+    }
 
+    /** Upsert the 'default' preferences row verbatim (ADR-009 restore
+     *  reuses this with the snapshot's updatedAt). */
+    private write(prefs: UserPreferences): void {
         this.db
             .prepare(
                 `
@@ -125,24 +131,28 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
                 `,
             )
             .run(
-                merged.theme,
-                merged.locale,
-                merged.someDayPanelWidth,
-                toInteger(merged.someDayPanelCollapsed),
-                merged.someDayPanelLastOpenWidth,
-                toInteger(merged.rolloverEnabled),
-                merged.rolloverTriggerTime,
-                toInteger(merged.showEmptyDays),
-                merged.deleteConfirmation,
-                JSON.stringify(merged.activeFilters),
-                JSON.stringify(merged.tagKinds),
-                JSON.stringify(merged.tagKindMap),
-                merged.timeFormat,
-                merged.timezone,
-                merged.updatedAt,
+                prefs.theme,
+                prefs.locale,
+                prefs.someDayPanelWidth,
+                toInteger(prefs.someDayPanelCollapsed),
+                prefs.someDayPanelLastOpenWidth,
+                toInteger(prefs.rolloverEnabled),
+                prefs.rolloverTriggerTime,
+                toInteger(prefs.showEmptyDays),
+                prefs.deleteConfirmation,
+                JSON.stringify(prefs.activeFilters),
+                JSON.stringify(prefs.tagKinds),
+                JSON.stringify(prefs.tagKindMap),
+                prefs.timeFormat,
+                prefs.timezone,
+                prefs.updatedAt,
             );
+    }
 
-        return this.get();
+    async restore(prefs: UserPreferences): Promise<void> {
+        // Verbatim write of the snapshot's preferences, updatedAt included
+        // (update() stamps a fresh timestamp; a restore must not).
+        this.write({ ...prefs });
     }
 
     async reset(): Promise<void> {

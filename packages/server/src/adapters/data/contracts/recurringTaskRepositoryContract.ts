@@ -108,6 +108,40 @@ export function runRecurringTaskRepositoryContractTests(
     });
 
     describe('delete', () => {
+        describe('replaceAll (restore write path)', () => {
+            test('replaces every template verbatim', async () => {
+                const repo = makeRepo();
+                await repo.create({
+                    text: 'Old habit',
+                    frequency: 'daily',
+                    startDate: '2026-01-01',
+                });
+                await repo.replaceAll([
+                    {
+                        id: 'r5',
+                        text: 'From backup',
+                        notes: null,
+                        tags: [],
+                        frequency: 'weekly',
+                        interval: 1,
+                        daysOfWeek: [1],
+                        dayOfMonth: null,
+                        startDate: '2026-01-01',
+                        endDate: null,
+                        rolloverEnabled: false,
+                        startTime: '07:00',
+                        createdAt: '2026-01-01T00:00:00.000Z',
+                        updatedAt: '2026-01-01T00:00:00.000Z',
+                    },
+                ]);
+                const all = await repo.findAll();
+                expect(all.length).toBe(1);
+                expect(all[0]?.id).toBe('r5');
+                expect(all[0]?.daysOfWeek).toEqual([1]);
+                expect(all[0]?.startTime).toBe('07:00');
+            });
+        });
+
         test('returns false for unknown id', async () => {
             const repo = makeRepo();
             expect(await repo.delete('nope')).toBe(false);

@@ -107,7 +107,7 @@ export class SqliteTaskRepository implements TaskRepository {
                 id,
                 input.text,
                 input.notes ?? null,
-                toInteger(false),
+                toInteger(input.completed ?? false),
                 input.date ?? null,
                 now,
                 now,
@@ -133,6 +133,95 @@ export class SqliteTaskRepository implements TaskRepository {
             throw new Error(`Task ${id} missing after insert`);
         }
         return created;
+    }
+
+    async createMany(inputs: CreateTaskInput[]): Promise<Task[]> {
+        if (inputs.length === 0) return [];
+        const insert = this.db.prepare(
+            `
+            INSERT INTO tasks (${TASK_COLUMNS})
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `,
+        );
+        const ids: string[] = [];
+        this.db.transaction(() => {
+            for (const input of inputs) {
+                const now = this.dateProvider.timestamp();
+                const id = this.nextId();
+                ids.push(id);
+                insert.run(
+                    id,
+                    input.text,
+                    input.notes ?? null,
+                    toInteger(input.completed ?? false),
+                    input.date ?? null,
+                    now,
+                    now,
+                    JSON.stringify(input.tags ?? [...TASK_DEFAULTS.tags]),
+                    input.parentId ?? null,
+                    toInteger(input.rolloverEnabled ?? TASK_DEFAULTS.rolloverEnabled),
+                    input.someDayGroupId ?? null,
+                    input.position ?? null,
+                    input.state ?? null,
+                    input.recurringTaskId ?? null,
+                    input.instanceDate ?? null,
+                    null,
+                    0,
+                    null,
+                    input.startTime ?? null,
+                    input.endTime ?? null,
+                    input.reminder ? JSON.stringify(input.reminder) : null,
+                    null,
+                );
+            }
+        })();
+        const tasks: Task[] = [];
+        for (const id of ids) {
+            const created = await this.findById(id);
+            if (created === null) {
+                throw new Error(`Task ${id} missing after bulk insert`);
+            }
+            tasks.push(created);
+        }
+        return tasks;
+    }
+
+    async replaceAll(tasks: Task[]): Promise<void> {
+        const insert = this.db.prepare(
+            `
+            INSERT INTO tasks (${TASK_COLUMNS})
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `,
+        );
+        this.db.transaction(() => {
+            this.db.prepare('DELETE FROM tasks').run();
+            for (const task of tasks) {
+                insert.run(
+                    task.id,
+                    task.text,
+                    task.notes,
+                    toInteger(task.completed),
+                    task.date,
+                    task.createdAt,
+                    task.updatedAt,
+                    JSON.stringify(task.tags),
+                    task.parentId,
+                    toInteger(task.rolloverEnabled),
+                    task.someDayGroupId,
+                    task.position,
+                    task.state,
+                    task.recurringTaskId,
+                    task.instanceDate,
+                    task.originalScheduledDate,
+                    task.daysLate,
+                    task.dependsOn,
+                    task.startTime,
+                    task.endTime,
+                    task.reminder ? JSON.stringify(task.reminder) : null,
+                    task.deletedAt,
+                );
+            }
+        })();
     }
 
     async update(id: string, input: UpdateTaskInput): Promise<Task | null> {

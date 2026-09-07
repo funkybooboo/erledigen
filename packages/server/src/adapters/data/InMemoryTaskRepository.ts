@@ -68,7 +68,7 @@ export class InMemoryTaskRepository implements TaskRepository {
             id,
             text: input.text,
             notes: input.notes ?? null,
-            completed: false,
+            completed: input.completed ?? false,
             date: input.date ?? null,
             createdAt: now,
             updatedAt: now,
@@ -91,6 +91,29 @@ export class InMemoryTaskRepository implements TaskRepository {
 
         this.tasks.set(id, task);
         return task;
+    }
+
+    async createMany(inputs: CreateTaskInput[]): Promise<Task[]> {
+        // Sequential creates: in-memory has no transaction, but every
+        // create() is synchronous under the async facade.
+        const created: Task[] = [];
+        for (const input of inputs) {
+            created.push(await this.create(input));
+        }
+        return created;
+    }
+
+    async replaceAll(tasks: Task[]): Promise<void> {
+        this.tasks.clear();
+        for (const task of tasks) {
+            this.tasks.set(task.id, { ...task });
+        }
+        // New ids must never collide with restored ones: reset the
+        // counter to the highest numeric restored id.
+        this.idCounter = tasks.reduce(
+            (max, task) => Math.max(max, Number.parseInt(task.id, 10) || 0),
+            0,
+        );
     }
 
     async update(id: string, input: UpdateTaskInput): Promise<Task | null> {

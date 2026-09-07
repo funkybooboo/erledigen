@@ -55,6 +55,10 @@ export type CreateTaskInput = {
     recurringTaskId?: string | null;
     /** The date this recurrence was scheduled for (server-internal only). */
     instanceDate?: string | null;
+    /** Create in a completed state (server-internal only -- additive
+     *  imports carry completion state from the source app; the public
+     *  CreateTaskSchema strips it, so POST /api/tasks cannot set it). */
+    completed?: boolean;
 };
 
 /**

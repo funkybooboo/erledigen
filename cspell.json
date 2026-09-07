@@ -132,6 +132,7 @@
         "retag",
         "rollup",
         "rrule",
+        "savepoints",
         "scrapeable",
         "sendgrid",
         "soname",

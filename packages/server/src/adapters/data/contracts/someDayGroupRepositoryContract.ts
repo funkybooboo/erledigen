@@ -90,6 +90,28 @@ export function runSomeDayGroupRepositoryContractTests(
     });
 
     describe('delete', () => {
+        describe('replaceAll (restore write path)', () => {
+            test('replaces every group verbatim', async () => {
+                const repo = makeRepo();
+                await repo.create({ name: 'Old group', tag: 'old', position: 0 });
+                await repo.replaceAll([
+                    {
+                        id: 'g7',
+                        name: 'From backup',
+                        description: null,
+                        tag: 'backup',
+                        position: 3,
+                        createdAt: '2026-01-01T00:00:00.000Z',
+                    },
+                ]);
+                const all = await repo.findAll();
+                expect(all.length).toBe(1);
+                expect(all[0]?.id).toBe('g7');
+                expect(all[0]?.tag).toBe('backup');
+                expect(all[0]?.position).toBe(3);
+            });
+        });
+
         test('returns false for unknown id', async () => {
             const repo = makeRepo();
             expect(await repo.delete('nope')).toBe(false);
