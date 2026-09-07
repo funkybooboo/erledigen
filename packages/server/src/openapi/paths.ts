@@ -13,6 +13,7 @@ import {
     CreateRecurringTaskSchema,
     GenerateInstancesSchema,
     RecurringTaskSchema,
+    RecurringTaskStatsSchema,
     UpdateRecurringTaskSchema,
 } from './schemas/recurringTask';
 import {
@@ -54,6 +55,22 @@ const deleteSuccessResponse = (description: string) =>
             'application/json': { schema: z.object({ data: z.object({ success: z.boolean() }) }) },
         },
     }) as const;
+
+// -- Root -----------------------------------------------------------------------
+
+registry.registerPath({
+    method: 'get',
+    path: '/',
+    summary: 'Root greeting',
+    operationId: 'getRoot',
+    responses: {
+        200: {
+            description:
+                'Plain-text hello (dev convenience; the prod proxy serves the client at /)',
+            content: { 'text/plain': { schema: z.string() } },
+        },
+    },
+});
 
 // -- Health ---------------------------------------------------------------------
 
@@ -168,6 +185,51 @@ registry.registerPath({
     request: { params: idParams },
     responses: {
         200: deleteSuccessResponse('Task deleted'),
+        404: notFoundResponse,
+    },
+});
+
+registry.registerPath({
+    method: 'get',
+    path: '/api/tasks/trash',
+    summary: 'List soft-deleted tasks (the trash)',
+    operationId: 'listTrash',
+    responses: {
+        200: {
+            description: 'Soft-deleted tasks, newest first (retention is enforced only by purge)',
+            content: {
+                'application/json': { schema: z.object({ data: z.array(TaskSchema) }) },
+            },
+        },
+    },
+});
+
+registry.registerPath({
+    method: 'delete',
+    path: '/api/tasks/purge',
+    summary: 'Permanently delete tasks that have been in the trash past the retention window',
+    operationId: 'purgeTrash',
+    responses: {
+        200: {
+            description: 'Number of tasks permanently deleted',
+            content: {
+                'application/json': {
+                    schema: z.object({ data: z.object({ purged: z.number().int() }) }),
+                },
+            },
+        },
+        429: rateLimitResponse,
+    },
+});
+
+registry.registerPath({
+    method: 'post',
+    path: '/api/tasks/{id}/restore',
+    summary: 'Restore a soft-deleted task',
+    operationId: 'restoreTask',
+    request: { params: idParams },
+    responses: {
+        200: taskDataResponse,
         404: notFoundResponse,
     },
 });
@@ -482,6 +544,57 @@ registry.registerPath({
     },
 });
 
+registry.registerPath({
+    method: 'post',
+    path: '/api/recurring-tasks/generate-all',
+    summary: 'Generate missing instances for every template in a date range',
+    operationId: 'generateAllRecurringTaskInstances',
+    request: {
+        body: {
+            required: true,
+            content: { 'application/json': { schema: GenerateInstancesSchema } },
+        },
+    },
+    responses: {
+        200: {
+            description:
+                'Templates that created new instances (idempotent; existing instances are untouched)',
+            content: {
+                'application/json': {
+                    schema: z.object({
+                        data: z.array(
+                            z.object({
+                                recurringTaskId: z.string(),
+                                tasks: z.array(TaskSchema),
+                            }),
+                        ),
+                    }),
+                },
+            },
+        },
+        400: validationErrorResponse,
+    },
+});
+
+registry.registerPath({
+    method: 'get',
+    path: '/api/recurring-tasks/{id}/stats',
+    summary: 'Streak stats for one template (recomputed from its instances on read)',
+    operationId: 'getRecurringTaskStats',
+    request: { params: idParams },
+    responses: {
+        200: {
+            description: 'Streak stats',
+            content: {
+                'application/json': {
+                    schema: z.object({ data: RecurringTaskStatsSchema }),
+                },
+            },
+        },
+        404: notFoundResponse,
+    },
+});
+
 // -- Tags -----------------------------------------------------------------------
 
 const updatedCountResponse = {
@@ -503,6 +616,26 @@ registry.registerPath({
             description: 'Sorted list of unique tags',
             content: {
                 'application/json': { schema: z.object({ data: z.array(z.string()) }) },
+                'text/plain': { schema: z.string() },
+            },
+        },
+    },
+});
+
+registry.registerPath({
+    method: 'get',
+    path: '/api/tags/info',
+    summary: 'List tags with their task counts',
+    operationId: 'listTagInfo',
+    responses: {
+        200: {
+            description: 'Tags with task counts, sorted by name',
+            content: {
+                'application/json': {
+                    schema: z.object({
+                        data: z.array(z.object({ name: z.string(), count: z.number().int() })),
+                    }),
+                },
                 'text/plain': { schema: z.string() },
             },
         },
@@ -576,6 +709,22 @@ registry.registerPath({
     responses: {
         200: prefsDataResponse,
         400: validationErrorResponse,
+    },
+});
+
+// -- Metrics --------------------------------------------------------------------
+
+registry.registerPath({
+    method: 'get',
+    path: '/api/metrics',
+    summary: 'Prometheus metrics',
+    operationId: 'getMetrics',
+    responses: {
+        200: {
+            description:
+                'Metrics in Prometheus text exposition format (HTTP latency/requests, job metrics, application gauges). The endpoint is removed entirely when METRICS_ENABLED=false.',
+            content: { 'text/plain': { schema: z.string() } },
+        },
     },
 });
 
