@@ -37,6 +37,10 @@ Covers, per resource:
   no-duplicate target), validation, content negotiation.
 - **user preferences** -- GET defaults, PATCH single-field/nested, validation
   (theme/width enums/bounds), content negotiation.
+- **export** -- `GET /api/export` (ADR-008): canonical JSON snapshot (raw
+  document, attachment headers, trash included), CSV (header row, RFC 4180
+  escaping, `columns` subset + unknown-column 400), Markdown (day sections
+  + Someday), iCal (VCALENDAR/VEVENT, floating times), unknown-format 400.
 - **meta** -- root, health, 404+CORS, OPTIONS preflight, security headers,
   OpenAPI JSON + YAML.
 
@@ -72,7 +76,7 @@ Covers:
   weekend"), idempotent `generate-all`, Habits modal create/edit/delete,
   streak stats, `/add <text> every day` from the command palette.
 - **modals** -- Settings theme change (document `data-theme` + server
-  persistence), timezone reset, Search (filter + hint/empty + `/` command
+  persistence), timezone reset, JSON export download (blob filename), Search (filter + hint/empty + `/` command
   mode + `/add`), Trash (list deleted, restore), Calendar (month navigation,
   Today reset, date selection scrolls the day list).
 - **Someday panel** -- Ctrl+\\ collapse/expand, group create/add-task/rename

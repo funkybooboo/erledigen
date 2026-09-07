@@ -61,6 +61,10 @@ A cornerstone of our architecture is the **adapter pattern**. This pattern allow
     *   `SqliteJobQueue` (server): jobs persist in the application database and survive restarts.
     *   `InMemoryJobQueue` (server): ephemeral queue for `STORAGE_ADAPTER=memory` runs.
     *   The `JobRunner` polls the queue and executes handlers with retry/backoff/dead-letter; the `JobScheduler` chain-schedules the recurring rollover and trash-purge jobs. Recurring-task generation stays client-driven on demand by design -- there is no generate-recurring job.
+*   **`ExportAdapter` / `ImportAdapter`**: Serialize the export snapshot into portable formats and parse external documents back (see [ADR-008](decisions/ADR-008-export-format-stability.md)).
+    *   Export adapters (shared): `JsonExportAdapter` (the canonical, lossless backup -- includes the trash), `CsvExportAdapter`, `MarkdownExportAdapter`, `IcalExportAdapter` (views of the active task list).
+    *   The server's `ExportService` assembles the snapshot from the repositories and serves it at `GET /api/export` as a raw, attachment-disposition document -- NOT wrapped in the usual `{ data }` envelope.
+    *   Import adapters (the v0.7.0 remainder: JSON restore, CSV, iCal, Todoist, Things 3) implement the shared `ImportAdapter` interface.
 
 ### Benefits of the Adapter Pattern
 
