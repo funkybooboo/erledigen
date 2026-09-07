@@ -1,13 +1,9 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
-    import { taskStore, preferencesStore, someDayGroupStore } from '$lib/stores';
     import DayList from '$lib/components/DayList.svelte';
+    import { taskStore } from '$lib/stores';
 
-    onMount(() => {
-        preferencesStore.load();
-        taskStore.fetchAll();
-        someDayGroupStore.fetchAll();
-    });
+    // Store bootstrap lives in +layout.svelte (single place); this page
+    // only renders whatever the stores already hold.
 </script>
 
 <svelte:head>

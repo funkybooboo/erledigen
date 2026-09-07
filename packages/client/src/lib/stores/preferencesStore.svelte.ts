@@ -21,21 +21,10 @@ const preferencesService = new PreferencesService(container.httpClient);
 /** The preference fields this store actually holds and can save or roll
  *  back: UserPreferences minus the fixed id/updatedAt and the vestigial
  *  someDayPanelCollapsed (persisted by the API, but no client code holds
- *  it). Narrowing the accepted keys keeps save()/persistPreferences from
- *  Object.assign-ing a field the class never declared -- that would be a
- *  plain (non-$state, non-reactive) property. */
+ *  it). Narrowing the accepted keys keeps save() from Object.assign-ing a
+ *  field the class never declared -- that would be a plain (non-$state,
+ *  non-reactive) property. */
 type SavablePreferences = Omit<UserPreferences, 'id' | 'updatedAt' | 'someDayPanelCollapsed'>;
-
-/** Fire-and-forget preference persistence. These updates are intentionally
- *  non-blocking and invisible to the UI, so log (don't surface) failures. */
-function persistPreferences(update: Partial<SavablePreferences>) {
-    return preferencesService.update(update).catch(error => {
-        container.logger.warn('Failed to persist preferences', {
-            keys: Object.keys(update),
-            error: error instanceof Error ? error.message : String(error),
-        });
-    });
-}
 
 class PreferencesStore {
     id = $state('default');
@@ -67,25 +56,18 @@ class PreferencesStore {
     }
 
     toggleTag(tag: string) {
-        if (this.activeFilters.tags.includes(tag)) {
-            this.activeFilters = {
-                ...this.activeFilters,
-                tags: this.activeFilters.tags.filter(t => t !== tag),
-            };
-        } else {
-            this.activeFilters = { ...this.activeFilters, tags: [...this.activeFilters.tags, tag] };
-        }
-        persistPreferences({ activeFilters: this.activeFilters });
+        const tags = this.activeFilters.tags.includes(tag)
+            ? this.activeFilters.tags.filter(t => t !== tag)
+            : [...this.activeFilters.tags, tag];
+        void this.save({ activeFilters: { ...this.activeFilters, tags } });
     }
 
     setTags(tags: string[]) {
-        this.activeFilters = { ...this.activeFilters, tags };
-        persistPreferences({ activeFilters: this.activeFilters });
+        void this.save({ activeFilters: { ...this.activeFilters, tags } });
     }
 
     clearAll() {
-        this.activeFilters = { tags: [], showCompleted: true };
-        persistPreferences({ activeFilters: this.activeFilters });
+        void this.save({ activeFilters: { tags: [], showCompleted: true } });
     }
 
     get activeFilterCount() {
@@ -155,18 +137,15 @@ class PreferencesStore {
     }
 
     setTheme(theme: ThemeType) {
-        this.theme = theme;
-        persistPreferences({ theme });
+        void this.save({ theme });
     }
 
     setPanelWidth(width: number) {
-        this.someDayPanelWidth = width;
-        if (width >= 200) {
-            this.someDayPanelLastOpenWidth = width;
-        }
-        persistPreferences({
+        // Only a "meaningful" width (>= 200px, not a collapse-to-zero) is
+        // remembered as the restore target; a collapse keeps the last one.
+        void this.save({
             someDayPanelWidth: width,
-            someDayPanelLastOpenWidth: this.someDayPanelLastOpenWidth,
+            someDayPanelLastOpenWidth: width >= 200 ? width : this.someDayPanelLastOpenWidth,
         });
     }
 
@@ -182,19 +161,15 @@ class PreferencesStore {
     }
 
     setDeleteConfirmation(value: DeleteConfirmationType) {
-        this.deleteConfirmation = value;
-        persistPreferences({ deleteConfirmation: value });
+        void this.save({ deleteConfirmation: value });
     }
 
     updateTagKinds(tagKinds: TagKind[], tagKindMap: Record<string, string>) {
-        this.tagKinds = tagKinds;
-        this.tagKindMap = tagKindMap;
-        persistPreferences({ tagKinds, tagKindMap });
+        void this.save({ tagKinds, tagKindMap });
     }
 
     setTimeFormat(format: TimeFormatType) {
-        this.timeFormat = format;
-        persistPreferences({ timeFormat: format });
+        void this.save({ timeFormat: format });
     }
 
     /**
@@ -206,8 +181,7 @@ class PreferencesStore {
         if (timezone !== null && !isValidTimeZone(timezone)) return;
         const normalized = timezone === '' ? null : timezone;
         container.setDateProviderTimeZone(normalized);
-        this.timezone = normalized;
-        persistPreferences({ timezone: normalized });
+        void this.save({ timezone: normalized });
     }
 }
 

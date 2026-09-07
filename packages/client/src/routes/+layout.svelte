@@ -53,6 +53,8 @@
         });
         tagStore.fetchAll();
         projectStore.fetchAll();
+        someDayGroupStore.fetchAll();
+        taskStore.fetchAll();
         document.querySelector('.app-shell')?.setAttribute('data-hydrated', 'true');
 
         connectionStore.init();
