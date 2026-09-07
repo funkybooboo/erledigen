@@ -3,8 +3,8 @@
        an ink (navy) spine on a transparent canvas - the surface behind
        the mark shows through, so in light mode the mark reads as sitting
        on white. Fills are presentation attributes, not embedded CSS:
-       some browsers' favicon rasterizers do not run <style> blocks, and
-       attribute fills render everywhere. Values are the light app.css
+       some browsers rasterize favicon SVGs without running <style>
+       blocks, and attribute fills render everywhere. Values are the light app.css
        theme tokens hardcoded to their sRGB values (a favicon renders
        outside the app and cannot use the live CSS variables). The
        hydrated app points the tab here when the resolved theme is light
