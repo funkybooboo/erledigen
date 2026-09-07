@@ -24,6 +24,7 @@ import {
     NativeDateProvider,
     NullMetricsAdapter,
     PrometheusMetricsAdapter,
+    type WsServerEventMap,
 } from '@erledigen/shared';
 import { EnvConfigProvider } from './adapters/config/EnvConfigProvider';
 import { InMemoryProjectRepository } from './adapters/data/InMemoryProjectRepository';
@@ -314,16 +315,16 @@ export class Container {
         return this._projectService;
     }
 
-    private _eventBus: EventBus | null = null;
+    private _eventBus: EventBus<WsServerEventMap> | null = null;
     private _connectionManager: ConnectionManager | null = null;
     private _wsManager: WebSocketManager | null = null;
     private _wsServer: WebSocketServer | null = null;
     private _jobQueue: JobQueue | null = null;
     private _jobRunner: JobRunner | null = null;
 
-    get eventBus(): EventBus {
+    get eventBus(): EventBus<WsServerEventMap> {
         if (!this._eventBus) {
-            this._eventBus = new EventBus();
+            this._eventBus = new EventBus<WsServerEventMap>();
         }
         return this._eventBus;
     }

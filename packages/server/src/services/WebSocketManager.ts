@@ -1,17 +1,17 @@
-import type { WsServerMessage } from '@erledigen/shared';
+import type { WsServerEventMap, WsServerMessage } from '@erledigen/shared';
 import type { ConnectionManager } from '../adapters/ws/ConnectionManager';
 import type { WebSocketServer } from '../adapters/ws/WebSocketServer';
 import type { EventBus } from './EventBus';
 
 export class WebSocketManager {
     private wsServer: WebSocketServer;
-    private eventBus: EventBus;
+    private eventBus: EventBus<WsServerEventMap>;
     private connectionManager: ConnectionManager;
     private unsubscribe: (() => void) | null = null;
 
     constructor(
         wsServer: WebSocketServer,
-        eventBus: EventBus,
+        eventBus: EventBus<WsServerEventMap>,
         connectionManager: ConnectionManager,
     ) {
         this.wsServer = wsServer;
@@ -33,6 +33,10 @@ export class WebSocketManager {
         });
 
         this.unsubscribe = this.eventBus.onAny((eventType, payload, originClientId) => {
+            // One unavoidable assertion: TS cannot correlate `payload`'s
+            // union with `eventType` inside a non-generic callback (the
+            // correlation is exactly what the wire union guarantees, and
+            // the typed publish call sites keep the pair correct).
             const message = {
                 type: eventType,
                 payload,

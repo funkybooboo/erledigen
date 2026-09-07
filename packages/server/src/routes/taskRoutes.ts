@@ -3,7 +3,12 @@
  */
 
 import type { Logger } from '@erledigen/shared';
-import { API_ROUTES, type CreateTaskInput, type UpdateTaskInput } from '@erledigen/shared';
+import {
+    API_ROUTES,
+    type CreateTaskInput,
+    type UpdateTaskInput,
+    type WsServerEventMap,
+} from '@erledigen/shared';
 import type { TaskRepository } from '../adapters/data/TaskRepository';
 import type { HttpServer } from '../adapters/http/HttpServer';
 import { CreateTaskSchema, TaskQuerySchema, UpdateTaskSchema } from '../openapi/schemas/task';
@@ -24,7 +29,7 @@ export function registerTaskRoutes(
     server: HttpServer,
     taskRepo: TaskRepository,
     taskService: TaskService,
-    eventBus: EventBus,
+    eventBus: EventBus<WsServerEventMap>,
     logger: Logger,
     recurringTaskService: RecurringTaskService,
 ): void {

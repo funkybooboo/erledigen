@@ -2,45 +2,39 @@ import type { Project } from './project';
 import type { SomeDayGroup } from './someDayGroup';
 import type { Task } from './task';
 
-export type WsServerEventType =
-    | 'connection:ack'
-    | 'task:created'
-    | 'task:updated'
-    | 'task:deleted'
-    | 'task:restored'
-    | 'tag:renamed'
-    | 'tag:merged'
-    | 'project:created'
-    | 'project:updated'
-    | 'project:deleted'
-    | 'someDayGroup:created'
-    | 'someDayGroup:updated'
-    | 'someDayGroup:deleted'
-    | 'recurringTask:generated'
-    | 'server:shutdown';
+/** Event type -> payload shape for every server-broadcast message.
+ *  The single source of truth for both the WsServerMessage union below
+ *  and the server-side typed EventBus publishes (a type alias, not an
+ *  interface, so it satisfies the bus's Record<string, unknown> map
+ *  constraint through TS implicit index signatures). */
+export type WsServerEventMap = {
+    'connection:ack': ConnectionAckPayload;
+    'task:created': { task: Task };
+    'task:updated': { task: Task };
+    'task:deleted': { id: string };
+    'task:restored': { task: Task };
+    'tag:renamed': TagRenamedPayload;
+    'tag:merged': TagMergedPayload;
+    'project:created': { project: Project };
+    'project:updated': { project: Project };
+    'project:deleted': { id: string };
+    'someDayGroup:created': { group: SomeDayGroup };
+    'someDayGroup:updated': { group: SomeDayGroup };
+    'someDayGroup:deleted': { id: string };
+    'recurringTask:generated': RecurringTaskGeneratedPayload;
+    'server:shutdown': ServerShutdownPayload;
+};
+
+export type WsServerEventType = keyof WsServerEventMap;
 
 export type WsClientEventType = 'ws:ping';
 
-export type WsServerMessage =
-    | { type: 'connection:ack'; payload: ConnectionAckPayload; originClientId?: string }
-    | { type: 'task:created'; payload: { task: Task }; originClientId?: string }
-    | { type: 'task:updated'; payload: { task: Task }; originClientId?: string }
-    | { type: 'task:deleted'; payload: { id: string }; originClientId?: string }
-    | { type: 'task:restored'; payload: { task: Task }; originClientId?: string }
-    | { type: 'tag:renamed'; payload: TagRenamedPayload; originClientId?: string }
-    | { type: 'tag:merged'; payload: TagMergedPayload; originClientId?: string }
-    | { type: 'project:created'; payload: { project: Project }; originClientId?: string }
-    | { type: 'project:updated'; payload: { project: Project }; originClientId?: string }
-    | { type: 'project:deleted'; payload: { id: string }; originClientId?: string }
-    | { type: 'someDayGroup:created'; payload: { group: SomeDayGroup }; originClientId?: string }
-    | { type: 'someDayGroup:updated'; payload: { group: SomeDayGroup }; originClientId?: string }
-    | { type: 'someDayGroup:deleted'; payload: { id: string }; originClientId?: string }
-    | {
-          type: 'recurringTask:generated';
-          payload: RecurringTaskGeneratedPayload;
-          originClientId?: string;
-      }
-    | { type: 'server:shutdown'; payload: ServerShutdownPayload; originClientId?: string };
+/** One union member per event type -- structurally identical to the
+ *  hand-written union this replaces, now derived from WsServerEventMap so
+ *  the payload shapes can never drift from the map. */
+export type WsServerMessage = {
+    [K in WsServerEventType]: { type: K; payload: WsServerEventMap[K]; originClientId?: string };
+}[WsServerEventType];
 
 export interface WsClientMessage {
     type: WsClientEventType;

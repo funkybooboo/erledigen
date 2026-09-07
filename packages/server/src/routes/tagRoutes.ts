@@ -5,7 +5,7 @@
  */
 
 import type { Logger } from '@erledigen/shared';
-import { API_ROUTES } from '@erledigen/shared';
+import { API_ROUTES, type WsServerEventMap } from '@erledigen/shared';
 import type { HttpServer } from '../adapters/http/HttpServer';
 import { MergeTagsSchema, RenameTagSchema } from '../openapi/schemas/tag';
 import { formatTagInfoAsText, formatTagsAsText } from '../presentation/formatters';
@@ -17,7 +17,7 @@ import { parseBody } from '../utils/validate';
 export function registerTagRoutes(
     server: HttpServer,
     tagService: TagService,
-    eventBus: EventBus,
+    eventBus: EventBus<WsServerEventMap>,
     logger: Logger,
 ): void {
     // GET /api/tags

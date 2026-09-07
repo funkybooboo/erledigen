@@ -119,6 +119,7 @@ export type {
     TagRenamedPayload,
     WsClientEventType,
     WsClientMessage,
+    WsServerEventMap,
     WsServerEventType,
     WsServerMessage,
 } from './types/websocket';
