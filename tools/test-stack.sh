@@ -82,6 +82,13 @@ case "$MODE" in
         STACK_UP=1
         step "Running Bruno API tests"
         compose run --rm api
+        # Recreate server-test between suites: Bruno's leftovers (tasks for
+        # today) must not leak into the Playwright server -- GitHub CI runs
+        # these as SEPARATE jobs on fresh runners, and the keyboard spec's
+        # focus-clamp assertion assumes a clean today. The client keeps
+        # running; only the ephemeral in-memory server resets.
+        step "Resetting server-test for the Playwright run (fresh, like CI)"
+        compose up -d --force-recreate server-test
         step "Running Playwright e2e + api tests"
         compose run --rm e2e
         ;;
