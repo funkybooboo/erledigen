@@ -1,4 +1,5 @@
 import type { Project } from './project';
+import type { SomeDayGroup } from './someDayGroup';
 import type { Task } from './task';
 
 export type WsServerEventType =
@@ -31,8 +32,8 @@ export type WsServerMessage =
     | { type: 'project:created'; payload: { project: Project }; originClientId?: string }
     | { type: 'project:updated'; payload: { project: Project }; originClientId?: string }
     | { type: 'project:deleted'; payload: { id: string }; originClientId?: string }
-    | { type: 'someDayGroup:created'; payload: { group: unknown }; originClientId?: string }
-    | { type: 'someDayGroup:updated'; payload: { group: unknown }; originClientId?: string }
+    | { type: 'someDayGroup:created'; payload: { group: SomeDayGroup }; originClientId?: string }
+    | { type: 'someDayGroup:updated'; payload: { group: SomeDayGroup }; originClientId?: string }
     | { type: 'someDayGroup:deleted'; payload: { id: string }; originClientId?: string }
     | {
           type: 'recurringTask:generated';
