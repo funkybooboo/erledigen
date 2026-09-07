@@ -34,6 +34,13 @@ class SomeDayGroupStore extends EntityStore<
         // Someday panel in another tab keeps stale groups until reload.
         this.#messageUnsubscribe = websocketService.onServerMessage((message: WsServerMessage) => {
             switch (message.type) {
+                case 'data:restored':
+                    // A JSON restore replaced every table (ADR-009):
+                    // refetch the whole list; per-row events cannot
+                    // describe a wholesale replace.
+                    this.fetchAll();
+                    break;
+
                 case 'someDayGroup:created':
                     this.upsert(message.payload.group);
                     break;

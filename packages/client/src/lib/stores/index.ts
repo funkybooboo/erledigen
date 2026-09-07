@@ -7,6 +7,7 @@ export {
     GENERATE_HORIZON_DAYS,
     recurringTaskStore,
 } from './recurringTaskStore.svelte';
+export { refetchAllStores } from './refetchAll';
 export { someDayGroupStore } from './someDayGroupStore.svelte';
 export { tagStore } from './tagStore.svelte';
 export { taskStore } from './taskStore.svelte';

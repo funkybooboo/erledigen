@@ -1,11 +1,21 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
-    import { preferencesStore } from '$lib/stores';
+    import { preferencesStore, refetchAllStores, uiStore } from '$lib/stores';
     import { container } from '$lib/container';
     import { ExportService } from '$lib/services/exportService';
+    import { ImportService } from '$lib/services/importService';
     import {
+        autoDetectCsvMapping,
+        CsvImportAdapter,
+        CSV_IMPORT_FIELDS,
+        HttpClientError,
+        IMPORT_FORMAT_META,
+        IMPORT_FORMATS,
         isValidTimeZone,
+        type CsvColumnMapping,
         type ExportFormat,
+        type ImportFormat,
+        type ImportResult,
         type RolloverTriggerTime,
     } from '@erledigen/shared';
     import { onMount } from 'svelte';
@@ -124,6 +134,124 @@
         } finally {
             exporting = null;
         }
+    }
+
+    // -- Import (ADR-009) --------------------------------------------------------
+
+    const importService = new ImportService(container.httpClient);
+    const importFormats: readonly ImportFormat[] = [...IMPORT_FORMATS];
+    let importFormat = $state<ImportFormat>('todoist-csv');
+    let importFile = $state<File | null>(null);
+    let importSource = $state<string | null>(null);
+    let csvHeader = $state<string[] | null>(null);
+    let csvMapping = $state<CsvColumnMapping>({});
+    let importing = $state(false);
+    let importError = $state<string | null>(null);
+    let importResult = $state<ImportResult | null>(null);
+
+    /** File-picker accept hint per format (extensions only). */
+    const importAccept: Record<ImportFormat, string> = {
+        json: '.json,application/json',
+        csv: '.csv,text/csv',
+        ics: '.ics,text/calendar',
+        'todoist-csv': '.csv,text/csv',
+        'things-json': '.json,application/json',
+    };
+
+    function resetImportState(): void {
+        importSource = null;
+        csvHeader = null;
+        csvMapping = {};
+        importResult = null;
+        importError = null;
+    }
+
+    function handleImportFormatChange(e: Event): void {
+        const value = (e.currentTarget as HTMLSelectElement).value as ImportFormat;
+        importFormat = value;
+        importFile = null;
+        resetImportState();
+    }
+
+    async function handleImportFile(e: Event): Promise<void> {
+        const input = e.currentTarget as HTMLInputElement;
+        const file = input.files?.[0] ?? null;
+        importFile = file;
+        resetImportState();
+        if (file === null) return;
+        importSource = await file.text();
+        if (importFormat === 'csv') {
+            // Column mapping UI: header + auto-detected defaults.
+            csvHeader = CsvImportAdapter.readHeader(importSource);
+            csvMapping = autoDetectCsvMapping(csvHeader);
+        }
+    }
+
+    function setCsvMappingField(field: string, column: string): void {
+        csvMapping = { ...csvMapping, [field]: column === '' ? null : column };
+    }
+
+    /** Human-readable import summary. */
+    let importSummary = $derived.by(() => {
+        const result = importResult;
+        if (result === null) return null;
+        if (result.mode === 'restore') {
+            const restored = result.restored;
+            return (
+                `Restored ${restored?.tasks ?? 0} task(s), ` +
+                `${restored?.someDayGroups ?? 0} Someday group(s), ` +
+                `${restored?.projects ?? 0} project(s), ` +
+                `${restored?.recurringTasks ?? 0} recurring template(s), and settings.`
+            );
+        }
+        return `Imported ${result.created} task(s).`;
+    });
+
+    async function runImport(): Promise<void> {
+        const source = importSource;
+        if (source === null) return;
+        importError = null;
+        importResult = null;
+
+        if (IMPORT_FORMAT_META[importFormat].restore) {
+            const ok = await uiStore.confirm(
+                'Restoring replaces ALL data on this instance: tasks (trash included), Someday groups, projects, habits, and these settings. The server writes a backup file first. Continue?',
+                'Restore',
+            );
+            if (!ok) return;
+        }
+
+        importing = true;
+        try {
+            const result = await importService.importDocument(
+                importFormat,
+                source,
+                importFormat === 'csv' && csvHeader !== null
+                    ? { mapping: csvMapping, header: csvHeader }
+                    : undefined,
+            );
+            importResult = result;
+            // This client's own restore broadcast is self-skipped;
+            // refetch the world from the response path.
+            await refetchAllStores();
+        } catch (error) {
+            importError =
+                error instanceof HttpClientError
+                    ? parseImportError(error)
+                    : 'Import failed -- check that the server is reachable.';
+        } finally {
+            importing = false;
+        }
+    }
+
+    function parseImportError(error: HttpClientError): string {
+        try {
+            const body = JSON.parse(String(error.body ?? '')) as { error?: string };
+            if (body.error) return `Import rejected: ${body.error}`;
+        } catch {
+            // fall through to the generic message
+        }
+        return 'Import failed -- the document could not be processed.';
     }
 </script>
 
@@ -262,6 +390,87 @@
             {/if}
         </fieldset>
 
+        <fieldset class="section">
+            <legend class="section-heading">Import</legend>
+            <p class="hint">
+                Restore a JSON backup (replaces everything on this instance) or
+                add tasks from CSV, iCal, Todoist, or Things 3.
+            </p>
+            <label class="field">
+                <span class="label" id="import-format-label">Source</span>
+                <select
+                    class="select"
+                    id="import-format-select"
+                    value={importFormat}
+                    onchange={handleImportFormatChange}
+                    aria-labelledby="import-format-label"
+                >
+                    {#each importFormats as format (format)}
+                        <option value={format}>{IMPORT_FORMAT_META[format].label}</option>
+                    {/each}
+                </select>
+            </label>
+            <input
+                id="import-file-input"
+                type="file"
+                accept={importAccept[importFormat]}
+                onchange={handleImportFile}
+                aria-label="File to import"
+                disabled={importing}
+            />
+            {#if importFormat === 'csv' && csvHeader !== null}
+                <div class="csv-mapping" aria-label="Column mapping">
+                    {#each CSV_IMPORT_FIELDS as field (field)}
+                        <label class="field">
+                            <span class="label">{field}</span>
+                            <select
+                                class="select"
+                                aria-label="CSV column for {field}"
+                                value={csvMapping[field] ?? ''}
+                                onchange={event =>
+                                    setCsvMappingField(field, (event.currentTarget as HTMLSelectElement).value)}
+                            >
+                                <option value="">(not mapped)</option>
+                                {#each csvHeader as column (column)}
+                                    <option value={column}>{column}</option>
+                                {/each}
+                            </select>
+                        </label>
+                    {/each}
+                </div>
+            {/if}
+            <div>
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    onclick={runImport}
+                    disabled={importing || importSource === null}
+                >
+                    {#if IMPORT_FORMAT_META[importFormat].restore}
+                        {importing ? 'Restoring...' : 'Restore'}
+                    {:else}
+                        {importing ? 'Importing...' : 'Import'}
+                    {/if}
+                </button>
+            </div>
+            {#if importSummary}
+                <span class="hint" role="status">{importSummary}</span>
+                {#if importResult && importResult.warnings.length > 0}
+                    <ul class="import-warnings">
+                        {#each importResult.warnings.slice(0, 5) as warning}
+                            <li>{warning.source ? `Row ${warning.source}: ` : ''}{warning.message}</li>
+                        {/each}
+                        {#if importResult.warnings.length > 5}
+                            <li>... and {importResult.warnings.length - 5} more</li>
+                        {/if}
+                    </ul>
+                {/if}
+            {/if}
+            {#if importError}
+                <span class="hint invalid" role="alert">{importError}</span>
+            {/if}
+        </fieldset>
+
         <section class="section" aria-label="Panel settings">
             <h3 class="section-heading">Panel</h3>
             <p class="hint">Toggle the Someday panel with <kbd>Ctrl</kbd>+<kbd>\</kbd></p>
@@ -344,6 +553,22 @@
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
+    }
+
+    .csv-mapping {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 8px;
+        border: 1px solid var(--color-border);
+        border-radius: 6px;
+    }
+
+    .import-warnings {
+        margin: 4px 0 0;
+        padding-left: 18px;
+        font-size: 12px;
+        color: var(--color-text-muted);
     }
 
     .tz-input {
