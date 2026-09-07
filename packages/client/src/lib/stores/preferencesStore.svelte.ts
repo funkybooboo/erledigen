@@ -161,6 +161,17 @@ class PreferencesStore {
         });
     }
 
+    /** Collapse the Someday panel, or restore its last open width (the
+     *  shared default when no width was ever persisted). One implementation
+     *  for the Cmd/Ctrl+\\ binding and the panel's own expand control. */
+    toggleSomeDayPanel() {
+        this.setPanelWidth(
+            this.someDayPanelWidth === 0
+                ? this.someDayPanelLastOpenWidth || USER_PREFERENCES_DEFAULTS.someDayPanelWidth
+                : 0,
+        );
+    }
+
     setDeleteConfirmation(value: DeleteConfirmationType) {
         this.deleteConfirmation = value;
         persistPreferences({ deleteConfirmation: value });

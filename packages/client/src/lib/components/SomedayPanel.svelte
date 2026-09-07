@@ -176,21 +176,11 @@
         newlyCreatedIds.add(id);
         setTimeout(() => newlyCreatedIds.delete(id), 600);
     }
-
-    const DEFAULT_PANEL_WIDTH = 280;
-
-    function togglePanel() {
-        if (isCollapsed) {
-            preferencesStore.setPanelWidth(preferencesStore.someDayPanelLastOpenWidth || DEFAULT_PANEL_WIDTH);
-        } else {
-            preferencesStore.setPanelWidth(0);
-        }
-    }
 </script>
 
 {#if isCollapsed}
     <div class="collapsed-strip" role="separator" aria-label="Expand Someday panel">
-        <button class="expand-btn" onclick={togglePanel} use:tooltip={{ label: 'Open Someday panel', shortcut: 'toggleSomedayPanel' }} aria-label="Open Someday panel">
+        <button class="expand-btn" onclick={() => preferencesStore.toggleSomeDayPanel()} use:tooltip={{ label: 'Open Someday panel', shortcut: 'toggleSomedayPanel' }} aria-label="Open Someday panel">
             <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="8,2 2,9 8,16" />
             </svg>
