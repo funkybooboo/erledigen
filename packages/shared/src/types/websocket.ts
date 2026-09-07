@@ -1,3 +1,4 @@
+import type { ImportResult } from './import';
 import type { Project } from './project';
 import type { SomeDayGroup } from './someDayGroup';
 import type { Task } from './task';
@@ -22,6 +23,9 @@ export type WsServerEventMap = {
     'someDayGroup:updated': { group: SomeDayGroup };
     'someDayGroup:deleted': { id: string };
     'recurringTask:generated': RecurringTaskGeneratedPayload;
+    /** Broadcast after a JSON restore replaced ALL application data
+     *  (ADR-009): connected clients refetch everything they hold. */
+    'data:restored': { restored: ImportResult['restored'] };
     'server:shutdown': ServerShutdownPayload;
 };
 
