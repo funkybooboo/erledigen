@@ -61,10 +61,11 @@ A cornerstone of our architecture is the **adapter pattern**. This pattern allow
     *   `SqliteJobQueue` (server): jobs persist in the application database and survive restarts.
     *   `InMemoryJobQueue` (server): ephemeral queue for `STORAGE_ADAPTER=memory` runs.
     *   The `JobRunner` polls the queue and executes handlers with retry/backoff/dead-letter; the `JobScheduler` chain-schedules the recurring rollover and trash-purge jobs. Recurring-task generation stays client-driven on demand by design -- there is no generate-recurring job.
-*   **`ExportAdapter` / `ImportAdapter`**: Serialize the export snapshot into portable formats and parse external documents back (see [ADR-008](decisions/ADR-008-export-format-stability.md)).
+*   **`ExportAdapter` / `ImportAdapter`**: Serialize the export snapshot into portable formats and parse external documents back (see [ADR-008](decisions/ADR-008-export-format-stability.md) and [ADR-009](decisions/ADR-009-import-semantics.md)).
     *   Export adapters (shared): `JsonExportAdapter` (the canonical, lossless backup -- includes the trash), `CsvExportAdapter`, `MarkdownExportAdapter`, `IcalExportAdapter` (views of the active task list).
     *   The server's `ExportService` assembles the snapshot from the repositories and serves it at `GET /api/export` as a raw, attachment-disposition document -- NOT wrapped in the usual `{ data }` envelope.
-    *   Import adapters (the v0.7.0 remainder: JSON restore, CSV, iCal, Todoist, Things 3) implement the shared `ImportAdapter` interface.
+    *   Import adapters (shared): `JsonRestoreImportAdapter` (strict version-1 snapshot validation, cross-reference checks), `CsvImportAdapter` (generic CSV, column-mapping + header auto-detect), `IcalImportAdapter`, `TodoistCsvImportAdapter`, `ThingsJsonImportAdapter`. All parse-only; semantics live in the server's `ImportService`.
+    *   The server's `ImportService` runs `POST /api/import`: format `json` is a DESTRUCTIVE restore (one transaction via the `SnapshotRestoreWriter` port -- the repos' async facade cannot compose a cross-table SQLite transaction, so the SQLite repos expose synchronous `replaceAllSync`/`restoreSync` cores); every other format is an additive import (new rows only). A pre-restore backup file is written before any wipe; connected clients learn about a restore through the `data:restored` broadcast (ADR-009).
 
 ### Benefits of the Adapter Pattern
 
@@ -129,10 +130,10 @@ Facts that are easy to get wrong when working on the domain, API, or stores.
   stamps generated instances with its `recurringTaskId` and `startTime`;
   generation skips dates that already exist
   (`TaskRepository.findByRecurringTaskId`), so editing a schedule never
-  rewrites already-created instances. Generation is client-driven on demand
-  (DayList chunk loads; a +90-day horizon for new habits,
-  `GENERATE_HORIZON_DAYS`) -- there is NO server-side scheduler; ADR-002's job
-  queue remains unimplemented.
+  rewrites already-created instances. Generation stays client-driven on
+  demand (DayList chunk loads; a +90-day horizon for new habits,
+  `GENERATE_HORIZON_DAYS`) -- deliberately NOT a queued job; ADR-002's queue
+  runs rollover and trash purge only.
 - **Realtime skips the originator twice, on purpose.** Mutations publish an
   event on the `EventBus` carrying the requester's `x-client-id`; the server
   broadcast skips that client's socket, AND the client additionally ignores
@@ -145,7 +146,8 @@ Facts that are easy to get wrong when working on the domain, API, or stores.
   only where a mutation spans entities or adds behavior beyond persistence:
   `TaskService` (app-default rollover on create, parent completion roll-up),
   `RecurringTaskService` (instance generation, streak stats), `TagService`
-  (derived tag operations), and the job classes (`RolloverService`,
+  (derived tag operations), `ImportService` (restore spans every entity
+  kind, ADR-009), and the job classes (`RolloverService`,
   `JobScheduler`, `JobRunner`). Do not add pass-through services.
 - **Zod schemas self-register into the OpenAPI document on import**
   (zod-to-openapi): a schema referenced only by tests still shows up in

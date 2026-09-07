@@ -41,6 +41,13 @@ Covers, per resource:
   document, attachment headers, trash included), CSV (header row, RFC 4180
   escaping, `columns` subset + unknown-column 400), Markdown (day sections
   + Someday), iCal (VCALENDAR/VEVENT, floating times), unknown-format 400.
+- **import** -- `POST /api/import` (ADR-009): JSON restore (verbatim
+  replace incl. preferences, ids kept; invalid snapshot/dangling reference
+  400s with nothing written), additive Todoist CSV (labels/priorities/
+  subtasks, recurring-date warnings), Things 3 JSON (completed/canceled,
+  canceled lands in trash), iCal (timed + all-day), generic CSV (index-based
+  `mapping` param + auto-detect round-trip of our own export), unknown
+  format 400. Bruno mirrors these in `tests/api/Import *.bru`.
 - **meta** -- root, health, 404+CORS, OPTIONS preflight, security headers,
   OpenAPI JSON + YAML.
 
@@ -79,6 +86,11 @@ Covers:
   persistence), timezone reset, JSON export download (blob filename), Search (filter + hint/empty + `/` command
   mode + `/add`), Trash (list deleted, restore), Calendar (month navigation,
   Today reset, date selection scrolls the day list).
+- **import** (ADR-009) -- additive Todoist CSV through the Settings file
+  picker (summary + tasks live in the day list), generic CSV column-mapping
+  UI with auto-detected defaults, JSON restore with the always-confirm
+  dialog (decline leaves data intact), and the `data:restored` broadcast
+  refreshing a page without reload.
 - **Someday panel** -- Ctrl+\\ collapse/expand, group create/add-task/rename
   through the panel, ungrouped tasks rendering.
 

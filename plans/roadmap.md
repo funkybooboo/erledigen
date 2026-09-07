@@ -21,11 +21,12 @@ green).
       redo, natural-language date parsing, remaining palette commands.
     - v0.6.0 -- priority sort mode, date-range filter, mobile.
       (Drag-and-drop was removed; design kept in the section.)
-    - v0.7.0 -- storage + observability shipped (SQLite, migrations,
+    - v0.7.0 -- COMPLETE: storage + observability (SQLite, migrations,
       contract tests, preferences persistence, JSON logs, request IDs,
-      `/api/metrics`, enhanced health); export shipped (all four
-      formats via `GET /api/export` + the Settings export UI, ADR-008);
-      remaining: import (all five sources + the Settings import UI).
+      `/api/metrics`, enhanced health); export (all four formats via
+      `GET /api/export` + the Settings export UI, ADR-008); import (all
+      five sources via `POST /api/import` + the Settings import UI,
+      ADR-009).
     - v0.8.0 -- shipped: job queue + runner (ADR-002), task rollover
       (midnight/9am/manual trigger times, startup catch-up), trash
       purge; recurring generation stays on-demand by design (no
@@ -42,12 +43,16 @@ recurring tasks are the big ones) -- treat the sections below as a
 feature catalog and choose the next release deliberately, not by
 number.
 
-**Current focus (2026-09-07): the v0.7.0 remainder is underway -- the
-export slice has shipped (ADR-008: canonical JSON snapshot incl. the
-trash, CSV/Markdown/iCal views, `GET /api/export`, Settings export
-UI). Before it, PRs #6/#7/#8 landed the v0.8.0 automation core and
-observability slice. Next: the import slice -- JSON restore, generic
-CSV, iCal, Todoist CSV, Things 3 JSON, with the Settings import UI.
+**Current focus (2026-09-07): v0.7.0 is COMPLETE -- the export slice
+shipped first (ADR-008: canonical JSON snapshot incl. the trash,
+CSV/Markdown/iCal views, `GET /api/export`, Settings export UI), and
+the import slice closed it out (ADR-009: destructive JSON restore with
+a pre-restore backup + `data:restored` broadcast, additive generic
+CSV/iCal/Todoist CSV/Things 3 imports, Settings import UI with the CSV
+column mapping). Remaining catalog items to choose from next: v0.9.0
+remainder (Kanban board, habit heatmap, holidays, summary sections),
+v0.10.0 (markdown notes), v0.12.0 remainder, v0.13.0 (i18n), v0.14.0
+(calendar time-grid).
 
 ---
 
@@ -556,15 +561,20 @@ This release polishes the three-panel layout, completes drag-and-drop interactio
 
 This release implements persistent storage, structured logging and metrics, multi-format data export, and import from popular task managers.
 
-**Status:** Storage and observability shipped (PRs #6/#7/#8): SQLite
-adapter, raw-SQL migrations, adapter contract tests, `STORAGE_ADAPTER`
-config, `UserPreferences` persistence (ADR-001/ADR-003), structured JSON
-logging + request IDs (ADR-004), `/api/metrics` with the full metric
-catalog (ADR-005, prefix per ADR-007), and the enhanced health endpoint.
-Export shipped: all four formats via `GET /api/export` plus the Settings
-export UI (ADR-008) -- the JSON export is the canonical, lossless backup
-(including the trash); CSV/Markdown/iCal are active-task views.
-Remaining: import (all five sources) with its Settings UI.
+**Status:** COMPLETE. Storage and observability shipped (PRs #6/#7/#8):
+SQLite adapter, raw-SQL migrations, adapter contract tests,
+`STORAGE_ADAPTER` config, `UserPreferences` persistence (ADR-001/
+ADR-003), structured JSON logging + request IDs (ADR-004), `/api/metrics`
+with the full metric catalog (ADR-005, prefix per ADR-007), and the
+enhanced health endpoint. Export shipped: all four formats via `GET
+/api/export` plus the Settings export UI (ADR-008) -- the JSON export
+is the canonical, lossless backup (including the trash); CSV/Markdown/
+iCal are active-task views. Import shipped: `POST /api/import` plus
+the Settings import UI (ADR-009) -- the JSON source is a destructive
+restore (pre-restore backup file, single-transaction replace,
+`data:restored` broadcast); generic CSV (column mapping + auto-detect),
+iCal, Todoist CSV, and Things 3 JSON import additively, with source
+canceled/deleted rows landing in the trash.
 
 ### Storage
 - [ ] **I/O Abstraction Layer:** Solidify the adapter pattern so the application core is independent of the data source.
@@ -616,11 +626,11 @@ Remaining: import (all five sources) with its Settings UI.
 - [x] **iCal / .ics** -- tasks with `startTime`/`endTime` exported as VEVENT; all-day tasks as all-day VEVENT.
 
 ### Import
-- [ ] **JSON** -- restore from a previous export.
-- [ ] **CSV** -- generic task CSV with column mapping UI.
-- [ ] **iCal / .ics** -- parse VEVENT entries into tasks; sets `date`, `startTime`, `endTime`. Works with Google Calendar, Apple Calendar, Outlook exports.
-- [ ] **Todoist CSV** -- map Todoist's export columns to Erledigen task fields.
-- [ ] **Things 3 JSON** -- map Things 3 export format to Erledigen task fields.
+- [x] **JSON** -- restore from a previous export (ADR-009: destructive replace, pre-restore backup, `data:restored` broadcast).
+- [x] **CSV** -- generic task CSV with column mapping UI (index-based mapping + header auto-detect).
+- [x] **iCal / .ics** -- parse VEVENT entries into tasks; sets `date`, `startTime`, `endTime`. Works with Google Calendar, Apple Calendar, Outlook exports.
+- [x] **Todoist CSV** -- map Todoist's export columns to Erledigen task fields (labels, p1-p3 priorities, INDENT subtasks, note rows).
+- [x] **Things 3 JSON** -- map Things 3 export format to Erledigen task fields (checklist subtasks, reminders, completed/canceled states).
 
 ### Interfaces
 - [x] **`ExportAdapter<T>`** interface in `packages/shared` -- implement one adapter per format.
@@ -642,7 +652,8 @@ Remaining: import (all five sources) with its Settings UI.
 - [ADR-004](../docs/devs/architecture/decisions/ADR-004-structured-json-logging.md): Structured JSON logging & request tracing
 - [ADR-005](../docs/devs/architecture/decisions/ADR-005-prometheus-metrics.md): Prometheus-compatible metrics endpoint
 - [ADR-008](../docs/devs/architecture/decisions/ADR-008-export-format-stability.md): export format stability commitment (JSON as canonical).
-- User docs: export guide shipped ([export.md](../docs/users/export.md)); the import guide follows with the import slice.
+- [ADR-009](../docs/devs/architecture/decisions/ADR-009-import-semantics.md): import semantics (destructive JSON restore, additive task imports, upsert-by-id rejected).
+- User docs: export guide ([export.md](../docs/users/export.md)) and import guide ([import.md](../docs/users/import.md)).
 - Dev docs: `ExportAdapter` and `ImportAdapter` interface contracts (architecture.md adapter section + ADR-008).
 
 ### Security Considerations
@@ -658,9 +669,9 @@ Remaining: import (all five sources) with its Settings UI.
 - `/api/metrics` exposes Prometheus-format metrics.
 - `/api/health` returns rich health information.
 - [x] Export working for all four formats (ADR-008; the JSON export includes the trash, view formats cover active tasks).
-- [ ] Import working for all five sources.
+- [x] Import working for all five sources (ADR-009).
 - `UserPreferences` persisted across restarts.
-- Import/Export UI in Settings functional.
+- [x] Import/Export UI in Settings functional (export download + restore/import with CSV column mapping).
 
 ---
 
