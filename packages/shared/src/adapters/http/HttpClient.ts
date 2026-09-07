@@ -81,6 +81,15 @@ export interface HttpClient {
      * @throws HttpClientError if the request fails or returns non-2xx status
      */
     getText(url: string, options?: RequestOptions): Promise<string>;
+
+    /**
+     * Make a POST request whose body is a RAW text document (file
+     * uploads -- e.g. import sources, which are CSV, iCal, or JSON and
+     * are sent exactly as read from the file).
+     * @returns Promise that resolves to the raw response body text
+     * @throws HttpClientError if the request fails or returns non-2xx status
+     */
+    postText(url: string, body: string, options?: RequestOptions): Promise<string>;
 }
 
 /**

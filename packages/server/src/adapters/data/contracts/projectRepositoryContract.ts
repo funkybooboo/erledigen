@@ -97,6 +97,30 @@ export function runProjectRepositoryContractTests(makeRepo: () => ProjectReposit
     });
 
     describe('delete', () => {
+        describe('replaceAll (restore write path)', () => {
+            test('replaces every project verbatim, inactive ones included', async () => {
+                const repo = makeRepo();
+                await repo.create({ name: 'Old project' });
+                await repo.replaceAll([
+                    {
+                        id: 'p9',
+                        name: 'From backup',
+                        tag: 'project:backup',
+                        description: null,
+                        startDate: null,
+                        dueDate: null,
+                        isActive: false,
+                        createdAt: '2026-01-01T00:00:00.000Z',
+                        completedAt: null,
+                    },
+                ]);
+                expect(await repo.findAll()).toEqual([
+                    expect.objectContaining({ id: 'p9', isActive: false }),
+                ]);
+                expect(await repo.findActive()).toEqual([]);
+            });
+        });
+
         test('returns false for unknown id', async () => {
             const repo = makeRepo();
             expect(await repo.delete('nope')).toBe(false);

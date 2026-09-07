@@ -25,7 +25,13 @@ export { FetchHttpClient } from './adapters/http/FetchHttpClient';
 // Adapters - HTTP Client
 export type { HttpClient, RequestOptions } from './adapters/http/HttpClient';
 export { HttpClientError } from './adapters/http/HttpClient';
+export { autoDetectCsvMapping, CsvImportAdapter } from './adapters/import/CsvImportAdapter';
+export { IcalImportAdapter } from './adapters/import/IcalImportAdapter';
 export type { ImportAdapter } from './adapters/import/ImportAdapter';
+export { ImportValidationError } from './adapters/import/ImportValidationError';
+export { JsonRestoreImportAdapter } from './adapters/import/JsonRestoreImportAdapter';
+export { ThingsJsonImportAdapter } from './adapters/import/ThingsJsonImportAdapter';
+export { TodoistCsvImportAdapter } from './adapters/import/TodoistCsvImportAdapter';
 // Adapters - IO
 export {
     ConsoleLogger,
@@ -90,9 +96,19 @@ export {
     ValidationError,
 } from './errors/AppError';
 export type { ApiResponse, ErrorResponseBody } from './types/api';
-// Types - export/import contract (ADR-008)
+// Types - export/import contract (ADR-008, ADR-009)
 export type { ExportFormat, ExportSnapshot } from './types/export';
 export { EXPORT_FORMAT_META, EXPORT_FORMATS } from './types/export';
+export type {
+    CsvColumnMapping,
+    CsvImportField,
+    ImportedTask,
+    ImportFormat,
+    ImportIssue,
+    ImportResult,
+    ParsedTasks,
+} from './types/import';
+export { CSV_IMPORT_FIELDS, IMPORT_FORMAT_META, IMPORT_FORMATS } from './types/import';
 // Types
 export type { CreateProjectInput, Project, UpdateProjectInput } from './types/project';
 export type {

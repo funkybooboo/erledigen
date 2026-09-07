@@ -58,7 +58,8 @@ describe('task schemas', () => {
     // recurringTaskId/instanceDate are intentionally NOT in the public
     // schemas: POST bodies must not be able to inject template links
     // (see CreateTaskInput's doc comment in shared/types/task.ts).
-    const serverInternal = ['recurringTaskId', 'instanceDate'] as const;
+    // `completed` joined them with ADR-009: imports set it server-side.
+    const serverInternal = ['recurringTaskId', 'instanceDate', 'completed'] as const;
 
     test('CreateTaskSchema keeps every public CreateTaskInput field', () => {
         const sample: Required<CreateTaskInput> = {
@@ -76,6 +77,7 @@ describe('task schemas', () => {
             reminder: null,
             recurringTaskId: null,
             instanceDate: null,
+            completed: false,
         };
         const parsed = parsePreserving(CreateTaskSchema, sample, serverInternal);
         // The server-internal fields must stay stripped: the public API

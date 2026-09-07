@@ -78,6 +78,35 @@ export class SqliteSomeDayGroupRepository implements SomeDayGroupRepository {
         return created;
     }
 
+    async replaceAll(groups: SomeDayGroup[]): Promise<void> {
+        this.replaceAllSync(groups);
+        return Promise.resolve();
+    }
+
+    /** Synchronous core, for composing multi-table restore transactions
+     *  (ADR-009) -- see SqliteTaskRepository.replaceAllSync. */
+    replaceAllSync(groups: SomeDayGroup[]): void {
+        const insert = this.db.prepare(
+            `
+            INSERT INTO some_day_groups (${GROUP_COLUMNS})
+            VALUES (?, ?, ?, ?, ?, ?)
+            `,
+        );
+        this.db.transaction(() => {
+            this.db.prepare('DELETE FROM some_day_groups').run();
+            for (const group of groups) {
+                insert.run(
+                    group.id,
+                    group.name,
+                    group.description,
+                    group.tag,
+                    group.position,
+                    group.createdAt,
+                );
+            }
+        })();
+    }
+
     async update(id: string, input: UpdateSomeDayGroupInput): Promise<SomeDayGroup | null> {
         const sets: string[] = [];
         const values: SQLQueryBindings[] = [];

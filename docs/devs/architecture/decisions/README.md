@@ -18,6 +18,7 @@ An ADR captures an important architectural decision: what was decided, why, and 
 | [ADR-006](ADR-006-observability-stack.md) | Observability Stack (Loki + Prometheus + Grafana) | Accepted | 2026-05-09 |
 | [ADR-007](ADR-007-metric-prefix.md) | Metric Naming Prefix `erledigen_` (supersedes ADR-005 naming) | Accepted | 2026-09-05 |
 | [ADR-008](ADR-008-export-format-stability.md) | Stable Export Formats and the Canonical JSON Snapshot | Accepted | 2026-09-07 |
+| [ADR-009](ADR-009-import-semantics.md) | Import Semantics: Destructive Restore and Additive Imports | Accepted | 2026-09-07 |
 
 ## Creating a New ADR
 

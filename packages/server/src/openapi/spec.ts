@@ -17,6 +17,7 @@ import './schemas/recurringTask';
 import './schemas/tag';
 import './schemas/userPreferences';
 import './schemas/export';
+import './schemas/import';
 import './paths/health';
 import './paths/task';
 import './paths/someDayGroup';
@@ -26,6 +27,7 @@ import './paths/tag';
 import './paths/userPreferences';
 import './paths/meta';
 import './paths/export';
+import './paths/import';
 import { registry } from './registry';
 
 let cachedSpec: ReturnType<OpenApiGeneratorV31['generateDocument']> | null = null;

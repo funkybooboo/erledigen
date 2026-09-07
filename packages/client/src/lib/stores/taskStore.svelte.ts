@@ -39,6 +39,13 @@ class TaskStore {
     initWebSocket(): void {
         this.#messageUnsubscribe = websocketService.onServerMessage((message: WsServerMessage) => {
             switch (message.type) {
+                case 'data:restored':
+                    // A JSON restore replaced every table (ADR-009):
+                    // per-row events cannot describe a wholesale
+                    // replace, so refetch the world.
+                    this.fetchAll();
+                    break;
+
                 case 'task:created':
                     if (message.payload.task) {
                         // Upsert (not blind append): the originating client already

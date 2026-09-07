@@ -60,6 +60,17 @@ export class InMemoryRecurringTaskRepository implements RecurringTaskRepository 
         return updated;
     }
 
+    async replaceAll(recurringTasks: RecurringTask[]): Promise<void> {
+        this.tasks.clear();
+        for (const rt of recurringTasks) {
+            this.tasks.set(rt.id, { ...rt });
+        }
+        this.idCounter = recurringTasks.reduce(
+            (max, rt) => Math.max(max, Number.parseInt(rt.id, 10) || 0),
+            0,
+        );
+    }
+
     async delete(id: string): Promise<boolean> {
         return this.tasks.delete(id);
     }

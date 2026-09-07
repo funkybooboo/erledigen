@@ -45,6 +45,13 @@ export class FetchHttpClient implements HttpClient {
         return response.text();
     }
 
+    /** POST a RAW text body (import uploads, ADR-009): the document is the
+     *  request body, not a JSON envelope -- the mirror of getText. */
+    async postText(url: string, body: string, options?: RequestOptions): Promise<string> {
+        const response = await this.perform('POST', url, body, options, 'text/plain');
+        return response.text();
+    }
+
     private async request<T>(
         method: string,
         url: string,
@@ -58,16 +65,18 @@ export class FetchHttpClient implements HttpClient {
     }
 
     /** Shared fetch plumbing: build headers and options, execute, and map
-     *  non-2xx responses to HttpClientError. */
+     *  non-2xx responses to HttpClientError. `rawContentType` switches the
+     *  body serialization from JSON to a raw string. */
     private async perform(
         method: string,
         url: string,
         body?: unknown,
         options?: RequestOptions,
+        rawContentType?: string,
     ): Promise<Response> {
         const fullUrl: string = this.baseUrl + url;
         const headers: Record<string, string> = {
-            'Content-Type': 'application/json',
+            'Content-Type': rawContentType ?? 'application/json',
             ...this.defaultHeaders,
             ...options?.headers,
         };
@@ -77,7 +86,8 @@ export class FetchHttpClient implements HttpClient {
         const fetchOptions: RequestInit = { method, headers };
 
         if (body !== undefined) {
-            fetchOptions.body = JSON.stringify(body);
+            fetchOptions.body =
+                rawContentType !== undefined ? (body as string) : JSON.stringify(body);
         }
 
         if (options?.timeout !== undefined) {

@@ -20,6 +20,13 @@ export interface TaskRepository {
     findByDate(date: string): Promise<Task[]>;
     findById(id: string): Promise<Task | null>;
     create(input: CreateTaskInput): Promise<Task>;
+    /** Bulk create for additive imports: sequential ids, rows returned in
+     *  input order. SQLite wraps the inserts in one transaction. */
+    createMany(inputs: CreateTaskInput[]): Promise<Task[]>;
+    /** Destructive restore (ADR-009): delete every row, insert these rows
+     *  verbatim -- ids, timestamps, completion, and the trash all kept
+     *  as-is. Next create() ids must never collide with restored ids. */
+    replaceAll(tasks: Task[]): Promise<void>;
     update(id: string, input: UpdateTaskInput): Promise<Task | null>;
     delete(id: string): Promise<boolean>;
     findSomeday(): Promise<Task[]>;

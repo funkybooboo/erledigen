@@ -25,6 +25,13 @@ class ProjectStore extends EntityStore<Project, CreateProjectInput, UpdateProjec
     initWebSocket(): void {
         this.#messageUnsubscribe = websocketService.onServerMessage((message: WsServerMessage) => {
             switch (message.type) {
+                case 'data:restored':
+                    // A JSON restore replaced every table (ADR-009):
+                    // refetch the whole list; per-row events cannot
+                    // describe a wholesale replace.
+                    this.fetchAll();
+                    break;
+
                 case 'project:created':
                     if (message.payload.project) {
                         this.upsert(message.payload.project);

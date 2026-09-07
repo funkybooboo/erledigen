@@ -1,0 +1,34 @@
+meta {
+  name: Import iCal
+  type: http
+  seq: 107
+}
+
+post {
+  url: {{baseUrl}}{{apiPrefix}}/import?format=ics
+  body: text
+  auth: none
+}
+body:text {
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Bruno//Test//EN
+CALSCALE:GREGORIAN
+BEGIN:VEVENT
+SUMMARY:Bruno ics import
+DTSTART:20260314T090000
+DTEND:20260314T100000
+UID:bruno-1
+END:VEVENT
+END:VCALENDAR
+}
+
+assert {
+  res.status: eq 200}
+
+tests {
+  test("should import VEVENTs as tasks", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.created).to.equal(1);
+  });
+}

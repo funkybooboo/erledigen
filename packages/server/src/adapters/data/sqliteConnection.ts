@@ -36,6 +36,14 @@ export class SqliteConnection {
         this.db.close();
     }
 
+    /** Run `fn` inside one SQLite transaction (commit on success, roll
+     *  back on throw). Used by the restore path (ADR-009) so a failed
+     *  import never leaves half-replaced tables. bun:sqlite nests these
+     *  via savepoints when repositories already wrap their own writes. */
+    transaction<T>(fn: () => T): T {
+        return this.db.transaction(fn)();
+    }
+
     /** Size of the database file in bytes, or null when the database is
      *  in-memory (health endpoint and db_size_bytes gauge, ADR-005). */
     sizeBytes(): number | null {

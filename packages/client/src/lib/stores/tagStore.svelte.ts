@@ -15,6 +15,13 @@ class TagStore {
     initWebSocket(): void {
         this.#messageUnsubscribe = websocketService.onServerMessage((message: WsServerMessage) => {
             switch (message.type) {
+                case 'data:restored':
+                    // A JSON restore replaced every table (ADR-009):
+                    // tags are derived from tasks, so refetch both.
+                    this.fetchAll();
+                    this.fetchInfo();
+                    break;
+
                 case 'tag:renamed':
                 case 'tag:merged':
                     this.fetchAll();

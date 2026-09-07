@@ -51,6 +51,23 @@ export async function post(
     );
 }
 
+/** POST a RAW text document (import uploads, ADR-009): the body is the
+ *  file's content, not JSON -- the mirror of getText. */
+export async function postText(
+    ctx: APIRequestContext,
+    path: string,
+    body: string,
+    base = '',
+    headers?: Record<string, string>,
+): Promise<ApiResult> {
+    return toResult(
+        await ctx.post(url(base, path), {
+            data: body,
+            headers: { 'Content-Type': 'text/plain', ...headers },
+        }),
+    );
+}
+
 export async function put(
     ctx: APIRequestContext,
     path: string,

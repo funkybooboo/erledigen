@@ -449,6 +449,116 @@ export function runTaskRepositoryContractTests(makeRepo: () => TaskRepository): 
     });
 
     describe('rolloverTask', () => {
+        describe('createMany (import bulk write)', () => {
+            test('returns created tasks in input order with sequential ids', async () => {
+                const repo = makeRepo();
+                const created = await repo.createMany([
+                    { text: 'A', date: '2026-04-06' },
+                    { text: 'B', date: null },
+                    { text: 'C', date: '2026-04-07', completed: true },
+                ]);
+                expect(created.map(t => t.text)).toEqual(['A', 'B', 'C']);
+                expect(created[0]?.completed).toBe(false);
+                expect(created[2]?.completed).toBe(true); // server-internal completed honored
+                const again = await repo.createMany([{ text: 'D', date: null }]);
+                expect(again[0]?.id).not.toBe(created[2]?.id);
+            });
+
+            test('creates zero tasks for an empty input', async () => {
+                const repo = makeRepo();
+                expect(await repo.createMany([])).toEqual([]);
+            });
+        });
+
+        describe('replaceAll (restore write path)', () => {
+            test('replaces every row, trash included, verbatim', async () => {
+                const repo = makeRepo();
+                await repo.create({ text: 'Old data', date: '2026-04-06' });
+                const survivor = await repo.create({ text: 'Kept', date: '2026-04-06' });
+
+                await repo.replaceAll([
+                    {
+                        ...survivor,
+                        notes: 'restored',
+                    },
+                    {
+                        id: '99',
+                        text: 'From backup',
+                        notes: null,
+                        completed: false,
+                        date: null,
+                        createdAt: '2026-01-01T00:00:00.000Z',
+                        updatedAt: '2026-01-02T00:00:00.000Z',
+                        tags: [],
+                        parentId: null,
+                        rolloverEnabled: false,
+                        someDayGroupId: null,
+                        position: null,
+                        state: null,
+                        recurringTaskId: null,
+                        instanceDate: null,
+                        originalScheduledDate: null,
+                        daysLate: 0,
+                        dependsOn: null,
+                        startTime: null,
+                        endTime: null,
+                        reminder: null,
+                        deletedAt: '2026-01-03T00:00:00.000Z', // trash row
+                    },
+                ]);
+
+                const all = await repo.findAll();
+                // findAll is the ACTIVE view: the soft-deleted '99' lives in the
+                // trash, which the next assertion checks.
+                expect(all.map(t => t.id)).toEqual([survivor.id]);
+                expect((await repo.findDeleted()).map(t => t.id)).toEqual(['99']);
+                expect(await repo.findById('99')).toBeNull(); // soft-deleted
+                expect((await repo.findById(survivor.id))?.notes).toBe('restored');
+            });
+
+            test('new creates never collide with restored ids', async () => {
+                const repo = makeRepo();
+                await repo.create({ text: 'Old', date: '2026-04-06' }); // id 1
+                await repo.replaceAll([
+                    {
+                        id: '7',
+                        text: 'Restored',
+                        notes: null,
+                        completed: false,
+                        date: null,
+                        createdAt: '2026-01-01T00:00:00.000Z',
+                        updatedAt: '2026-01-01T00:00:00.000Z',
+                        tags: [],
+                        parentId: null,
+                        rolloverEnabled: false,
+                        someDayGroupId: null,
+                        position: null,
+                        state: null,
+                        recurringTaskId: null,
+                        instanceDate: null,
+                        originalScheduledDate: null,
+                        daysLate: 0,
+                        dependsOn: null,
+                        startTime: null,
+                        endTime: null,
+                        reminder: null,
+                        deletedAt: null,
+                    },
+                ]);
+                const fresh = await repo.create({ text: 'New', date: null });
+                expect(Number.parseInt(fresh.id, 10)).toBeGreaterThan(7);
+            });
+
+            test('clears the table when the snapshot is empty', async () => {
+                const repo = makeRepo();
+                await repo.create({ text: 'Doomed', date: '2026-04-06' });
+                await repo.replaceAll([]);
+                expect(await repo.findAll()).toEqual([]);
+                expect(await repo.findDeleted()).toEqual([]);
+                expect(await repo.count()).toBe(0);
+            });
+        });
+
         test('moves the date and records rollover bookkeeping', async () => {
             const repo = makeRepo();
             const task = await repo.create({

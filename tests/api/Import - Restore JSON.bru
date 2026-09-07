@@ -1,0 +1,27 @@
+meta {
+  name: Import - Restore JSON
+  type: http
+  seq: 109
+}
+
+post {
+  url: {{baseUrl}}{{apiPrefix}}/import?format=json
+  body: text
+  auth: none
+}
+body:text {
+{"format": "erledigen-export", "version": 1, "exportedAt": "2026-01-01T00:00:00.000Z", "tasks": [{"id": "1", "text": "Bruno restore task", "notes": null, "completed": false, "date": null, "createdAt": "2026-01-01T00:00:00.000Z", "updatedAt": "2026-01-01T00:00:00.000Z", "tags": [], "parentId": null, "rolloverEnabled": false, "someDayGroupId": null, "position": null, "state": null, "recurringTaskId": null, "instanceDate": null, "originalScheduledDate": null, "daysLate": 0, "dependsOn": null, "startTime": null, "endTime": null, "reminder": null, "deletedAt": null}], "someDayGroups": [], "projects": [], "recurringTasks": [], "userPreferences": {"id": "default", "theme": "system", "locale": "en", "someDayPanelWidth": 280, "someDayPanelCollapsed": false, "someDayPanelLastOpenWidth": 280, "rolloverEnabled": true, "rolloverTriggerTime": "midnight", "showEmptyDays": true, "deleteConfirmation": "instant", "activeFilters": {"tags": [], "showCompleted": true}, "tagKinds": [], "tagKindMap": {}, "timeFormat": "12h", "timezone": null, "updatedAt": "2026-01-01T00:00:00.000Z"}}
+}
+
+assert {
+  res.status: eq 200}
+
+tests {
+  test("should restore the snapshot and report counts", function() {
+    expect(res.getStatus()).to.equal(200);
+    const body = res.getBody();
+    expect(body.data.mode).to.equal("restore");
+    expect(body.data.restored.tasks).to.equal(1);
+    expect(body.data.restored.preferences).to.equal(true);
+  });
+}

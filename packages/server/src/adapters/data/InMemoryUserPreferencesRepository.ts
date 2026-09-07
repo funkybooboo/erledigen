@@ -37,4 +37,13 @@ export class InMemoryUserPreferencesRepository implements UserPreferencesReposit
     async reset(): Promise<void> {
         this.preferences = defaultPreferences(this.dateProvider.timestamp());
     }
+
+    async restore(prefs: UserPreferences): Promise<void> {
+        this.preferences = {
+            ...prefs,
+            activeFilters: { ...prefs.activeFilters },
+            tagKinds: [...prefs.tagKinds],
+            tagKindMap: { ...prefs.tagKindMap },
+        };
+    }
 }

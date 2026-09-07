@@ -132,6 +132,43 @@ export class SqliteRecurringTaskRepository implements RecurringTaskRepository {
         return created;
     }
 
+    async replaceAll(recurringTasks: RecurringTask[]): Promise<void> {
+        this.replaceAllSync(recurringTasks);
+        return Promise.resolve();
+    }
+
+    /** Synchronous core, for composing multi-table restore transactions
+     *  (ADR-009) -- see SqliteTaskRepository.replaceAllSync. */
+    replaceAllSync(recurringTasks: RecurringTask[]): void {
+        const insert = this.db.prepare(
+            `
+            INSERT INTO recurring_tasks (${RECURRING_TASK_COLUMNS})
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `,
+        );
+        this.db.transaction(() => {
+            this.db.prepare('DELETE FROM recurring_tasks').run();
+            for (const rt of recurringTasks) {
+                insert.run(
+                    rt.id,
+                    rt.text,
+                    rt.notes,
+                    JSON.stringify(rt.tags),
+                    rt.frequency,
+                    rt.interval,
+                    rt.daysOfWeek ? JSON.stringify(rt.daysOfWeek) : null,
+                    rt.dayOfMonth,
+                    rt.startDate,
+                    rt.endDate,
+                    toInteger(rt.rolloverEnabled),
+                    rt.startTime,
+                    rt.createdAt,
+                    rt.updatedAt,
+                );
+            }
+        })();
+    }
+
     async update(id: string, input: UpdateRecurringTaskInput): Promise<RecurringTask | null> {
         const sets: string[] = [];
         const values: SQLQueryBindings[] = [];

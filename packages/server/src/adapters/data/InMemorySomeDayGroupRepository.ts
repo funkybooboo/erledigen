@@ -46,6 +46,17 @@ export class InMemorySomeDayGroupRepository implements SomeDayGroupRepository {
         return updated;
     }
 
+    async replaceAll(groups: SomeDayGroup[]): Promise<void> {
+        this.groups.clear();
+        for (const group of groups) {
+            this.groups.set(group.id, { ...group });
+        }
+        this.idCounter = groups.reduce(
+            (max, group) => Math.max(max, Number.parseInt(group.id, 10) || 0),
+            0,
+        );
+    }
+
     async delete(id: string): Promise<boolean> {
         return this.groups.delete(id);
     }

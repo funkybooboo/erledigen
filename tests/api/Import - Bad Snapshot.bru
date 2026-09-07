@@ -1,0 +1,26 @@
+meta {
+  name: Import - Bad Snapshot
+  type: http
+  seq: 110
+}
+
+post {
+  url: {{baseUrl}}{{apiPrefix}}/import?format=json
+  body: text
+  auth: none
+}
+body:text {
+{"format": "nope", "version": 1}
+}
+
+assert {
+  res.status: eq 400}
+
+tests {
+  test("should reject a non-Erledigen document with 400", function() {
+    expect(res.getStatus()).to.equal(400);
+    const body = res.getBody();
+    expect(body.code).to.equal("IMPORT_ERROR");
+    expect(body.error).to.include("erledigen-export");
+  });
+}

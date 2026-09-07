@@ -11,6 +11,7 @@
  * - Business logic stays completely unchanged
  */
 
+import { dirname } from 'node:path';
 import {
     type ConfigProvider,
     ConsoleLogger,
@@ -26,6 +27,8 @@ import {
     PrometheusMetricsAdapter,
     type WsServerEventMap,
 } from '@erledigen/shared';
+import { FilePreRestoreBackupWriter } from './adapters/backup/FilePreRestoreBackupWriter';
+import { NullPreRestoreBackupWriter } from './adapters/backup/PreRestoreBackupWriter';
 import { EnvConfigProvider } from './adapters/config/EnvConfigProvider';
 import { InMemoryProjectRepository } from './adapters/data/InMemoryProjectRepository';
 import { InMemoryRecurringTaskRepository } from './adapters/data/InMemoryRecurringTaskRepository';
@@ -34,6 +37,11 @@ import { InMemoryTaskRepository } from './adapters/data/InMemoryTaskRepository';
 import { InMemoryUserPreferencesRepository } from './adapters/data/InMemoryUserPreferencesRepository';
 import type { ProjectRepository } from './adapters/data/ProjectRepository';
 import type { RecurringTaskRepository } from './adapters/data/RecurringTaskRepository';
+import {
+    InMemorySnapshotRestoreWriter,
+    type SnapshotRestoreWriter,
+    SqliteSnapshotRestoreWriter,
+} from './adapters/data/SnapshotRestoreWriter';
 import type { SomeDayGroupRepository } from './adapters/data/SomeDayGroupRepository';
 import { SqliteProjectRepository } from './adapters/data/SqliteProjectRepository';
 import { SqliteRecurringTaskRepository } from './adapters/data/SqliteRecurringTaskRepository';
@@ -53,6 +61,7 @@ import { ConnectionManager } from './adapters/ws/ConnectionManager';
 import type { WebSocketServer } from './adapters/ws/WebSocketServer';
 import { EventBus } from './services/EventBus';
 import { ExportService } from './services/ExportService';
+import { ImportService } from './services/ImportService';
 import { DEFAULT_JOB_RUNNER_CONFIG, JobRunner } from './services/JobRunner';
 import { ProjectService } from './services/ProjectService';
 import { RecurringTaskService } from './services/RecurringTaskService';
@@ -86,6 +95,7 @@ export class Container {
     private _recurringTaskService: RecurringTaskService | null = null;
     private _projectService: ProjectService | null = null;
     private _exportService: ExportService | null = null;
+    private _importService: ImportService | null = null;
 
     /**
      * Get the configuration provider
@@ -330,6 +340,53 @@ export class Container {
             );
         }
         return this._exportService;
+    }
+
+    /** Import service (see ADR-009): destructive JSON restore + additive
+     *  task imports. Restore writes a pre-restore backup next to the DB
+     *  (file-backed storage only) and replaces every table through the
+     *  storage-specific SnapshotRestoreWriter (one transaction on
+     *  SQLite; sequential writes on memory). */
+    get importService(): ImportService {
+        if (!this._importService) {
+            const restoreWriter: SnapshotRestoreWriter =
+                this.storageAdapter === 'sqlite'
+                    ? new SqliteSnapshotRestoreWriter(
+                          this.sqliteConnection,
+                          new SqliteTaskRepository(this.sqliteConnection.db, this.dateProvider),
+                          new SqliteSomeDayGroupRepository(
+                              this.sqliteConnection.db,
+                              this.dateProvider,
+                          ),
+                          new SqliteProjectRepository(this.sqliteConnection.db, this.dateProvider),
+                          new SqliteRecurringTaskRepository(
+                              this.sqliteConnection.db,
+                              this.dateProvider,
+                          ),
+                          new SqliteUserPreferencesRepository(
+                              this.sqliteConnection.db,
+                              this.dateProvider,
+                          ),
+                      )
+                    : new InMemorySnapshotRestoreWriter(
+                          this.taskRepository,
+                          this.someDayGroupRepository,
+                          this.projectRepository,
+                          this.recurringTaskRepository,
+                          this.userPreferencesRepository,
+                      );
+            this._importService = new ImportService(
+                this.taskRepository,
+                this.exportService,
+                restoreWriter,
+                this.storageAdapter === 'sqlite'
+                    ? new FilePreRestoreBackupWriter(
+                          dirname(this.config.get('DB_PATH', './data/erledigen.db')),
+                      )
+                    : new NullPreRestoreBackupWriter(),
+            );
+        }
+        return this._importService;
     }
 
     private _eventBus: EventBus<WsServerEventMap> | null = null;
