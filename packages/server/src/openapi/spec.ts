@@ -16,7 +16,14 @@ import './schemas/someDayGroup';
 import './schemas/recurringTask';
 import './schemas/tag';
 import './schemas/userPreferences';
-import './paths';
+import './paths/health';
+import './paths/task';
+import './paths/someDayGroup';
+import './paths/project';
+import './paths/recurringTask';
+import './paths/tag';
+import './paths/userPreferences';
+import './paths/meta';
 import { registry } from './registry';
 
 let cachedSpec: ReturnType<OpenApiGeneratorV31['generateDocument']> | null = null;
