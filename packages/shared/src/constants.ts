@@ -51,6 +51,9 @@ export const API_ROUTES = {
     // User preferences
     USER_PREFERENCES: '/api/preferences',
 
+    // Export (ADR-008)
+    EXPORT: '/api/export',
+
     // OpenAPI
     OPENAPI_YAML: '/openapi.yaml',
     OPENAPI_JSON: '/openapi.json',

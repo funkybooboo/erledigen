@@ -37,12 +37,34 @@ export class FetchHttpClient implements HttpClient {
         return this.request<T>('DELETE', url, undefined, options);
     }
 
+    /** GET a resource whose body is raw text (file downloads: export
+     *  documents are JSON/CSV/Markdown/iCal, and only the JSON one parses).
+     *  Same error behavior as the JSON methods. */
+    async getText(url: string, options?: RequestOptions): Promise<string> {
+        const response = await this.perform('GET', url, undefined, options);
+        return response.text();
+    }
+
     private async request<T>(
         method: string,
         url: string,
         body?: unknown,
         options?: RequestOptions,
     ): Promise<T> {
+        const response = await this.perform(method, url, body, options);
+
+        // Bun/Fetch API doesn't provide correct types for json(), type assertion necessary
+        return response.json() as Promise<T>;
+    }
+
+    /** Shared fetch plumbing: build headers and options, execute, and map
+     *  non-2xx responses to HttpClientError. */
+    private async perform(
+        method: string,
+        url: string,
+        body?: unknown,
+        options?: RequestOptions,
+    ): Promise<Response> {
         const fullUrl: string = this.baseUrl + url;
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
@@ -69,7 +91,6 @@ export class FetchHttpClient implements HttpClient {
             throw new HttpClientError(response.status, response.statusText, errorBody);
         }
 
-        // Bun/Fetch API doesn't provide correct types for json(), type assertion necessary
-        return response.json() as Promise<T>;
+        return response;
     }
 }
