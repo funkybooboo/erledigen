@@ -24,6 +24,7 @@ import {
     NativeDateProvider,
     NullMetricsAdapter,
     PrometheusMetricsAdapter,
+    type WsServerEventMap,
 } from '@erledigen/shared';
 import { EnvConfigProvider } from './adapters/config/EnvConfigProvider';
 import { InMemoryProjectRepository } from './adapters/data/InMemoryProjectRepository';
@@ -57,6 +58,7 @@ import { RecurringTaskService } from './services/RecurringTaskService';
 import { TagService } from './services/TagService';
 import { TaskService } from './services/TaskService';
 import { WebSocketManager } from './services/WebSocketManager';
+import { APP_VERSION } from './version';
 
 /**
  * Dependency injection container
@@ -125,8 +127,10 @@ export class Container {
      */
     get metricsAdapter(): MetricsAdapter {
         if (!this._metricsAdapter) {
+            // APP_VERSION env var wins; the stamped fallback keeps the
+            // build_info label honest without any deployment config.
             this._metricsAdapter = this.metricsEnabled
-                ? new PrometheusMetricsAdapter(this.config.get('APP_VERSION', '0.0.0'))
+                ? new PrometheusMetricsAdapter(this.config.get('APP_VERSION', APP_VERSION))
                 : new NullMetricsAdapter();
         }
         return this._metricsAdapter;
@@ -311,16 +315,16 @@ export class Container {
         return this._projectService;
     }
 
-    private _eventBus: EventBus | null = null;
+    private _eventBus: EventBus<WsServerEventMap> | null = null;
     private _connectionManager: ConnectionManager | null = null;
     private _wsManager: WebSocketManager | null = null;
     private _wsServer: WebSocketServer | null = null;
     private _jobQueue: JobQueue | null = null;
     private _jobRunner: JobRunner | null = null;
 
-    get eventBus(): EventBus {
+    get eventBus(): EventBus<WsServerEventMap> {
         if (!this._eventBus) {
-            this._eventBus = new EventBus();
+            this._eventBus = new EventBus<WsServerEventMap>();
         }
         return this._eventBus;
     }

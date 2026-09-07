@@ -65,12 +65,20 @@ export function formatTagInfoAsText(tags: { name: string; count: number }[]): st
 }
 
 export function formatPreferencesAsText(prefs: UserPreferences): string {
+    // Every persisted preference the user can read at a glance; the
+    // tag-kind blobs (tagKinds/tagKindMap) stay in the JSON response only.
     return [
         `theme: ${prefs.theme}`,
         `locale: ${prefs.locale}`,
+        `timeFormat: ${prefs.timeFormat}`,
+        `timezone: ${prefs.timezone ?? 'system'}`,
         `rolloverEnabled: ${prefs.rolloverEnabled}`,
+        `rolloverTriggerTime: ${prefs.rolloverTriggerTime}`,
         `showEmptyDays: ${prefs.showEmptyDays}`,
+        `deleteConfirmation: ${prefs.deleteConfirmation}`,
         `someDayPanelWidth: ${prefs.someDayPanelWidth}`,
-        `someDayPanelCollapsed: ${prefs.someDayPanelCollapsed}`,
+        `someDayPanelLastOpenWidth: ${prefs.someDayPanelLastOpenWidth}`,
+        `activeFilters: ${prefs.activeFilters.tags.join(', ') || '(none)'}`,
+        `activeFilters.showCompleted: ${prefs.activeFilters.showCompleted}`,
     ].join('\n');
 }

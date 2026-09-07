@@ -87,6 +87,17 @@ test.describe('tasks -- create (POST /api/tasks)', () => {
         expect(res.body.details?.fields).toHaveProperty('startTime');
     });
 
+    test('rejects out-of-bounds HH:MM (shared isValidTimeString law)', async ({ request }) => {
+        const res = await post(request, '/api/tasks', {
+            text: 'Bad time',
+            date: '2026-04-06',
+            startTime: '24:00',
+        });
+        expect(res.status).toBe(400);
+        expect(res.body.code).toBe('VALIDATION_ERROR');
+        expect(res.body.details?.fields).toHaveProperty('startTime');
+    });
+
     test('accepts explicit position and someDayGroupId', async ({ request }) => {
         const group = await createGroup(request, {
             name: uniq('Group'),

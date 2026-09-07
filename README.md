@@ -63,7 +63,8 @@ That's it! The client runs at `http://localhost:3000` and the server at `http://
 | `mise run dev-refresh` | Rebuild dev images after changing dependencies |
 | `mise run nuke-db` | Permanently delete the dev or prod database (stops the stack; deletes the DB volume) |
 | `mise run storybook` | Start Storybook on port 6006 (local, not dockerized) |
-| `mise run check` | Lint + format with Biome (auto-fix) |
+| `mise run lint` | Lint all files with Biome (auto-fix) |
+| `mise run format` | Format all files with Biome (auto-fix) |
 | `mise run spellcheck` | Spell-check the codebase with cspell |
 | `mise run check-links` | Verify all markdown/source links resolve (lychee) |
 | `mise run scan-secrets` | Scan for secrets in the working tree (gitleaks) |

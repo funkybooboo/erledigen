@@ -141,9 +141,10 @@ export class InMemoryTaskRepository implements TaskRepository {
     }
 
     async findDeleted(maxAgeDays: number = PURGE_RETENTION_DAYS): Promise<Task[]> {
-        const cutoff = new Date();
-        cutoff.setDate(cutoff.getDate() - maxAgeDays);
-
+        // The retention window is NOT applied here, matching the SQLite
+        // adapter (documented there too): findDeleted returns the full
+        // trash list; only purgeDeleted enforces the cutoff.
+        void maxAgeDays;
         return Array.from(this.tasks.values())
             .filter(task => task.deletedAt !== null)
             .sort((a, b) => (b.deletedAt ?? '').localeCompare(a.deletedAt ?? ''));
@@ -187,13 +188,20 @@ export class InMemoryTaskRepository implements TaskRepository {
         originalScheduledDate: string,
         daysLate: number,
     ): Promise<Task | null> {
+        // Build a new object like every other mutator here: in-place
+        // mutation of the stored Task would also hand the caller a live
+        // reference into the store.
         const task = this.tasks.get(id);
         if (task === undefined || task.deletedAt !== null) return null;
-        task.date = nextDate;
-        task.originalScheduledDate = originalScheduledDate;
-        task.daysLate = daysLate;
-        task.updatedAt = this.dateProvider.timestamp();
-        return { ...task };
+        const rolled: Task = {
+            ...task,
+            date: nextDate,
+            originalScheduledDate,
+            daysLate,
+            updatedAt: this.dateProvider.timestamp(),
+        };
+        this.tasks.set(id, rolled);
+        return { ...rolled };
     }
 
     async deleteAll(): Promise<void> {

@@ -7,6 +7,7 @@ import {
     API_ROUTES,
     type CreateRecurringTaskInput,
     type UpdateRecurringTaskInput,
+    type WsServerEventMap,
 } from '@erledigen/shared';
 import type { RecurringTaskRepository } from '../adapters/data/RecurringTaskRepository';
 import type { HttpServer } from '../adapters/http/HttpServer';
@@ -31,7 +32,7 @@ export function registerRecurringTaskRoutes(
     server: HttpServer,
     recurringTaskRepo: RecurringTaskRepository,
     recurringTaskService: RecurringTaskService,
-    eventBus: EventBus,
+    eventBus: EventBus<WsServerEventMap>,
     logger: Logger,
 ): void {
     // GET /api/recurring-tasks

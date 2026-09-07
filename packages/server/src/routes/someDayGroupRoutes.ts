@@ -7,6 +7,7 @@ import {
     API_ROUTES,
     type CreateSomeDayGroupInput,
     type UpdateSomeDayGroupInput,
+    type WsServerEventMap,
 } from '@erledigen/shared';
 import type { SomeDayGroupRepository } from '../adapters/data/SomeDayGroupRepository';
 import type { HttpServer } from '../adapters/http/HttpServer';
@@ -28,7 +29,7 @@ import { parseBody } from '../utils/validate';
 export function registerSomeDayGroupRoutes(
     server: HttpServer,
     someDayGroupRepo: SomeDayGroupRepository,
-    eventBus: EventBus,
+    eventBus: EventBus<WsServerEventMap>,
     logger: Logger,
 ): void {
     // GET /api/someday-groups

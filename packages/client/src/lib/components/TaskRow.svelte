@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { taskStore, uiStore, notificationStore } from '$lib/stores';
+    import { taskStore, uiStore } from '$lib/stores';
+    import { deleteTaskWithUndo } from '$lib/taskActions';
     import { TASK_CONSTRAINTS } from '@erledigen/shared';
     import type { Task } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
@@ -69,14 +70,7 @@
 
     async function handleDelete() {
         uiStore.focusTask(task.id);
-        const removedTask: Task = { ...task };
-        const success = await taskStore.remove(task.id);
-        if (success) {
-            notificationStore.push('Task deleted', {
-                kind: 'info',
-                action: { label: 'Undo', fn: () => taskStore.restore(removedTask) },
-            });
-        }
+        await deleteTaskWithUndo(task);
     }
 </script>
 

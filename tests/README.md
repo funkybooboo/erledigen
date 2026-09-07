@@ -5,7 +5,7 @@ Erledigen has three layers of automated tests:
 ## 1. Unit tests (`bun run test:unit` / `mise run test`)
 
 Fast, isolated tests of pure logic and adapters -- no network, no browser.
-Run with Bun's built-in test runner. ~440 tests across the three packages:
+Run with Bun's built-in test runner. ~600 tests across the three packages:
 
 - `packages/shared` -- date provider, HTTP client, errors, task types, tag utils, recurrence parsing (`parseRecurrence`), frequency formatting
 - `packages/server` -- repositories (in-memory **and** SQLite, via shared contract suites), services, middleware, utils, migration runner

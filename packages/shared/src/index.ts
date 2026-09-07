@@ -119,6 +119,7 @@ export type {
     TagRenamedPayload,
     WsClientEventType,
     WsClientMessage,
+    WsServerEventMap,
     WsServerEventType,
     WsServerMessage,
 } from './types/websocket';
@@ -130,6 +131,7 @@ export {
 // Utilities
 export {
     addDays,
+    addMonths,
     dateRangeKeys,
     daysBetween,
     describeRecurrence,
@@ -141,6 +143,8 @@ export {
     groupTasksByDate,
     hasDeadlineTag,
     keyFromParts,
+    monthKeyOf,
+    monthRangeKeys,
     nextOccurrenceIso,
     parseRecurrence,
     parseTags,

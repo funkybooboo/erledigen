@@ -78,6 +78,17 @@ else
     fail "playwright drift: Dockerfile $DOCKERFILE_PW vs bun.lock $LOCK_PW"
 fi
 
+# App version: the server reports it at runtime from version.ts (stamped by
+# tools/update-version.sh). A mismatch means the server self-reports a stale
+# version in health/metrics/OpenAPI.
+PKG_VERSION="$(grep -m1 '"version"' "$REPO_ROOT/package.json" | sed 's/[^0-9.]*//g')"
+STAMPED_VERSION="$(grep -m1 -o "APP_VERSION = '[0-9.]*'" "$REPO_ROOT/packages/server/src/version.ts" | sed "s/[^0-9.]*//g")"
+if [ -n "$PKG_VERSION" ] && [ "$PKG_VERSION" = "$STAMPED_VERSION" ]; then
+    ok "app version in sync: package.json $PKG_VERSION == version.ts"
+else
+    fail "app version drift: package.json $PKG_VERSION vs version.ts $STAMPED_VERSION (run: tools/update-version.sh X.Y.Z)"
+fi
+
 # Optional tools for the quality tasks.
 if command -v lychee >/dev/null 2>&1; then
     ok "lychee present (check-links)"

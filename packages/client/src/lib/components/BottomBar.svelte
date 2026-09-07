@@ -23,12 +23,9 @@
     let dateLabel = $derived(
         container.dateProvider.formatDateTime(now, preferencesStore.timeFormat).split(' \u00b7 ')[0],
     );
-    let todayKey = $derived.by(() => {
-        // Reactivity anchor: reading preferencesStore.timezone re-runs today()
-        // (which reads the provider's live timeZone) when the zone changes.
-        preferencesStore.timezone;
-        return container.dateProvider.today();
-    });
+    // Reactive to timezone changes through the preferences store's today
+    // getter (it anchors on the timezone preference).
+    let todayKey = $derived(preferencesStore.today);
 
     onMount(() => {
         const timer = setInterval(() => {

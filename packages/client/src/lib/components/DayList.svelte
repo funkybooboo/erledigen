@@ -27,13 +27,9 @@
         return container.dateProvider.formatDate(dateStr, 'full');
     }
 
-    // Reactive to timezone changes: reading preferencesStore.timezone makes this
-    // re-run when the user picks a new zone, re-resolving "today" via the
-    // provider's (just-updated) timeZone.
-    const todayStr = $derived.by(() => {
-        preferencesStore.timezone;
-        return container.dateProvider.today();
-    });
+    // Reactive to timezone changes through the preferences store's today
+    // getter (it anchors on the timezone preference).
+    const todayStr = $derived(preferencesStore.today);
 
     let filteredTasks = $derived(applyFilters(taskStore.tasks, preferencesStore.activeFilters));
     let tasksByDate = $derived(groupTasksByDate(filteredTasks));

@@ -2,7 +2,7 @@
     import Modal from '$lib/components/Modal.svelte';
     import { projectStore, taskStore } from '$lib/stores';
     import { Icon } from 'svelte-icons-pack';
-    import { LuPlus, LuPencil, LuTrash2, LuArrowLeft, LuX } from 'svelte-icons-pack/lu';
+    import { LuPlus, LuPencil, LuTrash2, LuArrowLeft } from 'svelte-icons-pack/lu';
     import { onMount } from 'svelte';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();

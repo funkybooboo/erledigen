@@ -2,17 +2,14 @@
     import TaskRow from './TaskRow.svelte';
     import InlineAddTask from './InlineAddTask.svelte';
     import SectionHeader from './SectionHeader.svelte';
-    import { SvelteSet } from 'svelte/reactivity';
+    import { createNewlyCreatedTracker } from '$lib/newlyCreated.svelte';
     import type { Task } from '@erledigen/shared';
     import { container } from '$lib/container';
     import { preferencesStore, uiStore } from '$lib/stores';
 
     let { id, dateStr, label, tasks }: { id: string; dateStr: string; label: string; tasks: Task[] } = $props();
 
-    const todayStr = $derived.by(() => {
-        preferencesStore.timezone;
-        return container.dateProvider.today();
-    });
+    const todayStr = $derived(preferencesStore.today);
     let isToday = $derived(dateStr === todayStr);
     let taskCount = $derived(tasks.length);
     let completedCount = $derived(tasks.filter(t => t.completed).length);
@@ -23,11 +20,9 @@
     let sectionId = $derived(`day-${dateStr}-header`);
     let dateParts = $derived(container.dateProvider.formatDateParts(dateStr));
 
-    // SvelteSet (not $state<Set>): Svelte 5 deep-proxies only plain
-    // objects/arrays, so .add()/.delete() on a raw Set never signals and
-    // the 600ms expiry below would leave the flash class on until an
-    // unrelated re-render. Same trap the recurring stats Map hit.
-    let newlyCreatedIds = new SvelteSet<string>();
+    // Flash tracker for freshly created rows (shared helper: the SvelteSet
+    // reactivity trap is documented in one place).
+    let newlyCreated = createNewlyCreatedTracker();
 
     // Instance of the section's InlineAddTask, for the store-driven focus
     // request below (bind:this, no DOM queries).
@@ -42,8 +37,7 @@
     });
 
     function handleTaskCreated(id: string) {
-        newlyCreatedIds.add(id);
-        setTimeout(() => newlyCreatedIds.delete(id), 600);
+        newlyCreated.add(id);
     }
 </script>
 
@@ -59,7 +53,7 @@
     <div class="task-list" role="list">
         {#each tasks as task (task.id)}
             <div class="task-row-wrapper" class:sub-task={task.parentId !== null}>
-                <TaskRow {task} isNew={newlyCreatedIds.has(task.id)} />
+                <TaskRow {task} isNew={newlyCreated.has(task.id)} />
             </div>
         {/each}
     </div>

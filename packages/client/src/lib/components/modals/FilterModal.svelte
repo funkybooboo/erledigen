@@ -5,8 +5,8 @@
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
-    let tags = $derived(tagStore?.tags ?? []);
-    let activeTags = $derived(preferencesStore?.activeFilters.tags ?? []);
+    let tags = $derived(tagStore.tags);
+    let activeTags = $derived(preferencesStore.activeFilters.tags);
 
     let tagInput = $state('');
     let showSuggestions = $state(false);

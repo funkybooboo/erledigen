@@ -2,6 +2,7 @@
  * Shared schema primitives and the ErrorResponse schema.
  */
 
+import { isValidTimeString } from '@erledigen/shared';
 import { z } from 'zod';
 import { registry } from '../registry';
 
@@ -11,10 +12,11 @@ export const IsoDate = z
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD')
     .openapi({ description: 'ISO 8601 date (YYYY-MM-DD)', example: '2025-01-15' });
 
-/** Time string in HH:MM format */
+/** Time string in HH:MM format (00:00-23:59). The bounds live in the
+ *  shared isValidTimeString law -- one definition for client and server. */
 export const HhMmTime = z
     .string()
-    .regex(/^\d{2}:\d{2}$/, 'Must be HH:MM')
+    .refine(isValidTimeString, 'Must be HH:MM within 00:00-23:59')
     .openapi({ description: 'Time in HH:MM format', example: '09:00' });
 
 export const ErrorResponseSchema = registry.register(

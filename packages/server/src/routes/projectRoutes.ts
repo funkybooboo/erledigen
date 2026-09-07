@@ -3,7 +3,12 @@
  */
 
 import type { Logger } from '@erledigen/shared';
-import { API_ROUTES, type CreateProjectInput, type UpdateProjectInput } from '@erledigen/shared';
+import {
+    API_ROUTES,
+    type CreateProjectInput,
+    type UpdateProjectInput,
+    type WsServerEventMap,
+} from '@erledigen/shared';
 import type { ProjectRepository } from '../adapters/data/ProjectRepository';
 import type { HttpServer } from '../adapters/http/HttpServer';
 import {
@@ -27,7 +32,7 @@ export function registerProjectRoutes(
     server: HttpServer,
     projectRepo: ProjectRepository,
     projectService: ProjectService,
-    eventBus: EventBus,
+    eventBus: EventBus<WsServerEventMap>,
     logger: Logger,
 ): void {
     // GET /api/projects

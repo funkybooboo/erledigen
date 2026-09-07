@@ -1,5 +1,4 @@
 import { DEFAULT_RATE_LIMIT_RPM } from '@erledigen/shared';
-import type { HttpResponse } from './adapters/http/types';
 import { container } from './container';
 import { createRateLimiterGuard } from './middleware/rateLimiter';
 import { createSecurityHeadersMiddleware } from './middleware/securityHeaders';
@@ -31,13 +30,8 @@ server.addGuard(createRateLimiterGuard(RATE_LIMIT_RPM));
 // Middleware runs AFTER the route handler (mutates the response)
 server.use(createSecurityHeadersMiddleware(NODE_ENV));
 
-// Root endpoint
-server.route('GET', '/', async (): Promise<HttpResponse> => {
-    return { status: 200, headers: {}, body: 'Hello from Bun Server!' };
-});
-
-// Register all resource routes (health and metrics included; the old
-// inline /api/health stub now lives in routes/healthRoutes.ts)
+// Register all resource routes (root greeting, health, metrics, OpenAPI,
+// and every /api resource -- all registrations live in routes/index.ts)
 registerAllRoutes(server, container);
 
 // Background jobs (v0.8.0, ADR-002): register handlers, schedule recurring

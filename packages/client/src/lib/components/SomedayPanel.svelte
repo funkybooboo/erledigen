@@ -1,13 +1,13 @@
 <script lang="ts">
     import { preferencesStore, someDayGroupStore, taskStore, uiStore } from '$lib/stores';
     import { applyFilters } from '$lib/filters';
-    import { SvelteSet } from 'svelte/reactivity';
+    import { createNewlyCreatedTracker } from '$lib/newlyCreated.svelte';
     import TaskRow from './TaskRow.svelte';
     import InlineAddTask from './InlineAddTask.svelte';
     import SectionHeader from './SectionHeader.svelte';
     import { Icon } from 'svelte-icons-pack';
     import { LuPencil, LuTrash2, LuCheck } from 'svelte-icons-pack/lu';
-    import type { SomeDayGroup } from '@erledigen/shared';
+    import { slugify, type SomeDayGroup } from '@erledigen/shared';
     import { tooltip } from '$lib/tooltip';
 
     let showAddGroupForm = $state(false);
@@ -83,11 +83,8 @@
         uiStore.setVisibleSomedayTasks(ids);
     });
 
-    // SvelteSet (not $state<Set>): Svelte 5 deep-proxies only plain
-    // objects/arrays, so .add()/.delete() on a raw Set never signals and
-    // the 600ms expiry below would leave the flash class on until an
-    // unrelated re-render. Same trap the recurring stats Map hit.
-    let newlyCreatedIds = new SvelteSet<string>();
+    // Newly created rows flash for 600ms (shared helper).
+    let newlyCreated = createNewlyCreatedTracker();
 
     $effect(() => {
         if (showAddGroupForm && newGroupInput) newGroupInput.focus();
@@ -104,7 +101,7 @@
     function submitNewGroup() {
         const name = newGroupName.trim();
         if (!name) return;
-        const tag = name.toLowerCase().replace(/\s+/g, '-');
+        const tag = slugify(name);
         someDayGroupStore.create({ name, tag, position: groups.length });
         newGroupName = '';
         showAddGroupForm = false;
@@ -124,7 +121,7 @@
         if (!editingGroupId) return;
         const name = editGroupName.trim();
         if (name) {
-            const tag = name.toLowerCase().replace(/\s+/g, '-');
+            const tag = slugify(name);
             someDayGroupStore.update(editingGroupId, { name, tag });
         }
         editingGroupId = null;
@@ -173,24 +170,13 @@
     }
 
     function handleTaskCreated(id: string) {
-        newlyCreatedIds.add(id);
-        setTimeout(() => newlyCreatedIds.delete(id), 600);
-    }
-
-    const DEFAULT_PANEL_WIDTH = 280;
-
-    function togglePanel() {
-        if (isCollapsed) {
-            preferencesStore.setPanelWidth(preferencesStore.someDayPanelLastOpenWidth || DEFAULT_PANEL_WIDTH);
-        } else {
-            preferencesStore.setPanelWidth(0);
-        }
+        newlyCreated.add(id);
     }
 </script>
 
 {#if isCollapsed}
     <div class="collapsed-strip" role="separator" aria-label="Expand Someday panel">
-        <button class="expand-btn" onclick={togglePanel} use:tooltip={{ label: 'Open Someday panel', shortcut: 'toggleSomedayPanel' }} aria-label="Open Someday panel">
+        <button class="expand-btn" onclick={() => preferencesStore.toggleSomeDayPanel()} use:tooltip={{ label: 'Open Someday panel', shortcut: 'toggleSomedayPanel' }} aria-label="Open Someday panel">
             <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="8,2 2,9 8,16" />
             </svg>
@@ -274,7 +260,7 @@
                         {/if}
                         <div class="group-tasks" role="list">
                             {#each tasks as task (task.id)}
-                                <TaskRow {task} isNew={newlyCreatedIds.has(task.id)} />
+                                <TaskRow {task} isNew={newlyCreated.has(task.id)} />
                             {/each}
                         </div>
                         <InlineAddTask date="" someDayGroupId={group.id} oncreated={handleTaskCreated} />
@@ -295,7 +281,7 @@
                         </div>
                         <div class="group-tasks" role="list">
                             {#each ungroupedTasks as task (task.id)}
-                                <TaskRow {task} isNew={newlyCreatedIds.has(task.id)} />
+                                <TaskRow {task} isNew={newlyCreated.has(task.id)} />
                             {/each}
                         </div>
                         <InlineAddTask date="" oncreated={handleTaskCreated} />

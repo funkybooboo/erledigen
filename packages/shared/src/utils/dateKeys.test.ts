@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'bun:test';
-import { addDays, dateRangeKeys, daysBetween, keyFromParts, splitKey, weekdayOf } from './dateKeys';
+import {
+    addDays,
+    addMonths,
+    dateRangeKeys,
+    daysBetween,
+    keyFromParts,
+    monthKeyOf,
+    monthRangeKeys,
+    splitKey,
+    weekdayOf,
+} from './dateKeys';
 
 describe('splitKey / keyFromParts', () => {
     it('splits a key into year, 0-based month, day', () => {
@@ -86,5 +96,49 @@ describe('dateRangeKeys', () => {
 
     it('returns an empty array for an inverted range instead of looping', () => {
         expect(dateRangeKeys('2026-09-04', '2026-09-01')).toEqual([]);
+    });
+});
+
+describe('monthKeyOf', () => {
+    it('derives the YYYY-MM month key from a date key', () => {
+        expect(monthKeyOf('2026-09-07')).toBe('2026-09');
+    });
+});
+
+describe('addMonths', () => {
+    it('adds months without a year roll', () => {
+        expect(addMonths('2026-03', 5)).toBe('2026-08');
+    });
+
+    it('rolls over the year boundary', () => {
+        expect(addMonths('2026-11', 3)).toBe('2027-02');
+    });
+
+    it('handles negative months', () => {
+        expect(addMonths('2026-01', -1)).toBe('2025-12');
+        expect(addMonths('2027-02', -14)).toBe('2025-12');
+    });
+
+    it('zero-pads the month', () => {
+        expect(addMonths('2025-12', 2)).toBe('2026-02');
+    });
+});
+
+describe('monthRangeKeys', () => {
+    it('lists month keys inclusively in calendar order', () => {
+        expect(monthRangeKeys('2025-11', '2026-02')).toEqual([
+            '2025-11',
+            '2025-12',
+            '2026-01',
+            '2026-02',
+        ]);
+    });
+
+    it('returns a single month when start equals end', () => {
+        expect(monthRangeKeys('2026-09', '2026-09')).toEqual(['2026-09']);
+    });
+
+    it('returns empty when start is after end', () => {
+        expect(monthRangeKeys('2026-03', '2026-01')).toEqual([]);
     });
 });

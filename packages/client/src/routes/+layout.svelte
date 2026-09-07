@@ -53,12 +53,15 @@
         });
         tagStore.fetchAll();
         projectStore.fetchAll();
+        someDayGroupStore.fetchAll();
+        taskStore.fetchAll();
         document.querySelector('.app-shell')?.setAttribute('data-hydrated', 'true');
 
         connectionStore.init();
         taskStore.initWebSocket();
         tagStore.initWebSocket();
         projectStore.initWebSocket();
+        someDayGroupStore.initWebSocket();
 
         // Route uncaught errors through the shared logger so client-side
         // failures are visible in the console alongside server logs.
@@ -84,6 +87,7 @@
             taskStore.destroyWebSocket();
             tagStore.destroyWebSocket();
             projectStore.destroyWebSocket();
+            someDayGroupStore.destroyWebSocket();
         };
     });
 
