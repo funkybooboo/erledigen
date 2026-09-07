@@ -7,6 +7,7 @@
 
 import { OpenApiGeneratorV31 } from '@asteasolutions/zod-to-openapi';
 import { dump as yamlDump } from 'js-yaml';
+import { APP_VERSION } from '../version';
 // Side-effect imports: register all schemas and paths
 import './schemas/common';
 import './schemas/task';
@@ -28,7 +29,7 @@ function buildSpec() {
         openapi: '3.1.0',
         info: {
             title: 'Erledigen Task API',
-            version: '0.3.0',
+            version: APP_VERSION,
             description:
                 'REST API for the Erledigen task manager. Designed to be curl-friendly:\n' +
                 'requests without `Accept: application/json` return plain-text responses\n' +

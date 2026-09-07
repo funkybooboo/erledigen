@@ -100,9 +100,23 @@ if [ "${stale_count:-0}" -gt 0 ]; then
     note "bun.lock: $stale_count workspace version field(s) synced to $NEW"
 fi
 
+# The server reports its version at runtime (health, Prometheus
+# build_info, OpenAPI info) from packages/server/src/version.ts -- the
+# APP_VERSION env var may override it, but the fallback must track the
+# manifests or every deployment reports a stale version.
+step "Stamping packages/server/src/version.ts"
+VERSION_FILE="$REPO_ROOT/packages/server/src/version.ts"
+if [ -f "$VERSION_FILE" ]; then
+    sed -i.bak "s/export const APP_VERSION = '[^']*'/export const APP_VERSION = '$NEW'/" "$VERSION_FILE"
+    rm -f "$VERSION_FILE.bak"
+else
+    die "packages/server/src/version.ts not found -- it must exist so the runtime version can be stamped"
+fi
+
 step "Done: version is now $NEW"
 for manifest in "${MANIFESTS[@]}"; do
     note "$manifest -> $NEW"
 done
 note "bun.lock refreshed"
-note "Commit the manifests + bun.lock (or use tools/release.sh, which does it for you)"
+note "packages/server/src/version.ts stamped"
+note "Commit the manifests + bun.lock + version.ts (or use tools/release.sh, which does it for you)"

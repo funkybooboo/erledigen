@@ -57,6 +57,7 @@ import { RecurringTaskService } from './services/RecurringTaskService';
 import { TagService } from './services/TagService';
 import { TaskService } from './services/TaskService';
 import { WebSocketManager } from './services/WebSocketManager';
+import { APP_VERSION } from './version';
 
 /**
  * Dependency injection container
@@ -125,8 +126,10 @@ export class Container {
      */
     get metricsAdapter(): MetricsAdapter {
         if (!this._metricsAdapter) {
+            // APP_VERSION env var wins; the stamped fallback keeps the
+            // build_info label honest without any deployment config.
             this._metricsAdapter = this.metricsEnabled
-                ? new PrometheusMetricsAdapter(this.config.get('APP_VERSION', '0.0.0'))
+                ? new PrometheusMetricsAdapter(this.config.get('APP_VERSION', APP_VERSION))
                 : new NullMetricsAdapter();
         }
         return this._metricsAdapter;
