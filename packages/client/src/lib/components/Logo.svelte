@@ -12,26 +12,25 @@
 </script>
 
 <!-- The Erledigen mark: a Bauhaus "E" built from pills (the app's button
-     shape language). Geometry mirrors the favicon files 1:1, and the fills
-     use live theme tokens, so this mark follows the in-app theme setting.
-     The tab icon agrees with it: before hydration favicon.svg guesses from
-     the browser's scheme via an embedded media query, and once the app
-     resolves the theme, +layout.svelte points the tab at favicon-light.svg
-     or favicon-dark.svg. All three use the same token mapping (badge = ink,
-     spine = on-accent, pills = p1/p2/p3 -- the ink/surface inversion of
-     app.css), and the hardcoded favicon values are the tokens' sRGB hexes,
-     light and dark. -->
+     shape language). Per the owner's spec the mark carries no badge -- the
+     canvas is the theme surface itself, black in dark mode and white in
+     light mode, so the mark reads as pills plus an ink spine sitting
+     directly on the theme. Spine = ink (--color-text), pills = the
+     p1/p2/p3 palette tokens; geometry mirrors the favicon files 1:1
+     (favicon.svg = light variant, favicon-dark.svg = dark variant, same
+     palettes hardcoded to their sRGB values because a favicon renders
+     outside the app). The tab shows the variant matching the resolved
+     theme (+layout.svelte applyTheme), so both marks always agree. -->
 <svg
     width={size}
     height={size}
-    viewBox="0 0 512 512"
+    viewBox="108 96 320 320"
     role={label ? 'img' : undefined}
     aria-label={label}
     aria-hidden={label ? undefined : 'true'}
 >
-    <rect width="512" height="512" rx="112" fill="var(--color-text)" />
     <rect x="108" y="108" width="296" height="76" rx="38" fill="var(--color-p1)" />
     <rect x="108" y="218" width="246" height="76" rx="38" fill="var(--color-p2)" />
     <rect x="108" y="328" width="320" height="76" rx="38" fill="var(--color-p3)" />
-    <rect x="108" y="108" width="76" height="296" rx="38" fill="var(--color-on-accent)" />
+    <rect x="108" y="108" width="76" height="296" rx="38" fill="var(--color-text)" />
 </svg>

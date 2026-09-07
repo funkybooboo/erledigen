@@ -1,37 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Erledigen mark: a Bauhaus "E" built from pills (the app's button
-       shape language) in the Fizzy palette. Crossbars = p1/p2/p3,
-       spine = on-accent, badge = ink.
-
-       This is the icon the tab shows before hydration: the fills are the
-       app.css theme tokens hardcoded to their sRGB values (a favicon
-       renders outside the app, so it cannot use the live CSS variables)
-       and the embedded prefers-color-scheme media query follows the
-       browser's scheme -- the best guess available before the app's
-       theme setting is known. Once the app has resolved its theme,
-       +layout.svelte points the tab at favicon-light.svg or
-       favicon-dark.svg (same palettes, no media query) so the mark
-       matches the in-app Logo. Raster fallbacks (favicon.ico,
-       favicon-*.png, apple-touch-icon.png) carry only the light palette
-       -- raster icons cannot adapt. -->
-  <style>
-    .badge { fill: #17233C; }
-    .spine { fill: #FFFFFF; }
-    .p1 { fill: #F3570A; }
-    .p2 { fill: #F29100; }
-    .p3 { fill: #398FFF; }
-    @media (prefers-color-scheme: dark) {
-      /* Dark-theme token values from app.css [data-theme="dark"] */
-      .badge { fill: #F0F2F4; }
-      .spine { fill: #000000; }
-      .p1 { fill: #D16036; }
-      .p2 { fill: #BD7300; }
-      .p3 { fill: #4385E4; }
-    }
-  </style>
-  <rect class="badge" width="512" height="512" rx="112"/>
-  <rect class="p1" x="108" y="108" width="296" height="76" rx="38"/>
-  <rect class="p2" x="108" y="218" width="246" height="76" rx="38"/>
-  <rect class="p3" x="108" y="328" width="320" height="76" rx="38"/>
-  <rect class="spine" x="108" y="108" width="76" height="296" rx="38"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="108 96 320 320">
+  <!-- Erledigen mark, light variant: pills in the light Fizzy palette and
+       an ink (navy) spine on a transparent canvas - the surface behind
+       the mark shows through, so in light mode the mark reads as sitting
+       on white. Fills are presentation attributes, not embedded CSS:
+       some browsers' favicon rasterizers do not run <style> blocks, and
+       attribute fills render everywhere. Values are the light app.css
+       theme tokens hardcoded to their sRGB values (a favicon renders
+       outside the app and cannot use the live CSS variables). The
+       hydrated app points the tab here when the resolved theme is light
+       and at favicon-dark.svg when dark (+layout.svelte applyTheme). -->
+  <rect x="108" y="108" width="296" height="76" rx="38" fill="#F3570A"/>
+  <rect x="108" y="218" width="246" height="76" rx="38" fill="#F29100"/>
+  <rect x="108" y="328" width="320" height="76" rx="38" fill="#398FFF"/>
+  <rect x="108" y="108" width="76" height="296" rx="38" fill="#17233C"/>
 </svg>

@@ -1,14 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Erledigen mark, dark variant: favicon.svg's palette with its
-       prefers-color-scheme media query resolved to dark. The hydrated app
-       points the tab's icon link at this file when the resolved theme is
-       dark (+layout.svelte applyTheme), so the tab matches the in-app
-       Logo rather than the browser's scheme. Values are the dark app.css
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="108 96 320 320">
+  <!-- Erledigen mark, dark variant: pills in the dark Fizzy palette and an
+       ink (near-white) spine on a transparent canvas - the surface
+       behind the mark shows through, so in dark mode the mark reads as
+       sitting on black. Fills are presentation attributes, not embedded
+       CSS: some browsers' favicon rasterizers do not run <style> blocks,
+       and attribute fills render everywhere. Values are the dark app.css
        theme tokens hardcoded to their sRGB values (a favicon renders
-       outside the app and cannot use the live CSS variables). -->
-  <rect width="512" height="512" rx="112" fill="#F0F2F4"/>
+       outside the app and cannot use the live CSS variables). The
+       hydrated app points the tab here when the resolved theme is dark
+       (+layout.svelte applyTheme); before hydration the tab shows the
+       light favicon.svg. -->
   <rect x="108" y="108" width="296" height="76" rx="38" fill="#D16036"/>
   <rect x="108" y="218" width="246" height="76" rx="38" fill="#BD7300"/>
   <rect x="108" y="328" width="320" height="76" rx="38" fill="#4385E4"/>
-  <rect x="108" y="108" width="76" height="296" rx="38" fill="#000000"/>
+  <rect x="108" y="108" width="76" height="296" rx="38" fill="#F0F2F4"/>
 </svg>
