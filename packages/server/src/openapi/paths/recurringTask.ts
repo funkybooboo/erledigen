@@ -11,7 +11,7 @@ import {
     CreateRecurringTaskSchema,
     GenerateInstancesSchema,
     RecurringTaskSchema,
-    RecurringTaskStatsSchema,
+    RecurringTaskStatsWithHistorySchema,
     UpdateRecurringTaskSchema,
 } from '../schemas/recurringTask';
 import { TaskSchema } from '../schemas/task';
@@ -167,7 +167,8 @@ registry.registerPath({
 registry.registerPath({
     method: 'get',
     path: '/api/recurring-tasks/{id}/stats',
-    summary: 'Streak stats for one template (recomputed from its instances on read)',
+    summary:
+        'Streak stats for one template (recomputed from its instances on read), plus the completedDates heatmap history',
     operationId: 'getRecurringTaskStats',
     request: { params: idParams },
     responses: {
@@ -175,7 +176,7 @@ registry.registerPath({
             description: 'Streak stats',
             content: {
                 'application/json': {
-                    schema: z.object({ data: RecurringTaskStatsSchema }),
+                    schema: z.object({ data: RecurringTaskStatsWithHistorySchema }),
                 },
             },
         },

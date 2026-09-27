@@ -286,9 +286,47 @@ describe('RecurringTaskService', () => {
             expect(stats.longestStreak).toBe(3);
             expect(stats.totalCompletions).toBe(3);
             expect(stats.lastCompletedDate).toBe('2026-03-14');
-            expect(recurringRepo.stats.get(rt.id)).toEqual(stats);
+            expect(stats.completedDates).toEqual(['2026-03-12', '2026-03-13', '2026-03-14']);
+            // The stored row keeps only the aggregates -- completedDates
+            // is derived on read, never persisted.
+            expect(recurringRepo.stats.get(rt.id)).toEqual({
+                recurringTaskId: rt.id,
+                currentStreak: 3,
+                longestStreak: 3,
+                totalCompletions: 3,
+                lastCompletedDate: '2026-03-14',
+            });
         });
 
+        it('returns empty completedDates for a fresh habit', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            const rt = makeRecurringTask({ id: 'rt-h', startDate: '2026-03-15' });
+            recurringRepo.store.set(rt.id, rt);
+
+            const stats = await makeService(recurringRepo, taskRepo).computeStats(rt.id);
+            expect(stats.completedDates).toEqual([]);
+            expect(stats.totalCompletions).toBe(0);
+        });
+
+        it('bounds completedDates to the trailing heatmap window', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            const rt = makeRecurringTask({ id: 'rt-w', startDate: '2025-01-01' });
+            recurringRepo.store.set(rt.id, rt);
+            // "Today" is 2026-03-15; the window starts 371 days earlier
+            // (2025-03-09). Everything before that is out of the grid.
+            seed(taskRepo, rt.id, '2025-03-08', true); // outside the window
+            seed(taskRepo, rt.id, '2025-03-09', true); // first day in
+            seed(taskRepo, rt.id, '2026-03-15', true); // today, in
+            seed(taskRepo, rt.id, '2026-03-16', true); // future, out
+
+            const stats = await makeService(recurringRepo, taskRepo).computeStats(rt.id);
+            expect(stats.completedDates).toEqual(['2025-03-09', '2026-03-15']);
+            // Aggregates still count every completion, windowed or not:
+            // four seeds, including the future one.
+            expect(stats.totalCompletions).toBe(4);
+        });
         it('breaks the streak when the latest occurrence is uncompleted', async () => {
             const taskRepo = new FakeTaskRepository();
             const recurringRepo = new FakeRecurringTaskRepository();
@@ -387,6 +425,7 @@ describe('RecurringTaskService', () => {
                 longestStreak: 0,
                 totalCompletions: 0,
                 lastCompletedDate: null,
+                completedDates: [],
             });
         });
 

@@ -4,7 +4,7 @@ import {
     type ApiResponse,
     type CreateRecurringTaskInput,
     type RecurringTask,
-    type RecurringTaskStats,
+    type RecurringTaskStatsWithHistory,
     type UpdateRecurringTaskInput,
 } from '@erledigen/shared';
 
@@ -53,9 +53,10 @@ export class RecurringTaskService {
         return response.data;
     }
 
-    /** Streak stats for one template (recomputed server-side on read). */
-    async getStats(id: string): Promise<RecurringTaskStats> {
-        const response = await this.http.get<ApiResponse<RecurringTaskStats>>(
+    /** Streak stats for one template (recomputed server-side on read),
+     *  including the completedDates heatmap history. */
+    async getStats(id: string): Promise<RecurringTaskStatsWithHistory> {
+        const response = await this.http.get<ApiResponse<RecurringTaskStatsWithHistory>>(
             API_ROUTES.RECURRING_TASK_STATS(id),
         );
         return response.data;

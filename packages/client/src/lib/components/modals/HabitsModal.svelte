@@ -1,5 +1,6 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
+    import HabitHeatmap from '$lib/components/HabitHeatmap.svelte';
     import {
         GENERATE_HORIZON_DAYS,
         notificationStore,
@@ -9,7 +10,14 @@
         uiStore,
     } from '$lib/stores';
     import { Icon } from 'svelte-icons-pack';
-    import { LuFlame, LuPencil, LuPlus, LuRepeat, LuTrash2 } from 'svelte-icons-pack/lu';
+    import {
+        LuArrowLeft,
+        LuFlame,
+        LuPencil,
+        LuPlus,
+        LuRepeat,
+        LuTrash2,
+    } from 'svelte-icons-pack/lu';
     import {
         WEEKDAY_ABBREVIATIONS,
         addDays,
@@ -92,12 +100,14 @@
     });
 
     function startNew() {
+        closeDetail();
         form = emptyForm();
         editingHabitId = null;
         showForm = true;
     }
 
     function startEdit(habit: RecurringTask) {
+        closeDetail();
         form = {
             text: habit.text,
             frequency: habit.frequency,
@@ -181,6 +191,9 @@
             if (!(await uiStore.confirm(`Delete habit "${habit.text}"?`))) return;
         }
         await recurringTaskStore.remove(habit.id);
+        // If the deleted habit is open in the detail view, fall back to
+        // the list (the derived selectedHabit already went null).
+        if (habit.id === selectedHabitId) closeDetail();
         notificationStore.push('Habit deleted -- existing instances are kept', {
             kind: 'info',
         });
@@ -194,6 +207,38 @@
     function streakLabel(habitId: string): string {
         return String(recurringTaskStore.stats.get(habitId)?.currentStreak ?? 0);
     }
+
+    // ------------------------------------------------------------------
+    // Habit detail: clicking a habit's name swaps the list for a
+    // read-only detail view (stats bar + heatmap). Editing and deleting
+    // stay on the list rows.
+    // ------------------------------------------------------------------
+
+    let selectedHabitId = $state<string | null>(null);
+
+    const selectedHabit = $derived(
+        selectedHabitId === null
+            ? null
+            : (recurringTaskStore.habits.find(h => h.id === selectedHabitId) ?? null),
+    );
+
+    function openDetail(habit: RecurringTask): void {
+        closeForm();
+        selectedHabitId = habit.id;
+        // Refresh this habit's stats so the heatmap history is current.
+        void recurringTaskStore.fetchStats([habit.id]);
+    }
+
+    function closeDetail(): void {
+        selectedHabitId = null;
+    }
+
+    /** Stats for the habit being viewed, once loaded. */
+    const selectedStats = $derived(
+        selectedHabitId === null
+            ? null
+            : (recurringTaskStore.stats.get(selectedHabitId) ?? null),
+    );
 </script>
 
 <Modal title="Habits" onclose={onclose}>
@@ -205,6 +250,7 @@
             </button>
         </div>
 
+        {#if selectedHabit === null}
         {#if showForm}
             <div class="inline-form">
                 <div class="form-row name-row">
@@ -302,10 +348,14 @@
             {#each recurringTaskStore.habits as habit (habit.id)}
                 <div class="habit-card" aria-label="{habit.text}, {describeRecurrence(habit)}">
                     <div class="card-top">
-                        <div class="habit-name">
+                        <button
+                            class="habit-name"
+                            onclick={() => openDetail(habit)}
+                            aria-label="View habit detail and heatmap for {habit.text}"
+                        >
                             {habit.text}
                             <span class="habit-freq">{describeRecurrence(habit)}</span>
-                        </div>
+                        </button>
                         <div class="card-actions">
                             <button class="icon-btn small" onclick={() => startEdit(habit)} aria-label="Edit habit">
                                 <Icon src={LuPencil} />
@@ -358,6 +408,44 @@
                 friday at 9am" -- or create one above.
             </p>
         {/if}
+        {:else if selectedHabit}
+            <div class="habit-detail" data-testid="habit-detail">
+                <div class="detail-top">
+                    <button
+                        class="icon-btn small"
+                        onclick={closeDetail}
+                        aria-label="Back to habits list"
+                    >
+                        <Icon src={LuArrowLeft} />
+                    </button>
+                    <span class="detail-title">{selectedHabit.text}</span>
+                    <span class="habit-freq">{describeRecurrence(selectedHabit)}</span>
+                </div>
+
+                <div class="detail-stats">
+                    <span class="streak-badge" data-testid="habit-streak">
+                        <Icon src={LuFlame} />
+                        {streakLabel(selectedHabit.id)}
+                    </span>
+                    {#if selectedStats}
+                        <span class="meta-stat">best {selectedStats.longestStreak}</span>
+                        <span class="meta-stat">{selectedStats.totalCompletions} done</span>
+                        {#if selectedStats.lastCompletedDate}
+                            <span class="meta-stat">last {selectedStats.lastCompletedDate}</span>
+                        {/if}
+                    {/if}
+                </div>
+
+                {#if selectedStats}
+                    <HabitHeatmap
+                        completedDates={selectedStats.completedDates}
+                        today={container.dateProvider.today()}
+                    />
+                {:else}
+                    <p class="empty">Loading stats...</p>
+                {/if}
+            </div>
+        {/if}
     </div>
 </Modal>
 
@@ -383,6 +471,42 @@
         gap: 8px;
         flex: 1;
         min-width: 0;
+        flex-wrap: wrap;
+        background: none;
+        border: none;
+        padding: 0;
+        color: inherit;
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .habit-name:hover {
+        color: var(--color-accent);
+    }
+
+    .habit-detail {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .detail-top {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .detail-title {
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .detail-stats {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         flex-wrap: wrap;
     }
 

@@ -239,6 +239,51 @@ test.describe('streak stats', () => {
         await expect(card.locator('.meta-stat', { hasText: '1 done' })).toBeVisible();
         await expect(card.locator('.meta-stat', { hasText: `last ${today}` })).toBeVisible();
     });
+
+    test('habit detail shows the stats bar and the completion heatmap', async ({
+        page,
+        request,
+    }) => {
+        const text = uniq('HabitE2E Heatmap');
+        const today = todayISO();
+
+        // Habit + one completed instance, straight through the API.
+        const createRes = await request.post(`${SERVER_URL}/api/recurring-tasks`, {
+            data: { text, frequency: 'daily', startDate: today },
+        });
+        const habit = (await createRes.json()).data as { id: string };
+        const gen = await request.post(`${SERVER_URL}/api/recurring-tasks/${habit.id}/generate`, {
+            data: { startDate: today, endDate: today },
+        });
+        const instance = (await gen.json()).data[0] as { id: string };
+        await request.put(`${SERVER_URL}/api/tasks/${instance.id}`, {
+            data: { completed: true },
+        });
+
+        await hydrated(page);
+        await page.getByLabel('Habits', { exact: true }).click();
+        const dialog = page.getByRole('dialog', { name: 'Habits', exact: true });
+        const card = dialog.locator('.habit-card', { hasText: text });
+
+        // The habit's name is a button that opens the read-only detail.
+        await card
+            .getByRole('button', { name: `View habit detail and heatmap for ${text}` })
+            .click();
+
+        const detail = dialog.locator('[data-testid="habit-detail"]');
+        await expect(detail).toBeVisible();
+        await expect(detail.locator('[data-testid="habit-streak"]')).toHaveText('1');
+
+        // The year grid renders with exactly one lit cell (today) --
+        // scoped to the grid body so the 5 legend swatches are excluded.
+        await expect(detail.locator('.grid-body .cell')).toHaveCount(53 * 7);
+        await expect(detail.locator('.grid-body .cell.level-1')).toHaveCount(1);
+
+        // Back returns to the list; edit/delete stay on the rows.
+        await detail.getByLabel('Back to habits list').click();
+        await expect(detail).toHaveCount(0);
+        await expect(card).toBeVisible();
+    });
 });
 
 test.describe('command palette /add', () => {
