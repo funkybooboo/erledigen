@@ -752,7 +752,7 @@ by `instanceDate`; missed-habit handling belongs to streaks).
 
 This release builds the full UI for project management and habit tracking.
 
-**Status:** Partially shipped. Habits: done (list, create/edit/delete with live natural-language schedule parsing, streak badges, weekday/weekend schedules; the heatmap and the "make recurring" toggle remain). Projects: the modal exists with list + create/edit/delete + a detail view showing the project's tasks; the Kanban board, auto-distribution, and dependency indicators remain (activate/deactivate are API flag flips only). Summary: today's completion percentage + upcoming `#deadline` tasks; overdue/streak/holiday sections remain. Calendar: done. Holidays: not started.
+**Status:** Partially shipped. Habits: done (list, create/edit/delete with live natural-language schedule parsing, streak badges, weekday/weekend schedules, and the habit detail view with the GitHub-style completion heatmap; the "make recurring" toggle remains). Projects: the modal exists with list + create/edit/delete + a detail view showing the project's tasks; the Kanban board, auto-distribution, and dependency indicators remain (activate/deactivate are API flag flips only). Summary: today's completion percentage + upcoming `#deadline` tasks; overdue/streak/holiday sections remain. Calendar: done. Holidays: not started.
 
 - [ ] **Projects modal:**
     - List all projects (active and inactive).
@@ -767,7 +767,7 @@ This release builds the full UI for project management and habit tracking.
 - [ ] **Habits modal:**
     - List all recurring task templates with current streak and last completion date.
     - `+ new habit` flow: text + recurrence rule builder (presets: daily, weekly, monthly; custom rrule).
-    - **Habit detail:** edit form + stats bar (current streak, longest streak, total completions) + GitHub-style completion heatmap.
+    - **Habit detail:** edit form + stats bar (current streak, longest streak, total completions) + GitHub-style completion heatmap. (Shipped 2026-09-27: stats bar + heatmap; the edit form stays on the list row.)
     - Promote any existing task to recurring: toggle "Make recurring" in the task detail modal.
 - [ ] **Summary modal:**
     - Completion percentage for today.

@@ -67,10 +67,22 @@ test.describe('Calendar modal', () => {
         await expect(cal).toBeHidden();
         const section = page.locator(`section#day-${target}`);
         await expect(section).toBeVisible();
-        const box = await section.boundingBox();
-        const viewport = page.viewportSize();
-        expect(box).not.toBeNull();
-        expect(box?.y).toBeGreaterThanOrEqual(0);
-        expect(viewport && box ? box.y + box.height <= viewport.height : false).toBe(true);
+
+        // The day list slides its render window to the target and scrolls
+        // one reactive pass after the re-render. WS broadcasts from specs
+        // running in parallel workers can delay that pass, so poll until
+        // the section has settled fully into the viewport instead of
+        // sampling the geometry once (a single early sample caught the
+        // pre-scroll position and failed the suite; the jump itself is
+        // reliable -- it lands within ~500ms in every environment).
+        await expect
+            .poll(async () => {
+                const box = await section.boundingBox();
+                const viewport = page.viewportSize();
+                return (
+                    !!box && !!viewport && box.y >= 0 && box.y + box.height <= viewport.height
+                );
+            })
+            .toBe(true);
     });
 });

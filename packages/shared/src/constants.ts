@@ -86,6 +86,13 @@ export const RECURRING_TASK_DEFAULTS = {
 export const PURGE_RETENTION_DAYS = 7;
 export const DEFAULT_RATE_LIMIT_RPM = 300;
 
+/** Habit heatmap (GitHub-style year grid) geometry. The window is
+ *  53 weeks: the widest grid a calendar year can render (a year
+ *  spanning 53 Sundays), so the server's completedDates window
+ *  always covers every cell the client draws. */
+export const HABIT_HEATMAP_WEEKS = 53;
+export const HABIT_HEATMAP_WINDOW_DAYS = HABIT_HEATMAP_WEEKS * 7;
+
 export const DEFAULT_TAG_KINDS: import('./types/userPreferences').TagKind[] = [
     {
         id: 'priority',

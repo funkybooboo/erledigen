@@ -28,7 +28,10 @@ export interface RecurringTask {
 }
 
 /**
- * Streak and completion stats for a recurring task
+ * Streak and completion stats for a recurring task (the persisted
+ * aggregates). The service's stats endpoint returns
+ * RecurringTaskStatsWithHistory, which layers the heatmap's per-day
+ * completion data on top of these.
  */
 export interface RecurringTaskStats {
     recurringTaskId: string;
@@ -36,6 +39,18 @@ export interface RecurringTaskStats {
     longestStreak: number;
     totalCompletions: number;
     lastCompletedDate: string | null;
+}
+
+/**
+ * Stats plus the completion history the habit heatmap renders.
+ * completedDates is derived from the template's instances on every
+ * read (like the streaks) and is NOT persisted -- only the four
+ * aggregates above are stored.
+ */
+export interface RecurringTaskStatsWithHistory extends RecurringTaskStats {
+    /** ISO dates of completed occurrences within the heatmap window,
+     *  ascending. At most one entry per occurrence date. */
+    completedDates: string[];
 }
 
 /**

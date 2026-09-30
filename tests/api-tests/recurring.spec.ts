@@ -307,6 +307,7 @@ test.describe('recurring-tasks -- streak stats', () => {
             longestStreak: 0,
             totalCompletions: 0,
             lastCompletedDate: null,
+            completedDates: [],
         });
     });
 
@@ -342,6 +343,9 @@ test.describe('recurring-tasks -- streak stats', () => {
         expect(stats.longestStreak).toBe(2);
         expect(stats.totalCompletions).toBe(2);
         expect(stats.lastCompletedDate).toBe(localDate(-1));
+        // The heatmap history carries exactly the completed days,
+        // ascending -- here the two most recent of the three generated.
+        expect(stats.completedDates).toEqual([localDate(-2), localDate(-1)]);
 
         // Complete the remaining (oldest) day: the run becomes 3.
         const oldest = instances[0];
@@ -358,6 +362,8 @@ test.describe('recurring-tasks -- streak stats', () => {
         expect(broken.currentStreak).toBe(1);
         expect(broken.longestStreak).toBe(3);
         expect(broken.totalCompletions).toBe(2);
+        // Uncompleting removes the day from the history too.
+        expect(broken.completedDates).toEqual([localDate(-3), localDate(-1)]);
     });
 
     test('stats survive a restart via upsertStats persistence', async ({ request }) => {

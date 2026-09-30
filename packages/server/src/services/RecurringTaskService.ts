@@ -1,5 +1,17 @@
-import type { CreateTaskInput, DateProvider, RecurringTaskStats, Task } from '@erledigen/shared';
-import { generateOccurrences, NotFoundError, nextOccurrenceIso } from '@erledigen/shared';
+import type {
+    CreateTaskInput,
+    DateProvider,
+    RecurringTaskStats,
+    RecurringTaskStatsWithHistory,
+    Task,
+} from '@erledigen/shared';
+import {
+    addDays,
+    generateOccurrences,
+    HABIT_HEATMAP_WINDOW_DAYS,
+    NotFoundError,
+    nextOccurrenceIso,
+} from '@erledigen/shared';
 import type { RecurringTaskRepository } from '../adapters/data/RecurringTaskRepository';
 import type { TaskRepository } from '../adapters/data/TaskRepository';
 
@@ -20,7 +32,7 @@ export class RecurringTaskService {
     /** computeStats calls in flight, by template id. Concurrent callers
      *  (a burst of task mutations, parallel GETs) share one computation
      *  instead of racing read-modify-write cycles on the same stats row. */
-    readonly #inFlight = new Map<string, Promise<RecurringTaskStats>>();
+    readonly #inFlight = new Map<string, Promise<RecurringTaskStatsWithHistory>>();
 
     constructor(
         private recurringTaskRepo: RecurringTaskRepository,
@@ -92,7 +104,8 @@ export class RecurringTaskService {
     }
 
     /**
-     * Compute, persist, and return streak stats for one template.
+     * Compute, persist, and return streak stats for one template,
+     * including the completedDates history the habit heatmap renders.
      *
      * Streaks are measured over the template's materialized instances
      * (what the user has actually seen). Two instances are "adjacent" when
@@ -107,7 +120,7 @@ export class RecurringTaskService {
      * computation, and the result is only persisted when it differs from
      * what is stored -- repeated reads must not rewrite the same row.
      */
-    computeStats(id: string): Promise<RecurringTaskStats> {
+    computeStats(id: string): Promise<RecurringTaskStatsWithHistory> {
         const inFlight = this.#inFlight.get(id);
         if (inFlight) return inFlight;
         const computation = this.#computeStats(id).finally(() => {
@@ -117,7 +130,7 @@ export class RecurringTaskService {
         return computation;
     }
 
-    async #computeStats(id: string): Promise<RecurringTaskStats> {
+    async #computeStats(id: string): Promise<RecurringTaskStatsWithHistory> {
         const rt = await this.recurringTaskRepo.findById(id);
         if (!rt) throw new NotFoundError(`RecurringTask with ID ${id} not found`);
 
@@ -170,12 +183,33 @@ export class RecurringTaskService {
 
         const completed = occurrences.filter(o => o.completed);
         const lastCompleted = completed[completed.length - 1];
-        const stats: RecurringTaskStats = {
+
+        // Heatmap history: completed occurrences inside the trailing
+        // window (HABIT_HEATMAP_WINDOW_DAYS) -- future completions and
+        // anything older than the grid are excluded. Derived on every
+        // read, never persisted (upsertStats stores the aggregates only).
+        const windowStart = addDays(today, -HABIT_HEATMAP_WINDOW_DAYS);
+        const completedDates = completed
+            .filter(o => o.date >= windowStart && o.date <= today)
+            .map(o => o.date);
+
+        const stats: RecurringTaskStatsWithHistory = {
             recurringTaskId: id,
             currentStreak,
             longestStreak,
             totalCompletions: completed.length,
             lastCompletedDate: lastCompleted ? lastCompleted.date : null,
+            completedDates,
+        };
+
+        // Persist the aggregates. The stats row carries no history
+        // columns, so the derived completedDates are simply not stored.
+        const aggregates: RecurringTaskStats = {
+            recurringTaskId: stats.recurringTaskId,
+            currentStreak: stats.currentStreak,
+            longestStreak: stats.longestStreak,
+            totalCompletions: stats.totalCompletions,
+            lastCompletedDate: stats.lastCompletedDate,
         };
 
         // Persist only when something changed. GET /stats recomputes on
@@ -187,7 +221,7 @@ export class RecurringTaskService {
             existing.totalCompletions === stats.totalCompletions &&
             existing.lastCompletedDate === stats.lastCompletedDate;
         if (!unchanged) {
-            await this.recurringTaskRepo.upsertStats(stats);
+            await this.recurringTaskRepo.upsertStats(aggregates);
         }
         return stats;
     }

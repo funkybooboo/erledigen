@@ -87,3 +87,14 @@ export const RecurringTaskStatsSchema = registry.register(
         })
         .openapi('RecurringTaskStats'),
 );
+
+/** The stats endpoint response: aggregates plus the derived heatmap
+ *  history (completedDates is recomputed on read, never persisted).
+ *  .extend() on the registered schema returns a plain ZodObject, so
+ *  the extension re-registers cleanly as its own component. */
+export const RecurringTaskStatsWithHistorySchema = registry.register(
+    'RecurringTaskStatsWithHistory',
+    RecurringTaskStatsSchema.extend({
+        completedDates: z.array(IsoDate),
+    }).openapi('RecurringTaskStatsWithHistory'),
+);

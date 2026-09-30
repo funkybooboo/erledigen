@@ -1,7 +1,7 @@
 import type {
     CreateRecurringTaskInput,
     RecurringTask,
-    RecurringTaskStats,
+    RecurringTaskStatsWithHistory,
     Task,
     UpdateRecurringTaskInput,
 } from '@erledigen/shared';
@@ -31,12 +31,13 @@ class RecurringTaskStore extends EntityStore<
         return this.items;
     }
 
-    /** Streak stats by habit id, fetched for the Habits modal.
-     *  SvelteMap (not $state< Map >): Svelte 5 only deep-proxies plain
-     *  objects/arrays, so Map.set on a raw Map would never re-render the
-     *  modal. SvelteMap tracks reads of .get() so entries appearing later
-     *  update the badge. */
-    stats = new SvelteMap<string, RecurringTaskStats>();
+    /** Streak stats by habit id (plus the completedDates heatmap
+     *  history), fetched for the Habits modal. SvelteMap (not
+     *  $state< Map >): Svelte 5 only deep-proxies plain objects/arrays,
+     *  so Map.set on a raw Map would never re-render the modal. SvelteMap
+     *  tracks reads of .get() so entries appearing later update the
+     *  badge. */
+    stats = new SvelteMap<string, RecurringTaskStatsWithHistory>();
 
     /** Fetch (or refresh) stats for the given habit ids. Failures leave
      *  existing entries untouched -- the modal just shows what it has. */

@@ -71,6 +71,8 @@ export {
     DEFAULT_RATE_LIMIT_RPM,
     DEFAULT_TAG_KIND_MAP,
     DEFAULT_TAG_KINDS,
+    HABIT_HEATMAP_WEEKS,
+    HABIT_HEATMAP_WINDOW_DAYS,
     PURGE_RETENTION_DAYS,
     RECURRING_TASK_DEFAULTS,
     SOMEDAY_KEY,
@@ -116,6 +118,7 @@ export type {
     RecurringFrequency,
     RecurringTask,
     RecurringTaskStats,
+    RecurringTaskStatsWithHistory,
     UpdateRecurringTaskInput,
 } from './types/recurringTask';
 export type {
