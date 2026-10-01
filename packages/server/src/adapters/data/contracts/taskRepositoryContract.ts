@@ -112,6 +112,28 @@ export function runTaskRepositoryContractTests(makeRepo: () => TaskRepository): 
             const updated = await repo.update(created.id, { date: null });
             expect(updated?.date).toBeNull();
         });
+
+        test('stamps the server-internal recurring link fields (adopt)', async () => {
+            // The adopt endpoint links an existing task to a template
+            // through update; the public API schema strips these fields,
+            // so the repos are the only write path. Round-trip must hold
+            // in both adapters.
+            const repo = makeRepo();
+            const created = await repo.create({ text: 'Task', date: '2026-04-06' });
+            const updated = await repo.update(created.id, {
+                recurringTaskId: 'rt-1',
+                instanceDate: '2026-04-06',
+            });
+            expect(updated?.recurringTaskId).toBe('rt-1');
+            expect(updated?.instanceDate).toBe('2026-04-06');
+            // And back to null (a restore/import path may clear links).
+            const cleared = await repo.update(created.id, {
+                recurringTaskId: null,
+                instanceDate: null,
+            });
+            expect(cleared?.recurringTaskId).toBeNull();
+            expect(cleared?.instanceDate).toBeNull();
+        });
     });
 
     describe('delete (soft)', () => {

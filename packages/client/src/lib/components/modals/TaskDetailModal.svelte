@@ -1,6 +1,7 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
-    import { taskStore, uiStore, notificationStore } from '$lib/stores';
+    import HabitScheduleForm from '$lib/components/HabitScheduleForm.svelte';
+    import { notificationStore, recurringTaskStore, taskStore, uiStore } from '$lib/stores';
     import { deleteTaskWithUndo } from '$lib/taskActions';
     import {
         TASK_CONSTRAINTS,
@@ -8,9 +9,9 @@
         isValidTimeRange,
         parseTags,
     } from '@erledigen/shared';
-    import type { Task, UpdateTaskInput } from '@erledigen/shared';
+    import type { RecurringFrequency, Task, UpdateTaskInput } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
-    import { LuTrash2, LuPlus, LuCheck, LuCircle } from 'svelte-icons-pack/lu';
+    import { LuTrash2, LuPlus, LuCheck, LuCircle, LuRepeat } from 'svelte-icons-pack/lu';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
@@ -25,6 +26,64 @@
     let showAddSubTask = $state(false);
     let newSubTaskText = $state('');
     let subTaskInputEl: HTMLInputElement | null = $state(null);
+
+    // ------------------------------------------------------------------
+    // "Make recurring": promote this task to a habit's first instance.
+    // Schedule state mirrors the Habits modal form (the shared
+    // HabitScheduleForm renders it); the text/dates/rollover all come
+    // from the task itself, server-side.
+    // ------------------------------------------------------------------
+
+    let showRecurringForm = $state(false);
+    let adopting = $state(false);
+    let recurFrequency = $state<RecurringFrequency>('daily');
+    let recurInterval = $state(1);
+    let recurDaysOfWeek = $state<number[]>([]);
+    let recurDayOfMonth = $state<number | null>(null);
+    let recurStartTime = $state('');
+
+    function openRecurringForm(): void {
+        recurFrequency = 'daily';
+        recurInterval = 1;
+        recurDaysOfWeek = [];
+        recurDayOfMonth = null;
+        recurStartTime = task?.startTime ?? '';
+        showRecurringForm = true;
+    }
+
+    async function handleAdopt(): Promise<void> {
+        if (!task || adopting) return;
+        adopting = true;
+
+        const usesDaysOfWeek = recurFrequency === 'daily' || recurFrequency === 'weekly';
+        const result = await recurringTaskStore.adopt({
+            taskId: task.id,
+            frequency: recurFrequency,
+            interval: Math.max(1, Number(recurInterval) || 1),
+            daysOfWeek:
+                usesDaysOfWeek && recurDaysOfWeek.length > 0 ? recurDaysOfWeek : null,
+            dayOfMonth:
+                recurFrequency === 'monthly' && recurDayOfMonth !== null
+                    ? Math.min(31, Math.max(1, Number(recurDayOfMonth) || 1))
+                    : null,
+            startTime: recurStartTime || null,
+        });
+
+        adopting = false;
+        if (!result) {
+            notificationStore.push('Could not make the task recurring', { kind: 'error' });
+            return;
+        }
+
+        // Ingest the stamped task + generated instances (the WS broadcast
+        // skips this client), then refresh the local snapshot so the
+        // recurring badge flips to "instance" state.
+        taskStore.ingest([result.task, ...result.tasks]);
+        const taskId = task.id;
+        task = taskStore.tasks.find(t => t.id === taskId) ?? task;
+        showRecurringForm = false;
+        notificationStore.push(`"${result.task.text}" is now a habit`);
+    }
 
     let subTasks = $derived.by(() => {
         // Snapshot the id: after the null guard, `task` is narrowed only
@@ -208,6 +267,41 @@
 
             {#if task.recurringTaskId}
                 <div class="info-text">This is a recurring task instance</div>
+            {:else if showRecurringForm}
+                <div class="recurring-form" data-testid="make-recurring-form">
+                    <HabitScheduleForm
+                        bind:frequency={recurFrequency}
+                        bind:interval={recurInterval}
+                        bind:daysOfWeek={recurDaysOfWeek}
+                        bind:dayOfMonth={recurDayOfMonth}
+                        bind:startTime={recurStartTime}
+                    />
+                    <div class="form-actions">
+                        <button
+                            class="btn btn-primary"
+                            onclick={handleAdopt}
+                            disabled={adopting}
+                        >
+                            {adopting ? 'Making recurring...' : 'Make recurring'}
+                        </button>
+                        <button class="btn btn-secondary" onclick={() => (showRecurringForm = false)}>
+                            Cancel
+                        </button>
+                    </div>
+                    <p class="adopt-hint">
+                        Repeats from this task's date -- the task itself becomes the first
+                        instance and stays where it is.
+                    </p>
+                </div>
+            {:else}
+                <button
+                    class="make-recurring-btn"
+                    onclick={openRecurringForm}
+                    aria-expanded={showRecurringForm}
+                >
+                    <Icon src={LuRepeat} size={14} />
+                    Make recurring
+                </button>
             {/if}
 
             <div class="subtask-section">
@@ -275,6 +369,47 @@
 {/if}
 
 <style>
+    .make-recurring-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border: 1px dashed var(--color-border);
+        border-radius: 8px;
+        background: none;
+        color: var(--color-text-secondary);
+        font-size: 12px;
+        cursor: pointer;
+        align-self: flex-start;
+        transition: color 0.1s, border-color 0.1s;
+    }
+
+    .make-recurring-btn:hover {
+        color: var(--color-accent);
+        border-color: var(--color-accent);
+    }
+
+    .recurring-form {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 10px;
+        border: 1px solid var(--color-border);
+        border-radius: 10px;
+        background: var(--color-surface-dim);
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .adopt-hint {
+        font-size: 11px;
+        color: var(--color-text-muted);
+        margin: 0;
+    }
+
     .task-detail {
         display: flex;
         flex-direction: column;

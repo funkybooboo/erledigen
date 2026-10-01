@@ -4,6 +4,7 @@
 
 import type { Logger } from '@erledigen/shared';
 import {
+    type AdoptTaskAsRecurringInput,
     API_ROUTES,
     type CreateRecurringTaskInput,
     type UpdateRecurringTaskInput,
@@ -12,6 +13,7 @@ import {
 import type { RecurringTaskRepository } from '../adapters/data/RecurringTaskRepository';
 import type { HttpServer } from '../adapters/http/HttpServer';
 import {
+    AdoptTaskAsRecurringSchema,
     CreateRecurringTaskSchema,
     GenerateInstancesSchema,
     UpdateRecurringTaskSchema,
@@ -54,6 +56,35 @@ export function registerRecurringTaskRoutes(
             const input = parseBody(CreateRecurringTaskSchema, raw) as CreateRecurringTaskInput;
             const task = await recurringTaskRepo.create(input);
             return successResponse(task, 201);
+        }, logger),
+    );
+
+    // POST /api/recurring-tasks/adopt
+    // (registered before the :id routes so "adopt" is never treated as
+    // an :id path parameter)
+    server.route(
+        'POST',
+        API_ROUTES.RECURRING_TASKS_ADOPT_PATTERN,
+        withErrorHandling(async req => {
+            const originClientId = req.headers['x-client-id'];
+
+            const raw = await req.json<unknown>();
+            const input = parseBody(AdoptTaskAsRecurringSchema, raw) as AdoptTaskAsRecurringInput;
+
+            const result = await recurringTaskService.adoptTaskAsRecurring(input.taskId, input);
+
+            // The stamped task reaches other clients as an update (same
+            // id, new recurring link); the generated instances ride the
+            // standard generated event. The new template itself is not
+            // broadcast -- matching template creation, which clients
+            // discover through their next fetchAll (Habits modal open).
+            eventBus.publish('task:updated', { task: result.task }, originClientId);
+            eventBus.publish(
+                'recurringTask:generated',
+                { tasks: result.tasks, recurringTaskId: result.recurringTask.id },
+                originClientId,
+            );
+            return successResponse(result, 201);
         }, logger),
     );
 

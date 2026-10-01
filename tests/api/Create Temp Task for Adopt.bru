@@ -1,0 +1,29 @@
+meta {
+  name: Create Temp Task for Adopt
+  type: http
+  seq: 48
+}
+
+post {
+  url: {{baseUrl}}/api/tasks
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "text": "Temp task for adopt test",
+    "date": "2026-01-20"
+  }
+}
+
+assert {
+  res.status: eq 201
+}
+
+tests {
+  test("should create temp task and store its ID", function() {
+    expect(res.getStatus()).to.equal(201);
+    bru.setVar("tempAdoptTaskId", res.getBody().data.id);
+  });
+}

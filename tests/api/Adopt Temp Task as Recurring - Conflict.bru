@@ -1,0 +1,31 @@
+meta {
+  name: Adopt Temp Task as Recurring - Conflict
+  type: http
+  seq: 54
+}
+
+post {
+  url: {{baseUrl}}/api/recurring-tasks/adopt
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "taskId": "{{tempAdoptTaskId}}",
+    "frequency": "daily"
+  }
+}
+
+assert {
+  res.status: eq 409
+}
+
+tests {
+  test("should reject re-adopting an already recurring task with 409", function() {
+    expect(res.getStatus()).to.equal(409);
+    // Standard error envelope: { error: string, code: string, ... }.
+    expect(res.getBody().error).to.be.a("string");
+    expect(res.getBody().error).to.contain("already belongs");
+  });
+}

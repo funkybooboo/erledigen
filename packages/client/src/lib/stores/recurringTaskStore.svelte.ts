@@ -1,4 +1,6 @@
 import type {
+    AdoptTaskAsRecurringInput,
+    AdoptTaskAsRecurringResult,
     CreateRecurringTaskInput,
     RecurringTask,
     RecurringTaskStatsWithHistory,
@@ -53,6 +55,25 @@ class RecurringTaskStore extends EntityStore<
                 }
             }),
         );
+    }
+
+    /**
+     * Promote an existing task to a recurring habit via the adopt
+     * endpoint (the Make recurring toggle). Returns the template, the
+     * stamped task, and the generated instances, or null on failure.
+     * The template joins this store; the caller ingests the returned
+     * tasks into taskStore (mirrors createAndGenerate -- the WS
+     * broadcast skips the triggering client).
+     */
+    async adopt(input: AdoptTaskAsRecurringInput): Promise<AdoptTaskAsRecurringResult | null> {
+        try {
+            const result = await recurringTaskService.adopt(input);
+            this.items = [...this.items, result.recurringTask];
+            return result;
+        } catch (error) {
+            this.logFailure('adopt', error);
+            return null;
+        }
     }
 
     /**

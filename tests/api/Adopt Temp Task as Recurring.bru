@@ -1,0 +1,45 @@
+meta {
+  name: Adopt Temp Task as Recurring
+  type: http
+  seq: 49
+}
+
+post {
+  url: {{baseUrl}}/api/recurring-tasks/adopt
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "taskId": "{{tempAdoptTaskId}}",
+    "frequency": "yearly"
+  }
+}
+
+assert {
+  res.status: eq 201
+}
+
+tests {
+  test("should adopt the task and return the new template", function() {
+    expect(res.getStatus()).to.equal(201);
+    const data = res.getBody().data;
+    // The template is built from the task server-side.
+    expect(data.recurringTask.text).to.equal("Temp task for adopt test");
+    expect(data.recurringTask.frequency).to.equal("yearly");
+    expect(data.recurringTask.startDate).to.equal("2026-01-20");
+  });
+
+  test("should stamp the task itself as the first instance", function() {
+    const data = res.getBody().data;
+    expect(data.task.id).to.equal(bru.getVar("tempAdoptTaskId"));
+    expect(data.task.recurringTaskId).to.equal(data.recurringTask.id);
+    expect(data.task.instanceDate).to.equal("2026-01-20");
+  });
+
+  test("yearly schedule generates no further instances in the horizon", function() {
+    expect(Array.isArray(res.getBody().data.tasks)).to.be.true;
+    expect(res.getBody().data.tasks.length).to.equal(0);
+  });
+}

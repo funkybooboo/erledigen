@@ -65,6 +65,24 @@ export const UpdateRecurringTaskSchema = registry.register(
     CreateRecurringTaskSchema.partial().openapi('UpdateRecurringTaskInput'),
 );
 
+/** POST /api/recurring-tasks/adopt: promote an existing task to the
+ *  first instance of a new template. text/notes/tags/rollover and the
+ *  schedule start all come from the task server-side. */
+export const AdoptTaskAsRecurringSchema = registry.register(
+    'AdoptTaskAsRecurringInput',
+    z
+        .object({
+            taskId: z.string().min(1),
+            frequency: z.enum(['daily', 'weekly', 'monthly', 'yearly']),
+            interval: z.number().int().min(1).optional(),
+            daysOfWeek: DaysOfWeek.nullable().optional(),
+            dayOfMonth: z.number().int().min(1).max(31).nullable().optional(),
+            endDate: IsoDate.nullable().optional(),
+            startTime: TimeHHMM.nullable().optional(),
+        })
+        .openapi('AdoptTaskAsRecurringInput'),
+);
+
 export const GenerateInstancesSchema = registry.register(
     'GenerateInstancesInput',
     z

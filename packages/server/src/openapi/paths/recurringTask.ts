@@ -8,6 +8,7 @@
 import { z } from 'zod';
 import { registry } from '../registry';
 import {
+    AdoptTaskAsRecurringSchema,
     CreateRecurringTaskSchema,
     GenerateInstancesSchema,
     RecurringTaskSchema,
@@ -63,6 +64,40 @@ registry.registerPath({
     responses: {
         201: recurringTaskDataResponse,
         400: validationErrorResponse,
+    },
+});
+
+registry.registerPath({
+    method: 'post',
+    path: '/api/recurring-tasks/adopt',
+    summary:
+        'Adopt an existing task as the first instance of a new template (the Make recurring toggle)',
+    operationId: 'adoptTaskAsRecurring',
+    description:
+        'Creates a template from the task (text/notes/tags/rollover), stamps the task itself as the template first instance (never deleted or duplicated), and generates the remaining occurrences from the schedule start (the task date, or today for a Someday task). Rejects 409 when the task already belongs to a template.',
+    request: {
+        body: {
+            required: true,
+            content: { 'application/json': { schema: AdoptTaskAsRecurringSchema } },
+        },
+    },
+    responses: {
+        201: {
+            description: 'The new template, the stamped task, and the generated instances',
+            content: {
+                'application/json': {
+                    schema: z.object({
+                        data: z.object({
+                            recurringTask: RecurringTaskSchema,
+                            task: TaskSchema,
+                            tasks: z.array(TaskSchema),
+                        }),
+                    }),
+                },
+            },
+        },
+        400: validationErrorResponse,
+        404: notFoundResponse,
     },
 });
 

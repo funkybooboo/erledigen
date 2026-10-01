@@ -1,6 +1,7 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
     import HabitHeatmap from '$lib/components/HabitHeatmap.svelte';
+    import HabitScheduleForm from '$lib/components/HabitScheduleForm.svelte';
     import {
         GENERATE_HORIZON_DAYS,
         notificationStore,
@@ -19,7 +20,6 @@
         LuTrash2,
     } from 'svelte-icons-pack/lu';
     import {
-        WEEKDAY_ABBREVIATIONS,
         addDays,
         describeRecurrence,
         parseRecurrence,
@@ -36,8 +36,6 @@
             recurringTaskStore.fetchStats(recurringTaskStore.habits.map(h => h.id));
         });
     });
-
-    const DAY_NAMES = WEEKDAY_ABBREVIATIONS;
 
     // ------------------------------------------------------------------
     // Shared form state (used by either the "new" form or an edit form --
@@ -77,13 +75,6 @@
 
     /** Day chips apply to daily and weekly schedules. */
     const usesDaysOfWeek = $derived(form.frequency === 'daily' || form.frequency === 'weekly');
-
-    function toggleDay(day: number): void {
-        const days = form.daysOfWeek;
-        form.daysOfWeek = days.includes(day)
-            ? days.filter(d => d !== day)
-            : [...days, day].sort((a, b) => a - b);
-    }
 
     // Live TeuxDeux-style parsing: typing "Water plants every friday at
     // 9am" prefills the schedule fields and shows a hint.
@@ -268,59 +259,13 @@
                         </span>
                     {/if}
                 </div>
-                <div class="form-row">
-                    <label for="habit-frequency">Repeats</label>
-                    <select id="habit-frequency" bind:value={form.frequency}>
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
-                        <option value="yearly">Yearly</option>
-                    </select>
-                    {#if form.interval > 1 || form.frequency !== 'daily'}
-                        <label for="habit-interval" class="inline-label">every</label>
-                        <input
-                            id="habit-interval"
-                            type="number"
-                            min="1"
-                            max="365"
-                            bind:value={form.interval}
-                            aria-label="Interval"
-                        />
-                    {/if}
-                </div>
-                {#if usesDaysOfWeek}
-                    <div class="form-row">
-                        <span class="chip-label">On days</span>
-                        <div class="day-chips" role="group" aria-label="Days of week">
-                            {#each DAY_NAMES as day, i}
-                                <button
-                                    type="button"
-                                    class="day-chip"
-                                    class:active={form.daysOfWeek.includes(i)}
-                                    onclick={() => toggleDay(i)}
-                                    aria-pressed={form.daysOfWeek.includes(i)}
-                                >
-                                    {day}
-                                </button>
-                            {/each}
-                        </div>
-                        {#if form.daysOfWeek.length === 0}
-                            <span class="chip-hint">any day</span>
-                        {/if}
-                    </div>
-                {/if}
-                {#if form.frequency === 'monthly'}
-                    <div class="form-row">
-                        <label for="habit-day-of-month">On day of month</label>
-                        <input
-                            id="habit-day-of-month"
-                            type="number"
-                            min="1"
-                            max="31"
-                            bind:value={form.dayOfMonth}
-                        />
-                    </div>
-                {/if}
+                <HabitScheduleForm
+                    bind:frequency={form.frequency}
+                    bind:interval={form.interval}
+                    bind:daysOfWeek={form.daysOfWeek}
+                    bind:dayOfMonth={form.dayOfMonth}
+                    bind:startTime={form.startTime}
+                />
                 <div class="form-row">
                     <label for="habit-start">Start date</label>
                     <input type="date" id="habit-start" bind:value={form.startDate} />
@@ -328,8 +273,6 @@
                     <input type="date" id="habit-end" bind:value={form.endDate} />
                 </div>
                 <div class="form-row">
-                    <label for="habit-time">Time</label>
-                    <input type="time" id="habit-time" bind:value={form.startTime} />
                     <label class="checkbox-label" for="habit-rollover">
                         <input type="checkbox" id="habit-rollover" bind:checked={form.rolloverEnabled} />
                         Rollover incomplete instances
@@ -578,46 +521,6 @@
         color: var(--color-text-muted);
     }
 
-    .day-chips {
-        display: flex;
-        gap: 4px;
-        flex-wrap: wrap;
-    }
-
-    .day-chip {
-        font-size: 11px;
-        font-weight: 600;
-        padding: 2px 8px;
-        border-radius: 999px;
-        border: 1px solid var(--color-border);
-        background: var(--color-surface);
-        color: var(--color-text-muted);
-        cursor: pointer;
-        transition: background-color 0.1s, color 0.1s, border-color 0.1s;
-    }
-
-    .day-chip:hover {
-        background: var(--color-surface-hover);
-        color: var(--color-text);
-    }
-
-    .day-chip.active {
-        background: var(--color-accent);
-        border-color: var(--color-accent);
-        color: var(--color-on-accent);
-    }
-
-    .chip-label {
-        font-size: 13px;
-        color: var(--color-text-secondary);
-    }
-
-    .chip-hint {
-        font-size: 11px;
-        color: var(--color-text-muted);
-        font-style: italic;
-    }
-
     .form-row {
         display: flex;
         align-items: center;
@@ -639,10 +542,7 @@
         min-width: 0;
     }
 
-    .form-row select,
-    .form-row input[type='date'],
-    .form-row input[type='number'],
-    .form-row input[type='time'] {
+    .form-row input[type='date'] {
         padding: 6px 10px;
         border: 1px solid var(--color-border);
         border-radius: 8px;
@@ -652,14 +552,8 @@
         outline: none;
     }
 
-    .form-row select:focus,
     .form-row input:focus {
         border-color: var(--color-accent);
-    }
-
-    .form-row input[type='number'],
-    .form-row input[type='time'] {
-        width: 90px;
     }
 
     .name-row input[type='text'] {

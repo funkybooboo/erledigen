@@ -1,0 +1,28 @@
+meta {
+  name: Adopt Task as Recurring - Validation Error
+  type: http
+  seq: 56
+}
+
+post {
+  url: {{baseUrl}}/api/recurring-tasks/adopt
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "taskId": "999999",
+    "frequency": "sometimes"
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("should reject an unknown frequency with 400", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+}
