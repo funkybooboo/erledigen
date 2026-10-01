@@ -315,3 +315,56 @@ test.describe('command palette /add', () => {
         expect(habits.some(h => h.text === text)).toBe(true);
     });
 });
+
+test.describe('make recurring (adopt from task detail)', () => {
+    test('promoting a task shows the schedule form, stamps the task, and creates the habit', async ({
+        page,
+        request,
+    }) => {
+        const text = uniq('HabitE2E Promote');
+        const createRes = await request.post(`${SERVER_URL}/api/tasks`, {
+            data: { text, date: todayISO() },
+        });
+        const task = ((await createRes.json()) as { data: { id: string } }).data;
+
+        await hydrated(page);
+        const row = page.locator('.task-row', { hasText: text }).first();
+        await row.getByRole('button', { name: 'Task details' }).click();
+        const detail = page.getByRole('dialog', { name: 'Task Details', exact: true });
+        await expect(detail).toBeVisible();
+
+        // The disclosure opens the shared schedule form.
+        await detail.getByRole('button', { name: 'Make recurring' }).click();
+        const form = detail.locator('[data-testid="make-recurring-form"]');
+        await expect(form).toBeVisible();
+        await form.getByLabel('Repeats').selectOption('weekly');
+
+        // Confirming adopts: notification, the badge flips to instance
+        // state, and the disclosure disappears.
+        await detail.getByRole('button', { name: 'Make recurring' }).click();
+        await expect(page.getByText('is now a habit')).toBeVisible({ timeout: 3000 });
+        await expect(detail.getByText('This is a recurring task instance')).toBeVisible();
+        await expect(detail.getByRole('button', { name: 'Make recurring' })).toHaveCount(0);
+
+        // The server holds the template (weekly, started today) and the
+        // task is stamped as its first instance.
+        const habits = (await (
+            await request.get(`${SERVER_URL}/api/recurring-tasks`)
+        ).json()).data as Array<{ text: string; frequency: string; startDate: string }>;
+        const habit = habits.find(h => h.text === text);
+        expect(habit?.frequency).toBe('weekly');
+        expect(habit?.startDate).toBe(todayISO());
+
+        const updated = (await (
+            await request.get(`${SERVER_URL}/api/tasks/${task.id}`)
+        ).json()).data as { recurringTaskId: string | null; instanceDate: string | null };
+        expect(updated.recurringTaskId).not.toBeNull();
+        expect(updated.instanceDate).toBe(todayISO());
+
+        // The habit lists in the Habits modal.
+        await page.keyboard.press('Escape');
+        await page.getByLabel('Habits', { exact: true }).click();
+        const dialog = page.getByRole('dialog', { name: 'Habits', exact: true });
+        await expect(dialog.locator('.habit-card', { hasText: text })).toBeVisible();
+    });
+});

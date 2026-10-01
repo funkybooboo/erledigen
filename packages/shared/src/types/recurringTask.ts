@@ -1,3 +1,5 @@
+import type { Task } from './task';
+
 /**
  * How often a recurring task repeats
  */
@@ -69,6 +71,32 @@ export type CreateRecurringTaskInput = {
     rolloverEnabled?: boolean;
     startTime?: string | null;
 };
+
+/**
+ * Input for adopting an existing task as the first instance of a new
+ * recurring template (POST /api/recurring-tasks/adopt). The template's
+ * text/notes/tags/rollover come from the task; startDate is derived
+ * server-side from the task's date (today for a Someday task). Only the
+ * schedule itself is caller-supplied.
+ */
+export type AdoptTaskAsRecurringInput = {
+    taskId: string;
+    frequency: RecurringFrequency;
+    interval?: number;
+    daysOfWeek?: number[] | null;
+    dayOfMonth?: number | null;
+    endDate?: string | null;
+    startTime?: string | null;
+};
+
+/** Result of adopting a task as recurring: the new template, the adopted
+ *  task stamped as the template's first instance, and the additionally
+ *  generated instances (the adopted date itself is never re-generated). */
+export interface AdoptTaskAsRecurringResult {
+    recurringTask: RecurringTask;
+    task: Task;
+    tasks: Task[];
+}
 
 /**
  * Input for updating a recurring task template

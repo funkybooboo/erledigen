@@ -255,6 +255,10 @@ export class SqliteTaskRepository implements TaskRepository {
         if ('state' in input) assign('state', input.state);
         if ('startTime' in input) assign('start_time', input.startTime);
         if ('endTime' in input) assign('end_time', input.endTime);
+        // Server-internal only (adopt stamps these; the public
+        // UpdateTaskSchema strips them -- see UpdateTaskInput).
+        if ('recurringTaskId' in input) assign('recurring_task_id', input.recurringTaskId);
+        if ('instanceDate' in input) assign('instance_date', input.instanceDate);
         if ('reminder' in input) {
             assign('reminder', input.reminder ? JSON.stringify(input.reminder) : null);
         }

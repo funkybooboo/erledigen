@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'bun:test';
-import type { CreateTaskInput, RecurringTask, RecurringTaskStats, Task } from '@erledigen/shared';
-import { NotFoundError } from '@erledigen/shared';
+import type {
+    CreateRecurringTaskInput,
+    CreateTaskInput,
+    RecurringTask,
+    RecurringTaskStats,
+    Task,
+    UpdateTaskInput,
+} from '@erledigen/shared';
+import { ConflictError, NotFoundError } from '@erledigen/shared';
 import { RecurringTaskService } from './RecurringTaskService';
 
 // Minimal fakes -- just the methods the service calls. The real
@@ -41,12 +48,48 @@ class FakeTaskRepository {
     findByRecurringTaskId(recurringTaskId: string): Promise<Task[]> {
         return Promise.resolve(this.tasks.filter(t => t.recurringTaskId === recurringTaskId));
     }
+    findById(id: string): Promise<Task | null> {
+        return Promise.resolve(this.tasks.find(t => t.id === id) ?? null);
+    }
+    update(id: string, input: UpdateTaskInput): Promise<Task | null> {
+        const existing = this.tasks.find(t => t.id === id);
+        if (!existing) return Promise.resolve(null);
+        const updated: Task = {
+            ...existing,
+            ...input,
+            updatedAt: '2026-03-15T00:00:00.000Z',
+        };
+        this.tasks[this.tasks.indexOf(existing)] = updated;
+        return Promise.resolve(updated);
+    }
 }
 
 class FakeRecurringTaskRepository {
     store = new Map<string, RecurringTask>();
     stats = new Map<string, RecurringTaskStats>();
     upsertCount = 0;
+    counter = 0;
+    create(input: CreateRecurringTaskInput): Promise<RecurringTask> {
+        const now = '2026-03-15T00:00:00.000Z';
+        const rt: RecurringTask = {
+            id: `rt-${++this.counter}`,
+            text: input.text,
+            notes: input.notes ?? null,
+            tags: input.tags ?? [],
+            frequency: input.frequency,
+            interval: input.interval ?? 1,
+            daysOfWeek: input.daysOfWeek ?? null,
+            dayOfMonth: input.dayOfMonth ?? null,
+            startDate: input.startDate,
+            endDate: input.endDate ?? null,
+            rolloverEnabled: input.rolloverEnabled ?? false,
+            startTime: input.startTime ?? null,
+            createdAt: now,
+            updatedAt: now,
+        };
+        this.store.set(rt.id, rt);
+        return Promise.resolve(rt);
+    }
     findById(id: string): Promise<RecurringTask | null> {
         return Promise.resolve(this.store.get(id) ?? null);
     }
@@ -234,6 +277,134 @@ describe('RecurringTaskService', () => {
 
             const results = await service.generateAllInstances('2026-03-02', '2026-03-08');
             expect(results).toEqual([]);
+        });
+    });
+
+    describe('adoptTaskAsRecurring', () => {
+        /** A standalone task ready to be promoted. */
+        function makeAdoptableTask(overrides: Partial<Task> = {}): Task {
+            return {
+                id: 't-adopt',
+                text: 'Water the fern',
+                notes: 'Bottom watering',
+                completed: false,
+                date: '2026-03-12',
+                createdAt: '2026-01-01T00:00:00.000Z',
+                updatedAt: '2026-01-01T00:00:00.000Z',
+                tags: ['#home'],
+                parentId: null,
+                rolloverEnabled: true,
+                someDayGroupId: null,
+                position: null,
+                state: null,
+                recurringTaskId: null,
+                instanceDate: null,
+                originalScheduledDate: null,
+                daysLate: 0,
+                dependsOn: null,
+                startTime: '09:00',
+                endTime: null,
+                reminder: null,
+                deletedAt: null,
+                ...overrides,
+            };
+        }
+
+        it('creates a template from the task and stamps it as the first instance', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            taskRepo.tasks.push(makeAdoptableTask());
+
+            const result = await makeService(recurringRepo, taskRepo).adoptTaskAsRecurring(
+                't-adopt',
+                { taskId: 't-adopt', frequency: 'weekly' },
+            );
+
+            // The template inherits text/notes/tags/rollover and the
+            // task's own start time (the caller did not supply one).
+            expect(result.recurringTask.text).toBe('Water the fern');
+            expect(result.recurringTask.notes).toBe('Bottom watering');
+            expect(result.recurringTask.tags).toEqual(['#home']);
+            expect(result.recurringTask.rolloverEnabled).toBe(true);
+            expect(result.recurringTask.startTime).toBe('09:00');
+            expect(result.recurringTask.frequency).toBe('weekly');
+            expect(result.recurringTask.startDate).toBe('2026-03-12');
+
+            // The task itself is the first instance: stamped, not duplicated.
+            expect(result.task.id).toBe('t-adopt');
+            expect(result.task.recurringTaskId).toBe(result.recurringTask.id);
+            expect(result.task.instanceDate).toBe('2026-03-12');
+            expect(taskRepo.tasks).toHaveLength(1 + result.tasks.length);
+
+            // Generation skips the adopted date (the task owns it) and
+            // starts at the next weekly occurrence, weekly through the
+            // 90-day horizon.
+            expect(result.tasks.map(t => t.instanceDate).slice(0, 3)).toEqual([
+                '2026-03-19',
+                '2026-03-26',
+                '2026-04-02',
+            ]);
+            // The adopted date is never re-generated.
+            expect(result.tasks.some(t => t.instanceDate === '2026-03-12')).toBe(false);
+            // Every generated instance links back to the template.
+            expect(result.tasks.every(t => t.recurringTaskId === result.recurringTask.id)).toBe(
+                true,
+            );
+        });
+
+        it('moves a Someday task to today as the schedule start', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            taskRepo.tasks.push(makeAdoptableTask({ id: 't-someday', date: null }));
+
+            const result = await makeService(recurringRepo, taskRepo).adoptTaskAsRecurring(
+                't-someday',
+                { taskId: 't-someday', frequency: 'daily' },
+            );
+
+            // "Today" is 2026-03-15 (FakeDateProvider): the schedule starts
+            // today and the task becomes today's instance.
+            expect(result.recurringTask.startDate).toBe('2026-03-15');
+            expect(result.task.date).toBe('2026-03-15');
+            expect(result.task.instanceDate).toBe('2026-03-15');
+            // Daily from tomorrow through the 90-day horizon.
+            expect(result.tasks.map(t => t.instanceDate).slice(0, 3)).toEqual([
+                '2026-03-16',
+                '2026-03-17',
+                '2026-03-18',
+            ]);
+            expect(result.tasks.some(t => t.instanceDate === '2026-03-15')).toBe(false);
+        });
+
+        it('throws NotFoundError for an unknown or deleted task', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            taskRepo.tasks.push(
+                makeAdoptableTask({ id: 't-gone', deletedAt: '2026-03-14T00:00:00.000Z' }),
+            );
+
+            const service = makeService(recurringRepo, taskRepo);
+            expect(
+                service.adoptTaskAsRecurring('nope', { taskId: 'nope', frequency: 'daily' }),
+            ).rejects.toBeInstanceOf(NotFoundError);
+            expect(
+                service.adoptTaskAsRecurring('t-gone', { taskId: 't-gone', frequency: 'daily' }),
+            ).rejects.toBeInstanceOf(NotFoundError);
+        });
+
+        it('throws ConflictError when the task already belongs to a template', async () => {
+            const taskRepo = new FakeTaskRepository();
+            const recurringRepo = new FakeRecurringTaskRepository();
+            taskRepo.tasks.push(
+                makeAdoptableTask({ id: 't-taken', recurringTaskId: 'rt-existing' }),
+            );
+
+            expect(
+                makeService(recurringRepo, taskRepo).adoptTaskAsRecurring('t-taken', {
+                    taskId: 't-taken',
+                    frequency: 'daily',
+                }),
+            ).rejects.toBeInstanceOf(ConflictError);
         });
     });
 

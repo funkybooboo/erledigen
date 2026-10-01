@@ -109,8 +109,16 @@ describe('task schemas', () => {
             startTime: '09:30',
             endTime: '10:30',
             reminder: { time: '09:00', channels: ['push'] },
+            // Server-internal stamp fields (adopt); the schema strips
+            // them like it strips them from CreateTaskSchema.
+            recurringTaskId: null,
+            instanceDate: null,
         };
-        parsePreserving(UpdateTaskSchema, sample);
+        const parsed = parsePreserving(UpdateTaskSchema, sample, serverInternal);
+        // The stamp fields must stay stripped: the public task update
+        // API must not let a client relink a task to another template.
+        expect(parsed).not.toHaveProperty('recurringTaskId');
+        expect(parsed).not.toHaveProperty('instanceDate');
     });
 });
 

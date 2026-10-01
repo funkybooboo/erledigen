@@ -79,6 +79,12 @@ export type UpdateTaskInput = Partial<{
     startTime: string | null;
     endTime: string | null;
     reminder: { time: string; channels: ('push' | 'email')[] } | null;
+    /** Links this task to its recurring template (server-internal only --
+     *  the adopt endpoint stamps an existing task as a template's first
+     *  instance; the public UpdateTaskSchema strips these). */
+    recurringTaskId?: string | null;
+    /** The date this recurrence was scheduled for (server-internal only). */
+    instanceDate?: string | null;
 }>;
 
 /**

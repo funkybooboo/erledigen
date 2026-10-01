@@ -114,6 +114,8 @@ export { CSV_IMPORT_FIELDS, IMPORT_FORMAT_META, IMPORT_FORMATS } from './types/i
 // Types
 export type { CreateProjectInput, Project, UpdateProjectInput } from './types/project';
 export type {
+    AdoptTaskAsRecurringInput,
+    AdoptTaskAsRecurringResult,
     CreateRecurringTaskInput,
     RecurringFrequency,
     RecurringTask,

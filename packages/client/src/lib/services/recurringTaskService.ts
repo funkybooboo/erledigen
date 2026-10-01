@@ -1,5 +1,7 @@
 import type { HttpClient, Task } from '@erledigen/shared';
 import {
+    type AdoptTaskAsRecurringInput,
+    type AdoptTaskAsRecurringResult,
     API_ROUTES,
     type ApiResponse,
     type CreateRecurringTaskInput,
@@ -49,6 +51,17 @@ export class RecurringTaskService {
         const response = await this.http.post<ApiResponse<Task[]>>(
             API_ROUTES.RECURRING_TASK_GENERATE(id),
             { startDate, endDate },
+        );
+        return response.data;
+    }
+
+    /** Adopt an existing task as the first instance of a new template
+     *  (the Make recurring toggle in the task detail modal). Returns the
+     *  new template, the stamped task, and the generated instances. */
+    async adopt(input: AdoptTaskAsRecurringInput): Promise<AdoptTaskAsRecurringResult> {
+        const response = await this.http.post<ApiResponse<AdoptTaskAsRecurringResult>>(
+            API_ROUTES.RECURRING_TASKS_ADOPT,
+            input,
         );
         return response.data;
     }

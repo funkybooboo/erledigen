@@ -1,4 +1,6 @@
 import type {
+    AdoptTaskAsRecurringInput,
+    AdoptTaskAsRecurringResult,
     CreateTaskInput,
     DateProvider,
     RecurringTaskStats,
@@ -7,6 +9,7 @@ import type {
 } from '@erledigen/shared';
 import {
     addDays,
+    ConflictError,
     generateOccurrences,
     HABIT_HEATMAP_WINDOW_DAYS,
     NotFoundError,
@@ -20,6 +23,12 @@ export interface GeneratedForTemplate {
     recurringTaskId: string;
     tasks: Task[];
 }
+
+/** How far past the schedule start adopt generates instances. Matches
+ *  the client's GENERATE_HORIZON_DAYS (recurringTaskStore) so the
+ *  promote path materializes exactly as far as creating the habit
+ *  through the Habits modal does; the day list extends beyond lazily. */
+const ADOPT_HORIZON_DAYS = 90;
 
 /** An occurrence with the fields streak math needs. */
 interface Occurrence {
@@ -78,6 +87,77 @@ export class RecurringTaskService {
         );
 
         return created;
+    }
+
+    /**
+     * Adopt an existing task as the first instance of a new recurring
+     * template (the "Make recurring" toggle in the task detail modal).
+     *
+     * The task itself is never deleted or duplicated: a template is
+     * created from its text/notes/tags/rollover, the task is stamped
+     * (recurringTaskId + instanceDate) as the template's first instance,
+     * and the remaining occurrences are generated from the schedule
+     * start (the task's date, or today for a Someday task -- which also
+     * gets its date set, since an instance must live on a day). A task
+     * already linked to a template is rejected with 409: the public
+     * task update API can never write these stamp fields, so this is
+     * the only promote path.
+     */
+    async adoptTaskAsRecurring(
+        taskId: string,
+        input: AdoptTaskAsRecurringInput,
+    ): Promise<AdoptTaskAsRecurringResult> {
+        const task = await this.taskRepo.findById(taskId);
+        if (!task || task.deletedAt !== null) {
+            throw new NotFoundError(`Task with ID ${taskId} not found`);
+        }
+        if (task.recurringTaskId !== null) {
+            throw new ConflictError(`Task ${taskId} already belongs to a recurring task`);
+        }
+
+        // The schedule starts where the task already lives; a Someday
+        // task moves to today (it becomes today's instance).
+        const startDate = task.date ?? this.dateProvider.today();
+
+        // Conditional spreads, not direct assignment: with
+        // exactOptionalPropertyTypes, `interval: input.interval` would
+        // write an explicit undefined into an optional field.
+        const rt = await this.recurringTaskRepo.create({
+            text: task.text,
+            notes: task.notes,
+            tags: task.tags,
+            frequency: input.frequency,
+            startDate,
+            rolloverEnabled: task.rolloverEnabled,
+            startTime: input.startTime ?? task.startTime,
+            ...(input.interval !== undefined ? { interval: input.interval } : {}),
+            ...(input.daysOfWeek !== undefined ? { daysOfWeek: input.daysOfWeek } : {}),
+            ...(input.dayOfMonth !== undefined ? { dayOfMonth: input.dayOfMonth } : {}),
+            ...(input.endDate !== undefined ? { endDate: input.endDate } : {}),
+        });
+
+        // Stamp the task as the first instance BEFORE generating, so
+        // generateInstances sees its date as taken and never duplicates
+        // it. A Someday task gets its date set here as well.
+        const stamped = await this.taskRepo.update(taskId, {
+            date: startDate,
+            recurringTaskId: rt.id,
+            instanceDate: startDate,
+        });
+        if (stamped === null) {
+            throw new NotFoundError(`Task with ID ${taskId} not found`);
+        }
+
+        // Materialize the remaining occurrences through the standard
+        // horizon (same window the client's create-and-generate uses; the
+        // day list extends further lazily on scroll).
+        const tasks = await this.generateInstances(
+            rt.id,
+            addDays(startDate, 1),
+            addDays(startDate, ADOPT_HORIZON_DAYS),
+        );
+
+        return { recurringTask: rt, task: stamped, tasks };
     }
 
     /**

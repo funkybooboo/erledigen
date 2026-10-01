@@ -3,6 +3,7 @@ import { expect, test } from '@playwright/test';
 import {
     cleanup,
     createRecurring,
+    createTask,
     del,
     get,
     post,
@@ -282,17 +283,17 @@ test.describe('recurring-tasks -- generate instances', () => {
     });
 });
 
-test.describe('recurring-tasks -- streak stats', () => {
-    /** Local-calendar ISO date offset by N days from today. */
-    function localDate(offsetDays: number): string {
-        const d = new Date();
-        d.setDate(d.getDate() + offsetDays);
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${day}`;
-    }
+/** Local-calendar ISO date offset by N days from today. */
+function localDate(offsetDays: number): string {
+    const d = new Date();
+    d.setDate(d.getDate() + offsetDays);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
 
+test.describe('recurring-tasks -- streak stats', () => {
     test('GET stats returns zeroed stats for a fresh habit', async ({ request }) => {
         const rt = await createRecurring(request, {
             text: 'Fresh habit',
@@ -379,5 +380,99 @@ test.describe('recurring-tasks -- streak stats', () => {
         expect(first.status).toBe(200);
         const second = await get(request, `/api/recurring-tasks/${rt.id}/stats`);
         expect(second.body.data).toEqual(first.body.data);
+    });
+});
+
+test.describe('recurring-tasks -- adopt (make recurring)', () => {
+    test('adopting a dated task stamps it as the first instance and generates the rest', async ({
+        request,
+    }) => {
+        const start = localDate(-2);
+        const task = await createTask(request, { text: 'Read papers', date: start });
+
+        const res = await post(request, '/api/recurring-tasks/adopt', {
+            taskId: task.id,
+            frequency: 'daily',
+        });
+        expect(res.status).toBe(201);
+        track('recurring', res.body.data.recurringTask.id);
+
+        // The template is built from the task server-side.
+        const rt = res.body.data.recurringTask;
+        expect(rt.text).toBe('Read papers');
+        expect(rt.frequency).toBe('daily');
+        expect(rt.startDate).toBe(start);
+
+        // The task itself is the first instance: stamped, not duplicated.
+        const stamped = res.body.data.task;
+        expect(stamped.id).toBe(task.id);
+        expect(stamped.recurringTaskId).toBe(rt.id);
+        expect(stamped.instanceDate).toBe(start);
+
+        // The remaining occurrences through the horizon; the adopted
+        // date is never re-generated.
+        const generated = res.body.data.tasks as Array<{ id: string; instanceDate: string }>;
+        expect(generated.length).toBeGreaterThan(0);
+        expect(generated.every(t => t.recurringTaskId === rt.id)).toBe(true);
+        expect(generated.every(t => t.instanceDate > start)).toBe(true);
+        expect(generated.some(t => t.instanceDate === localDate(-1))).toBe(true);
+        expect(generated.some(t => t.instanceDate === localDate(0))).toBe(true);
+    });
+
+    test('adopting a Someday task moves it to today as the schedule start', async ({
+        request,
+    }) => {
+        const task = await createTask(request, { text: 'Evening stretch', date: null });
+
+        const res = await post(request, '/api/recurring-tasks/adopt', {
+            taskId: task.id,
+            frequency: 'weekly',
+        });
+        expect(res.status).toBe(201);
+        track('recurring', res.body.data.recurringTask.id);
+
+        const today = localDate(0);
+        expect(res.body.data.recurringTask.startDate).toBe(today);
+        expect(res.body.data.task.date).toBe(today);
+        expect(res.body.data.task.instanceDate).toBe(today);
+        // Weekly from today: the generated set is smaller than a daily
+        // run would be, and never contains today.
+        const generated = res.body.data.tasks as Array<{ instanceDate: string }>;
+        expect(generated.length).toBeGreaterThan(0);
+        expect(generated.length).toBeLessThan(13); // weekly over a 90d horizon
+        expect(generated.every(t => t.instanceDate > today)).toBe(true);
+    });
+
+    test('adopting a task twice returns 409', async ({ request }) => {
+        const task = await createTask(request, { text: 'Daily journal', date: localDate(0) });
+
+        const first = await post(request, '/api/recurring-tasks/adopt', {
+            taskId: task.id,
+            frequency: 'daily',
+        });
+        expect(first.status).toBe(201);
+        track('recurring', first.body.data.recurringTask.id);
+
+        const second = await post(request, '/api/recurring-tasks/adopt', {
+            taskId: task.id,
+            frequency: 'daily',
+        });
+        expect(second.status).toBe(409);
+    });
+
+    test('adopting an unknown task returns 404', async ({ request }) => {
+        const res = await post(request, '/api/recurring-tasks/adopt', {
+            taskId: '999999',
+            frequency: 'daily',
+        });
+        expect(res.status).toBe(404);
+    });
+
+    test('adopting with an invalid frequency returns 400', async ({ request }) => {
+        const res = await post(request, '/api/recurring-tasks/adopt', {
+            taskId: '999999',
+            frequency: 'sometimes',
+        });
+        expect(res.status).toBe(400);
     });
 });
