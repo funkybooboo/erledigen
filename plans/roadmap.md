@@ -4,9 +4,9 @@ This document outlines the development roadmap for Erledigen. We use semantic ve
 
 ---
 
-## Where we stand (2026-09-05)
+## Where we stand (2026-10-01)
 
-Verified against the tree at `73f459d` (post-merge audit; all CI gates
+Verified against the tree at `b347d91` (post-merge audit; all CI gates
 green).
 
 - **Package version tracks the roadmap** (decision, 2026-09-07):
@@ -31,8 +31,9 @@ green).
       (midnight/9am/manual trigger times, startup catch-up), trash
       purge; recurring generation stays on-demand by design (no
       generate-recurring job).
-    - v0.9.0 -- habits + calendar done; remaining: Kanban board,
-      habit heatmap, holidays, summary sections.
+    - v0.9.0 -- habits + calendar done (habits incl. the habit detail
+      heatmap and the make-recurring promote toggle, PRs #18/#20);
+      remaining: Kanban board, holidays, summary sections.
 - **Partial:** v0.11.0 (design system, theme system, delete behavior
   shipped), v0.12.0 (ARIA, focus management, skip link shipped).
 - **Not started:** v0.10.0 (markdown notes), v0.13.0 (i18n), v0.14.0
@@ -43,16 +44,14 @@ recurring tasks are the big ones) -- treat the sections below as a
 feature catalog and choose the next release deliberately, not by
 number.
 
-**Current focus (2026-09-07): v0.7.0 is COMPLETE -- the export slice
-shipped first (ADR-008: canonical JSON snapshot incl. the trash,
-CSV/Markdown/iCal views, `GET /api/export`, Settings export UI), and
-the import slice closed it out (ADR-009: destructive JSON restore with
-a pre-restore backup + `data:restored` broadcast, additive generic
-CSV/iCal/Todoist CSV/Things 3 imports, Settings import UI with the CSV
-column mapping). Remaining catalog items to choose from next: v0.9.0
-remainder (Kanban board, habit heatmap, holidays, summary sections),
-v0.10.0 (markdown notes), v0.12.0 remainder, v0.13.0 (i18n), v0.14.0
-(calendar time-grid).
+**Current focus (2026-10-01): the v0.9.0 habits remainder is
+COMPLETE -- PR #18 shipped the habit detail view with the GitHub-style
+completion heatmap (completedDates stats history), and PR #20 shipped
+the make-recurring promote flow (POST /api/recurring-tasks/adopt + the
+shared HabitScheduleForm + the TaskDetailModal disclosure). Remaining
+catalog items to choose from next: v0.9.0 remainder (Kanban board,
+holidays, summary sections), v0.10.0 (markdown notes), v0.12.0
+remainder, v0.13.0 (i18n), v0.14.0 (calendar time-grid).
 
 ---
 
@@ -722,7 +721,7 @@ by `instanceDate`; missed-habit handling belongs to streaks).
 - [x] **Purge job:** Runs daily at 3am. Permanently deletes tasks where `deletedAt` is older than `PURGE_RETENTION_DAYS` (default: 7).
 
 ### Streak Tracking
-- [x] **Streak tracking:** Current/longest streak and total completions shown as badges in the Habits modal (the GitHub-style heatmap remains planned).
+- [x] **Streak tracking:** Current/longest streak and total completions shown as badges in the Habits modal (the GitHub-style heatmap shipped with the v0.9.0 habit detail view).
 
 ### Technical Notes & Considerations
 - Job queue is SQLite-backed per [ADR-002](../docs/devs/architecture/decisions/ADR-002-sqlite-backed-job-queue.md). Same database, `jobs` table.
