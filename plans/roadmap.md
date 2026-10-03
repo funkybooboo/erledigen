@@ -24,9 +24,9 @@ green).
     - v0.6.0 -- IN PROGRESS (the lowest incomplete version; current
       focus): priority sort mode (block-aware within-day ordering +
       priority accents) and the date-range filter shipped (PR #24);
-      drag-and-drop REACTIVATED by the 2026-10-03 UX audit (design in
-      the v0.6.0 section). Remaining: drag-and-drop, mobile/bottom
-      sheets, responsive breakpoints.
+      drag-and-drop SHIPPED 2026-10-03 (native HTML5 DnD, reactivated
+      by the UX audit). Remaining: mobile/bottom sheets, responsive
+      breakpoints.
     - v0.7.0 -- COMPLETE: storage + observability (SQLite, migrations,
       contract tests, preferences persistence, JSON logs, request IDs,
       `/api/metrics`, enhanced health); export (all four formats via
@@ -527,18 +527,18 @@ The palette has two modes distinguished by the first character:
 
 This release polishes the three-panel layout, completes drag-and-drop interactions, implements lazy loading and view modes, and adds responsive behavior.
 
-**Status:** Layout polish shipped (true infinite scroll, resizable + collapsible Someday panel, filter persistence). Drag-and-drop was removed in the frontend simplification and REACTIVATED by the 2026-10-03 UX audit (design below). Priority sort mode and the date-range filter shipped (PR #24). Remaining: mobile/bottom sheets; drag-and-drop (reactivated).
+**Status:** Layout polish shipped (true infinite scroll, resizable + collapsible Someday panel, filter persistence). Drag-and-drop was removed in the frontend simplification, REACTIVATED by the 2026-10-03 UX audit, and SHIPPED the same day (native HTML5 DnD; see the Drag-and-Drop section for the as-built notes). Priority sort mode and the date-range filter shipped (PR #24). Remaining: mobile/bottom sheets; responsive breakpoints.
 
 ### Drag-and-Drop (from v0.5.0)
 
 > **Removed, then reactivated:** drag-and-drop (and the `svelte-dnd-action` dependency) was removed in the frontend simplification (commit `2f3a700`) in favor of true infinite scroll. The 2026-10-03 UX audit asked for it back ("I can't drag and drop tasks to other days or reorder tasks on the same day"), so the items below are live planned work again, tracked with the v0.15.0 audit section.
 
-- [ ] **Drag handle:** grip icon appears on the left of each task row on hover. Only the handle initiates a drag.
-- [ ] **Drag between days:** Drag a task from one day section and drop it onto another day's header or task list. The target day section highlights on hover.
-- [ ] **Reorder within a day:** Drag tasks up/down within the same day section to reorder.
-- [ ] **Drag to Someday:** Drag a task rightward into the Someday panel. Task's `date` is cleared on drop (becomes unscheduled). Task lands in the first group or a highlighted group.
-- [ ] **Drag from Someday:** Drag a task from the Someday panel leftward onto a specific day section header to schedule it. The target day highlights as the task hovers over it.
-- [ ] **Visual feedback:** Ghost image while dragging; drop zone indicator; smooth animations.
+- [x] **Drag handle:** grip icon appears on the left of each task row on hover. Only the handle initiates a drag.
+- [x] **Drag between days:** Drag a task from one day section and drop it onto another day's header or task list. The target day section highlights on hover.
+- [x] **Reorder within a day:** Drag tasks up/down within the same day section to reorder.
+- [x] **Drag to Someday:** Drag a task rightward into the Someday panel. Task's `date` is cleared on drop (becomes unscheduled). Task lands in a highlighted group, or the ungrouped bucket when dropped on panel padding (deviation from the original "first group" wording -- groups are explicit zones; nothing sneaks into a group uninvited).
+- [x] **Drag from Someday:** Drag a task from the Someday panel leftward onto a specific day section header to schedule it. The target day highlights as the task hovers over it.
+- [x] **Visual feedback:** Ghost image while dragging; drop zone indicator; smooth animations. (Shipped with PR: native HTML5 DnD; the dragged row dims, zones tint, and a 2px insertion line snaps to sub-task block boundaries. As-built note: `svelte-dnd-action` spiked clean on Svelte 5 but cost ~63 KB raw over the 584 KiB bundle budget -- native HTML5 won, and the budget rose to 590 KiB for the feature. Sub-tasks are not draggable: they render glued to their parent, so a cross-day sub-task move would have no visible effect; `r`/`m` remain their move path.)
 
 ### Layout Polish
 
@@ -564,7 +564,7 @@ This release polishes the three-panel layout, completes drag-and-drop interactio
 - [ ] **Responsive breakpoints:** Graceful degradation from desktop to tablet to mobile.
 
 ### Technical Notes & Considerations
-- `svelte-dnd-action` already in use for drag within day sections.
+- Native HTML5 drag and drop powers the day list (decided 2026-10-03: the `svelte-dnd-action` spike cost ~63 KB raw over the bundle budget). The planned v0.9.0 Kanban drag should reuse this plumbing.
 - Intersection observer for lazy loading -- avoid virtual scrolling unless performance requires it.
 - CSS custom properties for theme tokens alongside Tailwind.
 - Tailwind's JIT mode for optimal bundle size.
@@ -572,16 +572,16 @@ This release polishes the three-panel layout, completes drag-and-drop interactio
 - E2E tests for all drag scenarios, responsive behavior, and filter scenarios.
 
 ### Definition of Done
-- All drag scenarios functional with visual feedback.
-- Dragging to/from Someday correctly clears/sets dates.
-- Reordering within a day persists.
-- Lazy loading functional with smooth scroll experience.
-- Panel resize/collapse working and persisted.
-- Priority sort mode functional.
-- Date range filter working in Filter modal.
+- [x] All drag scenarios functional with visual feedback.
+- [x] Dragging to/from Someday correctly clears/sets dates.
+- [x] Reordering within a day persists.
+- [x] Lazy loading functional with smooth scroll experience.
+- [x] Panel resize/collapse working and persisted.
+- [x] Priority sort mode functional.
+- [x] Date range filter working in Filter modal.
 - [x] Filter persistence configurable in Settings. (Decision 2026-10-03: persistence is always on by design; the start-fresh toggle is deliberately tracked in the v0.11.0 Settings list instead. Not a v0.6.0 gap.)
-- Mobile bottom sheet behavior functional.
-- E2E tests passing.
+- [ ] Mobile bottom sheet behavior functional.
+- [ ] E2E tests passing. (Drag + filter scenarios are covered; responsive-viewport specs land with the mobile slice.)
 
 ---
 
@@ -1094,9 +1094,10 @@ those sections (v0.9.0, v0.10.0, v0.11.0).
 - [ ] **Filter by task title text:** the Filter modal filters by tags
       only today. Add a text filter over task titles (applies to the
       day list and Someday together, like the other filters).
-- [ ] **Drag-and-drop (reactivated):** drag tasks to other days and
+- [x] **Drag-and-drop (reactivated):** drag tasks to other days and
       reorder within a day. The v0.6.0 section carries the full
-      design, drag to/from Someday included.
+      design, drag to/from Someday included. (Shipped 2026-10-03,
+      native HTML5 DnD -- see the v0.6.0 as-built notes.)
 
 ### Calendar
 
