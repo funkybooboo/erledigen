@@ -97,6 +97,10 @@ Covers:
 - **holidays** -- Settings add/delete flows and the day-list banner
   (created live through Settings, created in another tab via the WS
   broadcast, removed on delete).
+- **summary** -- the v0.9.0 sections: empty-state hiding, overdue rows
+  with days-late badges (completed past tasks excluded), the combined
+  "Next 14 Days" deadline + holiday list with window bounds, and
+  active habit streaks.
 
 ## Running everything
 

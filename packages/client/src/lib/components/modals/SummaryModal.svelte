@@ -1,8 +1,14 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
-    import { taskStore } from '$lib/stores';
+    import { holidayStore, recurringTaskStore, taskStore } from '$lib/stores';
     import { container } from '$lib/container';
-    import { hasDeadlineTag } from '@erledigen/shared';
+    import {
+        findActiveStreaks,
+        findOverdueTasks,
+        findUpcomingDeadlineTasks,
+        findUpcomingHolidays,
+    } from '$lib/summary';
+    import { onMount } from 'svelte';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
@@ -13,7 +19,27 @@
     let completedToday = $derived(todayTasks.filter(t => t.completed).length);
     let totalToday = $derived(todayTasks.length);
     let completionPct = $derived(totalToday > 0 ? Math.round((completedToday / totalToday) * 100) : 0);
-    let upcomingDeadlines = $derived(allTasks.filter(t => !t.completed && hasDeadlineTag(t) && t.date).slice(0, 5));
+
+    let overdue = $derived(findOverdueTasks(allTasks, todayStr));
+    let upcomingDeadlines = $derived(findUpcomingDeadlineTasks(allTasks, todayStr));
+    let upcomingHolidays = $derived(findUpcomingHolidays(holidayStore.holidays, todayStr));
+    let streaks = $derived(findActiveStreaks(recurringTaskStore.habits, recurringTaskStore.stats));
+
+    // Stats are fetched on demand (the store keys them by habit id);
+    // habits first so the id list is complete, then their stats.
+    onMount(() => {
+        void recurringTaskStore.fetchAll().then(() => {
+            void recurringTaskStore.fetchStats(recurringTaskStore.habits.map(h => h.id));
+        });
+    });
+
+    function daysLateLabel(days: number): string {
+        return `${days} ${days === 1 ? 'day' : 'days'} late`;
+    }
+
+    function streakLabel(days: number): string {
+        return `${days} ${days === 1 ? 'day' : 'days'}`;
+    }
 </script>
 
 <Modal title="Summary" onclose={onclose}>
@@ -35,14 +61,50 @@
             </div>
         </section>
 
-        {#if upcomingDeadlines.length > 0}
-<section class="section" aria-labelledby="summary-deadlines-heading">
-                <h3 id="summary-deadlines-heading" class="modal-section-heading">Upcoming Deadlines</h3>
+        {#if overdue.length > 0}
+            <section class="section" aria-labelledby="summary-overdue-heading">
+                <h3 id="summary-overdue-heading" class="modal-section-heading">
+                    Overdue ({overdue.length})
+                </h3>
                 <ul class="list">
-                    {#each upcomingDeadlines as task}
+                    {#each overdue as { task, daysLate } (task.id)}
+                        <li class="list-item">
+                            <span class="task-text">{task.text}</span>
+                            <span class="badge overdue-badge">{daysLateLabel(daysLate)}</span>
+                        </li>
+                    {/each}
+                </ul>
+            </section>
+        {/if}
+
+        {#if streaks.length > 0}
+            <section class="section" aria-labelledby="summary-streaks-heading">
+                <h3 id="summary-streaks-heading" class="modal-section-heading">Active Streaks</h3>
+                <ul class="list">
+                    {#each streaks as { habit, currentStreak } (habit.id)}
+                        <li class="list-item">
+                            <span class="task-text">{habit.text}</span>
+                            <span class="badge streak-badge">{streakLabel(currentStreak)}</span>
+                        </li>
+                    {/each}
+                </ul>
+            </section>
+        {/if}
+
+        {#if upcomingDeadlines.length > 0 || upcomingHolidays.length > 0}
+            <section class="section" aria-labelledby="summary-upcoming-heading">
+                <h3 id="summary-upcoming-heading" class="modal-section-heading">Next 14 Days</h3>
+                <ul class="list">
+                    {#each upcomingDeadlines as task (task.id)}
                         <li class="list-item">
                             <span class="task-text">{task.text}</span>
                             <span class="badge">{task.date}</span>
+                        </li>
+                    {/each}
+                    {#each upcomingHolidays as holiday (holiday.id)}
+                        <li class="list-item">
+                            <span class="task-text">{holiday.name}</span>
+                            <span class="badge holiday-badge">{holiday.date}</span>
                         </li>
                     {/each}
                 </ul>
@@ -119,5 +181,23 @@
         border-radius: 10px;
         background: var(--color-surface-hover);
         color: var(--color-text-secondary);
+    }
+
+    .overdue-badge {
+        color: var(--color-danger);
+        background: color-mix(in oklab, var(--color-danger) 12%, transparent);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .streak-badge {
+        color: var(--color-success);
+        background: color-mix(in oklab, var(--color-success) 12%, transparent);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .holiday-badge {
+        color: var(--color-accent);
+        background: color-mix(in oklab, var(--color-accent) 10%, transparent);
+        font-variant-numeric: tabular-nums;
     }
 </style>

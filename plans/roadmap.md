@@ -61,8 +61,9 @@ shipped -- was itself wrong and is reverted in the v0.3.0 section;
 the collection is real: `tests/api/`, dockerized via `mise run
 test-api`.)
 
-**Current focus (2026-10-04): the v0.9.0 remainder** -- Kanban board
-(on the drag plumbing) and summary sections; holidays shipped. After that: `mise run release` stamps 0.9.0, then
+**Current focus (2026-10-04): the v0.9.0 remainder** -- the Kanban
+board (on the drag plumbing) is the last slice before
+`mise run release` stamps 0.9.0. After that: `mise run release` stamps 0.9.0, then
 v0.10.0 (live markdown), v0.11.0 remainder, v0.12.0 remainder,
 v0.13.0 (i18n), v0.14.0 (calendar time-grid), v0.15.0 (UX audit
 remainder). UX-audit findings that live inside earlier sections ship
@@ -776,7 +777,7 @@ by `instanceDate`; missed-habit handling belongs to streaks).
 
 This release builds the full UI for project management and habit tracking.
 
-**Status:** Partially shipped. Habits: done (list, create/edit/delete with live natural-language schedule parsing, streak badges, weekday/weekend schedules, the habit detail view with the GitHub-style completion heatmap, and the "make recurring" promote toggle in the task detail modal; the edit form stays on the list row). Projects: the modal exists with list + create/edit/delete + a detail view showing the project's tasks; the Kanban board, auto-distribution, and dependency indicators remain (activate/deactivate are API flag flips only). Summary: today's completion percentage + upcoming `#deadline` tasks; overdue/streak/holiday sections remain. Calendar: done. Holidays: DONE (2026-10-04 -- Settings entry + `.ics` import, day-list banners; see the Holidays item below). The 2026-10-03 UX audit adds habits-modal UX fixes, a high-level month view for the Calendar modal, and a keep-or-remove criterion for the Summary modal -- tracked in the v0.15.0 section.
+**Status:** Partially shipped. Habits: done (list, create/edit/delete with live natural-language schedule parsing, streak badges, weekday/weekend schedules, the habit detail view with the GitHub-style completion heatmap, and the "make recurring" promote toggle in the task detail modal; the edit form stays on the list row). Projects: the modal exists with list + create/edit/delete + a detail view showing the project's tasks; the Kanban board, auto-distribution, and dependency indicators remain (activate/deactivate are API flag flips only). Summary: DONE (2026-10-04 -- overdue list with days-late badges, active streaks, and a combined "Next 14 Days" section for `#deadline` tasks and holidays). Calendar: done. Holidays: DONE (2026-10-04 -- Settings entry + `.ics` import, day-list banners; see the Holidays item below). The 2026-10-03 UX audit adds habits-modal UX fixes, a high-level month view for the Calendar modal, and a keep-or-remove criterion for the Summary modal -- tracked in the v0.15.0 section.
 
 - [ ] **Projects modal:**
     - List all projects (active and inactive).
@@ -793,11 +794,11 @@ This release builds the full UI for project management and habit tracking.
     - `+ new habit` flow: text + recurrence rule builder (presets: daily, weekly, monthly; custom rrule).
     - **Habit detail:** edit form + stats bar (current streak, longest streak, total completions) + GitHub-style completion heatmap. (Shipped 2026-09-27: stats bar + heatmap; the edit form stays on the list row.)
     - Promote any existing task to recurring: toggle "Make recurring" in the task detail modal. (Shipped 2026-09-30: via POST /api/recurring-tasks/adopt -- the task is stamped as the template's first instance; the schedule form is shared with the Habits modal through HabitScheduleForm.)
-- [ ] **Summary modal:**
+- [x] **Summary modal:** (Shipped 2026-10-04 -- the v0.15.0 keep-or-remove criterion's "sections" half: the modal now earns its open.)
     - Completion percentage for today.
-    - List of overdue tasks with days-late count.
-    - Active streaks for recurring tasks.
-    - Upcoming hard deadlines (tasks tagged `#deadline`) and holidays within the next 14 days.
+    - List of overdue tasks with days-late count. (As built: most overdue first; completed past tasks stay out.)
+    - Active streaks for recurring tasks. (As built: habits with a current streak > 0, longest first.)
+    - Upcoming hard deadlines (tasks tagged `#deadline`) and holidays within the next 14 days. (As built: one "Next 14 Days" section, deadline tasks and holidays together, soonest first; pure derivations in `packages/client/src/lib/summary.ts` with unit tests.)
 - [x] **Calendar modal:**
     - A month-grid date picker that jumps the day list to the selected date (and centers it).
     - **Today** is a full view reset: day list centered on today and the month minimap re-centered on the current month.
@@ -1133,7 +1134,10 @@ those sections (v0.9.0, v0.10.0, v0.11.0).
       There are -- the v0.9.0 remainder (overdue tasks with days-late
       counts, active streaks, deadlines + holidays). Ship those
       sections; if the modal still is not worth opening, remove it
-      rather than polishing further.
+      rather than polishing further. (2026-10-04: the sections shipped
+      with v0.9.0 -- overdue badges, active streaks, and the combined
+      "Next 14 Days" list; the keep-or-remove verdict itself remains a
+      try-it-and-see decision.)
 
 ### Technical Notes & Considerations
 
