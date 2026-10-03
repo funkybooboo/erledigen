@@ -93,7 +93,8 @@ fi
 
 step "Creating release commit"
 git add package.json bun.lock packages/shared/package.json \
-    packages/server/package.json packages/client/package.json
+    packages/server/package.json packages/client/package.json \
+    packages/server/src/version.ts
 git commit -m "chore(release): $TAG"
 
 step "Creating annotated tag $TAG"
