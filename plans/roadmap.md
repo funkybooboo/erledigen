@@ -467,9 +467,9 @@ The palette has two modes distinguished by the first character:
 ### Additional Checklist
 - [x] Vim + arrow key navigation: both work simultaneously throughout the app, in the day list and the Someday panel alike (focus navigation and the add-task target follow the focused task's home).
 - [ ] All shortcuts in the table above implemented and working (`J`/`K`, `r`, `m`, `t` remain).
-- [x] Command palette: search mode and command mode (`/` prefix, currently `/add`) both functional.
-- [ ] Natural language date parsing: today, tomorrow, next monday, march 15, in 3 days.
-- [ ] Natural language task creation: `buy milk tomorrow #work #p1` (tags are parsed; dates are not).
+- [x] Command palette: search mode and the full command registry (`/add`, `/complete`, `/delete`, `/move`, `/go`, `/tag`, `/filter`, `/clear`, `/today`, `/someday`, `/project`, `/habit`, `/settings`, `/help`) both functional.
+- [x] Natural language date parsing: today, tomorrow, next monday, march 15, in 3 days.
+- [x] Natural language task creation: `buy milk tomorrow #work #p1` (the date phrase and #tags are extracted onto the task).
 - [x] Focus management: keyboard focus always visible and predictable after every action (focused task row gets an accent style; clicking a task action focuses its row).
 - [x] Focus trapped inside modals; Esc closes and returns focus to the trigger element.
 

@@ -170,6 +170,8 @@ export {
     dateRangeKeys,
     daysBetween,
     describeRecurrence,
+    extractDatePhrase,
+    extractInlineTags,
     formatFrequency,
     formatTags,
     formatTime12,
@@ -183,9 +185,12 @@ export {
     nextOccurrenceIso,
     parseRecurrence,
     parseTags,
+    resolveDatePhrase,
     resolveTagKind,
     slugify,
     splitKey,
     weekdayOf,
 } from './utils';
+export type { ParsedDatePhrase } from './utils/parseDatePhrase';
 export type { ParsedRecurrence, RecurrenceSchedule } from './utils/parseRecurrence';
+export type { ExtractedInlineTags } from './utils/parseTags';

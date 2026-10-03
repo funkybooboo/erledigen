@@ -300,7 +300,7 @@ test.describe('command palette /add', () => {
 
         // Typing the command shows the /add row with a live habit hint.
         await search.getByLabel('Search tasks').fill(`/add ${text} every day`);
-        await expect(search.locator('.result-item', { hasText: `Add: ${text}` })).toBeVisible();
+        await expect(search.locator('.result-text')).toHaveText(`/add ${text} every day`);
         await expect(search.locator('.command-hint')).toHaveText(/Every day/);
 
         await search.getByLabel('Search tasks').press('Enter');
