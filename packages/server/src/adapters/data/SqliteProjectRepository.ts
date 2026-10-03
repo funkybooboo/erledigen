@@ -16,6 +16,7 @@ import type {
 import { slugify } from '@erledigen/shared';
 import type { ProjectRepository } from './ProjectRepository';
 import { toBoolean, toInteger } from './sqliteMapping';
+import { SqlUpdate } from './sqliteUpdate';
 
 const PROJECT_COLUMNS =
     'id, name, tag, description, start_date, due_date, is_active, created_at, completed_at';
@@ -128,27 +129,21 @@ export class SqliteProjectRepository implements ProjectRepository {
     }
 
     async update(id: string, input: UpdateProjectInput): Promise<Project | null> {
-        const sets: string[] = [];
-        const values: SQLQueryBindings[] = [];
+        const patch = new SqlUpdate();
 
-        const assign = (column: string, value: SQLQueryBindings): void => {
-            sets.push(`${column} = ?`);
-            values.push(value);
-        };
+        if ('name' in input) patch.assign('name', input.name);
+        if ('tag' in input) patch.assign('tag', input.tag);
+        if ('description' in input) patch.assign('description', input.description);
+        if ('startDate' in input) patch.assign('start_date', input.startDate);
+        if ('dueDate' in input) patch.assign('due_date', input.dueDate);
+        if ('isActive' in input) patch.assign('is_active', toInteger(input.isActive));
+        if ('completedAt' in input) patch.assign('completed_at', input.completedAt);
 
-        if ('name' in input) assign('name', input.name);
-        if ('tag' in input) assign('tag', input.tag);
-        if ('description' in input) assign('description', input.description);
-        if ('startDate' in input) assign('start_date', input.startDate);
-        if ('dueDate' in input) assign('due_date', input.dueDate);
-        if ('isActive' in input) assign('is_active', toInteger(input.isActive));
-        if ('completedAt' in input) assign('completed_at', input.completedAt);
-
-        if (sets.length === 0) return this.findById(id);
+        if (patch.isEmpty) return this.findById(id);
 
         const result = this.db
-            .prepare(`UPDATE projects SET ${sets.join(', ')} WHERE id = ?`)
-            .run(...values, id);
+            .prepare(`UPDATE projects SET ${patch.assignments} WHERE id = ?`)
+            .run(...patch.parameters, id);
 
         if (result.changes === 0) return null;
         return this.findById(id);
