@@ -103,6 +103,7 @@ describe('task schemas', () => {
             tags: [],
             parentId: null,
             someDayGroupId: null,
+            dependsOn: 'blocker-id',
             rolloverEnabled: false,
             position: null,
             state: 'scheduled',

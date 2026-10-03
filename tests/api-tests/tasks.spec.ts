@@ -216,6 +216,21 @@ test.describe('tasks -- update (PUT /api/tasks/:id)', () => {
         expect(res.body.data.updatedAt >= t.updatedAt).toBe(true);
     });
 
+    test('sets and clears the Kanban dependency link (dependsOn)', async ({ request }) => {
+        // v0.9.0: the Kanban board's blocked-by picker writes through
+        // the public update path. Like parentId, a nonexistent target
+        // is not rejected server-side -- a dangling link reads as
+        // unblocked (the lock resolves the predecessor from the store).
+        const t = await createTask(request, { text: 'Blocked', date: null });
+        const res = await put(request, `/api/tasks/${t.id}`, { dependsOn: 'some-other-task' });
+        expect(res.status).toBe(200);
+        expect(res.body.data.dependsOn).toBe('some-other-task');
+
+        const cleared = await put(request, `/api/tasks/${t.id}`, { dependsOn: null });
+        expect(cleared.status).toBe(200);
+        expect(cleared.body.data.dependsOn).toBeNull();
+    });
+
     test('rejects invalid update body (empty text) with 400', async ({ request }) => {
         const t = await createTask(request, { text: 'Keep', date: '2026-05-11' });
         const res = await put(request, `/api/tasks/${t.id}`, { text: '' });

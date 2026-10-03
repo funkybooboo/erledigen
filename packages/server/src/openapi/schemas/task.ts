@@ -91,6 +91,11 @@ export const UpdateTaskSchema = registry.register(
             tags: z.array(z.string()).optional(),
             parentId: z.string().nullable().optional(),
             someDayGroupId: z.string().nullable().optional(),
+            dependsOn: z
+                .string()
+                .nullable()
+                .optional()
+                .openapi({ description: 'Task this one is blocked by (Kanban dependency)' }),
             position: z.number().int().nullable().optional(),
             state: z.enum(['ready', 'scheduled', 'done']).nullable().optional(),
             startTime: HhMmTime.nullable().optional(),

@@ -129,6 +129,12 @@ Facts that are easy to get wrong when working on the domain, API, or stores.
   local time; `date === null` means the task lives in Someday. Date math goes
   through the shared `dateProvider` key helpers -- never `Date` object
   arithmetic (timezone bugs have shipped from that).
+- **The Kanban board maps onto real task state, not the `state` field.** The
+  v0.9.0 project board's columns are derived: Ready = undated,
+  Scheduled = dated, Done = completed. The task model's `state`
+  ('ready' | 'scheduled' | 'done' | null) stays unused by the UI -- every
+  drag mutates `date`/`completed` so a card's column can never drift from
+  what the day list shows.
 - **Habits materialize as real tasks, idempotently.** A recurring template
   stamps generated instances with its `recurringTaskId` and `startTime`;
   generation skips dates that already exist

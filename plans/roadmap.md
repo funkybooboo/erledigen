@@ -61,9 +61,11 @@ shipped -- was itself wrong and is reverted in the v0.3.0 section;
 the collection is real: `tests/api/`, dockerized via `mise run
 test-api`.)
 
-**Current focus (2026-10-04): the v0.9.0 remainder** -- the Kanban
-board (on the drag plumbing) is the last slice before
-`mise run release` stamps 0.9.0. After that: `mise run release` stamps 0.9.0, then
+**Current focus (2026-10-04): v0.9.0 is feature-complete** -- the
+next step is `mise run release minor` stamping 0.9.0 (package.json
+still carries 0.8.0; interim PRs do not bump). After that: v0.10.0
+(live markdown), then the v0.11.0/v0.12.0 remainders, v0.13.0 (i18n),
+v0.14.0 (calendar time-grid), v0.15.0 (UX audit remainder). After that: `mise run release` stamps 0.9.0, then
 v0.10.0 (live markdown), v0.11.0 remainder, v0.12.0 remainder,
 v0.13.0 (i18n), v0.14.0 (calendar time-grid), v0.15.0 (UX audit
 remainder). UX-audit findings that live inside earlier sections ship
@@ -777,17 +779,20 @@ by `instanceDate`; missed-habit handling belongs to streaks).
 
 This release builds the full UI for project management and habit tracking.
 
-**Status:** Partially shipped. Habits: done (list, create/edit/delete with live natural-language schedule parsing, streak badges, weekday/weekend schedules, the habit detail view with the GitHub-style completion heatmap, and the "make recurring" promote toggle in the task detail modal; the edit form stays on the list row). Projects: the modal exists with list + create/edit/delete + a detail view showing the project's tasks; the Kanban board, auto-distribution, and dependency indicators remain (activate/deactivate are API flag flips only). Summary: DONE (2026-10-04 -- overdue list with days-late badges, active streaks, and a combined "Next 14 Days" section for `#deadline` tasks and holidays). Calendar: done. Holidays: DONE (2026-10-04 -- Settings entry + `.ics` import, day-list banners; see the Holidays item below). The 2026-10-03 UX audit adds habits-modal UX fixes, a high-level month view for the Calendar modal, and a keep-or-remove criterion for the Summary modal -- tracked in the v0.15.0 section.
+**Status:** COMPLETE (2026-10-04). Habits: done (list, create/edit/delete with live natural-language schedule parsing, streak badges, weekday/weekend schedules, the habit detail view with the GitHub-style completion heatmap, and the "make recurring" promote toggle in the task detail modal; the edit form stays on the list row). Projects: DONE (2026-10-04 -- the Kanban board with drag between
+      columns, inline date editing, Activate + Auto-distribute with
+      preview, and the `dependsOn` lock indicator; see the Projects
+      item below). Summary: DONE (2026-10-04 -- overdue list with days-late badges, active streaks, and a combined "Next 14 Days" section for `#deadline` tasks and holidays). Calendar: done. Holidays: DONE (2026-10-04 -- Settings entry + `.ics` import, day-list banners; see the Holidays item below). The 2026-10-03 UX audit adds habits-modal UX fixes, a high-level month view for the Calendar modal, and a keep-or-remove criterion for the Summary modal -- tracked in the v0.15.0 section.
 
-- [ ] **Projects modal:**
+- [x] **Projects modal:** (The list, CRUD, and detail view shipped with v0.4.0; the Kanban board shipped 2026-10-04.)
     - List all projects (active and inactive).
     - Create/edit/delete projects with name, description, start date, due date.
-    - **Project detail:** Kanban board with three columns -- Ready, Scheduled, Done.
-    - Drag tasks between columns.
-    - Each scheduled task shows its assigned date.
-    - [Activate] button runs the auto-distribution algorithm (spreads tasks across days between start and due date).
-    - [Auto-distribute] shows a preview before confirming.
-    - Dependency indicators: tasks blocked by incomplete predecessors show a lock icon.
+    - **Project detail:** Kanban board with three columns -- Ready, Scheduled, Done. (As built: the columns map onto real task state -- Ready = undated, Scheduled = dated, Done = completed -- rather than the unused `state` field, so every drag is a meaningful mutation. Sub-tasks stay off the board: they render glued to their parent in the day list, so a lone sub-task move would have no visible effect.)
+    - Drag tasks between columns. (Native HTML5 DnD on the v0.6.0 dragStore; drops into Scheduled land on the window-start date, adjustable inline on the card.)
+    - Each scheduled task shows its assigned date. (An inline date input on the card -- shows AND edits.)
+    - [Activate] button runs the auto-distribution algorithm (spreads tasks across days between start and due date). (As built: Activate confirms through the shared confirm dialog, flips `isActive`, and applies the plan in one step.)
+    - [Auto-distribute] shows a preview before confirming. (`planProjectDistribution` in `@erledigen/shared` -- dependency-ordered (Kahn), round-robin across `[max(startDate, today), dueDate]`, never in the past; a past due date plans nothing.)
+    - Dependency indicators: tasks blocked by incomplete predecessors show a lock icon. (As built: `dependsOn` joined the public task update API; the lock opens a blocked-by picker scoped to the project's tasks; completing the blocker releases the lock.)
     - Project tasks appear in the day list tagged with the project name (e.g., `#build-erledigen`).
 - [ ] **Habits modal:**
     - List all recurring task templates with current streak and last completion date.

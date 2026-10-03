@@ -1,5 +1,6 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
+    import KanbanBoard from '$lib/components/KanbanBoard.svelte';
     import { projectStore, taskStore, uiStore } from '$lib/stores';
     import { Icon } from 'svelte-icons-pack';
     import { LuPlus, LuPencil, LuTrash2, LuArrowLeft } from 'svelte-icons-pack/lu';
@@ -172,22 +173,9 @@
                 </div>
             {/if}
 
-            <section class="detail-tasks">
-                <h4 class="modal-section-heading">Tasks ({projectTasks.length})</h4>
-                {#if projectTasks.length > 0}
-                    <ul class="task-list">
-                        {#each projectTasks as task (task.id)}
-                            <li class="task-item" class:completed={task.completed}>
-                                <span class="task-text">{task.text}</span>
-                                {#if task.date}
-                                    <span class="task-date">{task.date}</span>
-                                {/if}
-                            </li>
-                        {/each}
-                    </ul>
-                {:else}
-                    <p class="empty-small">No tasks assigned to this project.</p>
-                {/if}
+            <section class="detail-kanban" aria-label="Kanban board">
+                <h4 class="modal-section-heading">Board</h4>
+                <KanbanBoard project={selectedProject} tasks={projectTasks} />
             </section>
         </div>
     {:else}
@@ -391,38 +379,8 @@
         gap: 16px;
     }
 
-    .detail-tasks {
+    .detail-kanban {
         margin-top: 4px;
-    }
-
-    .task-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .task-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 6px 8px;
-        border-bottom: 1px solid var(--color-border);
-        font-size: 13px;
-    }
-
-    .task-item.completed .task-text {
-        text-decoration: line-through;
-        color: var(--color-text-muted);
-    }
-
-    .task-date {
-        font-size: 11px;
-        color: var(--color-text-muted);
-    }
-
-    .empty-small {
-        color: var(--color-text-muted);
-        font-size: 13px;
     }
 
     .icon-btn :global(svg) {

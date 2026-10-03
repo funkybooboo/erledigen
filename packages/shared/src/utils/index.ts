@@ -19,6 +19,15 @@ export type { ParsedRecurrence, RecurrenceSchedule } from './parseRecurrence';
 export { parseRecurrence } from './parseRecurrence';
 export type { ExtractedInlineTags } from './parseTags';
 export { extractInlineTags, parseTags } from './parseTags';
+export type {
+    DistributionAssignment,
+    DistributionOptions,
+} from './projectDistribution';
+export {
+    DEFAULT_DISTRIBUTION_SPAN_DAYS,
+    distributionWindowStart,
+    planProjectDistribution,
+} from './projectDistribution';
 export { generateOccurrences, nextOccurrenceIso } from './recurringTaskUtils';
 export { slugify } from './slugify';
 export { getTagsByKind, resolveTagKind } from './tagKinds';

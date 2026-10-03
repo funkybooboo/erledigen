@@ -165,6 +165,7 @@ export {
     dateRangeKeys,
     daysBetween,
     describeRecurrence,
+    distributionWindowStart,
     extractDatePhrase,
     extractInlineTags,
     formatTags,
@@ -177,6 +178,7 @@ export {
     nextOccurrenceIso,
     parseRecurrence,
     parseTags,
+    planProjectDistribution,
     resolveDatePhrase,
     slugify,
     splitKey,
@@ -185,3 +187,7 @@ export {
 export type { ParsedDatePhrase } from './utils/parseDatePhrase';
 export type { ParsedRecurrence, RecurrenceSchedule } from './utils/parseRecurrence';
 export type { ExtractedInlineTags } from './utils/parseTags';
+export type {
+    DistributionAssignment,
+    DistributionOptions,
+} from './utils/projectDistribution';
