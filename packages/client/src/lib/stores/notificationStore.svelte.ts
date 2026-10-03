@@ -5,7 +5,7 @@ interface Notification {
     message: string;
     kind: NotificationKind;
     iconType: string;
-    action?: { label: string; fn: () => void };
+    action?: { label: string; fn: () => void; redo?: () => void };
     duration: number;
     entering: boolean;
     leaving: boolean;
@@ -14,6 +14,15 @@ interface Notification {
 /** Undoable entry in the undo history. */
 interface UndoEntry {
     notificationId: string;
+    /** Reverts the action (Ctrl/Cmd+Z, or the toast's Undo button). */
+    fn: () => void;
+    /** Re-applies the action after an undo (Ctrl/Cmd+Shift+Z); null when
+     *  the action cannot be replayed. */
+    redo: (() => void) | null;
+}
+
+/** An undone action waiting to be replayed (Ctrl/Cmd+Shift+Z). */
+interface RedoEntry {
     fn: () => void;
 }
 
@@ -31,12 +40,18 @@ class NotificationStore {
     #undoHistory: UndoEntry[] = [];
     static readonly UNDO_HISTORY_MAX = 20;
 
+    /** Undone actions that can be replayed with redo (Ctrl/Cmd+Shift+Z),
+     *  newest last. A new undoable action clears it: redo only ever
+     *  replays a contiguous prefix of undone actions. */
+    #redoHistory: RedoEntry[] = [];
+    static readonly REDO_HISTORY_MAX = 20;
+
     push(
         message: string,
         options?: {
             kind?: NotificationKind;
             iconType?: string;
-            action?: { label: string; fn: () => void };
+            action?: { label: string; fn: () => void; redo?: () => void };
             duration?: number;
         },
     ): string {
@@ -54,10 +69,17 @@ class NotificationStore {
         };
 
         if (notification.action) {
-            this.#undoHistory.push({ notificationId: id, fn: notification.action.fn });
+            this.#undoHistory.push({
+                notificationId: id,
+                fn: notification.action.fn,
+                redo: notification.action.redo ?? null,
+            });
             if (this.#undoHistory.length > NotificationStore.UNDO_HISTORY_MAX) {
                 this.#undoHistory.shift();
             }
+            // A new action forks history: the redo stack can no longer
+            // reach the state it was rewound from.
+            this.#redoHistory = [];
         }
 
         this.notifications = [...this.notifications, notification];
@@ -100,6 +122,11 @@ class NotificationStore {
         this.#consumeUndoEntry(id);
         this.dismiss(id);
         notification.action.fn();
+        // A toast-button undo replays like a keyboard undo: stash the
+        // action's redo counterpart when the notification has one.
+        if (notification.action.redo) {
+            this.#pushRedo(notification.action.redo);
+        }
         return true;
     }
 
@@ -116,7 +143,26 @@ class NotificationStore {
             this.dismiss(entry.notificationId);
         }
         entry.fn();
+        if (entry.redo) this.#pushRedo(entry.redo);
         return true;
+    }
+
+    /**
+     * Replay the most recent undone action (the Ctrl/Cmd+Shift+Z
+     * binding). Returns false when there is nothing to redo.
+     */
+    redoLatest(): boolean {
+        const entry = this.#redoHistory.pop();
+        if (!entry) return false;
+        entry.fn();
+        return true;
+    }
+
+    #pushRedo(fn: () => void): void {
+        this.#redoHistory.push({ fn });
+        if (this.#redoHistory.length > NotificationStore.REDO_HISTORY_MAX) {
+            this.#redoHistory.shift();
+        }
     }
 
     #consumeUndoEntry(notificationId: string): void {
@@ -131,6 +177,7 @@ class NotificationStore {
         this.#timers.clear();
         this.notifications = [];
         this.#undoHistory = [];
+        this.#redoHistory = [];
     }
 
     #scheduleDismiss(id: string, duration: number): void {

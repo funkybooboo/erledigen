@@ -21,6 +21,7 @@ import {
     dateViewStore,
     notificationStore,
     preferencesStore,
+    type TaskSection,
     taskStore,
     uiStore,
 } from '$lib/stores';
@@ -103,6 +104,47 @@ function setPriorityTag(tag: 'p1' | 'p2' | 'p3' | null): boolean {
     return true;
 }
 
+/** J/K: move focus to the first task of the next/previous section -- a
+ *  day section, or a Someday group when the focused task lives in the
+ *  panel. Returns false when there is nowhere to jump. */
+function jumpSection(delta: 1 | -1): boolean {
+    const somedayIds = uiStore.visibleSomedayTaskIds;
+    const inSomeday =
+        somedayIds.length > 0 &&
+        uiStore.focusedTaskId !== null &&
+        somedayIds.includes(uiStore.focusedTaskId);
+    const sections: TaskSection[] = inSomeday
+        ? uiStore.visibleSomedaySections
+        : uiStore.visibleDaySections;
+    if (sections.length === 0) return false;
+
+    // Which section owns the current focus (-1 when nothing is focused).
+    const focusedId = uiStore.focusedTaskId;
+    const currentIndex = focusedId ? sections.findIndex(s => s.taskIds.includes(focusedId)) : -1;
+    // Unfocused: J starts at the first section, K at the last.
+    const targetIndex =
+        currentIndex === -1
+            ? delta > 0
+                ? 0
+                : sections.length - 1
+            : Math.min(sections.length - 1, Math.max(0, currentIndex + delta));
+    if (targetIndex === currentIndex) return true;
+
+    const targetId = sections[targetIndex]?.taskIds[0];
+    if (!targetId) return false;
+    uiStore.focusTask(targetId);
+    document.getElementById(`task-${targetId}`)?.scrollIntoView({ block: 'nearest' });
+    return true;
+}
+
+/** r/m/t: open the focused task's inline sub-editor. */
+function openRowEditor(kind: 'date' | 'tags'): boolean {
+    const task = getFocusedTask();
+    if (!task) return false;
+    uiStore.openRowEditor(task.id, kind);
+    return true;
+}
+
 function deleteFocusedTask(): boolean {
     const task = getFocusedTask();
     if (!task) return false;
@@ -120,6 +162,8 @@ function openModal(modal: Parameters<typeof uiStore.openModal>[0]): boolean {
 export const keyboardActions: Record<ShortcutId, KeyboardAction> = {
     focusNext: { run: () => moveFocus(1) },
     focusPrev: { run: () => moveFocus(-1) },
+    jumpNextSection: { run: () => jumpSection(1) },
+    jumpPrevSection: { run: () => jumpSection(-1) },
     addTask: {
         run: () => {
             uiStore.requestAddInputFocus(container.dateProvider.today());
@@ -152,6 +196,15 @@ export const keyboardActions: Record<ShortcutId, KeyboardAction> = {
     // Popped from the undo history -- survives the toast (see
     // notificationStore). Blocked while typing so native text undo works.
     undo: { run: () => notificationStore.undoLatest() },
+    // Replays the popped undo entry (delete -> undo -> redo re-deletes).
+    // Gated while typing for the same reason as undo (native text redo).
+    redo: { run: () => notificationStore.redoLatest() },
+    // r and m are two names for the same editor: a task's day IS its date,
+    // so "reschedule" and "move to another day" both pick a new date. Two
+    // registry ids keep the help table honest to the roadmap's table.
+    rescheduleTask: { run: () => openRowEditor('date') },
+    moveTask: { run: () => openRowEditor('date') },
+    editTags: { run: () => openRowEditor('tags') },
     setP1: { run: () => setPriorityTag('p1') },
     setP2: { run: () => setPriorityTag('p2') },
     setP3: { run: () => setPriorityTag('p3') },
@@ -203,6 +256,7 @@ export function handleGlobalKeydown(e: KeyboardEvent): void {
     if (e.key === 'Escape') {
         uiStore.closeModal();
         uiStore.startEditing(null);
+        uiStore.closeRowEditor();
         const activeInput = document.activeElement;
         if (activeInput?.classList.contains('add-input')) {
             (activeInput as HTMLInputElement).blur();
@@ -219,10 +273,14 @@ export function handleGlobalKeydown(e: KeyboardEvent): void {
     }
 
     // Modifier chords work anywhere, including while typing in an input
-    // (except undo, which defers to native text undo -- allowWhileTyping).
+    // (except undo/redo, which defer to native text undo/redo --
+    // allowWhileTyping is not set for them).
     if (e.metaKey || e.ctrlKey) {
         matcher.cancel();
-        if (!e.altKey && !e.shiftKey) {
+        if (!e.altKey) {
+            // Shift is part of the matcher's chord lookup key ('shift+z'
+            // from {mod}+Shift+Z), so shifted chords resolve through the
+            // same path; an unregistered combination matches nothing.
             const match = matcher.feed(toKeybindingEvent(e));
             if (match.status === 'action') {
                 const action = keyboardActions[match.id];

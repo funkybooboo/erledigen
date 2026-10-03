@@ -61,7 +61,7 @@ interface ParsedBinding {
     id: ShortcutId;
     /** Binding tokens; one token = one keystroke, several = a sequence. */
     tokens: string[];
-    /** '{mod}+X' modifier chord. */
+    /** '{mod}+X' / '{mod}+Shift+Z' modifier chord. */
     modifier: boolean;
 }
 
@@ -86,7 +86,8 @@ function parseBindings(shortcuts: typeof SHORTCUTS): ParsedBinding[] {
 export class KeybindingMatcher {
     /** Plain keystrokes, canonical key -> action. */
     readonly #plain = new Map<string, ShortcutId>();
-    /** Modifier chords, lowercase key ('k' from '{mod}+K') -> action. */
+    /** Modifier chords, lowercase lookup key ('k' from '{mod}+K',
+     *  'shift+z' from '{mod}+Shift+Z') -> action. */
     readonly #modifiers = new Map<string, ShortcutId>();
     /** Sequence bindings keyed by their canonical token path ('g t'). */
     readonly #sequences = new Map<string, ShortcutId>();
@@ -108,7 +109,9 @@ export class KeybindingMatcher {
             const [first] = binding.tokens;
             if (first === undefined) continue;
             if (binding.modifier) {
-                // '{mod}+K' -> the bare modifier key, lowercased.
+                // '{mod}+K' -> 'k'; '{mod}+Shift+Z' -> 'shift+z'. The
+                // lookup key keeps the shift token so a shifted chord can
+                // never shadow the plain one (or vice versa).
                 this.#modifiers.set(first.slice('{mod}+'.length).toLowerCase(), binding.id);
             } else if (binding.tokens.length === 1) {
                 this.#plain.set(canonicalKey(first), binding.id);
@@ -130,11 +133,14 @@ export class KeybindingMatcher {
      */
     feed(event: KeybindingEvent): MatchResult {
         // Modifier chords first: they are matched in contexts where plain
-        // keys are gated off (e.g. while typing).
+        // keys are gated off (e.g. while typing). Shift is part of the
+        // lookup key ('shift+z'), so only registered shifted chords fire;
+        // an unregistered combination falls through to 'none'.
         if (event.ctrl || event.meta) {
             this.cancel();
-            if (event.alt || event.shift) return { status: 'none' };
-            const id = this.#modifiers.get(event.key.toLowerCase());
+            if (event.alt) return { status: 'none' };
+            const lookup = `${event.shift ? 'shift+' : ''}${event.key.toLowerCase()}`;
+            const id = this.#modifiers.get(lookup);
             return id ? { status: 'action', id } : { status: 'none' };
         }
         if (event.alt) {

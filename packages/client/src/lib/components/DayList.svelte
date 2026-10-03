@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount, onDestroy, tick, untrack } from 'svelte';
-    import { taskStore, preferencesStore, dateViewStore, recurringTaskStore, uiStore } from '$lib/stores';
+    import { taskStore, preferencesStore, dateViewStore, recurringTaskStore, uiStore, type TaskSection } from '$lib/stores';
     import { addDays, dateRangeKeys, groupTasksByDate, SOMEDAY_KEY } from '@erledigen/shared';
     import { applyFilters } from '$lib/filters';
     import { container } from '$lib/container';
@@ -72,15 +72,18 @@
 
     // Publish the filtered day-ordered task ids so the global j/k keyboard
     // navigation (+layout.svelte) knows which task is "next"/"previous"
-    // on screen. Mirrors the render order exactly (filters + window).
+    // on screen. Mirrors the render order exactly (filters + window). The
+    // section view (days that hold tasks, in order) drives the J/K jumps.
     $effect(() => {
         const ids: string[] = [];
+        const sections: TaskSection[] = [];
         for (const k of dateKeys) {
-            for (const t of tasksByDate.get(k) ?? []) {
-                ids.push(t.id);
-            }
+            const sectionIds = (tasksByDate.get(k) ?? []).map(t => t.id);
+            ids.push(...sectionIds);
+            if (sectionIds.length > 0) sections.push({ key: k, taskIds: sectionIds });
         }
         uiStore.setVisibleTasks(ids);
+        uiStore.setVisibleDaySections(sections);
     });
 
     // Pick a rendered day element near the viewport center to use as a scroll

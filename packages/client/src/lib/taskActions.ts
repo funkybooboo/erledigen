@@ -32,13 +32,19 @@ export async function deleteTaskWithUndo(task: Task): Promise<DeleteOutcome> {
 
     // Clone at delete time: the store's copy can keep changing, but Undo
     // must restore exactly the state the user saw when they deleted.
+    // Redo (Ctrl/Cmd+Shift+Z) deletes the restored task again -- silently:
+    // no second undo toast, so the undo/redo pair reads as one action.
     const taskCopy: Task = { ...task };
     const success = await taskStore.remove(task.id);
     if (!success) return 'failed';
 
     notificationStore.push('Task deleted', {
         kind: 'info',
-        action: { label: 'Undo', fn: () => taskStore.restore(taskCopy) },
+        action: {
+            label: 'Undo',
+            fn: () => taskStore.restore(taskCopy),
+            redo: () => void taskStore.remove(task.id),
+        },
     });
     return 'deleted';
 }

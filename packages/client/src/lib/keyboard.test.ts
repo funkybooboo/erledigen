@@ -19,8 +19,16 @@ describe('KeybindingMatcher', () => {
                 const tokens = binding.split(' ');
                 let result: ReturnType<KeybindingMatcher['feed']> | undefined;
                 if (tokens[0]?.includes('{mod}')) {
+                    // '{mod}+K' -> ctrl+k; '{mod}+Shift+Z' -> ctrl+shift+z
+                    // (real events carry shift as a flag, never in `key`).
                     const chord = tokens[0].slice('{mod}+'.length);
-                    result = matcher.feed(key(chord, { ctrl: true }));
+                    const shifted = chord.startsWith('Shift+');
+                    result = matcher.feed(
+                        key(shifted ? chord.slice('Shift+'.length) : chord, {
+                            ctrl: true,
+                            shift: shifted,
+                        }),
+                    );
                 } else {
                     result = matcher.feed(key(canonicalKey(tokens[0] ?? '')));
                     for (const next of tokens.slice(1)) {
@@ -43,10 +51,24 @@ describe('KeybindingMatcher', () => {
         });
     });
 
-    it('rejects modifier chords with alt or shift held', () => {
+    it('rejects modifier chords with alt, and unregistered shifted chords', () => {
         const matcher = new KeybindingMatcher();
         expect(matcher.feed(key('k', { ctrl: true, alt: true }))).toEqual({ status: 'none' });
-        expect(matcher.feed(key('k', { ctrl: true, shift: true }))).toEqual({ status: 'none' });
+        // Ctrl+Shift+K is not registered -> none (shift is part of the
+        // lookup key, so it cannot fall through to the plain chord).
+        expect(matcher.feed(key('K', { ctrl: true, shift: true }))).toEqual({ status: 'none' });
+    });
+
+    it('resolves the registered shifted chord ({mod}+Shift+Z -> redo)', () => {
+        const matcher = new KeybindingMatcher();
+        expect(matcher.feed(key('Z', { ctrl: true, shift: true }))).toEqual({
+            status: 'action',
+            id: 'redo',
+        });
+        expect(matcher.feed(key('z', { ctrl: true }))).toEqual({
+            status: 'action',
+            id: 'undo',
+        });
     });
 
     it('plain keys require no modifiers', () => {
@@ -94,8 +116,9 @@ describe('KeybindingMatcher', () => {
         expect(matcher.feed(key('g'))).toEqual({ status: 'sequence-start' });
         // Fire the expiry callback.
         scheduled[0]?.();
-        // 't' now acts as a plain key: not a binding, nothing swallowed.
-        expect(matcher.feed(key('t'))).toEqual({ status: 'none' });
+        // 'q' now acts as a plain key: not a binding, nothing swallowed
+        // ('t' is bound to editTags, so it is not a neutral probe).
+        expect(matcher.feed(key('q'))).toEqual({ status: 'none' });
     });
 
     it('cancel() drops a pending sequence immediately', () => {
