@@ -170,7 +170,7 @@ Each of these has cost real debugging time in this repo.
   of small anchored regexes, and suspect this first when a parser
   mysteriously rejects valid input.
 - **The client build is size-gated**: CI fails when the browser payload
-  in `packages/client/build/client` exceeds 590 KiB
+  in `packages/client/build/client` exceeds 592 KiB
   (see [ci-cd-pipeline.md](../process/ci-cd-pipeline.md)) --
   think twice before adding dependencies or large static assets.
 

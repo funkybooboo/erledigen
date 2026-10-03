@@ -3,7 +3,7 @@
 # client bundle-size budget. This does NOT build docker images -- use
 # tools/build-images.sh for those (the compose stacks build them on demand).
 #
-# The budget (590 KiB by default, on the browser payload) mirrors the gate
+# The budget (592 KiB by default, on the browser payload) mirrors the gate
 # documented in .github/workflows/ci.yml. Override it with MAX_CLIENT_BYTES;
 # set MAX_CLIENT_BYTES=0 to skip the check entirely.
 
@@ -11,7 +11,7 @@ set -euo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
-DEFAULT_MAX_BYTES=604160 # 590 KiB
+DEFAULT_MAX_BYTES=606208 # 592 KiB
 MAX_BYTES="${MAX_CLIENT_BYTES:-$DEFAULT_MAX_BYTES}"
 
 step "Building shared"

@@ -15,18 +15,17 @@ green).
   cleanup) do not bump it. Cut the next release with
   `mise run release`, which bumps every manifest, bun.lock, and the
   runtime `version.ts` stamp together.
-- **Shipped complete:** v0.1.0, v0.2.0, v0.3.0, v0.4.0, v0.4.1, v0.5.0.
+- **Shipped complete:** v0.1.0, v0.2.0, v0.3.0, v0.4.0, v0.4.1, v0.5.0, v0.6.0.
 - **In flight, with remaining scope:**
     - v0.5.0 -- COMPLETE: the full shortcut table (J/K section jumps,
       r/m/t inline row editors, {mod}+Shift+Z redo), natural-language
       date + #tag parsing in task creation, and the complete command
       palette registry.
-    - v0.6.0 -- IN PROGRESS (the lowest incomplete version; current
-      focus): priority sort mode (block-aware within-day ordering +
-      priority accents) and the date-range filter shipped (PR #24);
-      drag-and-drop SHIPPED 2026-10-03 (native HTML5 DnD, reactivated
-      by the UX audit). Remaining: mobile/bottom sheets, responsive
-      breakpoints.
+    - v0.6.0 -- COMPLETE (2026-10-03): priority sort mode + date-range
+      filter (PR #24), drag-and-drop (native HTML5 DnD, reactivated by
+      the UX audit), and the mobile tier (bottom-sheet modals, Someday
+      overlay, breakpoints). The lowest incomplete version is now
+      v0.9.0.
     - v0.7.0 -- COMPLETE: storage + observability (SQLite, migrations,
       contract tests, preferences persistence, JSON logs, request IDs,
       `/api/metrics`, enhanced health); export (all four formats via
@@ -62,15 +61,13 @@ shipped -- was itself wrong and is reverted in the v0.3.0 section;
 the collection is real: `tests/api/`, dockerized via `mise run
 test-api`.)
 
-**Current focus (2026-10-03): completing v0.6.0, the lowest incomplete
-version.** Remaining v0.6.0 scope: drag-and-drop (the reactivated
-design in the v0.6.0 section), mobile/bottom sheets, and responsive
-breakpoints. After v0.6.0, in numeric order: the v0.9.0 remainder
-(Kanban, holidays, summary sections), v0.10.0 (live markdown),
-v0.11.0 remainder, v0.12.0 remainder, v0.13.0 (i18n), v0.14.0
-(calendar time-grid), v0.15.0 (UX audit remainder). UX-audit findings
-that live inside earlier sections ship with their home versions:
-drag-and-drop with v0.6.0, the summary keep-or-remove criterion with
+**Current focus (2026-10-03): v0.6.0 is COMPLETE; the v0.9.0
+remainder is next** -- Kanban board (on the drag plumbing), holidays,
+summary sections. After that: `mise run release` stamps 0.9.0, then
+v0.10.0 (live markdown), v0.11.0 remainder, v0.12.0 remainder,
+v0.13.0 (i18n), v0.14.0 (calendar time-grid), v0.15.0 (UX audit
+remainder). UX-audit findings that live inside earlier sections ship
+with their home versions: the summary keep-or-remove criterion with
 v0.9.0, live markdown with v0.10.0, the theme modal with v0.11.0.
 
 ---
@@ -527,7 +524,7 @@ The palette has two modes distinguished by the first character:
 
 This release polishes the three-panel layout, completes drag-and-drop interactions, implements lazy loading and view modes, and adds responsive behavior.
 
-**Status:** Layout polish shipped (true infinite scroll, resizable + collapsible Someday panel, filter persistence). Drag-and-drop was removed in the frontend simplification, REACTIVATED by the 2026-10-03 UX audit, and SHIPPED the same day (native HTML5 DnD; see the Drag-and-Drop section for the as-built notes). Priority sort mode and the date-range filter shipped (PR #24). Remaining: mobile/bottom sheets; responsive breakpoints.
+**Status:** COMPLETE (2026-10-03). Layout polish (true infinite scroll, resizable + collapsible Someday panel, filter persistence), drag-and-drop (reactivated by the UX audit and shipped same day -- native HTML5 DnD, see the Drag-and-Drop section), priority sort mode + the date-range filter (PR #24), and the mobile tier (bottom-sheet modals, Someday right-sheet overlay, hidden minimap, two breakpoints -- see Responsiveness).
 
 ### Drag-and-Drop (from v0.5.0)
 
@@ -557,11 +554,11 @@ This release polishes the three-panel layout, completes drag-and-drop interactio
 
 ### Responsiveness
 
-- [ ] **Mobile:**
+- [x] **Mobile:**
     - Day list fills full width.
-    - Someday panel and icon rail modals accessible as bottom sheets.
-    - Bottom bar always visible.
-- [ ] **Responsive breakpoints:** Graceful degradation from desktop to tablet to mobile.
+    - Someday panel and icon rail modals accessible as bottom sheets. (As built: modals dock as bottom sheets; the Someday panel floats as a full-height right sheet over the full-width day list -- closer to desktop muscle memory than a bottom sheet. The panel header gained the v0.4.0-spec collapse button, the only touch-friendly close. The month minimap hides below 768px -- the Calendar modal covers date navigation.)
+    - Bottom bar always visible. (Already flex-pinned; the Someday sheet stops 40px above the viewport bottom so the bar stays usable under it.)
+- [x] **Responsive breakpoints:** Graceful degradation from desktop to tablet to mobile. (As built: two tiers -- <768px mobile, 768-1024px tablet caps the Someday panel at 45vw. Native HTML5 drag stays desktop-only by design; `m`/`r` are the touch move path. e2e covers both tiers in `tests/e2e/responsive.spec.ts`.)
 
 ### Technical Notes & Considerations
 - Native HTML5 drag and drop powers the day list (decided 2026-10-03: the `svelte-dnd-action` spike cost ~63 KB raw over the bundle budget). The planned v0.9.0 Kanban drag should reuse this plumbing.
@@ -580,8 +577,8 @@ This release polishes the three-panel layout, completes drag-and-drop interactio
 - [x] Priority sort mode functional.
 - [x] Date range filter working in Filter modal.
 - [x] Filter persistence configurable in Settings. (Decision 2026-10-03: persistence is always on by design; the start-fresh toggle is deliberately tracked in the v0.11.0 Settings list instead. Not a v0.6.0 gap.)
-- [ ] Mobile bottom sheet behavior functional.
-- [ ] E2E tests passing. (Drag + filter scenarios are covered; responsive-viewport specs land with the mobile slice.)
+- [x] Mobile bottom sheet behavior functional.
+- [x] E2E tests passing. (Drag + filter scenarios in drag.spec, responsive-viewport specs in responsive.spec -- 229 green in CI order.)
 
 ---
 

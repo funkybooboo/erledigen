@@ -170,4 +170,38 @@
         overflow-y: auto;
         flex: 1;
     }
+
+    /* Mobile (v0.6.0): the dialog docks as a bottom sheet -- full width,
+       rounded top corners only, capped at 85vh with internal scroll.
+       Every modal inherits this from the one shared component. */
+    @media (max-width: 767px) {
+        .modal-backdrop {
+            align-items: flex-end;
+        }
+
+        .modal {
+            width: 100vw;
+            max-width: 100vw;
+            height: auto;
+            max-height: 85vh;
+            border-radius: 12px 12px 0 0;
+            animation: sheet-in 150ms ease-out;
+        }
+
+        .modal-body {
+            padding: 16px;
+        }
+    }
+
+    /* Fizzy sheet motion: slides up from the bottom edge on open. */
+    @keyframes sheet-in {
+        from {
+            opacity: 0;
+            transform: translateY(24px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 </style>
