@@ -17,6 +17,7 @@
 - I think the summary menu is pretty much pointless right now, do we have plans to improve it? if not we should remove it
 - I don't want the command pallet, that is going to far
 - I want a theme menu where uses can select the theming they would like for the app, this isn't settings its a theming menu, move all theming settings to this theming menu and out of the settings menu
+- you cant use natural language to make a habit and use tags at the same time, this should be possible
 
 generally I think the app is going in the right direction but it still needs work in polishing, refining, and getting the app to a gold standard
 

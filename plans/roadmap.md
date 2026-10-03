@@ -1057,6 +1057,16 @@ those sections (v0.9.0, v0.10.0, v0.11.0).
 - [ ] **Trim habit meta stats:** drop the instance count (it only
       grows over time) and do not render empty stats ("best 0",
       "0 done") for fresh habits.
+- [ ] **Compose habit schedules with `#tags`:** natural-language habit
+      creation and tags do not combine today. A tag AFTER the
+      recurrence phrase ("water plants every friday #home") breaks the
+      habit parse entirely -- the row becomes a plain task and the
+      schedule is lost; a tag BEFORE it ("water plants #home every
+      friday") creates the habit but leaves "#home" as literal text
+      and applies nothing (`createFromText` extracts tags only on the
+      plain-task path). The two parses should compose: the phrase sets
+      the schedule, the `#tags` land on the template and its generated
+      instances.
 
 ### Search (command palette removal)
 
