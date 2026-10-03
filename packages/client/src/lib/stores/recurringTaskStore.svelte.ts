@@ -6,10 +6,12 @@ import type {
     RecurringTaskStatsWithHistory,
     Task,
     UpdateRecurringTaskInput,
+    WsServerMessage,
 } from '@erledigen/shared';
 import { SvelteMap } from 'svelte/reactivity';
 import { container } from '$lib/container';
 import { RecurringTaskService } from '$lib/services/recurringTaskService';
+import { websocketService } from '$lib/services/websocketService';
 import { EntityStore } from './entityStore.svelte';
 
 /**
@@ -25,6 +27,8 @@ class RecurringTaskStore extends EntityStore<
     CreateRecurringTaskInput,
     UpdateRecurringTaskInput
 > {
+    #messageUnsubscribe: (() => void) | null = null;
+
     constructor() {
         super(recurringTaskService);
     }
@@ -40,6 +44,23 @@ class RecurringTaskStore extends EntityStore<
      *  tracks reads of .get() so entries appearing later update the
      *  badge. */
     stats = new SvelteMap<string, RecurringTaskStatsWithHistory>();
+
+    initWebSocket(): void {
+        this.#messageUnsubscribe = websocketService.onServerMessage((message: WsServerMessage) => {
+            if (message.type === 'data:restored') {
+                // A JSON restore replaced every table (ADR-009): refetch
+                // the templates and drop the stats map -- its keys belong
+                // to the pre-restore habit ids.
+                this.fetchAll();
+                this.stats.clear();
+            }
+        });
+    }
+
+    destroyWebSocket(): void {
+        this.#messageUnsubscribe?.();
+        this.#messageUnsubscribe = null;
+    }
 
     /** Fetch (or refresh) stats for the given habit ids. Failures leave
      *  existing entries untouched -- the modal just shows what it has. */
