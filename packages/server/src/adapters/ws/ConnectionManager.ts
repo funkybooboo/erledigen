@@ -1,6 +1,6 @@
 import type { Logger } from '@erledigen/shared';
 
-export interface ClientData {
+interface ClientData {
     clientId: string;
     connectedAt: string;
 }

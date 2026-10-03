@@ -20,7 +20,7 @@ import {
 import { container } from '$lib/container';
 import { GENERATE_HORIZON_DAYS, recurringTaskStore, taskStore } from '$lib/stores';
 
-export interface CreateFromTextOptions {
+interface CreateFromTextOptions {
     /** Schedule date for a plain task (empty string = Someday) and the
      *  start date fallback for a habit (defaults to today). */
     date?: string;
@@ -28,7 +28,7 @@ export interface CreateFromTextOptions {
     someDayGroupId?: string | null;
 }
 
-export type CreatedFromText =
+type CreatedFromText =
     | { kind: 'habit'; habit: RecurringTask; tasks: Task[]; schedule: RecurrenceSchedule }
     | { kind: 'task'; task: Task };
 

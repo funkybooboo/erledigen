@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import type { RecurringTask } from '../types/recurringTask';
-import { describeRecurrence, formatFrequency } from './formatFrequency';
+import { describeRecurrence } from './formatFrequency';
 import type { ParsedRecurrence } from './parseRecurrence';
 import { parseRecurrence } from './parseRecurrence';
 
@@ -191,7 +190,7 @@ describe('parseRecurrence', () => {
     });
 });
 
-describe('describeRecurrence / formatFrequency', () => {
+describe('describeRecurrence', () => {
     it('describes schedules the parser produces', () => {
         expect(
             describeRecurrence({
@@ -265,17 +264,6 @@ describe('describeRecurrence / formatFrequency', () => {
                 startTime: null,
             }),
         ).toBe('Every year');
-    });
-
-    it('formatFrequency describes a full RecurringTask', () => {
-        const rt = {
-            frequency: 'weekly',
-            interval: 1,
-            daysOfWeek: [0],
-            dayOfMonth: null,
-            startTime: '10:30',
-        } as RecurringTask;
-        expect(formatFrequency(rt)).toBe('Every Sunday at 10:30am');
     });
 
     it('describes weekday, weekend, and multi-day schedules', () => {

@@ -2,7 +2,7 @@ import { SvelteSet } from 'svelte/reactivity';
 
 const FLASH_MS = 600;
 
-export interface NewlyCreatedTracker {
+interface NewlyCreatedTracker {
     /** Whether the id is still in its post-creation flash window. */
     has(id: string): boolean;
     /** Start the flash window for a newly created task id. */

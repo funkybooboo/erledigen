@@ -30,7 +30,7 @@ export interface ServerStatusDeps {
 
 /** Health payload (wrapped in the standard ApiResponse envelope by the
  *  route handler). */
-export interface HealthData {
+interface HealthData {
     status: 'ok';
     version: string;
     uptime: number;
@@ -48,7 +48,7 @@ export interface HealthData {
     };
 }
 
-export async function buildHealthData(deps: ServerStatusDeps): Promise<HealthData> {
+async function buildHealthData(deps: ServerStatusDeps): Promise<HealthData> {
     const sqlite = deps.storageAdapter === 'sqlite' ? deps.sqliteConnection : null;
     const queueStats = await deps.jobQueue.getStats();
     return {

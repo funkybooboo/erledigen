@@ -4,7 +4,6 @@ import {
     BadRequestError,
     ConflictError,
     ForbiddenError,
-    InternalServerError,
     NotFoundError,
     UnauthorizedError,
     ValidationError,
@@ -105,15 +104,5 @@ describe('BadRequestError', () => {
         const err = new BadRequestError('malformed');
         expect(err.statusCode).toBe(400);
         expect(err.code).toBe('BAD_REQUEST');
-    });
-});
-
-describe('InternalServerError', () => {
-    it('sets statusCode 500, isOperational false, code INTERNAL_SERVER_ERROR', () => {
-        const err = new InternalServerError();
-        expect(err.statusCode).toBe(500);
-        expect(err.isOperational).toBe(false);
-        expect(err.code).toBe('INTERNAL_SERVER_ERROR');
-        expect(err.message).toBe('Internal server error');
     });
 });

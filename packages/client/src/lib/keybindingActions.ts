@@ -159,7 +159,7 @@ function openModal(modal: Parameters<typeof uiStore.openModal>[0]): boolean {
 
 /** Every shortcut in the registry, wired to its handler. The Record type
  *  makes a missing/extra entry a compile error. */
-export const keyboardActions: Record<ShortcutId, KeyboardAction> = {
+const keyboardActions: Record<ShortcutId, KeyboardAction> = {
     focusNext: { run: () => moveFocus(1) },
     focusPrev: { run: () => moveFocus(-1) },
     jumpNextSection: { run: () => jumpSection(1) },

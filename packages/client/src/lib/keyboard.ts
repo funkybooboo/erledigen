@@ -27,14 +27,14 @@ export interface KeybindingEvent {
     shift: boolean;
 }
 
-export type MatchResult =
+type MatchResult =
     | { status: 'action'; id: ShortcutId }
     | { status: 'sequence-start' }
     | { status: 'none' };
 
 /** Chords ("g t") expire after this long -- a lone prefix key must never
  *  swallow a later, unrelated keypress. */
-export const SEQUENCE_TIMEOUT_MS = 800;
+const SEQUENCE_TIMEOUT_MS = 800;
 
 /** Map both sides to canonical KeyboardEvent.key names: registry display
  *  tokens ('Space', 'Esc', the arrow glyphs) and raw event keys (' ').

@@ -38,7 +38,7 @@ export function makeTask(overrides: Partial<Task> & Pick<Task, 'id' | 'text'>): 
     };
 }
 
-export function makeUserPreferences(): UserPreferences {
+function makeUserPreferences(): UserPreferences {
     return {
         id: 'default',
         theme: 'system',

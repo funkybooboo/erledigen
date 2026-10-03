@@ -26,7 +26,7 @@ import { formatBinding, SHORTCUTS, type ShortcutId } from '$lib/keybindings';
  * scroll event.
  */
 
-export type TooltipParam = ShortcutId | { label: string; shortcut?: ShortcutId };
+type TooltipParam = ShortcutId | { label: string; shortcut?: ShortcutId };
 
 interface TooltipContent {
     label: string;

@@ -17,7 +17,7 @@ import { negotiate } from './contentNegotiation';
 import { errorToResponse } from './errorHandler';
 import { extractPathParam } from './pathUtils';
 
-export type RouteHandlerFn = (req: HttpRequest) => Promise<HttpResponse>;
+type RouteHandlerFn = (req: HttpRequest) => Promise<HttpResponse>;
 
 /**
  * Wraps a route handler so any thrown error is caught and converted to an

@@ -11,7 +11,7 @@
 import type { DateProvider, Task } from '@erledigen/shared';
 import type { TaskRepository } from '../adapters/data/TaskRepository';
 
-export interface RolloverResult {
+interface RolloverResult {
     /** The date tasks were rolled TO. */
     date: string;
     rolledCount: number;

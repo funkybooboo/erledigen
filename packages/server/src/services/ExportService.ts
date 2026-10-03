@@ -23,7 +23,7 @@ import type { TaskRepository } from '../adapters/data/TaskRepository';
 import type { UserPreferencesRepository } from '../adapters/data/UserPreferencesRepository';
 
 /** A serialized export document ready for an HTTP response. */
-export interface ExportDocument {
+interface ExportDocument {
     /** Serialized document body. */
     body: string;
     /** Media type for the Content-Type header. */

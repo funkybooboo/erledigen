@@ -6,7 +6,7 @@ import { API_ROUTES } from '@erledigen/shared';
  *  file's header row, so the mapping can travel as field:columnIndex
  *  pairs -- index-based mapping survives header names containing
  *  commas or colons. */
-export interface CsvImportOptions {
+interface CsvImportOptions {
     mapping: CsvColumnMapping;
     header: readonly string[];
 }

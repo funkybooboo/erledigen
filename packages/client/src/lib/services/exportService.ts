@@ -1,7 +1,7 @@
 import type { DateProvider, ExportFormat, HttpClient } from '@erledigen/shared';
 import { API_ROUTES, EXPORT_FORMAT_META } from '@erledigen/shared';
 
-export interface ExportDownload {
+interface ExportDownload {
     /** Raw document text. */
     text: string;
     /** Media type for the Blob. */
