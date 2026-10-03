@@ -16,6 +16,7 @@ import {
     JsonExportAdapter,
     MarkdownExportAdapter,
 } from '@erledigen/shared';
+import type { HolidayRepository } from '../adapters/data/HolidayRepository';
 import type { ProjectRepository } from '../adapters/data/ProjectRepository';
 import type { RecurringTaskRepository } from '../adapters/data/RecurringTaskRepository';
 import type { SomeDayGroupRepository } from '../adapters/data/SomeDayGroupRepository';
@@ -38,21 +39,30 @@ export class ExportService {
         private readonly someDayGroupRepo: SomeDayGroupRepository,
         private readonly projectRepo: ProjectRepository,
         private readonly recurringTaskRepo: RecurringTaskRepository,
+        private readonly holidayRepo: HolidayRepository,
         private readonly preferencesRepo: UserPreferencesRepository,
         private readonly dateProvider: DateProvider,
     ) {}
 
     /** Assemble the canonical snapshot: every entity, trash included. */
     async buildSnapshot(): Promise<ExportSnapshot> {
-        const [active, deleted, someDayGroups, projects, recurringTasks, userPreferences] =
-            await Promise.all([
-                this.taskRepo.findAll(),
-                this.taskRepo.findDeleted(),
-                this.someDayGroupRepo.findAll(),
-                this.projectRepo.findAll(),
-                this.recurringTaskRepo.findAll(),
-                this.preferencesRepo.get(),
-            ]);
+        const [
+            active,
+            deleted,
+            someDayGroups,
+            projects,
+            recurringTasks,
+            holidays,
+            userPreferences,
+        ] = await Promise.all([
+            this.taskRepo.findAll(),
+            this.taskRepo.findDeleted(),
+            this.someDayGroupRepo.findAll(),
+            this.projectRepo.findAll(),
+            this.recurringTaskRepo.findAll(),
+            this.holidayRepo.findAll(),
+            this.preferencesRepo.get(),
+        ]);
         return {
             format: 'erledigen-export',
             version: 1,
@@ -61,6 +71,7 @@ export class ExportService {
             someDayGroups,
             projects,
             recurringTasks,
+            holidays,
             userPreferences,
         };
     }

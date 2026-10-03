@@ -30,6 +30,8 @@ import {
 import { FilePreRestoreBackupWriter } from './adapters/backup/FilePreRestoreBackupWriter';
 import { NullPreRestoreBackupWriter } from './adapters/backup/PreRestoreBackupWriter';
 import { EnvConfigProvider } from './adapters/config/EnvConfigProvider';
+import type { HolidayRepository } from './adapters/data/HolidayRepository';
+import { InMemoryHolidayRepository } from './adapters/data/InMemoryHolidayRepository';
 import { InMemoryProjectRepository } from './adapters/data/InMemoryProjectRepository';
 import { InMemoryRecurringTaskRepository } from './adapters/data/InMemoryRecurringTaskRepository';
 import { InMemorySomeDayGroupRepository } from './adapters/data/InMemorySomeDayGroupRepository';
@@ -43,6 +45,7 @@ import {
     SqliteSnapshotRestoreWriter,
 } from './adapters/data/SnapshotRestoreWriter';
 import type { SomeDayGroupRepository } from './adapters/data/SomeDayGroupRepository';
+import { SqliteHolidayRepository } from './adapters/data/SqliteHolidayRepository';
 import { SqliteProjectRepository } from './adapters/data/SqliteProjectRepository';
 import { SqliteRecurringTaskRepository } from './adapters/data/SqliteRecurringTaskRepository';
 import { SqliteSomeDayGroupRepository } from './adapters/data/SqliteSomeDayGroupRepository';
@@ -61,6 +64,7 @@ import { ConnectionManager } from './adapters/ws/ConnectionManager';
 import type { WebSocketServer } from './adapters/ws/WebSocketServer';
 import { EventBus } from './services/EventBus';
 import { ExportService } from './services/ExportService';
+import { HolidayService } from './services/HolidayService';
 import { ImportService } from './services/ImportService';
 import { DEFAULT_JOB_RUNNER_CONFIG, JobRunner } from './services/JobRunner';
 import { ProjectService } from './services/ProjectService';
@@ -83,6 +87,7 @@ export class Container {
     private _httpClient: HttpClient | null = null;
     private _taskRepository: TaskRepository | null = null;
     private _someDayGroupRepository: SomeDayGroupRepository | null = null;
+    private _holidayRepository: HolidayRepository | null = null;
     private _projectRepository: ProjectRepository | null = null;
     private _recurringTaskRepository: RecurringTaskRepository | null = null;
     private _userPreferencesRepository: UserPreferencesRepository | null = null;
@@ -94,6 +99,7 @@ export class Container {
     private _tagService: TagService | null = null;
     private _recurringTaskService: RecurringTaskService | null = null;
     private _projectService: ProjectService | null = null;
+    private _holidayService: HolidayService | null = null;
     private _exportService: ExportService | null = null;
     private _importService: ImportService | null = null;
 
@@ -259,6 +265,16 @@ export class Container {
         return this._someDayGroupRepository;
     }
 
+    get holidayRepository(): HolidayRepository {
+        if (!this._holidayRepository) {
+            this._holidayRepository =
+                this.storageAdapter === 'sqlite'
+                    ? new SqliteHolidayRepository(this.sqliteConnection.db, this.dateProvider)
+                    : new InMemoryHolidayRepository(this.dateProvider);
+        }
+        return this._holidayRepository;
+    }
+
     get projectRepository(): ProjectRepository {
         if (!this._projectRepository) {
             this._projectRepository =
@@ -327,6 +343,15 @@ export class Container {
         return this._projectService;
     }
 
+    /** Holiday .ics import (v0.9.0): parsing + duplicate suppression
+     *  beyond plain CRUD (see HolidayService). */
+    get holidayService(): HolidayService {
+        if (!this._holidayService) {
+            this._holidayService = new HolidayService(this.holidayRepository);
+        }
+        return this._holidayService;
+    }
+
     /** Export service (see ADR-008): snapshot assembly + format dispatch. */
     get exportService(): ExportService {
         if (!this._exportService) {
@@ -335,6 +360,7 @@ export class Container {
                 this.someDayGroupRepository,
                 this.projectRepository,
                 this.recurringTaskRepository,
+                this.holidayRepository,
                 this.userPreferencesRepository,
                 this.dateProvider,
             );
@@ -363,6 +389,7 @@ export class Container {
                               this.sqliteConnection.db,
                               this.dateProvider,
                           ),
+                          new SqliteHolidayRepository(this.sqliteConnection.db, this.dateProvider),
                           new SqliteUserPreferencesRepository(
                               this.sqliteConnection.db,
                               this.dateProvider,
@@ -373,6 +400,7 @@ export class Container {
                           this.someDayGroupRepository,
                           this.projectRepository,
                           this.recurringTaskRepository,
+                          this.holidayRepository,
                           this.userPreferencesRepository,
                       );
             this._importService = new ImportService(

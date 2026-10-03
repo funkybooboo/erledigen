@@ -82,6 +82,9 @@ server, and API schemas alike) -- conceptually:
   `startTime` stamped onto generated instances. Stats (current/longest
   streak, total completions, completed-date history) are computed from
   the generated instances.
+- **Holiday** -- a named calendar date (name, date, no recurrence rule;
+  one row per named date). Rendered as day-list banners and importable
+  from `.ics` calendars.
 - **UserPreferences** -- a single row holding every setting: theme,
   panel widths and collapse states, rollover behavior, delete
   confirmation, tag kinds, active filters (tags, completion, sort mode,
@@ -135,6 +138,9 @@ Projects are collections of ordered tasks with a detail view in the Projects mod
 
 ### Habit Tracking
 Recurring tasks ("habits") are created from natural-language phrases -- type "water plants every friday at 9am" in any inline add input or the Habits modal and the schedule is parsed live. Instances are generated idempotently into the daily list (+90-day horizon) and tagged with the habit. Completing instances builds streaks (current, longest, total completions) shown as badges in the Habits modal, and the habit detail view shows a GitHub-style completion heatmap. Any existing task can be promoted to a habit with the "Make recurring" toggle in the task detail modal.
+
+### Holidays
+Settings > Holidays manages named calendar dates: add one by name and date, import a holiday `.ics` calendar by URL or file (duplicates are skipped, so re-importing a feed adds nothing), and delete ones you do not want. Each date renders a small banner above that day's section in the day list. Holidays are part of the JSON backup/restore (ADR-008/ADR-009).
 
 ### Rollover
 Incomplete tasks roll over to the next day by default, on a schedule configurable app-wide (midnight / 9am / manual) and per task (`rolloverEnabled`). The `daysLate` counter tracks how overdue a task is, counted from the date it was first planned.

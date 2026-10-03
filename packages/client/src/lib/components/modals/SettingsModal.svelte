@@ -1,9 +1,12 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
-    import { preferencesStore, refetchAllStores, uiStore } from '$lib/stores';
+    import { holidayStore, preferencesStore, refetchAllStores, uiStore } from '$lib/stores';
     import { container } from '$lib/container';
     import { ExportService } from '$lib/services/exportService';
+    import { HolidayService, type HolidayImportResult } from '$lib/services/holidayService';
     import { ImportService } from '$lib/services/importService';
+    import { Icon } from 'svelte-icons-pack';
+    import { LuTrash2 } from 'svelte-icons-pack/lu';
     import {
         autoDetectCsvMapping,
         CsvImportAdapter,
@@ -109,6 +112,85 @@
         }
     }
 
+    // -- Holidays (v0.9.0) --------------------------------------------------------
+
+    const holidayService = new HolidayService(container.httpClient);
+    let newHolidayName = $state('');
+    let newHolidayDate = $state('');
+    let holidayError = $state<string | null>(null);
+    let holidayImportUrlInput = $state('');
+    let holidayImporting = $state(false);
+    let holidayImportResult = $state<HolidayImportResult | null>(null);
+
+    /** Summary line for a finished .ics import. */
+    let holidayImportSummary = $derived.by(() => {
+        const result = holidayImportResult;
+        if (result === null) return null;
+        const skipped =
+            result.skipped > 0 ? ` (${result.skipped} skipped as duplicates)` : '';
+        const n = result.holidays.length;
+        return `Imported ${n} holiday${n !== 1 ? 's' : ''}${skipped}.`;
+    });
+
+    async function addHoliday(): Promise<void> {
+        const name = newHolidayName.trim();
+        if (name === '' || newHolidayDate === '') return;
+        holidayError = null;
+        const created = await holidayStore.create({ name, date: newHolidayDate });
+        if (created) {
+            newHolidayName = '';
+            newHolidayDate = '';
+        } else {
+            // The store swallows the failure (logged); surface it here.
+            holidayError = 'Could not add the holiday -- check the name and date.';
+        }
+    }
+
+    function handleHolidayKeydown(e: KeyboardEvent): void {
+        if (e.key === 'Enter') void addHoliday();
+    }
+
+    async function importHolidayUrl(): Promise<void> {
+        const url = holidayImportUrlInput.trim();
+        if (url === '') return;
+        await runHolidayImport(() => holidayService.importUrl(url));
+    }
+
+    async function importHolidayFile(e: Event): Promise<void> {
+        const input = e.currentTarget as HTMLInputElement;
+        const file = input.files?.[0] ?? null;
+        if (file === null) return;
+        const source = await file.text();
+        await runHolidayImport(() => holidayService.importIcs(source));
+        input.value = '';
+    }
+
+    async function runHolidayImport(fn: () => Promise<HolidayImportResult>): Promise<void> {
+        holidayImporting = true;
+        holidayError = null;
+        holidayImportResult = null;
+        try {
+            holidayImportResult = await fn();
+        } catch (error) {
+            holidayError =
+                error instanceof HttpClientError
+                    ? parseHolidayImportError(error)
+                    : 'Holiday import failed -- check that the server is reachable.';
+        } finally {
+            holidayImporting = false;
+        }
+    }
+
+    function parseHolidayImportError(error: HttpClientError): string {
+        try {
+            const body = JSON.parse(String(error.body ?? '')) as { error?: string };
+            if (body.error) return `Import rejected: ${body.error}`;
+        } catch {
+            // fall through to the generic message
+        }
+        return 'Holiday import failed -- the document could not be processed.';
+    }
+
     // -- Export (ADR-008) ---------------------------------------------------------
 
     const exportService = new ExportService(container.httpClient, container.dateProvider);
@@ -201,7 +283,8 @@
                 `Restored ${restored?.tasks ?? 0} task(s), ` +
                 `${restored?.someDayGroups ?? 0} Someday group(s), ` +
                 `${restored?.projects ?? 0} project(s), ` +
-                `${restored?.recurringTasks ?? 0} recurring template(s), and settings.`
+                `${restored?.recurringTasks ?? 0} recurring template(s), ` +
+                `${restored?.holidays ?? 0} holiday(s), and settings.`
             );
         }
         return `Imported ${result.created} task(s).`;
@@ -339,6 +422,102 @@
                     <option value="confirm">Ask before deleting</option>
                 </select>
             </label>
+        </fieldset>
+
+        <fieldset class="section">
+            <legend class="section-heading">Holidays</legend>
+            <p class="hint">
+                Named dates display a small banner above that day in the list.
+                Import a holiday .ics calendar by URL or file; duplicates are
+                skipped automatically.
+            </p>
+            <div class="holiday-add">
+                <input
+                    class="holiday-name-input"
+                    type="text"
+                    placeholder="Holiday name"
+                    bind:value={newHolidayName}
+                    onkeydown={handleHolidayKeydown}
+                    aria-label="Holiday name"
+                />
+                <input
+                    class="select"
+                    type="date"
+                    bind:value={newHolidayDate}
+                    onkeydown={handleHolidayKeydown}
+                    aria-label="Holiday date"
+                />
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    onclick={addHoliday}
+                    disabled={newHolidayName.trim() === '' || newHolidayDate === ''}
+                >
+                    Add
+                </button>
+            </div>
+            {#if holidayStore.holidays.length > 0}
+                <ul class="holiday-list">
+                    {#each holidayStore.holidays as holiday (holiday.id)}
+                        <li class="holiday-row">
+                            <span class="holiday-date">{holiday.date}</span>
+                            <span class="holiday-row-name">{holiday.name}</span>
+                            <button
+                                class="icon-btn small danger"
+                                onclick={() => holidayStore.remove(holiday.id)}
+                                aria-label="Delete {holiday.name}"
+                            >
+                                <Icon src={LuTrash2} />
+                            </button>
+                        </li>
+                    {/each}
+                </ul>
+            {/if}
+            <div class="holiday-import">
+                <input
+                    class="holiday-url-input"
+                    type="url"
+                    placeholder="https://example.com/holidays.ics"
+                    bind:value={holidayImportUrlInput}
+                    aria-label="Holiday calendar URL"
+                    onkeydown={(e: KeyboardEvent) => {
+                        if (e.key === 'Enter') void importHolidayUrl();
+                    }}
+                />
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    onclick={importHolidayUrl}
+                    disabled={holidayImporting || holidayImportUrlInput.trim() === ''}
+                >
+                    {holidayImporting ? 'Importing...' : 'Import URL'}
+                </button>
+            </div>
+            <div class="holiday-import">
+                <input
+                    type="file"
+                    accept=".ics,text/calendar"
+                    onchange={importHolidayFile}
+                    aria-label="Holiday calendar file"
+                    disabled={holidayImporting}
+                />
+            </div>
+            {#if holidayImportSummary}
+                <span class="hint" role="status">{holidayImportSummary}</span>
+                {#if holidayImportResult && holidayImportResult.warnings.length > 0}
+                    <ul class="import-warnings">
+                        {#each holidayImportResult.warnings.slice(0, 3) as warning}
+                            <li>{warning.message}</li>
+                        {/each}
+                        {#if holidayImportResult.warnings.length > 3}
+                            <li>... and {holidayImportResult.warnings.length - 3} more</li>
+                        {/if}
+                    </ul>
+                {/if}
+            {/if}
+            {#if holidayError}
+                <span class="hint invalid" role="alert">{holidayError}</span>
+            {/if}
         </fieldset>
 
         <fieldset class="section">
@@ -553,6 +732,68 @@
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
+    }
+
+    .holiday-add,
+    .holiday-import {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .holiday-name-input,
+    .holiday-url-input {
+        padding: 6px 12px;
+        border: 1px solid var(--color-border);
+        border-radius: 6px;
+        background: var(--color-surface-dim);
+        color: var(--color-text);
+        font-size: 14px;
+        flex: 1;
+        min-width: 160px;
+        box-sizing: border-box;
+    }
+
+    .holiday-name-input:focus,
+    .holiday-url-input:focus {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+    }
+
+    .holiday-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .holiday-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 0;
+        border-bottom: 1px solid var(--color-border);
+        font-size: 13px;
+    }
+
+    .holiday-row .holiday-row-name {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .holiday-date {
+        font-size: 11px;
+        color: var(--color-text-muted);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .holiday-row .icon-btn :global(svg) {
+        width: 14px;
+        height: 14px;
     }
 
     .csv-mapping {

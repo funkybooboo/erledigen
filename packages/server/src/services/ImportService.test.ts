@@ -11,6 +11,7 @@ import { afterAll, describe, expect, test } from 'bun:test';
 import type { ExportSnapshot, Task } from '@erledigen/shared';
 import { NativeDateProvider } from '@erledigen/shared';
 import type { PreRestoreBackupWriter } from '../adapters/backup/PreRestoreBackupWriter';
+import { InMemoryHolidayRepository } from '../adapters/data/InMemoryHolidayRepository';
 import { InMemoryProjectRepository } from '../adapters/data/InMemoryProjectRepository';
 import { InMemoryRecurringTaskRepository } from '../adapters/data/InMemoryRecurringTaskRepository';
 import { InMemorySomeDayGroupRepository } from '../adapters/data/InMemorySomeDayGroupRepository';
@@ -20,6 +21,7 @@ import {
     InMemorySnapshotRestoreWriter,
     SqliteSnapshotRestoreWriter,
 } from '../adapters/data/SnapshotRestoreWriter';
+import { SqliteHolidayRepository } from '../adapters/data/SqliteHolidayRepository';
 import { SqliteProjectRepository } from '../adapters/data/SqliteProjectRepository';
 import { SqliteRecurringTaskRepository } from '../adapters/data/SqliteRecurringTaskRepository';
 import { SqliteSomeDayGroupRepository } from '../adapters/data/SqliteSomeDayGroupRepository';
@@ -62,12 +64,14 @@ function makeInMemoryWiring(): Wiring {
     const groupRepo = new InMemorySomeDayGroupRepository(dateProvider);
     const projectRepo = new InMemoryProjectRepository(dateProvider);
     const recurringRepo = new InMemoryRecurringTaskRepository(dateProvider);
+    const holidayRepo = new InMemoryHolidayRepository(dateProvider);
     const preferencesRepo = new InMemoryUserPreferencesRepository(dateProvider);
     const exportService = new ExportService(
         taskRepo,
         groupRepo,
         projectRepo,
         recurringRepo,
+        holidayRepo,
         preferencesRepo,
         dateProvider,
     );
@@ -84,6 +88,7 @@ function makeInMemoryWiring(): Wiring {
                 groupRepo,
                 projectRepo,
                 recurringRepo,
+                holidayRepo,
                 preferencesRepo,
             ),
             backupWriter,
@@ -100,12 +105,14 @@ function makeSqliteWiring(): Wiring {
     const groupRepo = new SqliteSomeDayGroupRepository(connection.db, dateProvider);
     const projectRepo = new SqliteProjectRepository(connection.db, dateProvider);
     const recurringRepo = new SqliteRecurringTaskRepository(connection.db, dateProvider);
+    const holidayRepo = new SqliteHolidayRepository(connection.db, dateProvider);
     const preferencesRepo = new SqliteUserPreferencesRepository(connection.db, dateProvider);
     const exportService = new ExportService(
         taskRepo,
         groupRepo,
         projectRepo,
         recurringRepo,
+        holidayRepo,
         preferencesRepo,
         dateProvider,
     );
@@ -123,6 +130,7 @@ function makeSqliteWiring(): Wiring {
                 groupRepo,
                 projectRepo,
                 recurringRepo,
+                holidayRepo,
                 preferencesRepo,
             ),
             backupWriter,
@@ -148,6 +156,7 @@ async function buildSnapshot(wiring: Wiring): Promise<ExportSnapshot> {
         someDayGroups: [],
         projects: [],
         recurringTasks: [],
+        holidays: [],
         userPreferences: { ...prefs, theme: 'dark' },
     };
     return snapshot;
@@ -190,6 +199,7 @@ for (const [name, makeWiring] of [
                     someDayGroups: [],
                     projects: [],
                     recurringTasks: [],
+                    holidays: [],
                     userPreferences: await wiring.preferencesRepo.get(),
                 }),
             );
@@ -221,6 +231,7 @@ for (const [name, makeWiring] of [
                     new InMemorySomeDayGroupRepository(dateProvider),
                     new InMemoryProjectRepository(dateProvider),
                     new InMemoryRecurringTaskRepository(dateProvider),
+                    new InMemoryHolidayRepository(dateProvider),
                     wiring.preferencesRepo,
                     dateProvider,
                 ),
@@ -229,6 +240,7 @@ for (const [name, makeWiring] of [
                     new InMemorySomeDayGroupRepository(dateProvider),
                     new InMemoryProjectRepository(dateProvider),
                     new InMemoryRecurringTaskRepository(dateProvider),
+                    new InMemoryHolidayRepository(dateProvider),
                     wiring.preferencesRepo,
                 ),
                 new ThrowingBackupWriter(),
@@ -345,6 +357,7 @@ describe('ImportService (sqlite transaction atomicity)', () => {
         const groupRepo = new SqliteSomeDayGroupRepository(connection.db, dateProvider);
         const projectRepo = new SqliteProjectRepository(connection.db, dateProvider);
         const recurringRepo = new SqliteRecurringTaskRepository(connection.db, dateProvider);
+        const holidayRepo = new SqliteHolidayRepository(connection.db, dateProvider);
         const prefsRepo = new SqliteUserPreferencesRepository(connection.db, dateProvider);
 
         const keeper = await taskRepo.create({ text: 'Survivor', date: null });
@@ -356,6 +369,7 @@ describe('ImportService (sqlite transaction atomicity)', () => {
             someDayGroups: [],
             projects: [],
             recurringTasks: [],
+            holidays: [],
             userPreferences: await prefsRepo.get(),
         };
 
@@ -370,6 +384,7 @@ describe('ImportService (sqlite transaction atomicity)', () => {
             groupRepo,
             projectRepo,
             recurringRepo,
+            holidayRepo,
             {
                 restoreSync: () => {
                     throw new Error('disk full');

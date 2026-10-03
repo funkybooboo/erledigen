@@ -21,6 +21,7 @@ export const ImportResultSchema = registry.register(
                 someDayGroups: z.number(),
                 projects: z.number(),
                 recurringTasks: z.number(),
+                holidays: z.number(),
                 preferences: z.literal(true),
             })
             .nullable()

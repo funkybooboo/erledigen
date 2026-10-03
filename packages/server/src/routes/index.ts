@@ -12,6 +12,7 @@ import type { Container } from '../container';
 import { APP_VERSION } from '../version';
 import { registerExportRoutes } from './exportRoutes';
 import { registerHealthRoutes, type ServerStatusDeps } from './healthRoutes';
+import { registerHolidayRoutes } from './holidayRoutes';
 import { registerImportRoutes } from './importRoutes';
 import { registerMetricsRoutes } from './metricsRoutes';
 import { registerOpenApiRoutes } from './openApiRoutes';
@@ -61,6 +62,13 @@ export function registerAllRoutes(server: HttpServer, container: Container): voi
     registerSomeDayGroupRoutes(
         server,
         container.someDayGroupRepository,
+        container.eventBus,
+        logger,
+    );
+    registerHolidayRoutes(
+        server,
+        container.holidayRepository,
+        container.holidayService,
         container.eventBus,
         logger,
     );

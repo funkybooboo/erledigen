@@ -1,3 +1,4 @@
+import type { Holiday } from './holiday';
 import type { ImportResult } from './import';
 import type { Project } from './project';
 import type { SomeDayGroup } from './someDayGroup';
@@ -22,6 +23,13 @@ export type WsServerEventMap = {
     'someDayGroup:created': { group: SomeDayGroup };
     'someDayGroup:updated': { group: SomeDayGroup };
     'someDayGroup:deleted': { id: string };
+    'holiday:created': { holiday: Holiday };
+    'holiday:updated': { holiday: Holiday };
+    'holiday:deleted': { id: string };
+    /** One .ics import creating many holidays at once: the batch
+     *  equivalent of holiday:created (per-row events would flood the
+     *  broadcast for a typical yearly calendar). */
+    'holidays:imported': { holidays: Holiday[] };
     'recurringTask:generated': RecurringTaskGeneratedPayload;
     /** Broadcast after a JSON restore replaced ALL application data
      *  (ADR-009): connected clients refetch everything they hold. */

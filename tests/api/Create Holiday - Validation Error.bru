@@ -1,0 +1,28 @@
+meta {
+  name: Create Holiday - Validation Error
+  type: http
+  seq: 127
+}
+
+post {
+  url: {{baseUrl}}/api/holidays
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "",
+    "date": "not-a-date"
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("should return 400 for empty name and bad date", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+}

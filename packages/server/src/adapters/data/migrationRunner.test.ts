@@ -19,6 +19,7 @@ describe('runMigrations', () => {
         expect(tables).toContain('recurring_tasks');
         expect(tables).toContain('recurring_task_stats');
         expect(tables).toContain('user_preferences');
+        expect(tables).toContain('holidays');
         expect(tables).toContain('_migrations');
     });
 
@@ -49,6 +50,7 @@ describe('runMigrations', () => {
             '003_recurring_days_of_week.sql',
             '004_jobs_table.sql',
             '005_rollover_trigger_time.sql',
+            '006_holidays_table.sql',
         ]);
     });
 });

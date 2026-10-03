@@ -61,9 +61,8 @@ shipped -- was itself wrong and is reverted in the v0.3.0 section;
 the collection is real: `tests/api/`, dockerized via `mise run
 test-api`.)
 
-**Current focus (2026-10-03): v0.6.0 is COMPLETE; the v0.9.0
-remainder is next** -- Kanban board (on the drag plumbing), holidays,
-summary sections. After that: `mise run release` stamps 0.9.0, then
+**Current focus (2026-10-04): the v0.9.0 remainder** -- Kanban board
+(on the drag plumbing) and summary sections; holidays shipped. After that: `mise run release` stamps 0.9.0, then
 v0.10.0 (live markdown), v0.11.0 remainder, v0.12.0 remainder,
 v0.13.0 (i18n), v0.14.0 (calendar time-grid), v0.15.0 (UX audit
 remainder). UX-audit findings that live inside earlier sections ship
@@ -777,7 +776,7 @@ by `instanceDate`; missed-habit handling belongs to streaks).
 
 This release builds the full UI for project management and habit tracking.
 
-**Status:** Partially shipped. Habits: done (list, create/edit/delete with live natural-language schedule parsing, streak badges, weekday/weekend schedules, the habit detail view with the GitHub-style completion heatmap, and the "make recurring" promote toggle in the task detail modal; the edit form stays on the list row). Projects: the modal exists with list + create/edit/delete + a detail view showing the project's tasks; the Kanban board, auto-distribution, and dependency indicators remain (activate/deactivate are API flag flips only). Summary: today's completion percentage + upcoming `#deadline` tasks; overdue/streak/holiday sections remain. Calendar: done. Holidays: not started. The 2026-10-03 UX audit adds habits-modal UX fixes, a high-level month view for the Calendar modal, and a keep-or-remove criterion for the Summary modal -- tracked in the v0.15.0 section.
+**Status:** Partially shipped. Habits: done (list, create/edit/delete with live natural-language schedule parsing, streak badges, weekday/weekend schedules, the habit detail view with the GitHub-style completion heatmap, and the "make recurring" promote toggle in the task detail modal; the edit form stays on the list row). Projects: the modal exists with list + create/edit/delete + a detail view showing the project's tasks; the Kanban board, auto-distribution, and dependency indicators remain (activate/deactivate are API flag flips only). Summary: today's completion percentage + upcoming `#deadline` tasks; overdue/streak/holiday sections remain. Calendar: done. Holidays: DONE (2026-10-04 -- Settings entry + `.ics` import, day-list banners; see the Holidays item below). The 2026-10-03 UX audit adds habits-modal UX fixes, a high-level month view for the Calendar modal, and a keep-or-remove criterion for the Summary modal -- tracked in the v0.15.0 section.
 
 - [ ] **Projects modal:**
     - List all projects (active and inactive).
@@ -802,10 +801,10 @@ This release builds the full UI for project management and habit tracking.
 - [x] **Calendar modal:**
     - A month-grid date picker that jumps the day list to the selected date (and centers it).
     - **Today** is a full view reset: day list centered on today and the month minimap re-centered on the current month.
-- [ ] **Holidays in Settings:**
+- [x] **Holidays in Settings:** (Shipped 2026-10-04 -- one `Holiday` row per named date, CRUD via `HolidayRepository` + migration 006, part of the JSON backup/restore per ADR-008/009.)
     - Manual entry of named dates (name + date).
-    - Optional `.ics` import via URL or file upload.
-    - Holiday banners displayed above day section headers in the day list.
+    - Optional `.ics` import via URL or file upload. (As built: `POST /api/holidays/import` takes the raw `.ics` text OR a JSON `{ url }` -- the SERVER fetches the URL so the browser never hits the feed's CORS wall; duplicate (date, name) pairs are skipped, so re-importing a feed adds nothing; VEVENT parsing reuses the ADR-009 `IcalImportAdapter`.)
+    - Holiday banners displayed above day section headers in the day list. (As built: a pill-shaped accent banner joins multiple same-day holidays; updates render live via the `holiday:created`/`updated`/`deleted`/`holidays:imported` WebSocket events.)
 
 ### Technical Notes & Considerations
 - Kanban drag-and-drop reuses the drag infrastructure from v0.6.0.

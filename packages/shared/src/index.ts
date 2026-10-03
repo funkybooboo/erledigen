@@ -28,6 +28,9 @@ export { HttpClientError } from './adapters/http/HttpClient';
 export { autoDetectCsvMapping, CsvImportAdapter } from './adapters/import/CsvImportAdapter';
 export { IcalImportAdapter } from './adapters/import/IcalImportAdapter';
 export type { ImportAdapter } from './adapters/import/ImportAdapter';
+// Thrown across the package boundary by every import adapter on an
+// unusable source document (HolidayService's .ics import included).
+export { ImportValidationError } from './adapters/import/ImportValidationError';
 export { JsonRestoreImportAdapter } from './adapters/import/JsonRestoreImportAdapter';
 export { ThingsJsonImportAdapter } from './adapters/import/ThingsJsonImportAdapter';
 export { TodoistCsvImportAdapter } from './adapters/import/TodoistCsvImportAdapter';
@@ -92,6 +95,8 @@ export type { ApiResponse, ErrorResponseBody } from './types/api';
 // Types - export/import contract (ADR-008, ADR-009)
 export type { ExportFormat, ExportSnapshot } from './types/export';
 export { EXPORT_FORMAT_META, EXPORT_FORMATS } from './types/export';
+// Types
+export type { CreateHolidayInput, Holiday, UpdateHolidayInput } from './types/holiday';
 export type {
     CsvColumnMapping,
     CsvImportField,
@@ -102,7 +107,6 @@ export type {
     ParsedTasks,
 } from './types/import';
 export { CSV_IMPORT_FIELDS, IMPORT_FORMAT_META, IMPORT_FORMATS } from './types/import';
-// Types
 export type { CreateProjectInput, Project, UpdateProjectInput } from './types/project';
 export type {
     AdoptTaskAsRecurringInput,

@@ -62,6 +62,12 @@ export class InMemoryRecurringTaskRepository implements RecurringTaskRepository 
 
     async replaceAll(recurringTasks: RecurringTask[]): Promise<void> {
         this.tasks.clear();
+        // Stats are DERIVED data (recomputed from instances on read) and
+        // are deliberately absent from the snapshot -- a restore wipes
+        // them with the templates. Keeping rows for ids the restore just
+        // removed lets a REUSED id inherit a deleted habit's records
+        // (nextId frees the max id on delete/restore).
+        this.stats.clear();
         for (const rt of recurringTasks) {
             this.tasks.set(rt.id, { ...rt });
         }
@@ -72,6 +78,9 @@ export class InMemoryRecurringTaskRepository implements RecurringTaskRepository 
     }
 
     async delete(id: string): Promise<boolean> {
+        // The stats row dies with its template (same id-reuse reasoning
+        // as replaceAll -- deleting the max id frees it for reuse).
+        this.stats.delete(id);
         return this.tasks.delete(id);
     }
 
