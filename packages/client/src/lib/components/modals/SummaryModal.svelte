@@ -19,7 +19,7 @@
 <Modal title="Summary" onclose={onclose}>
     <div class="summary" role="region" aria-label="Daily summary">
         <section class="section" aria-labelledby="summary-today-heading">
-            <h3 id="summary-today-heading">Today</h3>
+            <h3 id="summary-today-heading" class="modal-section-heading">Today</h3>
             <div class="stat-grid">
                 <div class="stat">
                     <span class="stat-value">{completionPct}%</span>
@@ -37,7 +37,7 @@
 
         {#if upcomingDeadlines.length > 0}
 <section class="section" aria-labelledby="summary-deadlines-heading">
-                <h3 id="summary-deadlines-heading">Upcoming Deadlines</h3>
+                <h3 id="summary-deadlines-heading" class="modal-section-heading">Upcoming Deadlines</h3>
                 <ul class="list">
                     {#each upcomingDeadlines as task}
                         <li class="list-item">
@@ -56,15 +56,6 @@
         display: flex;
         flex-direction: column;
         gap: 20px;
-    }
-
-    .section h3 {
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--color-text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin: 0 0 8px;
     }
 
     .stat-grid {

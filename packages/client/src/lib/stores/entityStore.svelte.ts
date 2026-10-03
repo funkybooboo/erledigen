@@ -4,16 +4,20 @@
  *
  * Holds a `$state` list of entities keyed by `id` and provides the common
  * fetchAll / create / update / remove flow with uniform null/boolean return
- * semantics and "keep current state on error" handling. Subclasses:
+ * semantics and "keep current state on error" handling, plus the shared
+ * WebSocket sync lifecycle (initWebSocket/destroyWebSocket; override
+ * onServerMessage for entity events and onDataRestored for restore
+ * handling). Subclasses:
  *   - expose a domain-specific read accessor (e.g. `get projects()` -> items)
  *   - may override `sort()` to impose a display order on fetched/created lists
- *   - may add WebSocket sync on top (see projectStore)
  *
  * The concrete client services satisfy the `CrudService` contract structurally
  * and may carry additional methods beyond these four.
  */
 
+import type { WsServerMessage } from '@erledigen/shared';
 import { container } from '$lib/container';
+import { subscribeServerMessages } from './wsSync';
 
 interface CrudService<T extends { id: string }, CreateInput, UpdateInput> {
     getAll(): Promise<T[]>;
@@ -26,6 +30,8 @@ export class EntityStore<T extends { id: string }, CreateInput, UpdateInput> {
     items = $state<T[]>([]);
 
     private logger = container.logger;
+
+    #wsUnsubscribe: (() => void) | null = null;
 
     constructor(protected service: CrudService<T, CreateInput, UpdateInput>) {}
 
@@ -82,6 +88,32 @@ export class EntityStore<T extends { id: string }, CreateInput, UpdateInput> {
             this.logFailure('remove', error);
             return false;
         }
+    }
+
+    /**
+     * Subscribe this store to server broadcasts. `data:restored`
+     * (ADR-009) triggers a full refetch -- per-row events cannot describe
+     * a wholesale replace; every other message goes to onServerMessage.
+     */
+    initWebSocket(): void {
+        this.#wsUnsubscribe = subscribeServerMessages(
+            () => this.onDataRestored(),
+            message => this.onServerMessage(message),
+        );
+    }
+
+    /** Override to ingest entity-specific events (created/updated/deleted). */
+    protected onServerMessage(_message: WsServerMessage): void {}
+
+    /** Override for restore handling beyond the default full refetch
+     *  (e.g. dropping a keyed stats cache). */
+    protected onDataRestored(): void {
+        this.fetchAll();
+    }
+
+    destroyWebSocket(): void {
+        this.#wsUnsubscribe?.();
+        this.#wsUnsubscribe = null;
     }
 
     /**

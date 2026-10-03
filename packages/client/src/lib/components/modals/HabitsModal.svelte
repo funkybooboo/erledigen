@@ -1,6 +1,7 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
     import HabitHeatmap from '$lib/components/HabitHeatmap.svelte';
+    import RecurrenceHint from '$lib/components/RecurrenceHint.svelte';
     import HabitScheduleForm from '$lib/components/HabitScheduleForm.svelte';
     import {
         GENERATE_HORIZON_DAYS,
@@ -16,7 +17,6 @@
         LuFlame,
         LuPencil,
         LuPlus,
-        LuRepeat,
         LuTrash2,
     } from 'svelte-icons-pack/lu';
     import {
@@ -253,10 +253,7 @@
                         aria-label="Habit name"
                     />
                     {#if parsed}
-                        <span class="recur-hint" title="This will repeat: {parsed.phrase}">
-                            <Icon src={LuRepeat} />
-                            <span>{describeRecurrence(parsed.schedule)}</span>
-                        </span>
+                        <RecurrenceHint {parsed} />
                     {/if}
                 </div>
                 <HabitScheduleForm
@@ -569,26 +566,6 @@
         color: var(--color-text-secondary);
         cursor: pointer;
         min-width: 0 !important;
-    }
-
-    .recur-hint {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        flex-shrink: 0;
-        padding: 2px 8px;
-        border-radius: 999px;
-        background: var(--color-accent-light);
-        color: var(--color-accent);
-        font-size: 11px;
-        font-weight: 600;
-        white-space: nowrap;
-        pointer-events: none;
-    }
-
-    .recur-hint :global(svg) {
-        width: 12px;
-        height: 12px;
     }
 
     .icon-btn :global(svg) {

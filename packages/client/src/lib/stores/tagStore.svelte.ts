@@ -1,8 +1,8 @@
-import type { TagKind, WsServerMessage } from '@erledigen/shared';
+import type { TagKind } from '@erledigen/shared';
 import { getTagsByKind } from '@erledigen/shared';
 import { container } from '$lib/container';
 import { type TagInfo, TagService } from '$lib/services/tagService';
-import { websocketService } from '$lib/services/websocketService';
+import { subscribeServerMessages } from './wsSync';
 
 const tagService = new TagService(container.httpClient);
 
@@ -13,22 +13,23 @@ class TagStore {
     #messageUnsubscribe: (() => void) | null = null;
 
     initWebSocket(): void {
-        this.#messageUnsubscribe = websocketService.onServerMessage((message: WsServerMessage) => {
-            switch (message.type) {
-                case 'data:restored':
-                    // A JSON restore replaced every table (ADR-009):
-                    // tags are derived from tasks, so refetch both.
-                    this.fetchAll();
-                    this.fetchInfo();
-                    break;
-
-                case 'tag:renamed':
-                case 'tag:merged':
-                    this.fetchAll();
-                    this.fetchInfo();
-                    break;
-            }
-        });
+        this.#messageUnsubscribe = subscribeServerMessages(
+            () => {
+                // Tags are derived from tasks, so a restore means both
+                // tag views refetch.
+                this.fetchAll();
+                this.fetchInfo();
+            },
+            message => {
+                switch (message.type) {
+                    case 'tag:renamed':
+                    case 'tag:merged':
+                        this.fetchAll();
+                        this.fetchInfo();
+                        break;
+                }
+            },
+        );
     }
 
     destroyWebSocket(): void {
