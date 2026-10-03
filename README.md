@@ -1,12 +1,34 @@
 # Erledigen
 
-Welcome to Erledigen, a modern task application that's as fun to develop as it is to use! Inspired by the clean and simple interface of TeuxDeux, Erledigen is a unified task manager built around one idea: **you should only need one place to manage your work and your life**.
+**Self-hosted, keyboard-first task management.** "Erledigen" is German for "to get done", and that is the whole idea: one place to manage your work and your life, inspired by the clean, simple interface of [TeuxDeux](https://teuxdeux.com).
 
-The daily list is the execution surface. Someday is the capture net. Habits generate instances into the daily list automatically (projects will too, once auto-distribution lands). Everything is organized with tags -- the same tag system works across tasks, groups, Someday, and filters.
+The daily list is the execution surface. The Someday panel is the capture net. Habits generate their instances into the daily list automatically (projects will too, once auto-distribution lands). Everything is organized with tags -- the same tag system works across tasks, groups, Someday, and filters.
+
+No accounts, no analytics, no telemetry. Your data lives in your own database, synced live to every open client over WebSocket.
 
 [![CI](https://github.com/funkybooboo/erledigen/actions/workflows/ci.yml/badge.svg)](https://github.com/funkybooboo/erledigen/actions/workflows/ci.yml)
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](./LICENSE)
+[![Svelte 5](https://img.shields.io/badge/Svelte_5-kit-ff3e00?logo=svelte&logoColor=white)](https://svelte.dev)
+[![Bun](https://img.shields.io/badge/Bun-000000?logo=bun&logoColor=white)](https://bun.sh)
+[![TypeScript](https://img.shields.io/badge/TypeScript-end_to_end-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 
----
+![The Erledigen daily list with the Someday panel open](docs/assets/screenshot.png)
+
+## Key Features
+
+*   **Daily list** -- the primary working area; a continuously-scrolling list of day sections (loads more days as you scroll) with inline add/edit and a month minimap for orientation.
+*   **Someday panel** -- a right-side capture net for unscheduled work, organized into tag-based groups; drag-to-resize and collapsible (`Cmd/Ctrl+\`).
+*   **Tags as the primary organization** -- `#p1`/`#p2`/`#p3` priority, `project:`-prefixed project tags, and any free-form tags. One filter system covers everything.
+*   **Projects** -- collections of ordered tasks with activate/deactivate and a detail view.
+*   **Habits / recurring tasks** -- natural-language templates ("water plants every friday at 9am") that generate instances into the daily list, with streak tracking and a management modal.
+*   **Sub-tasks** -- nested tasks under a parent; completion rolls up.
+*   **Command palette** (`Cmd/Ctrl+K` or `/`) -- search across task text, notes, and tags, plus the full `/`-prefixed command registry (`/add` with natural-language dates + `#tags`, `/go`, `/move`, `/tag`, `/filter`, ...), with habit phrases like "every day" creating habits.
+*   **Keyboard-first + tooltips** -- vim + arrow navigation, `g`-sequences for modals, priority keys `1`/`2`/`3`/`0`, `Cmd/Ctrl+Z` undo; every UI action shows its keybinding on hover.
+*   **Real-time sync** -- every mutation broadcasts to all connected clients instantly; open two windows and watch them stay in step.
+*   **Icon-rail modals** -- Calendar, Summary, Projects, Habits, Search, Filter, Settings, Trash, Help.
+*   **Trash with undo** -- soft delete with an undo toast (or `Cmd/Ctrl+Z`), restore from Trash, and a manual purge of soft-deleted tasks older than 7 days.
+*   **Import/export** -- a canonical JSON snapshot of everything (ADR-008), restorable on a fresh instance.
+*   **Privacy first** -- no analytics, no telemetry, no tracking. Your data stays in your own database.
 
 ## What's Inside?
 
@@ -21,20 +43,6 @@ Erledigen is a **monorepo** built with a modern tech stack designed for a great 
 *   **Code Quality**: [Biome](https://biomejs.dev/) -- formatting and linting.
 *   **Testing**: [Bun test](https://bun.sh/docs/cli/test) for units, [Playwright](https://playwright.dev/) for E2E, and [Bruno](https://www.usebruno.com/) for API tests.
 *   **Components**: [Storybook](https://storybook.js.org/) -- isolated component development and visual review.
-
-## Key Features
-
-*   **Daily list** -- the primary working area; a continuously-scrolling list of day sections (loads more days as you scroll) with inline add/edit and a month minimap for orientation.
-*   **Someday panel** -- a right-side capture net for unscheduled work, organized into tag-based groups; drag-to-resize and collapsible (`Cmd/Ctrl+\\`).
-*   **Tags as the primary organization** -- `#p1`/`#p2`/`#p3` priority, `project:`-prefixed project tags, and any free-form tags. One filter system covers everything.
-*   **Projects** -- collections of ordered tasks with activate/deactivate and a detail view.
-*   **Habits / recurring tasks** -- natural-language templates ("water plants every friday at 9am") that generate instances into the daily list, with streak tracking and a management modal.
-*   **Sub-tasks** -- nested tasks under a parent; completion rolls up.
-*   **Command palette** (`Cmd/Ctrl+K` or `/`) -- search across task text, notes, and tags, plus the full `/`-prefixed command registry (`/add` with natural-language dates + `#tags`, `/go`, `/move`, `/tag`, `/filter`, ...), with habit phrases like "every day" creating habits.
-*   **Keyboard-first + tooltips** -- vim + arrow navigation, `g`-sequences for modals, priority keys `1`/`2`/`3`/`0`, `Cmd/Ctrl+Z` undo; every UI action shows its keybinding on hover.
-*   **Icon-rail modals** -- Calendar, Summary, Projects, Habits, Search, Filter, Settings, Trash, Help.
-*   **Trash with undo** -- soft delete with an undo toast (or `Cmd/Ctrl+Z`), restore from Trash, and a manual purge of soft-deleted tasks older than 7 days.
-*   **Privacy first** -- no analytics, no telemetry, no tracking. Your data stays in your own database.
 
 ## Getting Started
 
@@ -166,7 +174,11 @@ erledigen/
 
 ## Contribute
 
-We'd love for you to join us! Whether you're a seasoned developer or just starting out, there are many ways to contribute to Erledigen. Check out our [**Getting Started**](./docs/devs/process/getting-started.md) guide to learn more.
+We'd love for you to join us! Whether you're a seasoned developer or just starting out, there are many ways to contribute to Erledigen. Start with [CONTRIBUTING.md](./CONTRIBUTING.md), then check out the [**Getting Started**](./docs/devs/process/getting-started.md) guide.
+
+## License
+
+Erledigen is released under the [GPL-3.0 license](./LICENSE). Found a security issue? See [SECURITY.md](./SECURITY.md).
 
 ---
 
