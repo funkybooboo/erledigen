@@ -1,6 +1,7 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
     import { preferencesStore, tagStore } from '$lib/stores';
+    import type { ActiveFilters } from '@erledigen/shared';
     import { onMount } from 'svelte';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
@@ -27,6 +28,22 @@
 
     function removeTag(tag: string) {
         preferencesStore.setTags(activeTags.filter(t => t !== tag));
+    }
+
+    function setSortMode(mode: ActiveFilters['sortMode']) {
+        preferencesStore.setSortMode(mode);
+    }
+
+    function handleDateChange(which: 'dateFrom' | 'dateTo', event: Event) {
+        const value = (event.currentTarget as HTMLInputElement).value || null;
+        preferencesStore.setDateRange(
+            which === 'dateFrom' ? value : preferencesStore.activeFilters.dateFrom,
+            which === 'dateTo' ? value : preferencesStore.activeFilters.dateTo,
+        );
+    }
+
+    function clearDateRange() {
+        preferencesStore.setDateRange(null, null);
     }
 
     function handleInputKeydown(e: KeyboardEvent) {
@@ -102,6 +119,66 @@
                     {/each}
                 </div>
             {/if}
+        </fieldset>
+
+        <fieldset class="section" aria-labelledby="filter-sort-heading">
+            <legend class="section-heading" id="filter-sort-heading">Sort</legend>
+            <div class="sort-options" role="radiogroup" aria-labelledby="filter-sort-heading">
+                <label class="sort-option">
+                    <input
+                        type="radio"
+                        name="sort-mode"
+                        value="manual"
+                        checked={preferencesStore.activeFilters.sortMode !== 'priority'}
+                        onchange={() => setSortMode('manual')}
+                    />
+                    Default order
+                </label>
+                <label class="sort-option">
+                    <input
+                        type="radio"
+                        name="sort-mode"
+                        value="priority"
+                        checked={preferencesStore.activeFilters.sortMode === 'priority'}
+                        onchange={() => setSortMode('priority')}
+                    />
+                    Priority (#p1 first)
+                </label>
+            </div>
+        </fieldset>
+
+        <fieldset class="section" aria-labelledby="filter-range-heading">
+            <legend class="section-heading" id="filter-range-heading">Date range</legend>
+            <div class="range-row">
+                <label class="range-label">
+                    From
+                    <input
+                        type="date"
+                        class="range-input"
+                        value={preferencesStore.activeFilters.dateFrom ?? ''}
+                        onchange={e => handleDateChange('dateFrom', e)}
+                    />
+                </label>
+                <label class="range-label">
+                    To
+                    <input
+                        type="date"
+                        class="range-input"
+                        value={preferencesStore.activeFilters.dateTo ?? ''}
+                        onchange={e => handleDateChange('dateTo', e)}
+                    />
+                </label>
+                <button
+                    class="range-clear"
+                    onclick={clearDateRange}
+                    disabled={
+                        preferencesStore.activeFilters.dateFrom === null &&
+                        preferencesStore.activeFilters.dateTo === null
+                    }
+                >
+                    Clear
+                </button>
+            </div>
         </fieldset>
 
         <button class="clear-btn" onclick={() => preferencesStore.clearAll()}>
@@ -246,6 +323,72 @@
         flex-wrap: wrap;
         gap: 6px;
         margin-top: 8px;
+    }
+
+    .sort-options {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .sort-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--color-text);
+        cursor: pointer;
+    }
+
+    .range-row {
+        display: flex;
+        align-items: flex-end;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .range-label {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 12px;
+        color: var(--color-text-secondary);
+    }
+
+    .range-input {
+        font-size: 13px;
+        padding: 6px 8px;
+        border: 1px solid var(--color-border);
+        border-radius: 6px;
+        background: var(--color-surface);
+        color: var(--color-text);
+        outline: none;
+    }
+
+    .range-input:focus {
+        border-color: var(--color-accent);
+    }
+
+    .range-clear {
+        background: none;
+        border: 1px solid var(--color-border);
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-size: 12px;
+        cursor: pointer;
+        color: var(--color-text-secondary);
+        transition: all 0.15s;
+    }
+
+    .range-clear:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+    .range-clear:not(:disabled):hover {
+        background: var(--color-danger-light);
+        border-color: var(--color-danger);
+        color: var(--color-danger);
     }
 
     .tag-option {

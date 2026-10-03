@@ -14,7 +14,8 @@ import type { Project } from '../../types/project';
 import type { RecurringTask } from '../../types/recurringTask';
 import type { SomeDayGroup } from '../../types/someDayGroup';
 import type { Task } from '../../types/task';
-import type { UserPreferences } from '../../types/userPreferences';
+import type { ActiveFilters, UserPreferences } from '../../types/userPreferences';
+import { normalizeActiveFilters } from '../../types/userPreferences';
 import type { ImportAdapter } from './ImportAdapter';
 import { ImportValidationError } from './ImportValidationError';
 
@@ -349,6 +350,12 @@ function validateUserPreferences(prefs: unknown): UserPreferences {
             `Invalid snapshot: userPreferences is missing: ${missing.join(', ')}`,
         );
     }
+    // Snapshots exported before activeFilters grew sortMode/dateFrom/dateTo
+    // restore with those fields defaulted (the same normalization the
+    // repos apply), so an old backup keeps restoring on newer servers.
+    (p as { activeFilters: unknown }).activeFilters = normalizeActiveFilters(
+        (p as { activeFilters: Partial<ActiveFilters> }).activeFilters,
+    );
     return prefs as unknown as UserPreferences;
 }
 

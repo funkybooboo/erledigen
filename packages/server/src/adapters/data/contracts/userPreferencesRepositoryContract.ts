@@ -26,6 +26,9 @@ export function runUserPreferencesRepositoryContractTests(
             expect(prefs.showEmptyDays).toBe(true);
             expect(prefs.activeFilters.tags).toEqual([]);
             expect(prefs.activeFilters.showCompleted).toBe(true);
+            expect(prefs.activeFilters.sortMode).toBe('manual');
+            expect(prefs.activeFilters.dateFrom).toBeNull();
+            expect(prefs.activeFilters.dateTo).toBeNull();
             expect(prefs.tagKinds.length).toBeGreaterThan(0);
             expect(prefs.tagKindMap).toBeDefined();
         });
@@ -46,10 +49,14 @@ export function runUserPreferencesRepositoryContractTests(
                 activeFilters: {
                     tags: ['work', 'p1'],
                     showCompleted: true,
+                    sortMode: 'priority',
+                    dateFrom: null,
+                    dateTo: null,
                 },
             });
             const prefs = await repo.get();
             expect(prefs.activeFilters.tags).toEqual(['work', 'p1']);
+            expect(prefs.activeFilters.sortMode).toBe('priority');
         });
 
         test('updates tagKinds and tagKindMap', async () => {
@@ -144,11 +151,52 @@ export function runUserPreferencesRepositoryContractTests(
                 activeFilters: {
                     tags: ['work', 'p1', 'project:build-erledigen'],
                     showCompleted: false,
+                    sortMode: 'manual',
+                    dateFrom: null,
+                    dateTo: null,
                 },
             });
             const prefs = await repo.get();
             expect(prefs.activeFilters.tags).toEqual(['work', 'p1', 'project:build-erledigen']);
             expect(prefs.activeFilters.showCompleted).toBe(false);
+        });
+
+        test('persists the sort mode and date range', async () => {
+            const repo = makeRepo();
+            await repo.update({
+                activeFilters: {
+                    tags: [],
+                    showCompleted: true,
+                    sortMode: 'priority',
+                    dateFrom: '2026-10-01',
+                    dateTo: '2026-10-31',
+                },
+            });
+            const prefs = await repo.get();
+            expect(prefs.activeFilters.sortMode).toBe('priority');
+            expect(prefs.activeFilters.dateFrom).toBe('2026-10-01');
+            expect(prefs.activeFilters.dateTo).toBe('2026-10-31');
+        });
+
+        test('normalizes an activeFilters shape that predates the newer fields', async () => {
+            const repo = makeRepo();
+            // Simulate an old persisted value (JSON column or an older
+            // restored snapshot) that only knows tags/showCompleted.
+            const current = await repo.get();
+            const legacy = {
+                ...current,
+                activeFilters: {
+                    tags: ['legacy'],
+                    showCompleted: true,
+                } as UserPreferences['activeFilters'],
+            } as UserPreferences;
+            await repo.restore(legacy);
+            const prefs = await repo.get();
+            expect(prefs.activeFilters.tags).toEqual(['legacy']);
+            expect(prefs.activeFilters.showCompleted).toBe(true);
+            expect(prefs.activeFilters.sortMode).toBe('manual');
+            expect(prefs.activeFilters.dateFrom).toBeNull();
+            expect(prefs.activeFilters.dateTo).toBeNull();
         });
     });
 }

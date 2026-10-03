@@ -62,9 +62,20 @@ test.describe('Search modal', () => {
     // Commands that persist preference state must never leak it into other
     // spec files -- a stale tag filter hides tasks in every later test.
     test.afterEach(async ({ request }) => {
-        await patch(request, '/api/preferences', {
-            data: { activeFilters: { tags: [], showCompleted: true } },
-        }, SERVER_URL).catch(() => {});
+        await patch(
+            request,
+            '/api/preferences',
+            {
+                activeFilters: {
+                    tags: [],
+                    showCompleted: true,
+                    sortMode: 'manual',
+                    dateFrom: null,
+                    dateTo: null,
+                },
+            },
+            SERVER_URL,
+        ).catch(() => {});
     });
 
     test('searching filters tasks by text and shows results', async ({ page }) => {
@@ -282,6 +293,99 @@ test.describe('Trash modal', () => {
         const restoreButtons = trash.getByRole('button', { name: 'Restore task' });
         await expect(restoreButtons.first()).toBeVisible();
         expect(await restoreButtons.count()).toBeGreaterThanOrEqual(2);
+    });
+});
+
+test.describe('Filter modal', () => {
+    // Filter state persists in the server's preferences -- reset it so
+    // later specs (this file and every other) see the default view.
+    test.afterEach(async ({ request }) => {
+        await patch(
+            request,
+            '/api/preferences',
+            {
+                data: {
+                    activeFilters: {
+                        tags: [],
+                        showCompleted: true,
+                        sortMode: 'manual',
+                        dateFrom: null,
+                        dateTo: null,
+                    },
+                },
+            },
+            SERVER_URL,
+        ).catch(() => {});
+    });
+
+    test('priority sort reorders tasks within a day and adds accents', async ({ page }) => {
+        const p1Text = uniq('FilterP1');
+        const p2Text = uniq('FilterP2');
+        const plainText = uniq('FilterPlain');
+        // Creation order is plain, p2, p1 -- priority sort must flip it.
+        await createTask(page.request, { text: plainText, date: todayISO() }, SERVER_URL);
+        await createTask(page.request, { text: p2Text, date: todayISO(), tags: ['p2'] }, SERVER_URL);
+        await createTask(page.request, { text: p1Text, date: todayISO(), tags: ['p1'] }, SERVER_URL);
+        await hydrated(page);
+        const todaySection = page.locator(`section#day-${todayISO()}`);
+        await expect(todaySection.getByText(p1Text)).toBeVisible();
+
+        await page.getByRole('button', { name: 'Filter', exact: true }).click();
+        const modalEl = modal(page, 'Filter');
+        await expect(modalEl).toBeVisible();
+        await modalEl.locator('input[value="priority"]').check();
+
+        // Within today's section the p1 task now precedes p2, which
+        // precedes the untagged one (relative order -- immune to foreign
+        // tasks from other specs). The sorted re-render lands async, so
+        // poll instead of sampling once.
+        await expect
+            .poll(async () => {
+                // allTextContents keeps the template's whitespace around the
+                // task text -- trim before comparing.
+                const order = (await todaySection.locator('.task-text').allTextContents()).map(
+                    t => t.trim(),
+                );
+                return (
+                    order.indexOf(p1Text) < order.indexOf(p2Text) &&
+                    order.indexOf(p2Text) < order.indexOf(plainText)
+                );
+            })
+            .toBe(true);
+
+        // The priority rows carry their accent while the sort is active.
+        await expect(page.locator('.task-row.prio-1', { hasText: p1Text })).toBeVisible();
+        await expect(page.locator('.task-row.prio-2', { hasText: p2Text })).toBeVisible();
+        await expect(page.locator('.task-row.prio-3')).toHaveCount(0);
+    });
+
+    test('date range narrows the day list and Clear restores it', async ({ page }) => {
+        const inRange = uniq('RangeIn');
+        const outOfRange = uniq('RangeOut');
+        await createTask(page.request, { text: inRange, date: todayISO() }, SERVER_URL);
+        await createTask(
+            page.request,
+            { text: outOfRange, date: dayISO(20) },
+            SERVER_URL,
+        );
+        await hydrated(page);
+        await expect(page.locator(`section#day-${todayISO()}`).getByText(inRange)).toBeVisible();
+        await expect(page.locator(`section#day-${dayISO(20)}`).getByText(outOfRange)).toBeVisible();
+
+        await page.getByRole('button', { name: 'Filter', exact: true }).click();
+        const modalEl = modal(page, 'Filter');
+        await expect(modalEl).toBeVisible();
+        await modalEl.getByLabel('From').fill(todayISO());
+        await modalEl.getByLabel('To').fill(dayISO(7));
+
+        // Days outside the range stop rendering entirely; the in-range
+        // task stays visible.
+        await expect(page.locator(`section#day-${dayISO(20)}`)).toHaveCount(0);
+        await expect(page.locator(`section#day-${todayISO()}`).getByText(inRange)).toBeVisible();
+
+        // Clearing the range brings the far day back.
+        await modalEl.getByRole('button', { name: 'Clear', exact: true }).click();
+        await expect(page.locator(`section#day-${dayISO(20)}`).getByText(outOfRange)).toBeVisible();
     });
 });
 

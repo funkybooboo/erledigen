@@ -144,7 +144,7 @@ export type {
     UpdateUserPreferencesInput,
     UserPreferences,
 } from './types/userPreferences';
-export { isValidTimeZone } from './types/userPreferences';
+export { isValidTimeZone, normalizeActiveFilters } from './types/userPreferences';
 export type {
     ConnectionAckPayload,
     ConnectionStatus,

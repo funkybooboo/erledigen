@@ -2,7 +2,7 @@
     import { onMount, onDestroy, tick, untrack } from 'svelte';
     import { taskStore, preferencesStore, dateViewStore, recurringTaskStore, uiStore, type TaskSection } from '$lib/stores';
     import { addDays, dateRangeKeys, groupTasksByDate, SOMEDAY_KEY } from '@erledigen/shared';
-    import { applyFilters } from '$lib/filters';
+    import { applyFilters, sortTasksForView } from '$lib/filters';
     import { container } from '$lib/container';
     import DaySection from './DaySection.svelte';
 
@@ -32,7 +32,17 @@
     const todayStr = $derived(preferencesStore.today);
 
     let filteredTasks = $derived(applyFilters(taskStore.tasks, preferencesStore.activeFilters));
-    let tasksByDate = $derived(groupTasksByDate(filteredTasks));
+    let tasksByDate = $derived.by(() => {
+        const grouped = groupTasksByDate(filteredTasks);
+        // The priority sort applies within each day (block-aware: sub-tasks
+        // stay under their parent); the default order keeps position order.
+        if (preferencesStore.activeFilters.sortMode === 'priority') {
+            for (const [key, dayTasks] of grouped) {
+                grouped.set(key, sortTasksForView(dayTasks, 'priority'));
+            }
+        }
+        return grouped;
+    });
     let dateKeys = $derived([...tasksByDate.keys()].filter(k => k !== SOMEDAY_KEY).sort());
 
     // The initial window anchors to mount-time today ON PURPOSE: a
@@ -48,7 +58,16 @@
         // visible window is shown whether it has tasks or not, so the list
         // is always a clean contiguous calendar rail. today and any pending
         // navigation target are inside this range by construction.
-        return dateRangeKeys(visibleStartDate, visibleEndDate);
+        // An active date-range filter clamps the rail to [dateFrom, dateTo]
+        // (intersected with the loaded window; the range narrows the view,
+        // it never widens it beyond what has scrolled in).
+        const filters = preferencesStore.activeFilters;
+        let start = visibleStartDate;
+        let end = visibleEndDate;
+        if (filters.dateFrom !== null && filters.dateFrom > start) start = filters.dateFrom;
+        if (filters.dateTo !== null && filters.dateTo < end) end = filters.dateTo;
+        if (start > end) return [];
+        return dateRangeKeys(start, end);
     });
 
     // --- infinite scroll state ---
@@ -119,6 +138,13 @@
 
     function extendUp() {
         if (isExtendingUp) return;
+        // A date-range filter bounds the rail: when the window already
+        // reaches the range's start there is nothing earlier to load, and
+        // the (short) clamped list keeps the sentinel visible -- without
+        // this gate the observers would extend away forever, trimming
+        // today out of the window.
+        const rangeFrom = preferencesStore.activeFilters.dateFrom;
+        if (rangeFrom !== null && visibleStartDate <= rangeFrom) return;
 
         isExtendingUp = true;
         const newStart = addDays(visibleStartDate, -CHUNK_DAYS);
@@ -143,6 +169,9 @@
 
     function extendDown() {
         if (isExtendingDown) return;
+        // Mirror of extendUp's gate: the range's end bounds the rail.
+        const rangeTo = preferencesStore.activeFilters.dateTo;
+        if (rangeTo !== null && visibleEndDate >= rangeTo) return;
 
         isExtendingDown = true;
         const chunkStart = addDays(visibleEndDate, 1);

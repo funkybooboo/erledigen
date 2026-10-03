@@ -10,6 +10,7 @@
 
 import type { Database } from 'bun:sqlite';
 import type { DateProvider, UpdateUserPreferencesInput, UserPreferences } from '@erledigen/shared';
+import { normalizeActiveFilters } from '@erledigen/shared';
 import { defaultPreferences } from './preferencesDefaults';
 import { parseJsonColumn, toBoolean, toInteger } from './sqliteMapping';
 import type { UserPreferencesRepository } from './UserPreferencesRepository';
@@ -45,10 +46,12 @@ function mapPreferencesRow(row: PreferencesRow): UserPreferences {
         rolloverTriggerTime: row.rollover_trigger_time as UserPreferences['rolloverTriggerTime'],
         showEmptyDays: toBoolean(row.show_empty_days),
         deleteConfirmation: row.delete_confirmation as UserPreferences['deleteConfirmation'],
-        activeFilters: parseJsonColumn<UserPreferences['activeFilters']>(row.active_filters, {
-            tags: [],
-            showCompleted: true,
-        }),
+        activeFilters: normalizeActiveFilters(
+            parseJsonColumn<UserPreferences['activeFilters']>(
+                row.active_filters,
+                normalizeActiveFilters(null),
+            ),
+        ),
         tagKinds: parseJsonColumn<UserPreferences['tagKinds']>(row.tag_kinds, []),
         tagKindMap: parseJsonColumn<UserPreferences['tagKindMap']>(row.tag_kind_map, {}),
         timeFormat: row.time_format as UserPreferences['timeFormat'],

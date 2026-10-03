@@ -133,6 +133,9 @@ export const USER_PREFERENCES_DEFAULTS = {
     activeFilters: {
         tags: [] as string[],
         showCompleted: true,
+        sortMode: 'manual' as const,
+        dateFrom: null as string | null,
+        dateTo: null as string | null,
     },
     tagKinds: DEFAULT_TAG_KINDS,
     tagKindMap: { ...DEFAULT_TAG_KIND_MAP },

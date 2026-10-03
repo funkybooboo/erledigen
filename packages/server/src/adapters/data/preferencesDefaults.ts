@@ -8,13 +8,13 @@
  */
 
 import type { UserPreferences } from '@erledigen/shared';
-import { USER_PREFERENCES_DEFAULTS } from '@erledigen/shared';
+import { normalizeActiveFilters, USER_PREFERENCES_DEFAULTS } from '@erledigen/shared';
 
 export function defaultPreferences(timestamp: string): UserPreferences {
     return {
         ...USER_PREFERENCES_DEFAULTS,
         id: 'default',
-        activeFilters: { ...USER_PREFERENCES_DEFAULTS.activeFilters },
+        activeFilters: normalizeActiveFilters(USER_PREFERENCES_DEFAULTS.activeFilters),
         tagKinds: [...USER_PREFERENCES_DEFAULTS.tagKinds],
         tagKindMap: { ...USER_PREFERENCES_DEFAULTS.tagKindMap },
         updatedAt: timestamp,

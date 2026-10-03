@@ -13,6 +13,9 @@ test.describe('user preferences -- GET /api/preferences', () => {
         expect(['midnight', '9am', 'manual']).toContain(prefs.rolloverTriggerTime);
         expect(prefs.activeFilters).toHaveProperty('tags');
         expect(prefs.activeFilters).toHaveProperty('showCompleted');
+        expect(['manual', 'priority']).toContain(prefs.activeFilters.sortMode);
+        expect(['object', 'null']).toContain(typeof prefs.activeFilters.dateFrom);
+        expect(['object', 'null']).toContain(typeof prefs.activeFilters.dateTo);
         expect(Array.isArray(prefs.tagKinds)).toBe(true);
     });
 });
@@ -33,19 +36,41 @@ test.describe('user preferences -- PATCH /api/preferences', () => {
         await patch(request, '/api/preferences', { theme: origTheme });
     });
 
-    test('updates nested activeFilters', async ({ request }) => {
+    test('updates nested activeFilters (sort mode + date range included)', async ({ request }) => {
         const before = await get(request, '/api/preferences');
         const orig = before.body.data.activeFilters;
 
         const res = await patch(request, '/api/preferences', {
-            activeFilters: { tags: ['#test'], showCompleted: false },
+            activeFilters: {
+                tags: ['#test'],
+                showCompleted: false,
+                sortMode: 'priority',
+                dateFrom: '2026-10-01',
+                dateTo: '2026-10-15',
+            },
         });
         expect(res.status).toBe(200);
         expect(res.body.data.activeFilters.tags).toEqual(['#test']);
         expect(res.body.data.activeFilters.showCompleted).toBe(false);
+        expect(res.body.data.activeFilters.sortMode).toBe('priority');
+        expect(res.body.data.activeFilters.dateFrom).toBe('2026-10-01');
+        expect(res.body.data.activeFilters.dateTo).toBe('2026-10-15');
 
         // Restore.
         await patch(request, '/api/preferences', { activeFilters: orig });
+    });
+
+    test('rejects activeFilters with a malformed date bound', async ({ request }) => {
+        const res = await patch(request, '/api/preferences', {
+            activeFilters: {
+                tags: [],
+                showCompleted: true,
+                sortMode: 'manual',
+                dateFrom: 'october-1',
+                dateTo: null,
+            },
+        });
+        expect(res.status).toBe(400);
     });
 
     test('updates someDayPanelWidth within bounds', async ({ request }) => {

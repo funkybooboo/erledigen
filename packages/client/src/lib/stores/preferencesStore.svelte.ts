@@ -11,6 +11,7 @@ import {
     DEFAULT_TAG_KIND_MAP,
     DEFAULT_TAG_KINDS,
     isValidTimeZone,
+    normalizeActiveFilters,
     USER_PREFERENCES_DEFAULTS,
 } from '@erledigen/shared';
 import { container } from '$lib/container';
@@ -36,10 +37,9 @@ class PreferencesStore {
     rolloverTriggerTime = $state<RolloverTriggerTime>('midnight');
     showEmptyDays = $state(true);
     deleteConfirmation = $state<DeleteConfirmationType>('instant');
-    activeFilters = $state<ActiveFilters>({
-        tags: [],
-        showCompleted: true,
-    });
+    activeFilters = $state<ActiveFilters>(
+        normalizeActiveFilters(USER_PREFERENCES_DEFAULTS.activeFilters),
+    );
     tagKinds = $state<TagKind[]>([...DEFAULT_TAG_KINDS]);
     tagKindMap = $state<Record<string, string>>({ ...DEFAULT_TAG_KIND_MAP });
     timeFormat = $state<TimeFormatType>('12h');
@@ -66,8 +66,18 @@ class PreferencesStore {
         void this.save({ activeFilters: { ...this.activeFilters, tags } });
     }
 
+    /** Switch the within-day ordering (Filter modal's Sort section). */
+    setSortMode(sortMode: ActiveFilters['sortMode']) {
+        void this.save({ activeFilters: { ...this.activeFilters, sortMode } });
+    }
+
+    /** Set the date-range bounds (null clears an end). */
+    setDateRange(dateFrom: string | null, dateTo: string | null) {
+        void this.save({ activeFilters: { ...this.activeFilters, dateFrom, dateTo } });
+    }
+
     clearAll() {
-        void this.save({ activeFilters: { tags: [], showCompleted: true } });
+        void this.save({ activeFilters: normalizeActiveFilters(null) });
     }
 
     get activeFilterCount() {
@@ -88,7 +98,7 @@ class PreferencesStore {
             this.rolloverTriggerTime = prefs.rolloverTriggerTime ?? 'midnight';
             this.showEmptyDays = prefs.showEmptyDays;
             this.deleteConfirmation = prefs.deleteConfirmation ?? 'instant';
-            this.activeFilters = prefs.activeFilters;
+            this.activeFilters = normalizeActiveFilters(prefs.activeFilters);
             this.tagKinds = prefs.tagKinds ?? [...DEFAULT_TAG_KINDS];
             this.tagKindMap = prefs.tagKindMap ?? { ...DEFAULT_TAG_KIND_MAP };
             this.timeFormat = prefs.timeFormat ?? '12h';
