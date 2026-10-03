@@ -1,7 +1,4 @@
-import type { ActiveFilters, Task } from '@erledigen/shared';
-
-/** Priority tags in sort order (the tag-kind convention; see tagKinds). */
-const PRIORITY_TAGS = ['p1', 'p2', 'p3'];
+import { type ActiveFilters, PRIORITY_TAGS, type Task } from '@erledigen/shared';
 
 /** Sort rank of a task: 0 for #p1 .. 2 for #p3, 3 for untagged. */
 function priorityRank(task: Task): number {

@@ -13,7 +13,7 @@
  * wires svelte:window to handleGlobalKeydown.
  */
 
-import type { Task } from '@erledigen/shared';
+import { PRIORITY_TAGS, type Task } from '@erledigen/shared';
 import { container } from '$lib/container';
 import type { ShortcutId } from '$lib/keybindings';
 import { type KeybindingEvent, KeybindingMatcher } from '$lib/keyboard';
@@ -36,7 +36,6 @@ export interface KeyboardAction {
 }
 
 const TYPING_TARGETS = new Set(['INPUT', 'TEXTAREA', 'SELECT']);
-const PRIORITY_TAGS = ['p1', 'p2', 'p3'];
 /** Elements whose native Space/Enter activation must not be stolen. */
 const ACTIVATABLE = 'button, a, summary, [role="button"]';
 

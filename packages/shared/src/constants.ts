@@ -120,6 +120,12 @@ export const DEFAULT_TAG_KIND_MAP: Record<string, string> = {
     p3: 'priority',
 };
 
+/** The priority tags, highest priority first (p1 ranks above p2).
+ *  Shared by the client's priority sort/toggle logic and the CSV
+ *  adapters' priority column; DEFAULT_TAG_KIND_MAP above maps each of
+ *  these to the 'priority' tag kind. */
+export const PRIORITY_TAGS: readonly string[] = ['p1', 'p2', 'p3'];
+
 export const USER_PREFERENCES_DEFAULTS = {
     theme: 'system' as const,
     locale: 'en',

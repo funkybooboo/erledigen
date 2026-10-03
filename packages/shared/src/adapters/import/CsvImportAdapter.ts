@@ -9,7 +9,7 @@
  * field validation are skipped with a warning; the rest import.
  */
 
-import { TASK_CONSTRAINTS } from '../../constants';
+import { PRIORITY_TAGS, TASK_CONSTRAINTS } from '../../constants';
 import type {
     CsvColumnMapping,
     CsvImportField,
@@ -46,7 +46,6 @@ const HEADER_ALIASES: Record<CsvImportField, readonly string[]> = {
 };
 
 const TRUTHY = new Set(['true', '1', 'yes', 'y', 'x', 'done', 'completed', 'complete']);
-const PRIORITY_TAGS = ['p1', 'p2', 'p3'] as const;
 
 /** Auto-detect a column mapping from a CSV header row. */
 export function autoDetectCsvMapping(header: readonly string[]): CsvColumnMapping {
@@ -174,9 +173,7 @@ export class CsvImportAdapter implements ImportAdapter<ParsedTasks> {
 
             const priorityRaw = cell(row, 'priority');
             const priority = priorityRaw?.trim().toLowerCase() ?? '';
-            const priorityTag = (PRIORITY_TAGS as readonly string[]).includes(priority)
-                ? priority
-                : null;
+            const priorityTag = PRIORITY_TAGS.includes(priority) ? priority : null;
 
             const tagsRaw = cell(row, 'tags');
             const tags = (tagsRaw ?? '')

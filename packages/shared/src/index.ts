@@ -4,6 +4,7 @@
  * Shared types, utilities, and constants for the Erledigen task app
  */
 
+export { BaseConfigProvider } from './adapters/config/BaseConfigProvider';
 // Adapters - Config
 export type { ConfigProvider } from './adapters/config/ConfigProvider';
 export { ConfigError } from './adapters/config/ConfigProvider';
@@ -66,6 +67,7 @@ export {
     DEFAULT_TAG_KINDS,
     HABIT_HEATMAP_WEEKS,
     HABIT_HEATMAP_WINDOW_DAYS,
+    PRIORITY_TAGS,
     PURGE_RETENTION_DAYS,
     RECURRING_TASK_DEFAULTS,
     SOMEDAY_KEY,
