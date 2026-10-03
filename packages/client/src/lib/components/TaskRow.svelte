@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { notificationStore, preferencesStore, taskStore, uiStore } from '$lib/stores';
+    import { notificationStore, preferencesStore, dragStore, taskStore, uiStore } from '$lib/stores';
     import { deleteTaskWithUndo } from '$lib/taskActions';
     import { container } from '$lib/container';
     import {
@@ -10,7 +10,7 @@
         type Task,
     } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
-    import { LuCheck, LuCircle, LuRepeat, LuFileText, LuX } from 'svelte-icons-pack/lu';
+    import { LuCheck, LuCircle, LuGripVertical, LuRepeat, LuFileText, LuX } from 'svelte-icons-pack/lu';
     import { untrack } from 'svelte';
     import { tooltip } from '$lib/tooltip';
 
@@ -182,6 +182,33 @@
         uiStore.focusTask(task.id);
         await deleteTaskWithUndo(task);
     }
+
+    // --- drag to move (native HTML5 DnD, v0.6.0 reactivated design) ----
+
+    // The row is draggable only while the grip is held: a permanently
+    // draggable row hijacks mousedown and breaks text selection. The
+    // grip's pointerdown arms the row before the drag gesture can
+    // start, and pointerup (a grip press without a drag) disarms it.
+    // Sub-tasks never drag: they render glued to their parent, so a
+    // cross-day sub-task move would have no visible effect -- the
+    // keyboard alternatives (r/m inline editors) stay the move path.
+    let dragArmed = $state(false);
+    let isDraggable = $derived(dragArmed && task.parentId === null);
+
+    function handleDragStart(e: DragEvent) {
+        if (!isDraggable) {
+            e.preventDefault();
+            return;
+        }
+        dragStore.start(task);
+        e.dataTransfer?.setData('text/plain', task.id);
+        if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function handleDragEnd() {
+        dragArmed = false;
+        dragStore.clear();
+    }
 </script>
 
 <div
@@ -193,9 +220,27 @@
     class:prio-1={priorityAccent === 'prio-1'}
     class:prio-2={priorityAccent === 'prio-2'}
     class:prio-3={priorityAccent === 'prio-3'}
+    class:dragging={dragStore.isDragging(task.id)}
     id="task-{task.id}"
+    draggable={isDraggable}
+    role="listitem"
+    ondragstart={handleDragStart}
+    ondragend={handleDragEnd}
     aria-label="{task.text}{task.completed ? ', completed' : ''}"
 >
+    {#if task.parentId === null && !isEditing}
+        <!-- Mouse-only by design: keyboard users move tasks with the
+             r/m inline editors (v0.5.0), so the grip needs no key path. -->
+        <span
+            class="drag-grip"
+            aria-hidden="true"
+            onpointerdown={() => (dragArmed = true)}
+            onpointerup={() => (dragArmed = false)}
+            use:tooltip={{ label: 'Drag to move' }}
+        >
+            <Icon src={LuGripVertical} />
+        </span>
+    {/if}
     <button
         class="checkbox"
         class:checked={task.completed}
@@ -284,6 +329,39 @@
 
     .task-row:hover {
         background: var(--color-surface-hover);
+    }
+
+    .task-row.dragging {
+        opacity: 0.45;
+    }
+
+    .drag-grip {
+        display: flex;
+        align-items: center;
+        padding: 2px;
+        flex-shrink: 0;
+        color: var(--color-text-muted);
+        cursor: grab;
+        opacity: 0;
+        transition: opacity 0.15s, color 0.15s;
+    }
+
+    .task-row:hover .drag-grip,
+    .task-row.dragging .drag-grip {
+        opacity: 1;
+    }
+
+    .drag-grip:hover {
+        color: var(--color-text);
+    }
+
+    .drag-grip:active {
+        cursor: grabbing;
+    }
+
+    .drag-grip :global(svg) {
+        width: 14px;
+        height: 14px;
     }
 
     /* Keyboard-focused task (j/k navigation): accent tint so it is visibly

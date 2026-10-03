@@ -1,13 +1,15 @@
 <script lang="ts">
-    import { preferencesStore, someDayGroupStore, taskStore, uiStore, type TaskSection } from '$lib/stores';
+    import { preferencesStore, someDayGroupStore, dragStore, taskStore, uiStore, type TaskSection } from '$lib/stores';
     import { applyFilters } from '$lib/filters';
+    import { byPositionThenCreated, snapInsertBeforeId } from '$lib/dragReorder';
+    import { commitZoneDrop, zoneDragLeave, zoneDragOver } from '$lib/nndZone';
     import { createNewlyCreatedTracker } from '$lib/newlyCreated.svelte';
     import TaskRow from './TaskRow.svelte';
     import InlineAddTask from './InlineAddTask.svelte';
     import SectionHeader from './SectionHeader.svelte';
     import { Icon } from 'svelte-icons-pack';
     import { LuPencil, LuTrash2, LuCheck } from 'svelte-icons-pack/lu';
-    import { slugify, type SomeDayGroup } from '@erledigen/shared';
+    import { slugify, type SomeDayGroup, type Task, type UpdateTaskInput } from '@erledigen/shared';
     import { tooltip } from '$lib/tooltip';
 
     let showAddGroupForm = $state(false);
@@ -64,7 +66,9 @@
 
     // Tasks with date=null and no someDayGroupId -- rendered in an Ungrouped
     // section below the named groups so they're never invisible.
-    let ungroupedTasks = $derived(filteredSomedayTasks.filter(t => t.someDayGroupId === null));
+    let ungroupedTasks = $derived(
+        filteredSomedayTasks.filter(t => t.someDayGroupId === null).sort(byPositionThenCreated),
+    );
 
     let groups = $derived(someDayGroupStore.sortedGroups);
 
@@ -108,7 +112,35 @@
     });
 
     function groupTasks(group: SomeDayGroup) {
-        return filteredSomedayTasks.filter(t => t.someDayGroupId === group.id);
+        // Position-aware display order (drag reorders patch positions),
+        // matching the day list's groupTasksByDate comparator.
+        return filteredSomedayTasks.filter(t => t.someDayGroupId === group.id).sort(byPositionThenCreated);
+    }
+
+    // --- drop zones (native HTML5 DnD) ---------------------------------
+    // Each group is a zone (dragging in sets date=null + the group id);
+    // the ungrouped list and the panel padding share the
+    // someday-ungrouped zone (group id null). Group handlers stop
+    // propagation so the padding fallback never double-fires.
+
+    let listEls = $state<Record<string, HTMLDivElement | undefined>>({});
+
+    const UNGROUPED_ZONE = 'someday-ungrouped';
+
+    function zoneDrop(zoneTasks: Task[], groupId: string | null, e: DragEvent) {
+        e.preventDefault();
+        e.stopPropagation();
+        const dragged = dragStore.draggingTask;
+        if (!dragged) return;
+        const base: UpdateTaskInput = {};
+        if (dragged.date !== null) base.date = null;
+        if (dragged.someDayGroupId !== groupId) base.someDayGroupId = groupId;
+        commitZoneDrop(zoneTasks, dragged, base, (id, input) => void taskStore.update(id, input));
+    }
+
+    function indicatorBeforeId(zoneId: string, zoneTasks: Task[]): string | null {
+        if (dragStore.overZone !== zoneId) return null;
+        return snapInsertBeforeId(zoneTasks, dragStore.insertBeforeId);
     }
 
     function submitNewGroup() {
@@ -207,7 +239,14 @@
              a dedicated keyboard-resize interaction is future work. -->
         <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
         <div class="resize-handle" role="separator" aria-orientation="vertical" aria-label="Resize Someday panel" use:tooltip={{ label: 'Drag to resize' }} onmousedown={startResize}></div>
-        <div class="panel-content">
+        <div
+            class="panel-content"
+            role="region"
+            aria-label="Someday groups"
+            ondragover={(e) => zoneDragOver(UNGROUPED_ZONE, e, listEls[UNGROUPED_ZONE])}
+            ondragleave={(e) => zoneDragLeave(UNGROUPED_ZONE, e, e.currentTarget)}
+            ondrop={(e) => zoneDrop(ungroupedTasks, null, e)}
+        >
             <div class="panel-header">
                 <h2 class="panel-title">Someday</h2>
                 <div class="panel-actions">
@@ -239,8 +278,17 @@
                     {@const taskCount = tasks.length}
                     {@const completedCount = tasks.filter(t => t.completed).length}
                     {@const sectionId = `someday-${group.id}`}
+                    {@const zone = `someday-group:${group.id}`}
+                    {@const indicator = indicatorBeforeId(zone, tasks)}
 
-                    <div class="someday-group" role="listitem">
+                    <div
+                        class="someday-group"
+                        class:drop-target={dragStore.overZone === zone && dragStore.draggingTask !== null}
+                        role="listitem"
+                        ondragover={(e) => zoneDragOver(zone, e, listEls[group.id])}
+                        ondragleave={(e) => zoneDragLeave(zone, e, e.currentTarget)}
+                        ondrop={(e) => zoneDrop(tasks, group.id, e)}
+                    >
                         {#if editingGroupId === group.id}
                             <div class="group-rename-row">
                                 <input
@@ -275,9 +323,15 @@
                                 </div>
                             </div>
                         {/if}
-                        <div class="group-tasks" role="list">
+                        <div class="group-tasks" role="list" bind:this={listEls[group.id]}>
                             {#each tasks as task (task.id)}
-                                <TaskRow {task} isNew={newlyCreated.has(task.id)} />
+                                <div
+                                    class="task-row-wrapper"
+                                    data-task-id={task.id}
+                                    class:drop-before={indicator === task.id}
+                                >
+                                    <TaskRow {task} isNew={newlyCreated.has(task.id)} />
+                                </div>
                             {/each}
                         </div>
                         <InlineAddTask date="" someDayGroupId={group.id} oncreated={handleTaskCreated} />
@@ -287,7 +341,16 @@
                 {/each}
 
                 {#if ungroupedTasks.length > 0}
-                    <div class="someday-group">
+                    {@const zone = UNGROUPED_ZONE}
+                    {@const indicator = indicatorBeforeId(zone, ungroupedTasks)}
+                    <div
+                        class="someday-group"
+                        class:drop-target={dragStore.overZone === zone && dragStore.draggingTask !== null}
+                        role="listitem"
+                        ondragover={(e) => zoneDragOver(zone, e, listEls[UNGROUPED_ZONE])}
+                        ondragleave={(e) => zoneDragLeave(zone, e, e.currentTarget)}
+                        ondrop={(e) => zoneDrop(ungroupedTasks, null, e)}
+                    >
                         <div class="group-header-row">
                             <SectionHeader
                                 sectionId="someday-ungrouped"
@@ -296,9 +359,15 @@
                                 completedCount={ungroupedTasks.filter(t => t.completed).length}
                             />
                         </div>
-                        <div class="group-tasks" role="list">
+                        <div class="group-tasks" role="list" bind:this={listEls[UNGROUPED_ZONE]}>
                             {#each ungroupedTasks as task (task.id)}
-                                <TaskRow {task} isNew={newlyCreated.has(task.id)} />
+                                <div
+                                    class="task-row-wrapper"
+                                    data-task-id={task.id}
+                                    class:drop-before={indicator === task.id}
+                                >
+                                    <TaskRow {task} isNew={newlyCreated.has(task.id)} />
+                                </div>
                             {/each}
                         </div>
                         <InlineAddTask date="" oncreated={handleTaskCreated} />
@@ -517,6 +586,17 @@
     .someday-group {
         margin-bottom: 16px;
         padding: 0 12px;
+    }
+
+    /* Drop-zone highlight + insertion line (same treatment as the day
+       sections; see DaySection.svelte). */
+    .someday-group.drop-target {
+        background: color-mix(in oklab, var(--color-accent) 7%, transparent);
+        border-radius: 8px;
+    }
+
+    .task-row-wrapper.drop-before {
+        box-shadow: inset 0 2px 0 0 var(--color-accent);
     }
 
     .group-tasks {
