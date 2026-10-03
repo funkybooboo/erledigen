@@ -4,10 +4,19 @@
  *
  * Shared by the inline add inputs and the search/command palette's "/add"
  * command so both go through the same TeuxDeux-style parseRecurrence path.
+ * Task text may also carry a natural-language date ("buy milk tomorrow")
+ * and #tags ("#work #p1"); both are extracted and applied to the created
+ * task. A typed date phrase overrides the surface's default date.
  */
 
 import type { CreateTaskInput, RecurrenceSchedule, RecurringTask, Task } from '@erledigen/shared';
-import { addDays, describeRecurrence, parseRecurrence } from '@erledigen/shared';
+import {
+    addDays,
+    describeRecurrence,
+    extractDatePhrase,
+    extractInlineTags,
+    parseRecurrence,
+} from '@erledigen/shared';
 import { container } from '$lib/container';
 import { GENERATE_HORIZON_DAYS, recurringTaskStore, taskStore } from '$lib/stores';
 
@@ -71,7 +80,19 @@ export async function createFromText(
         };
     }
 
-    const input: CreateTaskInput = { text, date: options.date || null };
+    // Natural-language date + #tags: "buy milk tomorrow #work #p1" becomes
+    // text "buy milk", date tomorrow, tags [work, p1]. The typed phrase wins
+    // over the surface's default date (the user typed it deliberately);
+    // a Someday input (date: "") with a phrase schedules the task.
+    const datePhrase = extractDatePhrase(text, container.dateProvider.today());
+    const stripped = datePhrase ? datePhrase.rest : text;
+    const inlineTags = extractInlineTags(stripped);
+
+    const input: CreateTaskInput = {
+        text: inlineTags.text,
+        date: datePhrase ? datePhrase.date : options.date || null,
+    };
+    if (inlineTags.tags.length > 0) input.tags = inlineTags.tags;
     if (options.someDayGroupId) input.someDayGroupId = options.someDayGroupId;
     const task = await taskStore.create(input);
     return task ? { kind: 'task', task } : null;

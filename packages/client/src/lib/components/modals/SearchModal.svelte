@@ -1,11 +1,25 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
-    import { taskStore, uiStore, notificationStore } from '$lib/stores';
+    import { taskStore, uiStore, notificationStore, dateViewStore, preferencesStore } from '$lib/stores';
     import { createFromText, habitCreatedText } from '$lib/createFromText';
+    import { deleteTaskWithUndo } from '$lib/taskActions';
     import { container } from '$lib/container';
-    import { describeRecurrence, parseRecurrence, type Task } from '@erledigen/shared';
+    import {
+        findTaskByText,
+        normalizeTagInput,
+        PALETTE_COMMANDS,
+        parseMoveArgs,
+        parseTagArgs,
+        type PaletteCommand,
+    } from '$lib/paletteCommands';
+    import {
+        describeRecurrence,
+        parseRecurrence,
+        resolveDatePhrase,
+        type Task,
+    } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
-    import { LuCheck, LuCircle, LuPlus, LuRepeat } from 'svelte-icons-pack/lu';
+    import { LuCheck, LuCircle, LuPlus, LuRepeat, LuX } from 'svelte-icons-pack/lu';
     import { onMount } from 'svelte';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
@@ -23,48 +37,24 @@
 
     // --- command mode ----------------------------------------------------
     // A leading "/" turns the search box into a command palette. Commands
-    // are typed "/<name> <args>"; Enter runs the first listed command.
-
-    interface Command {
-        id: string;
-        label: string;
-        description: string;
-    }
-
-    const COMMANDS: Command[] = [
-        {
-            id: 'add',
-            label: '/add',
-            description: 'Add a task for today (habit phrases like "every day" become habits)',
-        },
-    ];
+    // are typed "/<name> <args>"; Enter runs the selected command. The
+    // metadata table lives in lib/paletteCommands.ts.
 
     let isCommandMode = $derived(query.trimStart().startsWith('/'));
 
     /** The query without the leading "/" (e.g. "add water plants"). */
     let commandQuery = $derived(query.trimStart().slice(1).trim());
 
+    /** The typed command word and everything after it. */
+    let commandWord = $derived((commandQuery.split(' ')[0] ?? '').toLowerCase());
+    let commandArgs = $derived(commandQuery.split(' ').slice(1).join(' ').trim());
+
     /** Commands whose id prefixes the typed command word. */
     let matchingCommands = $derived.by(() => {
         if (!isCommandMode) return [];
-        const word = (commandQuery.split(' ')[0] ?? '').toLowerCase();
-        if (!word) return [...COMMANDS];
-        return COMMANDS.filter(cmd => cmd.id.startsWith(word));
+        if (!commandWord) return [...PALETTE_COMMANDS];
+        return PALETTE_COMMANDS.filter(cmd => cmd.id.startsWith(commandWord));
     });
-
-    /** The "/add" argument text, when the command is fully typed. */
-    let addArgument = $derived.by(() => {
-        if (!isCommandMode) return '';
-        const parts = commandQuery.split(' ');
-        const word = (parts[0] ?? '').toLowerCase();
-        if (word !== 'add') return '';
-        return parts.slice(1).join(' ').trim();
-    });
-
-    /** Live habit preview for the /add argument. */
-    let addParsed = $derived(addArgument ? parseRecurrence(addArgument) : null);
-
-    let running = $state(false);
 
     // --- keyboard selection ----------------------------------------------
     // Arrow keys move a selection over the rendered option rows (commands
@@ -74,11 +64,16 @@
 
     let selectedIndex = $state(0);
 
+    /** The selected command, or the first when none is highlighted. */
+    let activeCommand = $derived(matchingCommands[selectedIndex] ?? matchingCommands[0] ?? null);
+
+    /** Whether an action row (command + typed args) is rendered. */
+    let hasActionRow = $derived(Boolean(activeCommand && commandArgs));
+
     /** Number of option rows currently rendered below the input. */
     let optionCount = $derived.by(() => {
         if (isCommandMode) {
-            if (addArgument) return matchingCommands.length > 0 ? 1 : 0;
-            return matchingCommands.length;
+            return hasActionRow ? 1 : matchingCommands.length;
         }
         return results.length;
     });
@@ -101,38 +96,206 @@
         document.getElementById(optionId(selectedIndex))?.scrollIntoView({ block: 'nearest' });
     }
 
-    /** The selected command, or the first when none is highlighted. */
-    let selectedCommand = $derived(matchingCommands[selectedIndex] ?? matchingCommands[0]);
+    // --- live hints on the action row -------------------------------------
+
+    let addParsed = $derived(activeCommand?.id === 'add' && commandArgs ? parseRecurrence(commandArgs) : null);
+
+    /** Resolved date shown next to "/go <date>". */
+    let goDate = $derived(
+        activeCommand?.id === 'go' && commandArgs
+            ? resolveDatePhrase(commandArgs, container.dateProvider.today())
+            : null,
+    );
+
+    /** Resolved date shown next to "/move <text> to <date>". */
+    let moveDate = $derived.by(() => {
+        if (activeCommand?.id !== 'move' || !commandArgs) return null;
+        const parts = parseMoveArgs(commandArgs);
+        return parts ? resolveDatePhrase(parts.date, container.dateProvider.today()) : null;
+    });
+
+    let running = $state(false);
+
+    /** The icon the action row shows for a command. */
+    let actionIcon = $derived.by(() => {
+        switch (activeCommand?.id) {
+            case 'add':
+                return LuPlus;
+            case 'complete':
+                return LuCheck;
+            case 'delete':
+                return LuX;
+            default:
+                return LuCircle;
+        }
+    });
 
     async function runSelectedCommand() {
-        const command = selectedCommand;
+        const command = activeCommand;
         if (!command || running) return;
-        if (command.id === 'add') {
-            if (!addArgument) {
-                // Enter on a bare command stages it into the input, ready
-                // for its argument.
-                query = `/${command.id} `;
-                return;
+        // Enter on a bare argument-taking command stages it into the
+        // input, ready for its argument.
+        if (!command.noArgs && !commandArgs) {
+            query = `/${command.id} `;
+            return;
+        }
+        running = true;
+        const ok = await dispatch(command, commandArgs);
+        running = false;
+        if (ok) uiStore.closeModal();
+    }
+
+    /** Run one command with its typed argument. Returns whether the
+     *  palette should close (failures keep the query for a retry). */
+    async function dispatch(command: PaletteCommand, args: string): Promise<boolean> {
+        const today = container.dateProvider.today();
+        switch (command.id) {
+            case 'add': {
+                const result = await createFromText(args, { date: today });
+                if (!result) {
+                    notificationStore.push('Could not create -- the text is kept', {
+                        kind: 'error',
+                    });
+                    return false;
+                }
+                if (result.kind === 'habit') {
+                    notificationStore.push(habitCreatedText(result.schedule), { kind: 'success' });
+                } else {
+                    const where = result.task.date === today ? 'today' : result.task.date ?? 'Someday';
+                    notificationStore.push(`Task added to ${where}`, { kind: 'success' });
+                }
+                return true;
             }
-            running = true;
-            const result = await createFromText(addArgument, {
-                date: container.dateProvider.today(),
-            });
-            running = false;
-            if (!result) {
-                // Creation failed (network/server). The query is kept so the
-                // user can retry; the toast says what happened.
-                notificationStore.push('Could not create -- the text is kept', {
-                    kind: 'error',
-                });
-                return;
+            case 'complete': {
+                const task = findTaskByText(taskStore.tasks, args);
+                if (!task) {
+                    notificationStore.push(`No task matches "${args}"`, { kind: 'error' });
+                    return false;
+                }
+                const updated = await taskStore.update(task.id, { completed: true });
+                if (!updated) {
+                    notificationStore.push('Could not complete the task', { kind: 'error' });
+                    return false;
+                }
+                notificationStore.push(`Completed "${task.text}"`, { kind: 'success' });
+                return true;
             }
-            if (result.kind === 'habit') {
-                notificationStore.push(habitCreatedText(result.schedule), { kind: 'success' });
-            } else {
-                notificationStore.push('Task added to today', { kind: 'success' });
+            case 'delete': {
+                const task = findTaskByText(taskStore.tasks, args);
+                if (!task) {
+                    notificationStore.push(`No task matches "${args}"`, { kind: 'error' });
+                    return false;
+                }
+                const outcome = await deleteTaskWithUndo(task);
+                if (outcome === 'failed') {
+                    notificationStore.push('Could not delete the task', { kind: 'error' });
+                }
+                return outcome === 'deleted';
             }
-            uiStore.closeModal();
+            case 'move': {
+                const parts = parseMoveArgs(args);
+                if (!parts) {
+                    notificationStore.push('Use "/move <text> to <date>"', { kind: 'error' });
+                    return false;
+                }
+                const task = findTaskByText(taskStore.tasks, parts.text);
+                if (!task) {
+                    notificationStore.push(`No task matches "${parts.text}"`, { kind: 'error' });
+                    return false;
+                }
+                const date = resolveDatePhrase(parts.date, today);
+                if (!date) {
+                    notificationStore.push(`Could not parse "${parts.date}" as a date`, {
+                        kind: 'error',
+                    });
+                    return false;
+                }
+                const updated = await taskStore.update(task.id, { date });
+                if (!updated) {
+                    notificationStore.push('Could not move the task', { kind: 'error' });
+                    return false;
+                }
+                notificationStore.push(`Moved "${task.text}" to ${date}`, { kind: 'success' });
+                return true;
+            }
+            case 'go': {
+                const date = resolveDatePhrase(args, today);
+                if (!date) {
+                    notificationStore.push(`Could not parse "${args}" as a date`, { kind: 'error' });
+                    return false;
+                }
+                dateViewStore.requestScroll(date, true);
+                return true;
+            }
+            case 'tag': {
+                const parts = parseTagArgs(args);
+                if (!parts) {
+                    notificationStore.push('Use "/tag <text> with <tag>"', { kind: 'error' });
+                    return false;
+                }
+                const tag = normalizeTagInput(parts.tag);
+                if (!tag) {
+                    notificationStore.push('Type a tag to add', { kind: 'error' });
+                    return false;
+                }
+                const task = findTaskByText(taskStore.tasks, parts.text);
+                if (!task) {
+                    notificationStore.push(`No task matches "${parts.text}"`, { kind: 'error' });
+                    return false;
+                }
+                if (!task.tags.includes(tag)) {
+                    const updated = await taskStore.update(task.id, { tags: [...task.tags, tag] });
+                    if (!updated) {
+                        notificationStore.push('Could not tag the task', { kind: 'error' });
+                        return false;
+                    }
+                }
+                notificationStore.push(`Tagged "${task.text}" with #${tag}`, { kind: 'success' });
+                return true;
+            }
+            case 'filter': {
+                const tag = normalizeTagInput(args);
+                if (!tag) {
+                    notificationStore.push('Type a tag to filter by', { kind: 'error' });
+                    return false;
+                }
+                preferencesStore.setTags([tag]);
+                return true;
+            }
+            case 'clear':
+                preferencesStore.clearAll();
+                return true;
+            case 'today':
+                dateViewStore.requestScroll(today, true);
+                return true;
+            case 'someday': {
+                const task = findTaskByText(taskStore.tasks, args);
+                if (!task) {
+                    notificationStore.push(`No task matches "${args}"`, { kind: 'error' });
+                    return false;
+                }
+                const updated = await taskStore.update(task.id, { date: null });
+                if (!updated) {
+                    notificationStore.push('Could not move the task', { kind: 'error' });
+                    return false;
+                }
+                notificationStore.push(`Moved "${task.text}" to Someday`, { kind: 'success' });
+                return true;
+            }
+            case 'project':
+                uiStore.openModal('projects');
+                return true;
+            case 'habit':
+                uiStore.openModal('habits');
+                return true;
+            case 'settings':
+                uiStore.openModal('settings');
+                return true;
+            case 'help':
+                uiStore.openModal('help');
+                return true;
+            default:
+                return false;
         }
     }
 
@@ -199,31 +362,31 @@
         />
 
         {#if isCommandMode}
-            {#if addArgument}
+            {#if hasActionRow && activeCommand}
                 <ul class="results" role="listbox" id="search-results">
-                    {#if matchingCommands.length > 0}
-                        <li>
-                            <button
-                                class="result-item"
-                                class:selected={selectedIndex === 0}
-                                id={optionId(0)}
-                                onclick={runSelectedCommand}
-                                role="option"
-                                aria-selected="true"
-                            >
-                                <span class="result-checkbox"><Icon src={LuPlus} /></span>
-                                <span class="result-text">Add: {addArgument}</span>
-                                {#if addParsed}
-                                    <span class="command-hint">
-                                        <Icon src={LuRepeat} />
-                                        {describeRecurrence(addParsed.schedule)}
-                                    </span>
-                                {/if}
-                            </button>
-                        </li>
-                    {:else}
-                        <li><p class="empty">No such command.</p></li>
-                    {/if}
+                    <li>
+                        <button
+                            class="result-item"
+                            class:selected={selectedIndex === 0}
+                            id={optionId(0)}
+                            onclick={runSelectedCommand}
+                            role="option"
+                            aria-selected="true"
+                        >
+                            <span class="result-checkbox"><Icon src={actionIcon} /></span>
+                            <span class="result-text">{activeCommand.label} {commandArgs}</span>
+                            {#if addParsed}
+                                <span class="command-hint">
+                                    <Icon src={LuRepeat} />
+                                    {describeRecurrence(addParsed.schedule)}
+                                </span>
+                            {:else if goDate}
+                                <span class="command-hint">{goDate}</span>
+                            {:else if moveDate}
+                                <span class="command-hint">{moveDate}</span>
+                            {/if}
+                        </button>
+                    </li>
                 </ul>
             {:else if matchingCommands.length > 0}
                 <ul class="results" role="listbox" id="search-results">
@@ -273,7 +436,7 @@
         {:else if query.trim()}
             <p class="empty">No tasks found.</p>
         {:else}
-            <p class="hint">Type to search across task text, notes, and tags. Prefix with "/" to run a command like "/add water the plants".</p>
+            <p class="hint">Type to search across task text, notes, and tags. Prefix with "/" to run commands like "/add" or "/go next monday".</p>
         {/if}
     </div>
 </Modal>

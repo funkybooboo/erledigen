@@ -53,7 +53,7 @@ Four zones:
 - **Right Someday panel** -- always visible by default; collapsible (`Cmd/Ctrl+\\`) and drag-to-resize (width persisted)
 - **Bottom bar** -- `erledigen logo (home/today) | live clock | filter chips | task count | ^ Today`
 
-Every interactive element shows a hover tooltip with its keybinding (see the Help modal, `?`), and a trailing recurrence phrase in any add input ("every friday", "daily at 9am", ...) creates a habit.
+Every interactive element shows a hover tooltip with its keybinding (see the Help modal, `?`), and a trailing recurrence phrase in any add input ("every friday", "daily at 9am", ...) creates a habit. Add text may also carry a natural-language date ("buy milk tomorrow", "team sync next monday", "file taxes march 15") and `#tags` -- both are extracted onto the task.
 
 ---
 
@@ -197,7 +197,7 @@ Tags are the primary organizational tool. A task can have any number of tags. Sp
 The right-side Someday panel captures ideas and unscheduled work. Tasks are organized into user-created groups (tag-based). Works identically to the day list but without dates or automation. Global filtering applies.
 
 ### Command Palette (Cmd/Ctrl+K)
-One unified modal for search and commands. `/add fix auth #work #p1` creates a task for today (tags are parsed; a trailing recurrence phrase creates a habit); plain text searches tasks. The fastest way to do anything in Erledigen -- the command set grows from here (see the roadmap).
+One unified modal for search and commands. Plain text searches tasks (text, notes, tags). `/add fix auth tomorrow #work #p1` creates a task for the parsed date with the hashtags as tags (a trailing recurrence phrase instead creates a habit); other commands: `/complete <text>`, `/delete <text>`, `/move <text> to <date>`, `/go <date>` (e.g. `/go next monday`), `/tag <text> with <tag>`, `/filter <tag>`, `/clear`, `/today`, `/someday <text>`, `/project`, `/habit`, `/settings`, `/help`.
 
 ### Project Management
 Projects are collections of ordered tasks with a detail view in the Projects modal. Activate/deactivate flips the project's `isActive` flag (auto-distribution of tasks across days between start and due dates is planned for v0.9.0). Project tasks appear in the day list tagged with the project's auto-generated `project:`-prefixed tag.
