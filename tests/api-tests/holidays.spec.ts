@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { createServer, type Server } from 'node:http';
+import { networkInterfaces } from 'node:os';
 import { cleanup, createHoliday, del, get, post, postText, put, track, uniq } from './helpers';
 
 test.afterEach(async ({ request }) => {
@@ -26,7 +27,23 @@ const ICS_FIXTURE = [
     'END:VCALENDAR',
 ].join('\r\n');
 
-/** Serve ICS_FIXTURE on an ephemeral port; resolves the listening URL. */
+/** Serve ICS_FIXTURE on an ephemeral port; resolves the listening URL.
+ *
+ * The URL must be fetchable BY THE API SERVER, which is not always the
+ * same origin as the test runner: in the dockerized stack (compose.test.yaml)
+ * the runner and server are separate containers. A service-name alias is
+ * NOT reliable for `compose run` containers, so the fixture advertises the
+ * runner's own non-loopback IPv4 -- same-host servers reach it locally,
+ * and container servers reach it over the shared compose network. */
+function runnerHost(): string {
+    for (const interfaces of Object.values(networkInterfaces())) {
+        for (const net of interfaces ?? []) {
+            if (net.family === 'IPv4' && !net.internal) return net.address;
+        }
+    }
+    return '127.0.0.1';
+}
+
 async function serveIcsFixture(status = 200): Promise<{ url: string; close: () => void }> {
     const server: Server = createServer((req, res) => {
         if (status !== 200) {
@@ -37,13 +54,13 @@ async function serveIcsFixture(status = 200): Promise<{ url: string; close: () =
         res.writeHead(200, { 'Content-Type': 'text/calendar' });
         res.end(ICS_FIXTURE);
     });
-    await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
+    await new Promise<void>(resolve => server.listen(0, '0.0.0.0', resolve));
     const address = server.address();
     if (address === null || typeof address === 'string') {
         throw new Error('no listen address');
     }
     return {
-        url: `http://127.0.0.1:${address.port}/holidays.ics`,
+        url: `http://${runnerHost()}:${address.port}/holidays.ics`,
         close: () => server.close(),
     };
 }
@@ -248,9 +265,21 @@ test.describe('holidays -- export & restore coverage (ADR-008/009)', () => {
             name: uniq('DoomedByRestore'),
             date: '2027-09-09',
         });
-        const exportRes = await get(request, '/api/export?format=json');
-        const snapshot = exportRes.body as Record<string, unknown>;
-        delete snapshot.holidays;
+        // Build a minimal, self-consistent snapshot by hand: a long-lived
+        // test server can hold cross-suite leftovers whose dangling
+        // references the strict restore rightly rejects, so the live
+        // export is not a safe fixture here.
+        const prefsRes = await get(request, '/api/preferences');
+        const snapshot = {
+            format: 'erledigen-export',
+            version: 1,
+            exportedAt: new Date().toISOString(),
+            tasks: [],
+            someDayGroups: [],
+            projects: [],
+            recurringTasks: [],
+            userPreferences: prefsRes.body.data,
+        };
         const res = await postText(request, '/api/import?format=json', JSON.stringify(snapshot));
         expect(res.status).toBe(200);
         expect(res.body.data.restored.holidays).toBe(0);

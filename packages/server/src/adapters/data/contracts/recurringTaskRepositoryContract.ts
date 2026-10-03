@@ -108,7 +108,48 @@ export function runRecurringTaskRepositoryContractTests(
     });
 
     describe('delete', () => {
+        test('deleting a template removes its stats row', async () => {
+            // Stats rows are derived data; a row surviving its template
+            // lets a REUSED id inherit the deleted habit's "best ever"
+            // streak (deleting the max id frees it for the next create).
+            const repo = makeRepo();
+            const task = await repo.create({
+                text: 'Doomed habit',
+                frequency: 'daily',
+                startDate: '2026-01-01',
+            });
+            await repo.upsertStats({
+                recurringTaskId: task.id,
+                currentStreak: 2,
+                longestStreak: 9,
+                totalCompletions: 4,
+                lastCompletedDate: '2026-01-04',
+            });
+            expect(await repo.findStats(task.id)).not.toBeNull();
+
+            expect(await repo.delete(task.id)).toBe(true);
+            expect(await repo.findStats(task.id)).toBeNull();
+        });
+
         describe('replaceAll (restore write path)', () => {
+            test('wipes stats along with the templates (stats are derived)', async () => {
+                const repo = makeRepo();
+                const task = await repo.create({
+                    text: 'Restored away',
+                    frequency: 'daily',
+                    startDate: '2026-01-01',
+                });
+                await repo.upsertStats({
+                    recurringTaskId: task.id,
+                    currentStreak: 3,
+                    longestStreak: 12,
+                    totalCompletions: 30,
+                    lastCompletedDate: '2026-02-01',
+                });
+                await repo.replaceAll([]);
+                expect(await repo.findStats(task.id)).toBeNull();
+            });
+
             test('replaces every template verbatim', async () => {
                 const repo = makeRepo();
                 await repo.create({

@@ -149,6 +149,13 @@ export class SqliteRecurringTaskRepository implements RecurringTaskRepository {
         );
         this.db.transaction(() => {
             this.db.prepare('DELETE FROM recurring_tasks').run();
+            // Stats are DERIVED data (recomputed from instances on read)
+            // and are deliberately absent from the snapshot -- a restore
+            // wipes them with the templates. Keeping rows for ids the
+            // restore just removed lets a REUSED id inherit a deleted
+            // habit's records (nextId frees the max id on delete/
+            // restore).
+            this.db.prepare('DELETE FROM recurring_task_stats').run();
             for (const rt of recurringTasks) {
                 insert.run(
                     rt.id,
@@ -204,6 +211,9 @@ export class SqliteRecurringTaskRepository implements RecurringTaskRepository {
     }
 
     async delete(id: string): Promise<boolean> {
+        // The stats row dies with its template (same id-reuse reasoning
+        // as replaceAllSync -- deleting the max id frees it for reuse).
+        this.db.prepare('DELETE FROM recurring_task_stats WHERE recurring_task_id = ?').run(id);
         const result = this.db.prepare('DELETE FROM recurring_tasks WHERE id = ?').run(id);
         return result.changes > 0;
     }
