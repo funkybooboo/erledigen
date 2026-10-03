@@ -15,37 +15,20 @@ green).
   cleanup) do not bump it. Cut the next release with
   `mise run release`, which bumps every manifest, bun.lock, and the
   runtime `version.ts` stamp together.
-- **Shipped complete:** v0.1.0, v0.2.0, v0.3.0, v0.4.0, v0.4.1, v0.5.0, v0.6.0.
-- **In flight, with remaining scope:**
-    - v0.5.0 -- COMPLETE: the full shortcut table (J/K section jumps,
-      r/m/t inline row editors, {mod}+Shift+Z redo), natural-language
-      date + #tag parsing in task creation, and the complete command
-      palette registry.
-    - v0.6.0 -- COMPLETE (2026-10-03): priority sort mode + date-range
-      filter (PR #24), drag-and-drop (native HTML5 DnD, reactivated by
-      the UX audit), and the mobile tier (bottom-sheet modals, Someday
-      overlay, breakpoints). The lowest incomplete version is now
-      v0.9.0.
-    - v0.7.0 -- COMPLETE: storage + observability (SQLite, migrations,
-      contract tests, preferences persistence, JSON logs, request IDs,
-      `/api/metrics`, enhanced health); export (all four formats via
-      `GET /api/export` + the Settings export UI, ADR-008); import (all
-      five sources via `POST /api/import` + the Settings import UI,
-      ADR-009).
-    - v0.8.0 -- shipped: job queue + runner (ADR-002), task rollover
-      (midnight/9am/manual trigger times, startup catch-up), trash
-      purge; recurring generation stays on-demand by design (no
-      generate-recurring job).
-    - v0.9.0 -- habits + calendar done (habits incl. the habit detail
-      heatmap and the make-recurring promote toggle, PRs #18/#20);
-      remaining: Kanban board, holidays, summary sections.
+- **Shipped complete:** v0.1.0, v0.2.0, v0.3.0, v0.4.0, v0.4.1, v0.5.0,
+  v0.6.0, v0.7.0, v0.8.0, v0.9.0.
+- **Shipped with v0.9.0 (2026-10-04):** holidays (Settings manager +
+  `.ics` import + day-list banners, PR #34), the Summary modal's
+  overdue/streak/next-14-days sections (PR #35), and the project
+  Kanban board with drag, auto-distribution, and dependency locks
+  (PR #36). `mise run release` stamps 0.9.0 next.
 - **Partial:** v0.11.0 (design system, theme system, delete behavior
   shipped), v0.12.0 (ARIA, focus management, skip link shipped).
-- **Not started:** v0.10.0 (markdown notes), v0.13.0 (i18n), v0.14.0
-  (calendar time-grid), v0.15.0 (2026-10-03 UX audit).
-- **UX audit (2026-10-03):** seventeen findings from a self-review of
-  the shipped app (raw notes in [issues.md](issues.md)) are tracked in
-  the v0.15.0 section below. Two reverse shipped decisions: the `/`
+- **Not started:** v0.10.0 (live markdown notes), v0.13.0 (i18n),
+  v0.14.0 (calendar time-grid), v0.15.0 (2026-10-03 UX audit).
+- **UX audit (2026-10-03, extended same day):** eighteen findings from
+  a self-review of the shipped app (raw notes in
+  [issues.md](issues.md)) are tracked in the v0.15.0 section below. Two reverse shipped decisions: the `/`
   command palette is REMOVED (plain `{mod}+K` search and every
   keyboard shortcut stay -- v0.5.0 section updated), and
   drag-and-drop is REACTIVATED (v0.6.0 section updated).
@@ -55,22 +38,21 @@ recurring tasks are the big ones). **Policy decision (2026-10-03): go
 in numeric order from here on -- always complete the lowest version
 that is not complete before starting anything higher.** A same-day
 codebase audit verified every shipped-complete claim against the tree
-and fixed stale checkboxes in place: v0.6.0 is the lowest incomplete
-version. (One audit correction -- the claim that Bruno tests never
-shipped -- was itself wrong and is reverted in the v0.3.0 section;
-the collection is real: `tests/api/`, dockerized via `mise run
-test-api`.)
+and fixed stale checkboxes in place. (One audit correction -- the
+claim that Bruno tests never shipped -- was itself wrong and is
+reverted in the v0.3.0 section; the collection is real: `tests/api/`,
+dockerized via `mise run test-api`.)
 
 **Current focus (2026-10-04): v0.9.0 is feature-complete** -- the
 next step is `mise run release minor` stamping 0.9.0 (package.json
 still carries 0.8.0; interim PRs do not bump). After that: v0.10.0
 (live markdown), then the v0.11.0/v0.12.0 remainders, v0.13.0 (i18n),
-v0.14.0 (calendar time-grid), v0.15.0 (UX audit remainder). After that: `mise run release` stamps 0.9.0, then
-v0.10.0 (live markdown), v0.11.0 remainder, v0.12.0 remainder,
-v0.13.0 (i18n), v0.14.0 (calendar time-grid), v0.15.0 (UX audit
-remainder). UX-audit findings that live inside earlier sections ship
-with their home versions: the summary keep-or-remove criterion with
-v0.9.0, live markdown with v0.10.0, the theme modal with v0.11.0.
+v0.14.0 (calendar time-grid), v0.15.0 (UX audit remainder).
+UX-audit findings that live inside earlier sections ship with their
+home versions: live markdown with v0.10.0, the theme modal with
+v0.11.0 (the Summary keep-or-remove criterion's sections shipped
+with v0.9.0; the verdict itself stays open as a try-it-and-see
+decision -- see the v0.15.0 section).
 
 ---
 
@@ -1020,12 +1002,14 @@ This release adds a time-grid calendar view for tasks with start and end times.
 ## v0.15.0: UX Audit & Gold-Standard Polish
 
 Findings from the 2026-10-03 UX audit of the shipped app (raw notes:
-[issues.md](issues.md)). The audit's verdict: the app is going in the
-right direction but needs work in polishing, refining, and getting to
-a gold standard. Two shipped decisions are reversed here (the command
-palette is removed; drag-and-drop returns), and the rest is targeted
-UX repair. Items that expand unshipped releases are cross-noted in
-those sections (v0.9.0, v0.10.0, v0.11.0).
+[issues.md](issues.md); an 18th finding -- habit schedules and
+`#tags` must compose -- was added the same day). The audit's verdict:
+the app is going in the right direction but needs work in polishing,
+refining, and getting to a gold standard. Two shipped decisions are
+reversed here (the command palette is removed; drag-and-drop
+returns), and the rest is targeted UX repair. Items that expand
+unshipped releases are cross-noted in those sections (v0.9.0,
+v0.10.0, v0.11.0).
 
 ### Shell & Bottom Bar
 
@@ -1185,13 +1169,13 @@ The first stable, fully usable release of Erledigen. Goal: a complete daily driv
 - [ ] **Monitoring stack:** `docker-compose.monitoring.yml` ships with Prometheus + Grafana + Loki + Uptime Kuma (ADR-006).
 - [ ] **Full keyboard operation:** Every action reachable without a mouse. All shortcuts from v0.5.0 working.
 - [ ] **Search:** `{mod}+K` plain task search functional. (The `/` command palette was removed by the 2026-10-03 audit decision -- see the v0.5.0 and v0.15.0 sections.)
-- [ ] **Projects & Habits:** Fully functional project Kanban and habit tracking with streaks.
+- [x] **Projects & Habits:** Fully functional project Kanban and habit tracking with streaks.
 - [x] **Rollover automation:** Incomplete tasks roll over by default; overdue indicators shown (a per-task days-late badge remains small UI polish).
 - [ ] **Tag system:** Full tag management -- colors, rename, merge, delete.
 - [ ] **Light & dark themes:** Polished and complete.
 - [ ] **Markdown notes:** Rich notes in task detail.
 - [x] **Trash & undo:** 7-day trash, undo toasts, Cmd+Z.
-- [ ] **Holidays:** Manual + .ics import; banners in day list.
+- [x] **Holidays:** Manual + .ics import; banners in day list.
 - [ ] **Import/Export:** JSON, CSV, Markdown, iCal, Todoist CSV, Things 3 JSON all working.
 - [ ] **Start/end times:** Task model and detail modal support time fields. Calendar time-grid view functional.
 - [ ] **Accessibility:** WCAG 2.1 AA audit passed. axe-core CI check green.
