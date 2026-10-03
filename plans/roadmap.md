@@ -21,10 +21,12 @@ green).
       r/m/t inline row editors, {mod}+Shift+Z redo), natural-language
       date + #tag parsing in task creation, and the complete command
       palette registry.
-    - v0.6.0 -- COMPLETE: priority sort mode (block-aware within-day
-      ordering + priority accents) and the date-range filter shipped;
-      drag-and-drop stays removed by design (the design is kept in the
-      section below). Remaining: mobile/bottom sheets (next slice).
+    - v0.6.0 -- IN PROGRESS (the lowest incomplete version; current
+      focus): priority sort mode (block-aware within-day ordering +
+      priority accents) and the date-range filter shipped (PR #24);
+      drag-and-drop REACTIVATED by the 2026-10-03 UX audit (design in
+      the v0.6.0 section). Remaining: drag-and-drop, mobile/bottom
+      sheets, responsive breakpoints.
     - v0.7.0 -- COMPLETE: storage + observability (SQLite, migrations,
       contract tests, preferences persistence, JSON logs, request IDs,
       `/api/metrics`, enhanced health); export (all four formats via
@@ -41,24 +43,32 @@ green).
 - **Partial:** v0.11.0 (design system, theme system, delete behavior
   shipped), v0.12.0 (ARIA, focus management, skip link shipped).
 - **Not started:** v0.10.0 (markdown notes), v0.13.0 (i18n), v0.14.0
-  (calendar time-grid).
+  (calendar time-grid), v0.15.0 (2026-10-03 UX audit).
+- **UX audit (2026-10-03):** seventeen findings from a self-review of
+  the shipped app (raw notes in [issues.md](issues.md)) are tracked in
+  the v0.15.0 section below. Two reverse shipped decisions: the `/`
+  command palette is REMOVED (plain `{mod}+K` search and every
+  keyboard shortcut stay -- v0.5.0 section updated), and
+  drag-and-drop is REACTIVATED (v0.6.0 section updated).
 
 Features have shipped out of release order throughout v0.x (SQLite and
-recurring tasks are the big ones) -- treat the sections below as a
-feature catalog and choose the next release deliberately, not by
-number.
+recurring tasks are the big ones). **Policy decision (2026-10-03): go
+in numeric order from here on -- always complete the lowest version
+that is not complete before starting anything higher.** A same-day
+codebase audit verified every shipped-complete claim against the tree
+and fixed stale checkboxes in place: v0.6.0 is the lowest incomplete
+version.
 
-**Current focus (2026-10-03): finishing v0.5.0, v0.6.0, and the
-v0.9.0 remainder as tracked in
-[plans/v0.5-v0.6-v0.9-completion.md](v0.5-v0.6-v0.9-completion.md).
-Shipped so far: v0.5.0 is COMPLETE (PR #22 natural-language dates +
-#tag extraction + the full command palette; PR #23 J/K section jumps,
-r/m/t inline row editors, redo), and v0.6.0's priority sort mode +
-date-range filter (PR #24). Remaining slices: v0.6.0 mobile/bottom
-sheets, then the v0.9.0 remainder (holidays, summary sections,
-Kanban board + auto-distribution). Other open catalog items:
-v0.10.0 (markdown notes), v0.12.0 remainder, v0.13.0 (i18n),
-v0.14.0 (calendar time-grid).
+**Current focus (2026-10-03): completing v0.6.0, the lowest incomplete
+version.** Remaining v0.6.0 scope: drag-and-drop (the reactivated
+design in the v0.6.0 section), mobile/bottom sheets, and responsive
+breakpoints. After v0.6.0, in numeric order: the v0.9.0 remainder
+(Kanban, holidays, summary sections), v0.10.0 (live markdown),
+v0.11.0 remainder, v0.12.0 remainder, v0.13.0 (i18n), v0.14.0
+(calendar time-grid), v0.15.0 (UX audit remainder). UX-audit findings
+that live inside earlier sections ship with their home versions:
+drag-and-drop with v0.6.0, the summary keep-or-remove criterion with
+v0.9.0, live markdown with v0.10.0, the theme modal with v0.11.0.
 
 ---
 
@@ -164,7 +174,7 @@ This release creates the REST API for all entities. The API is designed to be cl
 ### Technical Notes & Considerations
 
 - RESTful design throughout. Consistent error response shape: `{ error: string; code: string; details?: unknown }`.
-- Bruno tests written before implementation (TDD). Every endpoint has a Bruno test file.
+- API integration tests: the planned Bruno tooling was superseded before shipping -- every endpoint is covered by the black-box HTTP suite in `tests/api-tests/` (Playwright `api` project; zero `.bru` files exist). Verified 2026-10-03.
 - The OpenAPI spec is auto-served at `GET /openapi.yaml` and `GET /openapi.json`.
 - Content negotiation uses the `accepts` library or equivalent.
 - Rate limiting state lives in-memory for single-user; Redis-backed in v2 for multi-user scale.
@@ -183,7 +193,7 @@ This release creates the REST API for all entities. The API is designed to be cl
 
 ### Definition of Done
 
-- [x] All endpoints implemented and tested with Bruno (tests written first).
+- [x] All endpoints implemented and tested (API integration suite in `tests/api-tests/`; the planned Bruno tooling was superseded -- see Technical Notes).
 - [x] OpenAPI spec complete and served at `/openapi.yaml`.
 - [x] Zod validation on all inputs.
 - [x] Content negotiation working: JSON and plain-text responses for all list endpoints.
@@ -213,9 +223,9 @@ Layout: `erledigen logo | filter chips | task count | ^ Today | docs ->`
 
 - [x] **Left:** `erledigen` logo -- clicking clears all filters and snaps to today (home button).
 - [x] **Center-left:** active filter chips, each with `x` to dismiss; `[clear all]` when multiple filters active.
-- [x] **Center-right:** status -- `12 tasks - 4 done`; when no filters: `March 30 - 12 tasks`.
+- [x] **Center-right:** status -- `12 tasks - 4 done`; when no filters: `March 30 - 12 tasks`. (The 2026-10-03 audit removes the store-wide counter readout -- see v0.15.0.)
 - [x] **Right:** `^ Today` button -- visible only when today section is out of viewport. IntersectionObserver wires `todayVisible` in DayList.svelte
-- [x] **Far-right:** `docs ->` link -- opens the Writebook user docs in a new tab.
+- [x] **Far-right:** `docs ->` link -- opens the Writebook user docs in a new tab. (Lost in the frontend simplification; the 2026-10-03 audit asks for it back -- see v0.15.0.)
 
 ### Day List
 
@@ -294,7 +304,7 @@ Layout: `erledigen logo | filter chips | task count | ^ Today | docs ->`
 - [x] Calendar, Trash, Help modals functional.
 - [x] Search, Filter, Settings modals have basic functionality.
 - [x] Storybook stories for all components (20 story files exist; need build verification).
-- [x] Full task CRUD through the UI (sub-task creation/management in detail modal missing).
+- [x] Full task CRUD through the UI, including sub-task create/complete/delete in the detail modal (the old "missing" caveat was stale -- verified 2026-10-03).
 - [x] Sub-tasks rendered indented below parent tasks in day list.
 - [x] TaskDetailModal: sub-task add/complete/delete and task delete button.
 - [x] Empty days render when preference is enabled.
@@ -397,6 +407,15 @@ Refactoring pass to fix API mismatches, extract shared types/constants/utilities
 This release makes Erledigen fully operable without a mouse, and finalizes the complete keyboard shortcut system.
 
 **Status:** COMPLETE. A single shortcut registry (`packages/client/src/lib/keybindings.ts`) now drives both the Help modal and hover tooltips on every UI action. Every shortcut in the reference table works: `j`/`k` + arrows (task focus), `J`/`K` (section jumps), `n`/`a`, `Enter` (inline edit), `e` (detail), `Space` (complete), `d` (delete), `r`/`m` (inline reschedule), `t` (inline tag editor), `1`/`2`/`3`/`0` (priority tags), `g t` (today) + `g s/p/h/c/f/x/o` (modals), `{mod}+K` / `/` (search palette), `?` (help), `{mod}+\` (Someday panel), `Esc`, `{mod}+Z` (undo), `{mod}+Shift+Z` (redo). The palette carries the full command registry with natural-language dates and `#tags` parsed in `/add`, `/go`, and `/move`.
+
+> **Removed by the 2026-10-03 UX audit:** the command palette itself.
+> Decision: no `/` commands, no command palette -- remove command mode
+> and the command registry from the codebase entirely. `{mod}+K` stays
+> as a plain task search; every keyboard shortcut stays; the
+> natural-language date + `#tag` parsing stays (the inline add inputs
+> and the Habits modal use it independently of the palette). The
+> command tables below are the historical record of what shipped, not
+> a plan.
 
 ### Complete Keyboard Shortcut Reference
 
@@ -505,11 +524,11 @@ The palette has two modes distinguished by the first character:
 
 This release polishes the three-panel layout, completes drag-and-drop interactions, implements lazy loading and view modes, and adds responsive behavior.
 
-**Status:** Layout polish shipped (true infinite scroll, resizable + collapsible Someday panel, filter persistence). Drag-and-drop was removed in the frontend simplification (design kept below). Priority sort mode and the date-range filter shipped (PR #24). Remaining: mobile/bottom sheets.
+**Status:** Layout polish shipped (true infinite scroll, resizable + collapsible Someday panel, filter persistence). Drag-and-drop was removed in the frontend simplification and REACTIVATED by the 2026-10-03 UX audit (design below). Priority sort mode and the date-range filter shipped (PR #24). Remaining: mobile/bottom sheets; drag-and-drop (reactivated).
 
 ### Drag-and-Drop (from v0.5.0)
 
-> **Removed:** drag-and-drop (and the `svelte-dnd-action` dependency) was removed in the frontend simplification (commit `2f3a700`) in favor of true infinite scroll. The items below are kept as the design for whenever drag returns.
+> **Removed, then reactivated:** drag-and-drop (and the `svelte-dnd-action` dependency) was removed in the frontend simplification (commit `2f3a700`) in favor of true infinite scroll. The 2026-10-03 UX audit asked for it back ("I can't drag and drop tasks to other days or reorder tasks on the same day"), so the items below are live planned work again, tracked with the v0.15.0 audit section.
 
 - [ ] **Drag handle:** grip icon appears on the left of each task row on hover. Only the handle initiates a drag.
 - [ ] **Drag between days:** Drag a task from one day section and drop it onto another day's header or task list. The target day section highlights on hover.
@@ -557,7 +576,7 @@ This release polishes the three-panel layout, completes drag-and-drop interactio
 - Panel resize/collapse working and persisted.
 - Priority sort mode functional.
 - Date range filter working in Filter modal.
-- Filter persistence configurable in Settings.
+- [x] Filter persistence configurable in Settings. (Decision 2026-10-03: persistence is always on by design; the start-fresh toggle is deliberately tracked in the v0.11.0 Settings list instead. Not a v0.6.0 gap.)
 - Mobile bottom sheet behavior functional.
 - E2E tests passing.
 
@@ -583,8 +602,8 @@ iCal, Todoist CSV, and Things 3 JSON import additively, with source
 canceled/deleted rows landing in the trash.
 
 ### Storage
-- [ ] **I/O Abstraction Layer:** Solidify the adapter pattern so the application core is independent of the data source.
-- [ ] **In-Memory Adapter:** Already exists; keep for testing and ephemeral sessions.
+- [x] **I/O Abstraction Layer:** Solidify the adapter pattern so the application core is independent of the data source. (Repository interfaces live in `packages/shared`; services never touch SQL -- verified 2026-10-03.)
+- [x] **In-Memory Adapter:** Already exists; keep for testing and ephemeral sessions. (`STORAGE_ADAPTER=memory`; drives the shared adapter contract tests and the e2e stack.)
 - [x] **SQLite Adapter:** Implement a file-based SQLite adapter as the first real persistence layer (see [ADR-001](../docs/devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md)).
     - Zero-config for self-hosted use: single `.db` file on disk (`./data/erledigen.db`, configurable via `DB_PATH`).
     - Raw SQL via `bun:sqlite` -- no ORM (see [ADR-001](../docs/devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md)).
@@ -667,16 +686,16 @@ canceled/deleted rows landing in the trash.
 - Markdown and notes fields sanitized on import (DOMPurify).
 
 ### Definition of Done
-- SQLite adapter fully implemented and tested.
-- All adapter contract tests pass against both in-memory and SQLite.
-- Schema migrations run on server start; `_migrations` tracking table created.
-- Structured JSON logging functional (`LOG_FORMAT=json`).
-- Request ID middleware attaches `X-Request-Id` header and correlates logs.
-- `/api/metrics` exposes Prometheus-format metrics.
-- `/api/health` returns rich health information.
+- [x] SQLite adapter fully implemented and tested.
+- [x] All adapter contract tests pass against both in-memory and SQLite.
+- [x] Schema migrations run on server start; `_migrations` tracking table created.
+- [x] Structured JSON logging functional (`LOG_FORMAT=json`).
+- [x] Request ID middleware attaches `X-Request-Id` header and correlates logs.
+- [x] `/api/metrics` exposes Prometheus-format metrics.
+- [x] `/api/health` returns rich health information.
 - [x] Export working for all four formats (ADR-008; the JSON export includes the trash, view formats cover active tasks).
 - [x] Import working for all five sources (ADR-009).
-- `UserPreferences` persisted across restarts.
+- [x] `UserPreferences` persisted across restarts.
 - [x] Import/Export UI in Settings functional (export download + restore/import with CSV column mapping).
 
 ---
@@ -758,7 +777,7 @@ by `instanceDate`; missed-habit handling belongs to streaks).
 
 This release builds the full UI for project management and habit tracking.
 
-**Status:** Partially shipped. Habits: done (list, create/edit/delete with live natural-language schedule parsing, streak badges, weekday/weekend schedules, the habit detail view with the GitHub-style completion heatmap, and the "make recurring" promote toggle in the task detail modal; the edit form stays on the list row). Projects: the modal exists with list + create/edit/delete + a detail view showing the project's tasks; the Kanban board, auto-distribution, and dependency indicators remain (activate/deactivate are API flag flips only). Summary: today's completion percentage + upcoming `#deadline` tasks; overdue/streak/holiday sections remain. Calendar: done. Holidays: not started.
+**Status:** Partially shipped. Habits: done (list, create/edit/delete with live natural-language schedule parsing, streak badges, weekday/weekend schedules, the habit detail view with the GitHub-style completion heatmap, and the "make recurring" promote toggle in the task detail modal; the edit form stays on the list row). Projects: the modal exists with list + create/edit/delete + a detail view showing the project's tasks; the Kanban board, auto-distribution, and dependency indicators remain (activate/deactivate are API flag flips only). Summary: today's completion percentage + upcoming `#deadline` tasks; overdue/streak/holiday sections remain. Calendar: done. Holidays: not started. The 2026-10-03 UX audit adds habits-modal UX fixes, a high-level month view for the Calendar modal, and a keep-or-remove criterion for the Summary modal -- tracked in the v0.15.0 section.
 
 - [ ] **Projects modal:**
     - List all projects (active and inactive).
@@ -808,9 +827,17 @@ This release builds the full UI for project management and habit tracking.
 
 This release adds rich text support to task notes.
 
+**2026-10-03 UX audit (tracked in the v0.15.0 section):** the editing
+model becomes Obsidian-style live rendering -- notes render as
+Markdown, and only the line under the cursor drops back to raw
+syntax (a rendered heading shows as `# header` while that line is
+edited). The task title uses the same live model. The edit/view
+toggle below is superseded; sanitization applies unchanged, and task
+rows gain a has-notes indicator.
+
 - [ ] **Markdown rendering:** Task notes (the `notes` field) are rendered as Markdown in the task detail modal.
     - Supports: headings, bold, italic, inline code, code blocks, lists, links.
-    - Edit mode: raw Markdown textarea. View mode: rendered output. Toggle between modes.
+    - Live editing (supersedes the toggle): rendered Markdown everywhere; the line under the cursor shows raw syntax while it is edited.
 - [ ] **Sanitization:** All user-provided HTML is sanitized before rendering to prevent XSS.
 
 ### Technical Notes & Considerations
@@ -839,7 +866,7 @@ This release refines the visual design into a cohesive, calm product and formali
     - Typography: system font stack (no web fonts).
     - Spacing, border radius (pill buttons), layered shadows, and an OKLCH color scale defined as CSS variables in `app.css` (light + dark).
     - Design tokens reviewed in Storybook.
-- [x] **Theme system:** Light, dark, and system default, stored in `UserPreferences` and switchable in Settings. Accent color schemes remain planned.
+- [x] **Theme system:** Light, dark, and system default, stored in `UserPreferences` and switchable in Settings. Accent color schemes remain planned. (2026-10-03 audit, tracked in v0.15.0: theming moves out of Settings into a dedicated Theme modal on the icon rail, and the accent palette should draw from the logo's colors.)
 - [ ] **Tag colors:**
     - Tags are auto-assigned distinct pastel colors on creation.
     - User can override the color for any tag in Settings > Tags.
@@ -985,6 +1012,147 @@ This release adds a time-grid calendar view for tasks with start and end times.
 
 ---
 
+## v0.15.0: UX Audit & Gold-Standard Polish
+
+Findings from the 2026-10-03 UX audit of the shipped app (raw notes:
+[issues.md](issues.md)). The audit's verdict: the app is going in the
+right direction but needs work in polishing, refining, and getting to
+a gold standard. Two shipped decisions are reversed here (the command
+palette is removed; drag-and-drop returns), and the rest is targeted
+UX repair. Items that expand unshipped releases are cross-noted in
+those sections (v0.9.0, v0.10.0, v0.11.0).
+
+### Shell & Bottom Bar
+
+- [ ] **Docs link on the site:** a visible link to the user docs -- the
+      v0.4.0 spec had a far-right bottom-bar `docs ->` link, lost in
+      the frontend simplification. Docs strategy: do not document
+      everything; document the advanced things (natural-language
+      input, habit schedules, sort + date-range filtering,
+      import/export, keyboard shortcuts).
+- [ ] **Remove the store-wide task counter:** the bottom-right
+      `{total} tasks {done} done` readout counts the entire loaded
+      store ("245 tasks 0 done") and carries no meaning. Remove it;
+      keep the date/clock button.
+
+### Theme Menu & Branding
+
+- [ ] **Dedicated Theme modal:** theming is not Settings. Add a Theme
+      modal to the icon rail where users select the app's theming,
+      and move ALL theming/appearance settings out of the Settings
+      modal into it. Pairs with the v0.11.0 accent-scheme remainder.
+- [ ] **Logo-derived coloring:** bring more of the logo's colors and
+      character into the app's color system so the brand reads
+      through the whole UI.
+
+### Recurring Tasks / Habits
+
+- [ ] **Delete semantics:** removing a recurring task must leave the
+      already-completed instances in the past and remove the rest
+      (future and incomplete instances). Today deletion keeps every
+      instance, so a deleted habit keeps littering the day list.
+- [ ] **Habit detail from the task row:** the recurrence icon on a
+      task row is a passive indicator today. Make it open that
+      habit's detail directly instead of forcing a detour through
+      the Habits modal to find and edit it.
+- [ ] **Trim habit meta stats:** drop the instance count (it only
+      grows over time) and do not render empty stats ("best 0",
+      "0 done") for fresh habits.
+
+### Search (command palette removal)
+
+- [ ] **Remove the `/` command palette entirely** (decision,
+      2026-10-03): strip command mode and the command registry from
+      the codebase. `{mod}+K` stays a plain task search. Keyboard
+      shortcuts stay -- they are independent of the palette. The
+      natural-language date + `#tag` parsing stays (the inline add
+      inputs and the Habits modal use it independently). See the
+      v0.5.0 section note.
+
+### Notes & Task Titles
+
+- [ ] **Notes indicator on task rows:** nothing on a task row
+      indicates that the task has notes. Add a subtle indicator when
+      `notes` is non-empty.
+- [ ] **Obsidian-style live Markdown** (expands v0.10.0): notes are
+      typed as Markdown and rendered by the site; the line under the
+      cursor drops back to raw syntax (a rendered heading becomes
+      `# header` while edited, and renders again on leaving the
+      line). The task title uses the same live model. No edit/view
+      toggle -- one surface. Sanitization requirements from v0.10.0
+      apply unchanged.
+
+### Day List, Filtering & Drag
+
+- [ ] **Sub-tasks under their parent, everywhere:** the day list
+      nests sub-tasks, but the Someday panel and search results
+      render them flat. Nest sub-tasks under their parent in every
+      surface and make the nesting obvious.
+- [ ] **Filter by task title text:** the Filter modal filters by tags
+      only today. Add a text filter over task titles (applies to the
+      day list and Someday together, like the other filters).
+- [ ] **Drag-and-drop (reactivated):** drag tasks to other days and
+      reorder within a day. The v0.6.0 section carries the full
+      design, drag to/from Someday included.
+
+### Calendar
+
+- [ ] **High-level month view:** the Calendar modal is navigation-only
+      today and overlaps the month minimap. Give it a real overview:
+      per-day task/appointment density in the month grid, so users
+      can see at a high level what is coming throughout the month.
+
+### Someday
+
+- [ ] **Someday redesign:** the audit verdict is that the Someday area
+      does not look or feel good. OPEN DESIGN QUESTIONS -- answer
+      before scoping:
+    - What specifically feels bad: the visual treatment, the
+      interactions, or the group model itself?
+    - Are tag-based groups earning their keep, or is everything
+      ungrouped in practice?
+    - Is Someday a passive parking lot or an actively reviewed
+      backlog? What does reviewing it need to feel like?
+    - Once drag-and-drop returns, what should moving something out
+      of Someday feel like?
+
+### Summary Modal
+
+- [ ] **Keep-or-remove:** the audit calls the Summary modal pointless
+      as shipped and asks whether there are plans to improve it.
+      There are -- the v0.9.0 remainder (overdue tasks with days-late
+      counts, active streaks, deadlines + holidays). Ship those
+      sections; if the modal still is not worth opening, remove it
+      rather than polishing further.
+
+### Technical Notes & Considerations
+
+- The palette removal touches the Search modal, the command registry,
+  the Help modal, e2e coverage, and the v0.5.0 user-docs pages;
+  keyboard shortcuts and plain search keep their tests.
+- Habit deletion semantics are a server-side change (what happens to
+  future instances vs. completed history) and need e2e plus adapter
+  test coverage.
+- Obsidian-style live editing supersedes v0.10.0's edit/view toggle;
+  DOMPurify sanitization stays on every rendered path.
+
+### Definition of Done
+
+- Every audit finding shipped, or closed with a recorded decision
+  (Someday redesigned; Summary sections shipped or modal removed).
+- The command palette is gone from the codebase; `{mod}+K` search and
+  the full keyboard shortcut table still pass e2e.
+- Habit deletion keeps past completed instances and clears the rest;
+  the habit detail is reachable from the task row's recurrence icon.
+- Notes render as live Markdown with a has-notes row indicator; the
+  task title uses the same model.
+- Drag-and-drop works between days, within a day, and to/from
+  Someday.
+- The bottom bar carries a docs link and no store-wide counter;
+  theming lives in its own Theme modal with logo-derived accents.
+
+---
+
 ## v1.0.0: Public Release
 
 The first stable, fully usable release of Erledigen. Goal: a complete daily driver for a single self-hosted user.
@@ -997,7 +1165,7 @@ The first stable, fully usable release of Erledigen. Goal: a complete daily driv
 - [x] **Rich health endpoint:** `/api/health` returns version, uptime, database status, connection counts.
 - [ ] **Monitoring stack:** `docker-compose.monitoring.yml` ships with Prometheus + Grafana + Loki + Uptime Kuma (ADR-006).
 - [ ] **Full keyboard operation:** Every action reachable without a mouse. All shortcuts from v0.5.0 working.
-- [ ] **Command palette:** Search, commands (`/` prefix), natural language add/navigate all functional.
+- [ ] **Search:** `{mod}+K` plain task search functional. (The `/` command palette was removed by the 2026-10-03 audit decision -- see the v0.5.0 and v0.15.0 sections.)
 - [ ] **Projects & Habits:** Fully functional project Kanban and habit tracking with streaks.
 - [x] **Rollover automation:** Incomplete tasks roll over by default; overdue indicators shown (a per-task days-late badge remains small UI polish).
 - [ ] **Tag system:** Full tag management -- colors, rename, merge, delete.
