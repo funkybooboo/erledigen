@@ -273,6 +273,14 @@
         position: relative;
     }
 
+    /* Mobile (v0.6.0): the month rail gives its 62px back -- the Calendar
+       modal covers date navigation on touch. */
+    @media (max-width: 767px) {
+        .minimap {
+            display: none;
+        }
+    }
+
     .sentinel {
         height: 1px;
     }

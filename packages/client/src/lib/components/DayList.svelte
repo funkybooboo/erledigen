@@ -318,6 +318,14 @@
         position: relative;
     }
 
+    /* Mobile (v0.6.0): tighter gutters so the full-width list breathes
+       on a 375px screen. */
+    @media (max-width: 767px) {
+        .day-list {
+            padding: 0 12px;
+        }
+    }
+
     .infinite-scroll-sentinel {
         height: 1px;
         width: 100%;

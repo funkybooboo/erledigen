@@ -8,7 +8,7 @@
     import InlineAddTask from './InlineAddTask.svelte';
     import SectionHeader from './SectionHeader.svelte';
     import { Icon } from 'svelte-icons-pack';
-    import { LuPencil, LuTrash2, LuCheck } from 'svelte-icons-pack/lu';
+    import { LuChevronRight, LuPencil, LuTrash2, LuCheck } from 'svelte-icons-pack/lu';
     import { slugify, type SomeDayGroup, type Task, type UpdateTaskInput } from '@erledigen/shared';
     import { tooltip } from '$lib/tooltip';
 
@@ -232,7 +232,7 @@
         </button>
     </div>
 {:else}
-    <aside class="someday-panel" class:resizing={isResizing} style="width: {preferencesStore.someDayPanelWidth}px" aria-label="Someday panel">
+    <aside class="someday-panel" class:resizing={isResizing} style="--someday-width: {preferencesStore.someDayPanelWidth}px" aria-label="Someday panel">
         <!-- Mouse-only by design: the panel itself is fully keyboard-
              operable via the Cmd/Ctrl+\ toggle (width restore), so a
              pointer-only drag handle leaves no keyboard user stranded;
@@ -269,6 +269,13 @@
                             + add group
                         </button>
                     {/if}
+                    <!-- The v0.4.0 spec's collapse button: the only close
+                         affordance that works on touch (the resize handle's
+                         snap-shut is pointer-fine only, and Cmd/Ctrl+\ needs
+                         a keyboard). -->
+                    <button class="icon-btn" onclick={() => preferencesStore.toggleSomeDayPanel()} use:tooltip={{ label: 'Collapse Someday panel', shortcut: 'toggleSomedayPanel' }} aria-label="Collapse Someday panel">
+                        <Icon src={LuChevronRight} size={14} />
+                    </button>
                 </div>
             </div>
 
@@ -415,6 +422,7 @@
 
     .someday-panel {
         position: relative;
+        width: var(--someday-width);
         min-width: 200px;
         max-width: 600px;
         background: var(--color-surface);
@@ -425,6 +433,35 @@
 
     .someday-panel.resizing {
         transition: none;
+    }
+
+    /* Tablet: the 600px cap is half an 800px screen -- clamp the panel
+       to the viewport share instead so the day list keeps room. */
+    @media (min-width: 768px) and (max-width: 1024px) {
+        .someday-panel {
+            max-width: 45vw;
+        }
+    }
+
+    /* Mobile: the open panel stops squeezing the layout and floats as
+       a full-height right sheet over the full-width day list. The
+       bottom bar stays visible below it; the resize handle is
+       meaningless on an overlay (the header collapse button closes). */
+    @media (max-width: 767px) {
+        .someday-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 40px;
+            width: min(85vw, 400px);
+            min-width: 0;
+            z-index: 900;
+            box-shadow: var(--shadow-panel);
+        }
+
+        .resize-handle {
+            display: none;
+        }
     }
 
     .resize-handle {
