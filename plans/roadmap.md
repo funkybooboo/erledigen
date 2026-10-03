@@ -26,8 +26,8 @@ green).
   shipped), v0.12.0 (ARIA, focus management, skip link shipped).
 - **Not started:** v0.10.0 (live markdown notes), v0.13.0 (i18n),
   v0.14.0 (calendar time-grid), v0.15.0 (2026-10-03 UX audit).
-- **UX audit (2026-10-03, extended same day):** eighteen findings from
-  a self-review of the shipped app (raw notes in
+- **UX audit (2026-10-03, extended same day):** twenty-four findings
+  from a self-review of the shipped app (raw notes in
   [issues.md](issues.md)) are tracked in the v0.15.0 section below. Two reverse shipped decisions: the `/`
   command palette is REMOVED (plain `{mod}+K` search and every
   keyboard shortcut stay -- v0.5.0 section updated), and
@@ -1002,8 +1002,8 @@ This release adds a time-grid calendar view for tasks with start and end times.
 ## v0.15.0: UX Audit & Gold-Standard Polish
 
 Findings from the 2026-10-03 UX audit of the shipped app (raw notes:
-[issues.md](issues.md); an 18th finding -- habit schedules and
-`#tags` must compose -- was added the same day). The audit's verdict:
+[issues.md](issues.md); a second wave the same day added seven more
+-- 24 total). The audit's verdict:
 the app is going in the right direction but needs work in polishing,
 refining, and getting to a gold standard. Two shipped decisions are
 reversed here (the command palette is removed; drag-and-drop
@@ -1033,6 +1033,9 @@ v0.10.0, v0.11.0).
 - [ ] **Logo-derived coloring:** bring more of the logo's colors and
       character into the app's color system so the brand reads
       through the whole UI.
+- [ ] **Calendar-book vibes:** a broader style pass -- simpler, more
+      minimal, more idiomatic across pretty much everything, in the
+      direction of a paper calendar book.
 
 ### Recurring Tasks / Habits
 
@@ -1057,6 +1060,15 @@ v0.10.0, v0.11.0).
       plain-task path). The two parses should compose: the phrase sets
       the schedule, the `#tags` land on the template and its generated
       instances.
+- [ ] **Convert an existing task to a habit from the row:** promotion to a habit
+      is only reachable through the task detail modal's "Make
+      recurring" toggle today. Typing a schedule phrase onto an
+      existing task ("... every day") should also convert it in place
+      -- create a task now, make it a habit later.
+- [ ] **Habit modal ordering drives the day list:** habits get a
+      manual order in the Habits modal, and their generated instances
+      reorder themselves within each day's section to match that
+      order.
 
 ### Search (command palette removal)
 
@@ -1090,6 +1102,10 @@ v0.10.0, v0.11.0).
 - [ ] **Filter by task title text:** the Filter modal filters by tags
       only today. Add a text filter over task titles (applies to the
       day list and Someday together, like the other filters).
+- [ ] **Drag the task itself, not the grip:** today only the hover
+      grip initiates a drag (so text stays selectable). The row should
+      be draggable by default -- click to edit, drag to move, no
+      visible handle.
 - [x] **Drag-and-drop (reactivated):** drag tasks to other days and
       reorder within a day. The v0.6.0 section carries the full
       design, drag to/from Someday included. (Shipped 2026-10-03,
@@ -1105,8 +1121,13 @@ v0.10.0, v0.11.0).
 ### Someday
 
 - [ ] **Someday redesign:** the audit verdict is that the Someday area
-      does not look or feel good. OPEN DESIGN QUESTIONS -- answer
-      before scoping:
+      does not look or feel good, and the follow-up notes sharpen it:
+      Someday should have LISTS (not tag-based groups) that are not
+      tied to a date, and TABS holding those lists -- by default one
+      tab with one list both named "Someday" (with no title shown);
+      minimal, to the point, easy. Open question to explore: tabs and
+      lists as a modal vs. the right-hand drawer. OPEN DESIGN
+      QUESTIONS -- answer before scoping:
     - What specifically feels bad: the visual treatment, the
       interactions, or the group model itself?
     - Are tag-based groups earning their keep, or is everything
