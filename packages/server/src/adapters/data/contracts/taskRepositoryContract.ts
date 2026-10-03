@@ -113,6 +113,17 @@ export function runTaskRepositoryContractTests(makeRepo: () => TaskRepository): 
             expect(updated?.date).toBeNull();
         });
 
+        test('sets and clears the Kanban dependency link (dependsOn)', async () => {
+            // v0.9.0: the Kanban sets dependsOn through the public
+            // update path; the round-trip must hold in both adapters.
+            const repo = makeRepo();
+            const created = await repo.create({ text: 'Blocked', date: null });
+            const updated = await repo.update(created.id, { dependsOn: 'other-task' });
+            expect(updated?.dependsOn).toBe('other-task');
+            const cleared = await repo.update(created.id, { dependsOn: null });
+            expect(cleared?.dependsOn).toBeNull();
+        });
+
         test('stamps the server-internal recurring link fields (adopt)', async () => {
             // The adopt endpoint links an existing task to a template
             // through update; the public API schema strips these fields,

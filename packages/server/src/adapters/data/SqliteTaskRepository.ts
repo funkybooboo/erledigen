@@ -244,6 +244,7 @@ export class SqliteTaskRepository implements TaskRepository {
         if ('tags' in input) patch.assign('tags', JSON.stringify(input.tags));
         if ('parentId' in input) patch.assign('parent_id', input.parentId);
         if ('someDayGroupId' in input) patch.assign('some_day_group_id', input.someDayGroupId);
+        if ('dependsOn' in input) patch.assign('depends_on', input.dependsOn);
         if ('rolloverEnabled' in input)
             patch.assign('rollover_enabled', toInteger(input.rolloverEnabled));
         if ('position' in input) patch.assign('position', input.position);

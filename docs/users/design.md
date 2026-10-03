@@ -134,7 +134,11 @@ The right-side Someday panel captures ideas and unscheduled work. Tasks are orga
 One unified modal for search and commands. Plain text searches tasks (text, notes, tags). `/add fix auth tomorrow #work #p1` creates a task for the parsed date with the hashtags as tags (a trailing recurrence phrase instead creates a habit); other commands: `/complete <text>`, `/delete <text>`, `/move <text> to <date>`, `/go <date>` (e.g. `/go next monday`), `/tag <text> with <tag>`, `/filter <tag>`, `/clear`, `/today`, `/someday <text>`, `/project`, `/habit`, `/settings`, `/help`.
 
 ### Project Management
-Projects are collections of ordered tasks with a detail view in the Projects modal. Activate/deactivate flips the project's `isActive` flag (auto-distribution of tasks across days between start and due dates is planned for v0.9.0). Project tasks appear in the day list tagged with the project's auto-generated `project:`-prefixed tag.
+Projects are collections of tasks linked by their `project:`-prefixed tag. The Projects modal's detail view is a Kanban board -- three columns mapped onto real task state: **Ready** (no date yet), **Scheduled** (has a date; the card shows and edits it inline), and **Done**. Drag cards between columns to unschedule, schedule, or complete the underlying task; drops into Scheduled land on the project's window-start date, adjustable inline afterwards.
+
+**Auto-distribute** previews a spread of the unscheduled backlog across the days between the project's start and due dates (never in the past; dependencies within the project are respected -- a blocked task is scheduled after its blocker); confirm to apply. **Activate** flips the project's `isActive` flag and applies the same distribution in one step.
+
+Cards carry a lock button for dependencies: pick the task it is blocked by (a red lock shows while the predecessor is incomplete; completing the blocker releases it), and the blocked task schedules after its blocker in every distribution.
 
 ### Habit Tracking
 Recurring tasks ("habits") are created from natural-language phrases -- type "water plants every friday at 9am" in any inline add input or the Habits modal and the schedule is parsed live. Instances are generated idempotently into the daily list (+90-day horizon) and tagged with the habit. Completing instances builds streaks (current, longest, total completions) shown as badges in the Habits modal, and the habit detail view shows a GitHub-style completion heatmap. Any existing task can be promoted to a habit with the "Make recurring" toggle in the task detail modal.

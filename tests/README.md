@@ -7,7 +7,7 @@ Erledigen has three layers of automated tests:
 Fast, isolated tests of pure logic and adapters -- no network, no browser.
 Run with Bun's built-in test runner. ~600 tests across the three packages:
 
-- `packages/shared` -- date provider, HTTP client, errors, task types, tag utils, recurrence parsing (`parseRecurrence`), frequency formatting
+- `packages/shared` -- date provider, HTTP client, errors, task types, tag utils, recurrence parsing (`parseRecurrence`), frequency formatting, the project auto-distribution planner (`planProjectDistribution`)
 - `packages/server` -- repositories (in-memory **and** SQLite, via shared contract suites), services, middleware, utils, migration runner
 - `packages/client` -- DI container, filters, shortcut-registry invariants
   (`keybindings`: every shortcut documented in help, no duplicate keystrokes)
@@ -101,6 +101,12 @@ Covers:
   with days-late badges (completed past tasks excluded), the combined
   "Next 14 Days" deadline + holiday list with window bounds, and
   active habit streaks.
+- **kanban** (v0.9.0) -- column membership (sub-tasks excluded), drag
+  Ready -> Scheduled (window-start date), Scheduled -> Ready (date
+  cleared), -> Done (completed) with server-side verification,
+  Auto-distribute preview + apply, Activate's confirm-and-distribute,
+  and the blocked-by lock (blocked class, release on completion,
+  picker set/clear).
 
 ## Running everything
 

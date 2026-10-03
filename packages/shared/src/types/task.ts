@@ -73,6 +73,10 @@ export type UpdateTaskInput = Partial<{
     tags: string[];
     parentId: string | null;
     someDayGroupId: string | null;
+    /** Task this one is blocked by (Kanban dependency indicator,
+     *  v0.9.0). No existence check on update -- the same looseness as
+     *  parentId; a dangling reference renders as unblocked. */
+    dependsOn: string | null;
     rolloverEnabled: boolean;
     position: number | null;
     state: 'ready' | 'scheduled' | 'done' | null;
