@@ -5,6 +5,7 @@
         connectionStore,
         preferencesStore,
         projectStore,
+        recurringTaskStore,
         someDayGroupStore,
         tagStore,
         taskStore,
@@ -57,6 +58,7 @@
         tagStore.initWebSocket();
         projectStore.initWebSocket();
         someDayGroupStore.initWebSocket();
+        recurringTaskStore.initWebSocket();
 
         // Route uncaught errors through the shared logger so client-side
         // failures are visible in the console alongside server logs.
@@ -83,6 +85,7 @@
             tagStore.destroyWebSocket();
             projectStore.destroyWebSocket();
             someDayGroupStore.destroyWebSocket();
+            recurringTaskStore.destroyWebSocket();
         };
     });
 

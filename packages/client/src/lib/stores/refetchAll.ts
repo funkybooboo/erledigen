@@ -10,6 +10,7 @@
 
 import { preferencesStore } from './preferencesStore.svelte';
 import { projectStore } from './projectStore.svelte';
+import { recurringTaskStore } from './recurringTaskStore.svelte';
 import { someDayGroupStore } from './someDayGroupStore.svelte';
 import { tagStore } from './tagStore.svelte';
 import { taskStore } from './taskStore.svelte';
@@ -23,5 +24,6 @@ export async function refetchAllStores(): Promise<void> {
         tagStore.fetchAll(),
         projectStore.fetchAll(),
         someDayGroupStore.fetchAll(),
+        recurringTaskStore.fetchAll(),
     ]);
 }

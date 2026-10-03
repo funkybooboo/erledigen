@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { createTask, postText, uniq } from '../api-tests/helpers';
+import { createTask, post, postText, uniq } from '../api-tests/helpers';
 import { hydrated, modal, SERVER_URL, todayISO } from './util';
 import type { ExportSnapshot } from '@erledigen/shared';
 
@@ -195,5 +195,37 @@ test.describe('Settings import (ADR-009)', () => {
 
         await expect(page.locator('.day-section.today', { hasText: goneMarker })).toHaveCount(0);
         await expect(page.locator('.day-section.today', { hasText: arrivedMarker })).toBeVisible();
+    });
+
+    test('a data:restored broadcast refreshes the open Habits modal', async ({ page }) => {
+        const habitText = uniq('e2e-broadcast-habit');
+        await post(
+            page.request,
+            '/api/recurring-tasks',
+            { text: habitText, frequency: 'daily', startDate: todayISO() },
+            SERVER_URL,
+        );
+
+        await hydrated(page);
+        await page.getByLabel('Habits', { exact: true }).click();
+        const dialog = page.getByRole('dialog', { name: 'Habits', exact: true });
+        await expect(dialog).toBeVisible();
+        await expect(dialog.locator('.habit-card', { hasText: habitText })).toBeVisible();
+
+        // A restore from ANOTHER client replaces every table (ADR-009) --
+        // the still-open Habits modal must drop the stale habit without a
+        // reload (recurringTaskStore listens for data:restored). The
+        // snapshot's generated instances are dropped with their template:
+        // keeping tasks that reference a removed recurringTaskId is a
+        // dangling reference and the restore would 400.
+        const snapshot = await getSnapshot(page.request);
+        await postText(
+            page.request,
+            '/api/import?format=json',
+            JSON.stringify({ ...snapshot, tasks: [], recurringTasks: [] }),
+            SERVER_URL,
+        );
+
+        await expect(dialog.locator('.habit-card', { hasText: habitText })).toHaveCount(0);
     });
 });
