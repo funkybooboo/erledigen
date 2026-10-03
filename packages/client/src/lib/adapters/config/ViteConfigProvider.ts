@@ -9,12 +9,12 @@
  * Works identically in SvelteKit since it is Vite-based.
  */
 
-import { ConfigError, type ConfigProvider } from '@erledigen/shared';
+import { BaseConfigProvider, ConfigError } from '@erledigen/shared';
 
 /**
  * Configuration provider that reads from import.meta.env (Vite)
  */
-export class ViteConfigProvider implements ConfigProvider {
+export class ViteConfigProvider extends BaseConfigProvider {
     /**
      * Get a string configuration value from import.meta.env
      */
@@ -32,32 +32,6 @@ export class ViteConfigProvider implements ConfigProvider {
         // Vite built-ins (DEV/PROD/SSR) are real booleans, not strings;
         // normalize so string-based comparisons in getNumber/getBoolean work.
         return typeof value === 'string' ? value : String(value);
-    }
-
-    /**
-     * Get a number configuration value from import.meta.env
-     */
-    getNumber(key: string, defaultValue?: number): number {
-        const value = this.get(key, defaultValue?.toString());
-        const parsed = Number(value);
-
-        if (Number.isNaN(parsed)) {
-            throw new ConfigError(key);
-        }
-
-        return parsed;
-    }
-
-    /**
-     * Get a boolean configuration value from import.meta.env
-     */
-    getBoolean(key: string, defaultValue?: boolean): boolean {
-        const value = this.get(key, defaultValue?.toString());
-
-        if (value === 'true' || value === '1') return true;
-        if (value === 'false' || value === '0') return false;
-
-        throw new ConfigError(key);
     }
 
     /**

@@ -8,6 +8,7 @@
  * the domain model, not a separate field).
  */
 
+import { PRIORITY_TAGS } from '../../constants';
 import type { ExportSnapshot } from '../../types/export';
 import { EXPORT_FORMAT_META } from '../../types/export';
 import type { Task } from '../../types/task';
@@ -38,9 +39,6 @@ export const DEFAULT_CSV_COLUMNS = [
 ] as const;
 
 export type CsvColumn = (typeof DEFAULT_CSV_COLUMNS)[number];
-
-/** Priority resolution order for the derived `priority` column. */
-const PRIORITY_TAGS = ['p1', 'p2', 'p3'] as const;
 
 const COLUMN_GETTERS: Record<CsvColumn, (task: Task) => string> = {
     id: t => t.id,

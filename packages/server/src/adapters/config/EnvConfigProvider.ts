@@ -3,16 +3,16 @@
  *
  * Wraps process.env to provide type-safe access to configuration values.
  * This allows the server to be runtime-agnostic - we could swap this
- * for a different config source (file, database, etc.) without changing
- * any business logic.
+ * for a different config source (file, database, etc.) without
+ * changing any business logic.
  */
 
-import { ConfigError, type ConfigProvider } from '@erledigen/shared';
+import { BaseConfigProvider, ConfigError } from '@erledigen/shared';
 
 /**
  * Configuration provider that reads from process.env
  */
-export class EnvConfigProvider implements ConfigProvider {
+export class EnvConfigProvider extends BaseConfigProvider {
     /**
      * Get a string configuration value from process.env
      */
@@ -27,34 +27,6 @@ export class EnvConfigProvider implements ConfigProvider {
         }
 
         return value;
-    }
-
-    /**
-     * Get a number configuration value from process.env
-     * Parses the string value to a number and validates it
-     */
-    getNumber(key: string, defaultValue?: number): number {
-        const value = this.get(key, defaultValue?.toString());
-        const parsed = Number(value);
-
-        if (Number.isNaN(parsed)) {
-            throw new ConfigError(key);
-        }
-
-        return parsed;
-    }
-
-    /**
-     * Get a boolean configuration value from process.env
-     * Accepts 'true', 'false', '1', or '0'
-     */
-    getBoolean(key: string, defaultValue?: boolean): boolean {
-        const value = this.get(key, defaultValue?.toString());
-
-        if (value === 'true' || value === '1') return true;
-        if (value === 'false' || value === '0') return false;
-
-        throw new ConfigError(key);
     }
 
     /**
