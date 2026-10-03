@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { taskStore, uiStore, notificationStore } from '$lib/stores';
+    import { notificationStore, preferencesStore, taskStore, uiStore } from '$lib/stores';
     import { deleteTaskWithUndo } from '$lib/taskActions';
     import { container } from '$lib/container';
     import {
@@ -18,6 +18,16 @@
     let isEditing = $derived(uiStore.editingTaskId === task.id);
     let isFocused = $derived(uiStore.focusedTaskId === task.id);
     let hasStartTime = $derived(task.startTime !== null);
+
+    /** Subtle left-border accent per priority, only while the priority
+     *  sort mode is active (Filter modal) -- the roadmap's visual cue. */
+    let priorityAccent = $derived.by(() => {
+        if (preferencesStore.activeFilters.sortMode !== 'priority') return null;
+        if (task.tags.includes('p1')) return 'prio-1';
+        if (task.tags.includes('p2')) return 'prio-2';
+        if (task.tags.includes('p3')) return 'prio-3';
+        return null;
+    });
 
     // The r/m/t keyboard actions open row-level sub-editors through the
     // same store-driven pattern as the text edit (editingTaskId).
@@ -165,6 +175,9 @@
     class:task-new={isNew}
     class:focused={isFocused}
     class:is-recurring={Boolean(task.recurringTaskId)}
+    class:prio-1={priorityAccent === 'prio-1'}
+    class:prio-2={priorityAccent === 'prio-2'}
+    class:prio-3={priorityAccent === 'prio-3'}
     id="task-{task.id}"
     aria-label="{task.text}{task.completed ? ', completed' : ''}"
 >
@@ -277,6 +290,20 @@
 
     .task-row.is-recurring .recurring-icon {
         color: var(--color-accent);
+    }
+
+    /* Priority accents (Filter modal's Priority sort mode): the same
+       hairline treatment as the recurring bar, keyed by urgency. */
+    .task-row.prio-1 {
+        box-shadow: inset 2px 0 0 color-mix(in oklab, var(--color-danger) 65%, transparent);
+    }
+
+    .task-row.prio-2 {
+        box-shadow: inset 2px 0 0 color-mix(in oklab, var(--color-warning) 65%, transparent);
+    }
+
+    .task-row.prio-3 {
+        box-shadow: inset 2px 0 0 color-mix(in oklab, var(--color-accent) 65%, transparent);
     }
 
     .task-row.completed .task-text {

@@ -18,6 +18,15 @@ const TagKindSchema = z.object({
 const ActiveFiltersSchema = z.object({
     tags: z.array(z.string()),
     showCompleted: z.boolean(),
+    sortMode: z.enum(['manual', 'priority']),
+    dateFrom: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .nullable(),
+    dateTo: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/)
+        .nullable(),
 });
 
 export const UserPreferencesSchema = registry.register(
@@ -57,6 +66,10 @@ export const UpdateUserPreferencesSchema = registry.register(
             rolloverTriggerTime: z.enum(['midnight', '9am', 'manual']).optional(),
             showEmptyDays: z.boolean().optional(),
             deleteConfirmation: z.enum(['instant', 'confirm']).optional(),
+            // PATCH replaces activeFilters as a whole object (repo merge
+            // semantics); the client always sends every field. A third party
+            // PATCHing a partial object gets a 400, same as before for
+            // tags/showCompleted.
             activeFilters: ActiveFiltersSchema.optional(),
             tagKinds: z.array(TagKindSchema).optional(),
             tagKindMap: z.record(z.string(), z.string()).optional(),

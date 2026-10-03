@@ -1,4 +1,5 @@
 import type { DateProvider, UpdateUserPreferencesInput, UserPreferences } from '@erledigen/shared';
+import { normalizeActiveFilters } from '@erledigen/shared';
 import { defaultPreferences } from './preferencesDefaults';
 import type { UserPreferencesRepository } from './UserPreferencesRepository';
 
@@ -41,7 +42,9 @@ export class InMemoryUserPreferencesRepository implements UserPreferencesReposit
     async restore(prefs: UserPreferences): Promise<void> {
         this.preferences = {
             ...prefs,
-            activeFilters: { ...prefs.activeFilters },
+            // Snapshots restored from older exports can predate the later
+            // filter fields; normalize so the stored shape is always full.
+            activeFilters: normalizeActiveFilters(prefs.activeFilters),
             tagKinds: [...prefs.tagKinds],
             tagKindMap: { ...prefs.tagKindMap },
         };
