@@ -17,7 +17,7 @@ The daily list is the execution surface. Someday is the capture net. Projects an
 - Auto-rollover for incomplete tasks with "late" tracking
 - Streak tracking for recurring habits
 - A layout that gets out of your way: clean, calm, spacious, Basecamp-inspired
-- **No AI in the UI** -- AI automation lives exclusively in the MCP server and CLI
+- **No AI in the UI** -- AI automation, if it ever ships, lives outside the UI (CLI/MCP server), never in it
 - **Privacy first** -- no analytics, no telemetry, minimal user data stored
 
 ---
@@ -57,106 +57,35 @@ Every interactive element shows a hover tooltip with its keybinding (see the Hel
 
 ---
 
-## Unified Data Model
+## The Data Model
 
-```typescript
-interface Task {
-  id: string
-  text: string
-  notes: string | null              // markdown
-  completed: boolean
-  date: string | null               // null = Someday / unscheduled
-  startTime: string | null          // "09:00" -- null = all-day
-  endTime: string | null            // "10:30" -- null = all-day or open-ended
-  tags: string[]                    // #work, #p1, #build-erledigen, #deadline, etc.
-  parentId: string | null           // nested sub-tasks
-  rolloverEnabled: boolean          // per-task override; default: true
-  someDayGroupId: string | null     // which Someday group
+Erledigen has one task type that appears differently depending on its
+attributes; everything else hangs off it. The authoritative definitions
+live in `packages/shared/src/types/` (the source of truth for client,
+server, and API schemas alike) -- conceptually:
 
-  projectId: string | null
-  position: number | null
-  state: 'ready' | 'scheduled' | 'done' | null
-
-  recurringTaskId: string | null
-  instanceDate: string | null
-
-  originalScheduledDate: string | null
-  daysLate: number
-  dependsOn: string | null
-
-  reminder: { time: string; channels: ('push' | 'email')[] } | null
-
-  createdAt: string
-  updatedAt: string
-}
-
-interface SomeDayGroup {
-  id: string
-  name: string
-  description: string | null
-  tag: string                    // required -- used for cross-app filtering
-  position: number
-  createdAt: string
-}
-
-interface Project {
-  id: string
-  name: string
-  description: string | null
-  startDate: string | null
-  dueDate: string | null
-  isActive: boolean
-  createdAt: string
-  completedAt: string | null
-}
-
-type RecurringFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly'
-
-interface RecurringTask {
-  id: string
-  text: string
-  notes: string | null
-  tags: string[]
-  frequency: RecurringFrequency
-  interval: number               // e.g. every 2 weeks -> frequency: 'weekly', interval: 2
-  daysOfWeek: number[] | null   // 0-6 (0 = Sunday) the schedule lands on; covers "every weekday" ([1..5]) and "every weekend" ([0, 6]); null = any day
-  dayOfMonth: number | null     // 1-31 for monthly recurrence
-  startDate: string
-  endDate: string | null
-  rolloverEnabled: boolean
-  startTime: string | null      // "09:00" -- stamped onto generated instances
-  createdAt: string
-  updatedAt: string
-}
-
-interface RecurringTaskStats {
-  recurringTaskId: string
-  currentStreak: number
-  longestStreak: number
-  totalCompletions: number
-  lastCompletedDate: string | null
-}
-
-interface ActiveFilters {
-  tags: string[]
-  projectId: string | null
-  priority: string | null
-  showCompleted: boolean
-}
-
-// Single-row entity -- id is always 'default' in single-user mode
-interface UserPreferences {
-  id: 'default'
-  theme: 'light' | 'dark' | 'system'
-  locale: string                   // e.g. 'en', 'fr', 'es'
-  someDayPanelWidth: number
-  someDayPanelCollapsed: boolean
-  rolloverEnabled: boolean
-  showEmptyDays: boolean
-  activeFilters: ActiveFilters
-  updatedAt: string
-}
-```
+- **Task** -- `text`, optional markdown `notes`, `completed`, and a
+  local `date` key (`null` = lives in Someday). Times (`startTime` /
+  `endTime`), `tags`, a `parentId` for sub-tasks (completion rolls up to
+  the parent), per-task `rolloverEnabled`, a Someday group assignment,
+  and soft-delete bookkeeping for the trash.
+- **Tags ARE the domain model** -- `#p1`/`#p2`/`#p3` are priority,
+  `project:`-prefixed tags link tasks to projects, and any free-form tag
+  organizes work. There is no separate priority or project field.
+- **SomeDayGroup** -- a named, tag-based group in the Someday panel
+  (name, description, tag, position).
+- **Project** -- name, description, start/due dates, active flag. A
+  project owns a `project:`-prefixed tag; its tasks are the tasks
+  carrying that tag.
+- **RecurringTask** -- a habit template parsed from natural language:
+  frequency, interval, `daysOfWeek`/`dayOfMonth`, date window, and a
+  `startTime` stamped onto generated instances. Stats (current/longest
+  streak, total completions, completed-date history) are computed from
+  the generated instances.
+- **UserPreferences** -- a single row holding every setting: theme,
+  panel widths and collapse states, rollover behavior, delete
+  confirmation, tag kinds, active filters (tags, completion, sort mode,
+  date range), and more.
 
 ---
 
@@ -164,14 +93,16 @@ interface UserPreferences {
 
 Every major subsystem has an interface in `packages/shared`. Adapters implement the interface. New implementations can be swapped in without changing application code.
 
-The table below is the target inventory. Repository adapters (in-memory + SQLite) are implemented today; the rest are planned per the [roadmap](../../plans/roadmap.md).
-
 | Interface | Status | Adapters |
 |-----------|--------|----------|
 | `TaskRepository` / `ProjectRepository` / `RecurringTaskRepository` / `SomeDayGroupRepository` / `UserPreferencesRepository` | **Implemented** | In-memory, SQLite (raw SQL, [ADR-001](../devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md)) |
 | `HttpClient` / `Logger` / `DateProvider` / `ConfigProvider` | **Implemented** | Fetch, Console, NativeDate, env/Vite |
-| `ExportAdapter` / `ImportAdapter` | Interface only | JSON, CSV, Markdown, iCal planned |
-| `EmailAdapter` / `PaymentAdapter` / `I18nAdapter` / `NLPAdapter` / `RateLimiterAdapter` / `NotificationAdapter` | Planned | -- |
+| `ExportAdapter` / `ImportAdapter` | **Implemented** | Export: JSON (canonical backup), CSV, Markdown, iCal. Import: JSON restore, generic CSV (column mapping), iCal, Todoist CSV, Things 3 JSON |
+| `JobQueue` | **Implemented** | SQLite-backed, in-memory (see [ADR-002](../devs/architecture/decisions/ADR-002-sqlite-backed-job-queue.md)) |
+| `MetricsAdapter` | **Implemented** | Prometheus text exposition, null (see [ADR-005](../devs/architecture/decisions/ADR-005-prometheus-metrics.md)) |
+
+Future adapters (email, payments, i18n, notifications) are sketched in
+the [roadmap](../../plans/roadmap.md), not built.
 
 ---
 
@@ -180,7 +111,7 @@ The table below is the target inventory. Repository adapters (in-memory + SQLite
 The command palette (Cmd/Ctrl+K, or `/`) has two modes:
 
 - **Plain text** -> search across all tasks (text, notes, tags; substring match). Results scroll the day list to the matching task on selection, and arrow keys move the selection.
-- **`/` prefix** -> command mode. `/add <text>` creates a task for today -- and a trailing recurrence phrase ("water plants every friday at 9am") creates a habit instead. The command registry in `SearchModal` is extensible; the full command set (`/go`, `/filter`, `/move`, ...) is planned for v0.5.0+ of the roadmap.
+- **`/` prefix** -> command mode, driven by the full command registry (`/add`, `/go`, `/move`, `/tag`, `/filter`, ... -- the complete list is under Key Features below). `/add <text>` creates a task, parsing a natural-language date and `#tags`; a trailing recurrence phrase ("water plants every friday at 9am") creates a habit instead.
 
 ---
 
@@ -203,31 +134,13 @@ One unified modal for search and commands. Plain text searches tasks (text, note
 Projects are collections of ordered tasks with a detail view in the Projects modal. Activate/deactivate flips the project's `isActive` flag (auto-distribution of tasks across days between start and due dates is planned for v0.9.0). Project tasks appear in the day list tagged with the project's auto-generated `project:`-prefixed tag.
 
 ### Habit Tracking
-Recurring tasks ("habits") are created from natural-language phrases -- type "water plants every friday at 9am" in any inline add input or the Habits modal and the schedule is parsed live. Instances are generated idempotently into the daily list (+90-day horizon) and tagged with the habit. Completing instances builds streaks (current, longest, total completions) shown as badges in the Habits modal. A GitHub-style completion heatmap is planned (v0.9.0).
+Recurring tasks ("habits") are created from natural-language phrases -- type "water plants every friday at 9am" in any inline add input or the Habits modal and the schedule is parsed live. Instances are generated idempotently into the daily list (+90-day horizon) and tagged with the habit. Completing instances builds streaks (current, longest, total completions) shown as badges in the Habits modal, and the habit detail view shows a GitHub-style completion heatmap. Any existing task can be promoted to a habit with the "Make recurring" toggle in the task detail modal.
 
 ### Rollover
-Incomplete tasks roll over to the next day by default. The `daysLate` counter tracks how overdue a task is. Configurable app-wide and per-task. (Planned for v0.8.0 -- the per-task `rolloverEnabled` flag and Settings toggle exist today; automatic movement does not.)
+Incomplete tasks roll over to the next day by default, on a schedule configurable app-wide (midnight / 9am / manual) and per task (`rolloverEnabled`). The `daysLate` counter tracks how overdue a task is, counted from the date it was first planned.
 
 ### Calendar Modal
 The Calendar rail icon opens a month-grid date picker: picking a date scrolls (and centers) the day list on it; **Today** is a full view reset (day list + month minimap). A time-grid view for tasks with `startTime`/`endTime` is planned for v0.14.0.
-
----
-
-## Monorepo Structure
-
-```
-erledigen/
-|-- packages/
-|   |-- client/   # SvelteKit frontend (scoped CSS, Svelte 5 runes)
-|   |-- server/   # Bun REST API + WebSocket server
-|   \-- shared/   # Types, adapter interfaces, constants, universal utilities
-|-- docs/         # User + developer docs; ADRs in docs/devs/architecture/decisions/
-|-- tests/        # Playwright e2e + api suites, Bruno API collection
-|-- plans/        # Roadmap and planning docs
-\-- package.json
-```
-
-`packages/cli` (v2.0.0) and `packages/mcp` (v2.1.0) are planned but do not exist yet.
 
 ---
 
@@ -239,21 +152,5 @@ erledigen/
 | Self-hosted v1 | SQLite (raw SQL via `bun:sqlite`, [ADR-001](../devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md)) | Implemented (default) |
 | Multi-user v2 | PostgreSQL (raw SQL, same repository interfaces) | Planned v2.3.0 |
 
----
-
-## Success Metrics
-
-**For users:**
-- Can replace their current task system with Erledigen
-- Daily list is the primary interface (>80% of time spent there)
-- Streak lengths increase over time
-- Late task count decreases over time
-
-**Technical:**
-- >85% test coverage
-- <100ms response time for day list
-- Zero data loss incidents
-- All E2E tests passing
-- Biome checks passing
-- axe-core a11y checks passing in CI
-- Zero known-vulnerable dependencies in CI
+The repository layout lives in the [README](../../README.md); the
+architecture deep-dive in [architecture.md](../devs/architecture/architecture.md).

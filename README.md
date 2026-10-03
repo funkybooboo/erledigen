@@ -30,7 +30,7 @@ Erledigen is a **monorepo** built with a modern tech stack designed for a great 
 *   **Projects** -- collections of ordered tasks with activate/deactivate and a detail view.
 *   **Habits / recurring tasks** -- natural-language templates ("water plants every friday at 9am") that generate instances into the daily list, with streak tracking and a management modal.
 *   **Sub-tasks** -- nested tasks under a parent; completion rolls up.
-*   **Command palette** (`Cmd/Ctrl+K` or `/`) -- search across task text, notes, and tags, plus a `/`-prefixed command mode (currently `/add`, with habit phrases like "every day" creating habits).
+*   **Command palette** (`Cmd/Ctrl+K` or `/`) -- search across task text, notes, and tags, plus the full `/`-prefixed command registry (`/add` with natural-language dates + `#tags`, `/go`, `/move`, `/tag`, `/filter`, ...), with habit phrases like "every day" creating habits.
 *   **Keyboard-first + tooltips** -- vim + arrow navigation, `g`-sequences for modals, priority keys `1`/`2`/`3`/`0`, `Cmd/Ctrl+Z` undo; every UI action shows its keybinding on hover.
 *   **Icon-rail modals** -- Calendar, Summary, Projects, Habits, Search, Filter, Settings, Trash, Help.
 *   **Trash with undo** -- soft delete with an undo toast (or `Cmd/Ctrl+Z`), restore from Trash, and a manual purge of soft-deleted tasks older than 7 days.
