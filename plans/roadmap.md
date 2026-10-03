@@ -43,16 +43,17 @@ claim that Bruno tests never shipped -- was itself wrong and is
 reverted in the v0.3.0 section; the collection is real: `tests/api/`,
 dockerized via `mise run test-api`.)
 
-**Current focus (2026-10-04): v0.9.0 is feature-complete** -- the
-next step is `mise run release minor` stamping 0.9.0 (package.json
-still carries 0.8.0; interim PRs do not bump). After that: v0.10.0
-(live markdown), then the v0.11.0/v0.12.0 remainders, v0.13.0 (i18n),
-v0.14.0 (calendar time-grid), v0.15.0 (UX audit remainder).
-UX-audit findings that live inside earlier sections ship with their
-home versions: live markdown with v0.10.0, the theme modal with
-v0.11.0 (the Summary keep-or-remove criterion's sections shipped
-with v0.9.0; the verdict itself stays open as a try-it-and-see
-decision -- see the v0.15.0 section).
+**Current focus (2026-10-04): v0.9.0 is RELEASED** -- tag `v0.9.0`
+cut with `mise run release minor` (the repo's first tagged release;
+package.json now carries 0.9.0). The lowest incomplete version is
+v0.10.0 (live markdown notes -- the Obsidian-style live-rendering
+model from the UX audit), then the v0.11.0/v0.12.0 remainders,
+v0.13.0 (i18n), v0.14.0 (calendar time-grid), v0.15.0 (UX audit
+remainder). UX-audit findings that live inside earlier sections ship
+with their home versions: live markdown with v0.10.0, the theme
+modal with v0.11.0 (the Summary keep-or-remove criterion's sections
+shipped with v0.9.0; the verdict itself stays open as a
+try-it-and-see decision -- see the v0.15.0 section).
 
 ---
 
