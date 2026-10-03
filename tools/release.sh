@@ -97,12 +97,15 @@ git add package.json bun.lock packages/shared/package.json \
 git commit -m "chore(release): $TAG"
 
 step "Creating annotated tag $TAG"
-# changelog.sh is the single notes generator (also used for CHANGELOG.md)
+# changelog.sh is the single notes generator (also used for CHANGELOG.md).
+# The first release has no previous tag: no args means "from the start
+# of history to HEAD" (passing HEAD as <from> would build an empty
+# HEAD..HEAD range and die).
 PREV_TAG="$(git describe --tags --abbrev=0 2>/dev/null || true)"
 if [ -n "$PREV_TAG" ]; then
     NOTES="$("$TOOLS_DIR/changelog.sh" "$PREV_TAG" HEAD)"
 else
-    NOTES="$("$TOOLS_DIR/changelog.sh" HEAD)"
+    NOTES="$("$TOOLS_DIR/changelog.sh")"
 fi
 git tag -a "$TAG" -m "Release $TAG" -m "$NOTES"
 
