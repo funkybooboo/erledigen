@@ -1,8 +1,14 @@
 <script lang="ts">
-    import { taskStore, uiStore } from '$lib/stores';
+    import { taskStore, uiStore, notificationStore } from '$lib/stores';
     import { deleteTaskWithUndo } from '$lib/taskActions';
-    import { TASK_CONSTRAINTS } from '@erledigen/shared';
-    import type { Task } from '@erledigen/shared';
+    import { container } from '$lib/container';
+    import {
+        TASK_CONSTRAINTS,
+        formatTags,
+        parseTags,
+        resolveDatePhrase,
+        type Task,
+    } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
     import { LuCheck, LuCircle, LuRepeat, LuFileText, LuX } from 'svelte-icons-pack/lu';
     import { tooltip } from '$lib/tooltip';
@@ -13,12 +19,39 @@
     let isFocused = $derived(uiStore.focusedTaskId === task.id);
     let hasStartTime = $derived(task.startTime !== null);
 
+    // The r/m/t keyboard actions open row-level sub-editors through the
+    // same store-driven pattern as the text edit (editingTaskId).
+    let rowEditor = $derived(
+        uiStore.rowEditor?.taskId === task.id ? uiStore.rowEditor : null,
+    );
+    let isEditingDate = $derived(rowEditor?.kind === 'date');
+    let isEditingTags = $derived(rowEditor?.kind === 'tags');
+
     let editText = $state('');
     let editInput = $state<HTMLInputElement | undefined>(undefined);
+    let dateValue = $state('');
+    let dateInput = $state<HTMLInputElement | undefined>(undefined);
+    let tagsValue = $state('');
+    let tagsInput = $state<HTMLInputElement | undefined>(undefined);
 
     $effect(() => {
         if (isEditing) {
             editText = task.text;
+        }
+    });
+
+    // Seed and focus a sub-editor when the store request targets this row.
+    $effect(() => {
+        if (isEditingDate) {
+            dateValue = task.date ?? '';
+            dateInput?.focus();
+        }
+    });
+
+    $effect(() => {
+        if (isEditingTags) {
+            tagsValue = formatTags(task.tags);
+            tagsInput?.focus();
         }
     });
 
@@ -60,6 +93,58 @@
         } else if (e.key === 'Escape') {
             e.preventDefault();
             cancelEdit();
+        }
+    }
+
+    // --- inline reschedule editor (r / m) ------------------------------
+
+    function commitDateEdit() {
+        const value = dateValue.trim();
+        uiStore.closeRowEditor();
+        if (!value || value === (task.date ?? '')) return;
+        // "someday" clears the date (Someday panel); anything else must parse
+        // date phrase ("tomorrow", "next monday", "2026-10-15", ...).
+        if (value.toLowerCase() === 'someday') {
+            void taskStore.update(task.id, { date: null });
+            return;
+        }
+        const date = resolveDatePhrase(value, container.dateProvider.today());
+        if (!date) {
+            notificationStore.push(`Could not parse "${value}" as a date`, {
+                kind: 'error',
+            });
+            return;
+        }
+        void taskStore.update(task.id, { date });
+    }
+
+    function handleDateKeydown(e: KeyboardEvent) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            commitDateEdit();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            uiStore.closeRowEditor();
+        }
+    }
+
+    // --- inline tags editor (t) ----------------------------------------
+
+    function commitTagsEdit() {
+        const tags = parseTags(tagsValue);
+        if (tags.join(',') !== task.tags.join(',')) {
+            void taskStore.update(task.id, { tags });
+        }
+        uiStore.closeRowEditor();
+    }
+
+    function handleTagsKeydown(e: KeyboardEvent) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            commitTagsEdit();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            uiStore.closeRowEditor();
         }
     }
 
@@ -106,6 +191,26 @@
             onkeydown={handleEditKeydown}
             onblur={commitEdit}
             maxlength={TASK_CONSTRAINTS.MAX_TEXT_LENGTH}
+        />
+    {:else if isEditingDate}
+        <input
+            bind:this={dateInput}
+            bind:value={dateValue}
+            class="edit-input"
+            placeholder='Date -- "tomorrow", "next monday", "2026-10-15", or "someday"'
+            aria-label="Reschedule task"
+            onkeydown={handleDateKeydown}
+            onblur={commitDateEdit}
+        />
+    {:else if isEditingTags}
+        <input
+            bind:this={tagsInput}
+            bind:value={tagsValue}
+            class="edit-input"
+            placeholder="Tags, comma-separated"
+            aria-label="Edit task tags"
+            onkeydown={handleTagsKeydown}
+            onblur={commitTagsEdit}
         />
     {:else}
         <button class="task-text" onclick={startEdit} use:tooltip={'editTask'}>

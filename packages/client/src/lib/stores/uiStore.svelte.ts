@@ -10,6 +10,19 @@ export type ModalType =
     | 'help'
     | 'taskDetail';
 
+/** Which inline sub-editor a focused task row shows, on top of the
+ *  plain text edit (editingTaskId, Enter). Driven through the store so
+ *  the global Esc layering and keyboard actions stay in one place. */
+export type RowEditorKind = 'date' | 'tags';
+
+export interface TaskSection {
+    /** Stable key: a date key for day sections, a group id (or
+     *  'ungrouped') for Someday sections. */
+    key: string;
+    /** The section's task ids in render order. */
+    taskIds: string[];
+}
+
 class UIStore {
     focusedTaskId = $state<string | null>(null);
     activeModal = $state<ModalType | null>(null);
@@ -24,6 +37,18 @@ class UIStore {
      *  Published by SomedayPanel; j/k navigation uses it when the focused
      *  task lives in the panel. Empty when the panel is collapsed. */
     visibleSomedayTaskIds = $state<string[]>([]);
+
+    /** Day sections in render order (only days that hold tasks), for the
+     *  J/K section jumps. Published by DayList. */
+    visibleDaySections = $state<TaskSection[]>([]);
+
+    /** Someday group sections in render order (groups, then ungrouped),
+     *  for J/K jumps while focus lives in the panel. Published by
+     *  SomedayPanel; empty when collapsed. */
+    visibleSomedaySections = $state<TaskSection[]>([]);
+
+    /** The focused task's inline sub-editor (r/m/t actions). */
+    rowEditor = $state<{ taskId: string; kind: RowEditorKind } | null>(null);
 
     /** Pending request to focus a day section's add-task input. The
      *  matching DaySection consumes it and focuses its InlineAddTask --
@@ -47,6 +72,24 @@ class UIStore {
 
     setVisibleSomedayTasks(ids: string[]) {
         this.visibleSomedayTaskIds = ids;
+    }
+
+    setVisibleDaySections(sections: TaskSection[]) {
+        this.visibleDaySections = sections;
+    }
+
+    setVisibleSomedaySections(sections: TaskSection[]) {
+        this.visibleSomedaySections = sections;
+    }
+
+    /** Open an inline sub-editor (r/m/t keyboard actions) on a task. */
+    openRowEditor(taskId: string, kind: RowEditorKind) {
+        this.rowEditor = { taskId, kind };
+    }
+
+    /** Close the inline sub-editor without committing (Esc paths). */
+    closeRowEditor() {
+        this.rowEditor = null;
     }
 
     /** Ask the DaySection for `date` to focus its add-task input. */
@@ -97,6 +140,7 @@ class UIStore {
         this.focusedTaskId = null;
         this.activeModal = null;
         this.editingTaskId = null;
+        this.rowEditor = null;
     }
 }
 

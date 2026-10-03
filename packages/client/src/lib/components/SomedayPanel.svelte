@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { preferencesStore, someDayGroupStore, taskStore, uiStore } from '$lib/stores';
+    import { preferencesStore, someDayGroupStore, taskStore, uiStore, type TaskSection } from '$lib/stores';
     import { applyFilters } from '$lib/filters';
     import { createNewlyCreatedTracker } from '$lib/newlyCreated.svelte';
     import TaskRow from './TaskRow.svelte';
@@ -69,18 +69,31 @@
     let groups = $derived(someDayGroupStore.sortedGroups);
 
     // Publish the panel's task ids in render order (groups, then ungrouped)
-    // so global j/k navigation can move through Someday tasks. Cleared when
-    // collapsed so stale ids never steer navigation.
+    // so global j/k navigation can move through Someday tasks, and the
+    // group sections so J/K can jump between them. Cleared when collapsed
+    // so stale ids never steer navigation.
     $effect(() => {
         if (isCollapsed) {
             uiStore.setVisibleSomedayTasks([]);
+            uiStore.setVisibleSomedaySections([]);
             return;
         }
-        const ids = [
-            ...groups.flatMap(group => groupTasks(group).map(t => t.id)),
-            ...ungroupedTasks.map(t => t.id),
-        ];
+        const ids: string[] = [];
+        const sections: TaskSection[] = [];
+        for (const group of groups) {
+            const sectionIds = groupTasks(group).map(t => t.id);
+            ids.push(...sectionIds);
+            // Empty groups are skipped: a J/K jump lands on a task, and an
+            // empty section has none to focus.
+            if (sectionIds.length > 0) sections.push({ key: group.id, taskIds: sectionIds });
+        }
+        const ungroupedIds = ungroupedTasks.map(t => t.id);
+        if (ungroupedIds.length > 0) {
+            ids.push(...ungroupedIds);
+            sections.push({ key: 'ungrouped', taskIds: ungroupedIds });
+        }
         uiStore.setVisibleSomedayTasks(ids);
+        uiStore.setVisibleSomedaySections(sections);
     });
 
     // Newly created rows flash for 600ms (shared helper).

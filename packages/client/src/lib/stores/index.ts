@@ -11,4 +11,4 @@ export { refetchAllStores } from './refetchAll';
 export { someDayGroupStore } from './someDayGroupStore.svelte';
 export { tagStore } from './tagStore.svelte';
 export { taskStore } from './taskStore.svelte';
-export { type ModalType, uiStore } from './uiStore.svelte';
+export { type ModalType, type RowEditorKind, type TaskSection, uiStore } from './uiStore.svelte';

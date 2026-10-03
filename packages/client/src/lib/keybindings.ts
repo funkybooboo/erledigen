@@ -21,12 +21,18 @@
 export type ShortcutId =
     | 'focusNext'
     | 'focusPrev'
+    | 'jumpNextSection'
+    | 'jumpPrevSection'
     | 'addTask'
     | 'editTask'
     | 'taskDetail'
     | 'toggleComplete'
     | 'deleteTask'
     | 'undo'
+    | 'redo'
+    | 'rescheduleTask'
+    | 'moveTask'
+    | 'editTags'
     | 'setP1'
     | 'setP2'
     | 'setP3'
@@ -55,12 +61,18 @@ export interface Shortcut {
 export const SHORTCUTS: Record<ShortcutId, Shortcut> = {
     focusNext: { bindings: ['j', '\u2193'], label: 'Focus next task' },
     focusPrev: { bindings: ['k', '\u2191'], label: 'Focus previous task' },
+    jumpNextSection: { bindings: ['J'], label: 'Jump to next day / group' },
+    jumpPrevSection: { bindings: ['K'], label: 'Jump to previous day / group' },
     addTask: { bindings: ['n', 'a'], label: 'Add new task' },
     editTask: { bindings: ['Enter'], label: 'Edit focused task' },
     taskDetail: { bindings: ['e'], label: 'Task details' },
     toggleComplete: { bindings: ['Space'], label: 'Complete / uncomplete' },
     deleteTask: { bindings: ['d'], label: 'Delete task' },
     undo: { bindings: ['{mod}+Z'], label: 'Undo last action' },
+    redo: { bindings: ['{mod}+Shift+Z'], label: 'Redo' },
+    rescheduleTask: { bindings: ['r'], label: 'Reschedule task' },
+    moveTask: { bindings: ['m'], label: 'Move task to another day' },
+    editTags: { bindings: ['t'], label: 'Edit tags' },
     setP1: { bindings: ['1'], label: 'Set priority #p1' },
     setP2: { bindings: ['2'], label: 'Set priority #p2' },
     setP3: { bindings: ['3'], label: 'Set priority #p3' },
@@ -83,7 +95,14 @@ export const SHORTCUTS: Record<ShortcutId, Shortcut> = {
 export const SHORTCUT_SECTIONS: { title: string; ids: ShortcutId[] }[] = [
     {
         title: 'Navigation',
-        ids: ['focusNext', 'focusPrev', 'goToday', 'toggleSomedayPanel'],
+        ids: [
+            'focusNext',
+            'focusPrev',
+            'jumpNextSection',
+            'jumpPrevSection',
+            'goToday',
+            'toggleSomedayPanel',
+        ],
     },
     {
         title: 'Task Actions',
@@ -94,6 +113,10 @@ export const SHORTCUT_SECTIONS: { title: string; ids: ShortcutId[] }[] = [
             'toggleComplete',
             'deleteTask',
             'undo',
+            'redo',
+            'rescheduleTask',
+            'moveTask',
+            'editTags',
             'setP1',
             'setP2',
             'setP3',

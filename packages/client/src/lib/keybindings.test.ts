@@ -38,11 +38,13 @@ describe('SHORTCUTS registry', () => {
             for (const binding of shortcut.bindings) {
                 expect(binding.length, `${id}: empty binding`).toBeGreaterThan(0);
                 for (const token of binding.split(' ')) {
-                    // "{mod}", "{mod}+K", "{mod}+\\" are single tokens;
-                    // everything else is one keycap or a named key.
+                    // "{mod}", "{mod}+K", "{mod}+\\", "{mod}+Shift+Z" are
+                    // single tokens; everything else is one keycap or a
+                    // named key.
                     const ok =
                         token === '{mod}' ||
                         /^\{mod\}\+.$/.test(token) ||
+                        token === '{mod}+Shift+Z' ||
                         token.length === 1 ||
                         NAMED_KEYS.has(token);
                     expect(ok, `${id}: unexpected token "${token}" in "${binding}"`).toBe(true);

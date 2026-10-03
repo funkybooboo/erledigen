@@ -15,10 +15,12 @@ green).
   cleanup) do not bump it. Cut the next release with
   `mise run release`, which bumps every manifest, bun.lock, and the
   runtime `version.ts` stamp together.
-- **Shipped complete:** v0.1.0, v0.2.0, v0.3.0, v0.4.0, v0.4.1.
+- **Shipped complete:** v0.1.0, v0.2.0, v0.3.0, v0.4.0, v0.4.1, v0.5.0.
 - **In flight, with remaining scope:**
-    - v0.5.0 -- `J`/`K` section jumps, `r`/`m`/`t` per-task actions,
-      redo, natural-language date parsing, remaining palette commands.
+    - v0.5.0 -- COMPLETE: the full shortcut table (J/K section jumps,
+      r/m/t inline row editors, {mod}+Shift+Z redo), natural-language
+      date + #tag parsing in task creation, and the complete command
+      palette registry.
     - v0.6.0 -- priority sort mode, date-range filter, mobile.
       (Drag-and-drop was removed; design kept in the section.)
     - v0.7.0 -- COMPLETE: storage + observability (SQLite, migrations,
@@ -389,7 +391,7 @@ Refactoring pass to fix API mismatches, extract shared types/constants/utilities
 
 This release makes Erledigen fully operable without a mouse, and finalizes the complete keyboard shortcut system.
 
-**Status:** Largely shipped. A single shortcut registry (`packages/client/src/lib/keybindings.ts`) now drives both the Help modal and hover tooltips on every UI action. Implemented: `j`/`k` + arrows (task focus), `n`/`a`, `Enter` (inline edit), `e` (detail), `Space` (complete), `d` (delete), `1`/`2`/`3`/`0` (priority tags), `g t` (today) + `g s/p/h/c/f/x/o` (modals), `{mod}+K` / `/` (search palette), `?` (help), `{mod}+\` (Someday panel), `Esc`, `{mod}+Z` (undo). Not yet implemented: `J`/`K` section jumps, `r`/`m`/`t` per-task actions, `{mod}+Shift+Z` (redo). The palette has search mode and `/add` (with natural-language habit phrases); the rest of the command list below is still planned.
+**Status:** COMPLETE. A single shortcut registry (`packages/client/src/lib/keybindings.ts`) now drives both the Help modal and hover tooltips on every UI action. Every shortcut in the reference table works: `j`/`k` + arrows (task focus), `J`/`K` (section jumps), `n`/`a`, `Enter` (inline edit), `e` (detail), `Space` (complete), `d` (delete), `r`/`m` (inline reschedule), `t` (inline tag editor), `1`/`2`/`3`/`0` (priority tags), `g t` (today) + `g s/p/h/c/f/x/o` (modals), `{mod}+K` / `/` (search palette), `?` (help), `{mod}+\` (Someday panel), `Esc`, `{mod}+Z` (undo), `{mod}+Shift+Z` (redo). The palette carries the full command registry with natural-language dates and `#tags` parsed in `/add`, `/go`, and `/move`.
 
 ### Complete Keyboard Shortcut Reference
 
@@ -466,7 +468,7 @@ The palette has two modes distinguished by the first character:
 
 ### Additional Checklist
 - [x] Vim + arrow key navigation: both work simultaneously throughout the app, in the day list and the Someday panel alike (focus navigation and the add-task target follow the focused task's home).
-- [ ] All shortcuts in the table above implemented and working (`J`/`K`, `r`, `m`, `t` remain).
+- [x] All shortcuts in the table above implemented and working (`J`/`K`, `r`, `m`, `t` remain).
 - [x] Command palette: search mode and the full command registry (`/add`, `/complete`, `/delete`, `/move`, `/go`, `/tag`, `/filter`, `/clear`, `/today`, `/someday`, `/project`, `/habit`, `/settings`, `/help`) both functional.
 - [x] Natural language date parsing: today, tomorrow, next monday, march 15, in 3 days.
 - [x] Natural language task creation: `buy milk tomorrow #work #p1` (the date phrase and #tags are extracted onto the task).

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { cleanup, createTask, uniq } from '../api-tests/helpers';
-import { hydrated, modal, SERVER_URL, todayInput, todayISO } from './util';
+import { dayISO, hydrated, modal, SERVER_URL, todayInput, todayISO } from './util';
 
 test.afterEach(async ({ request }) => {
     await cleanup(request, SERVER_URL);
@@ -147,6 +147,61 @@ test.describe('keyboard task actions on the day list', () => {
         await expect(page.locator('.task-row', { hasText: text })).toHaveCount(0);
         const notif = page.locator('.notification', { hasText: 'Task deleted' });
         await expect(notif).toBeVisible();
+    });
+
+    test('J/K jump focus between day sections', async ({ page }) => {
+        const todayText = uniq('KbJumpToday');
+        const tomorrowText = uniq('KbJumpTomorrow');
+        await createTask(page.request, { text: todayText, date: todayISO() }, SERVER_URL);
+        await createTask(page.request, { text: tomorrowText, date: dayISO(1) }, SERVER_URL);
+        await hydrated(page);
+
+        // Focus today's seed, then J lands on tomorrow's first task.
+        await focusRow(page, todayText);
+        await page.keyboard.press('J');
+        await expect(row(page, tomorrowText)).toHaveClass(/focused/);
+        await expect(row(page, todayText)).not.toHaveClass(/focused/);
+
+        // K jumps back to the previous section (today's first task).
+        await page.keyboard.press('K');
+        await expect(row(page, todayText)).toHaveClass(/focused/);
+    });
+
+    test('r opens the inline reschedule editor and moves the task', async ({ page }) => {
+        const text = uniq('KbReschedule');
+        await createTask(page.request, { text, date: todayISO() }, SERVER_URL);
+        await hydrated(page);
+
+        await focusRow(page, text);
+        await page.keyboard.press('r');
+        const dateInput = page.getByLabel('Reschedule task');
+        await expect(dateInput).toBeVisible();
+        await expect(dateInput).toHaveValue(todayISO());
+
+        await dateInput.fill('tomorrow');
+        await dateInput.press('Enter');
+        await expect(dateInput).toHaveCount(0);
+        // The task moved to tomorrow's section.
+        await expect(page.locator(`section#day-${dayISO(1)}`).getByText(text)).toBeVisible();
+        await expect(page.locator(`section#day-${todayISO()}`).getByText(text)).toHaveCount(0);
+    });
+
+    test('t opens the inline tags editor on the focused task', async ({ page }) => {
+        const text = uniq('KbTags');
+        await createTask(page.request, { text, date: todayISO() }, SERVER_URL);
+        await hydrated(page);
+
+        await focusRow(page, text);
+        await page.keyboard.press('t');
+        const tagsInput = page.getByLabel('Edit task tags');
+        await expect(tagsInput).toBeVisible();
+
+        await tagsInput.fill('urgent, focus');
+        await tagsInput.press('Enter');
+        await expect(tagsInput).toHaveCount(0);
+        const target = row(page, text);
+        await expect(target.locator('.tag-chip', { hasText: 'urgent' })).toBeVisible();
+        await expect(target.locator('.tag-chip', { hasText: 'focus' })).toBeVisible();
     });
 });
 
