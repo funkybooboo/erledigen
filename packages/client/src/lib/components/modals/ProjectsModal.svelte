@@ -173,7 +173,7 @@
             {/if}
 
             <section class="detail-tasks">
-                <h4>Tasks ({projectTasks.length})</h4>
+                <h4 class="modal-section-heading">Tasks ({projectTasks.length})</h4>
                 {#if projectTasks.length > 0}
                     <ul class="task-list">
                         {#each projectTasks as task (task.id)}
@@ -214,7 +214,7 @@
 
             {#if activeProjects.length > 0}
                 <section class="section" aria-label="Active projects">
-                    <h4 id="projects-active-heading">Active</h4>
+                    <h4 id="projects-active-heading" class="modal-section-heading">Active</h4>
                     {#each activeProjects as project (project.id)}
                         {#if editingProjectId === project.id}
                             <div class="project-card editing">
@@ -258,7 +258,7 @@
 
             {#if inactiveProjects.length > 0}
                 <section class="section" aria-label="Inactive projects">
-                    <h4 id="projects-inactive-heading">Inactive</h4>
+                    <h4 id="projects-inactive-heading" class="modal-section-heading">Inactive</h4>
                     {#each inactiveProjects as project (project.id)}
                         <div class="project-card inactive" onclick={() => selectProject(project.id)} onkeydown={(e) => handleCardKeydown(e, project.id)} role="button" tabindex="0" aria-label="{project.name}, inactive">
                             <div class="card-top">
@@ -292,15 +292,6 @@
         display: flex;
         flex-direction: column;
         gap: 16px;
-    }
-
-    .section h4 {
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--color-text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin: 0 0 8px;
     }
 
     .project-card {
@@ -402,15 +393,6 @@
 
     .detail-tasks {
         margin-top: 4px;
-    }
-
-    .detail-tasks h4 {
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--color-text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin: 0 0 8px;
     }
 
     .task-list {

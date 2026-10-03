@@ -220,6 +220,24 @@
 }
 
 /* ------------------------------------------------------------------
+ * Shared modal section heading
+ *
+ * The uppercase micro-label above a modal's section (Help categories,
+ * Projects list groups, Summary sections, Filter legends). Was
+ * duplicated in four modal stylesheets -- one global rule now serves
+ * all of them.
+ * ------------------------------------------------------------------ */
+
+.modal-section-heading {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 8px;
+}
+
+/* ------------------------------------------------------------------
  * Hover tooltips (lib/tooltip.ts action)
  *
  * The tooltip element is created by the action and appended to <body>,

@@ -1,10 +1,11 @@
 <script lang="ts">
     import { tick } from 'svelte';
     import { notificationStore } from '$lib/stores';
-    import { TASK_CONSTRAINTS, describeRecurrence, parseRecurrence } from '@erledigen/shared';
+    import { TASK_CONSTRAINTS, parseRecurrence } from '@erledigen/shared';
     import { createFromText, habitCreatedText } from '$lib/createFromText';
+    import RecurrenceHint from './RecurrenceHint.svelte';
     import { Icon } from 'svelte-icons-pack';
-    import { LuCircle, LuRepeat } from 'svelte-icons-pack/lu';
+    import { LuCircle } from 'svelte-icons-pack/lu';
     import { tooltip } from '$lib/tooltip';
 
     let {
@@ -83,10 +84,7 @@
     />
     <span class="add-actions-spacer" aria-hidden="true"></span>
     {#if parsed}
-        <span class="recur-hint" title="This will repeat: {parsed.phrase}">
-            <Icon src={LuRepeat} />
-            <span>{describeRecurrence(parsed.schedule)}</span>
-        </span>
+        <RecurrenceHint {parsed} />
     {/if}
 </div>
 
@@ -143,38 +141,5 @@
     .add-actions-spacer {
         flex-shrink: 0;
         width: 36px;
-    }
-
-    .recur-hint {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        flex-shrink: 0;
-        margin-left: 8px;
-        padding: 1px 8px;
-        border-radius: 999px;
-        background: var(--color-accent-light);
-        color: var(--color-accent);
-        font-size: 11px;
-        font-weight: 600;
-        white-space: nowrap;
-        pointer-events: none;
-        animation: hint-in 150ms ease-out;
-    }
-
-    .recur-hint :global(svg) {
-        width: 12px;
-        height: 12px;
-    }
-
-    @keyframes hint-in {
-        from {
-            opacity: 0;
-            transform: scale(0.9);
-        }
-        to {
-            opacity: 1;
-            transform: scale(1);
-        }
     }
 </style>

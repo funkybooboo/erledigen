@@ -67,7 +67,7 @@
 <Modal title="Filter" onclose={onclose}>
     <div class="filter">
         <fieldset class="section" aria-labelledby="filter-tags-heading">
-            <legend class="section-heading" id="filter-tags-heading">Tags</legend>
+            <legend class="modal-section-heading" id="filter-tags-heading">Tags</legend>
 
             {#if activeTags.length > 0}
                 <div class="active-tags">
@@ -122,7 +122,7 @@
         </fieldset>
 
         <fieldset class="section" aria-labelledby="filter-sort-heading">
-            <legend class="section-heading" id="filter-sort-heading">Sort</legend>
+            <legend class="modal-section-heading" id="filter-sort-heading">Sort</legend>
             <div class="sort-options" role="radiogroup" aria-labelledby="filter-sort-heading">
                 <label class="sort-option">
                     <input
@@ -148,7 +148,7 @@
         </fieldset>
 
         <fieldset class="section" aria-labelledby="filter-range-heading">
-            <legend class="section-heading" id="filter-range-heading">Date range</legend>
+            <legend class="modal-section-heading" id="filter-range-heading">Date range</legend>
             <div class="range-row">
                 <label class="range-label">
                     From
@@ -192,15 +192,6 @@
         display: flex;
         flex-direction: column;
         gap: 20px;
-    }
-
-    .section-heading {
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--color-text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin: 0 0 8px;
     }
 
     fieldset.section {

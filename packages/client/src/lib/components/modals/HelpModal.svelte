@@ -8,7 +8,7 @@
     <div class="help">
         {#each SHORTCUT_SECTIONS as section (section.title)}
             <section class="section">
-                <h3>{section.title}</h3>
+                <h3 class="modal-section-heading">{section.title}</h3>
                 <table class="shortcut-table">
                     <tbody>
                         {#each section.ids as id (id)}
@@ -38,15 +38,6 @@
         display: flex;
         flex-direction: column;
         gap: 20px;
-    }
-
-    .section h3 {
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--color-text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin: 0 0 8px;
     }
 
     .shortcut-table {
