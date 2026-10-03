@@ -62,8 +62,10 @@ test.describe('Search modal', () => {
     // Commands that persist preference state must never leak it into other
     // spec files -- a stale tag filter hides tasks in every later test.
     test.afterEach(async ({ request }) => {
-        await patch(request, '/api/preferences', {
-            data: {
+        await patch(
+            request,
+            '/api/preferences',
+            {
                 activeFilters: {
                     tags: [],
                     showCompleted: true,
@@ -72,7 +74,8 @@ test.describe('Search modal', () => {
                     dateTo: null,
                 },
             },
-        }, SERVER_URL).catch(() => {});
+            SERVER_URL,
+        ).catch(() => {});
     });
 
     test('searching filters tasks by text and shows results', async ({ page }) => {
@@ -334,10 +337,21 @@ test.describe('Filter modal', () => {
 
         // Within today's section the p1 task now precedes p2, which
         // precedes the untagged one (relative order -- immune to foreign
-        // tasks from other specs).
-        const order = await todaySection.locator('.task-text').allTextContents();
-        expect(order.indexOf(p1Text)).toBeLessThan(order.indexOf(p2Text));
-        expect(order.indexOf(p2Text)).toBeLessThan(order.indexOf(plainText));
+        // tasks from other specs). The sorted re-render lands async, so
+        // poll instead of sampling once.
+        await expect
+            .poll(async () => {
+                // allTextContents keeps the template's whitespace around the
+                // task text -- trim before comparing.
+                const order = (await todaySection.locator('.task-text').allTextContents()).map(
+                    t => t.trim(),
+                );
+                return (
+                    order.indexOf(p1Text) < order.indexOf(p2Text) &&
+                    order.indexOf(p2Text) < order.indexOf(plainText)
+                );
+            })
+            .toBe(true);
 
         // The priority rows carry their accent while the sort is active.
         await expect(page.locator('.task-row.prio-1', { hasText: p1Text })).toBeVisible();
@@ -370,7 +384,7 @@ test.describe('Filter modal', () => {
         await expect(page.locator(`section#day-${todayISO()}`).getByText(inRange)).toBeVisible();
 
         // Clearing the range brings the far day back.
-        await modalEl.getByRole('button', { name: 'Clear' }).click();
+        await modalEl.getByRole('button', { name: 'Clear', exact: true }).click();
         await expect(page.locator(`section#day-${dayISO(20)}`).getByText(outOfRange)).toBeVisible();
     });
 });

@@ -138,6 +138,13 @@
 
     function extendUp() {
         if (isExtendingUp) return;
+        // A date-range filter bounds the rail: when the window already
+        // reaches the range's start there is nothing earlier to load, and
+        // the (short) clamped list keeps the sentinel visible -- without
+        // this gate the observers would extend away forever, trimming
+        // today out of the window.
+        const rangeFrom = preferencesStore.activeFilters.dateFrom;
+        if (rangeFrom !== null && visibleStartDate <= rangeFrom) return;
 
         isExtendingUp = true;
         const newStart = addDays(visibleStartDate, -CHUNK_DAYS);
@@ -162,6 +169,9 @@
 
     function extendDown() {
         if (isExtendingDown) return;
+        // Mirror of extendUp's gate: the range's end bounds the rail.
+        const rangeTo = preferencesStore.activeFilters.dateTo;
+        if (rangeTo !== null && visibleEndDate >= rangeTo) return;
 
         isExtendingDown = true;
         const chunkStart = addDays(visibleEndDate, 1);

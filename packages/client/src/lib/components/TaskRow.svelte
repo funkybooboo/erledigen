@@ -11,6 +11,7 @@
     } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
     import { LuCheck, LuCircle, LuRepeat, LuFileText, LuX } from 'svelte-icons-pack/lu';
+    import { untrack } from 'svelte';
     import { tooltip } from '$lib/tooltip';
 
     let { task, isNew = false }: { task: Task; isNew?: boolean } = $props();
@@ -50,17 +51,31 @@
         }
     });
 
-    // Seed and focus a sub-editor when the store request targets this row.
+    // Seed and focus a sub-editor when the store request targets this
+    // row. The seed happens ONCE per editor request: the effect re-runs
+    // whenever the task prop is replaced (a slow update response or a WS
+    // ingest landing mid-edit), and re-seeding then would wipe the
+    // typing. Only the focus (idempotent) repeats on re-runs.
+    let seededEditor = $state<string | null>(null);
+
     $effect(() => {
-        if (isEditingDate) {
-            dateValue = task.date ?? '';
+        if (uiStore.rowEditor?.taskId === task.id && uiStore.rowEditor.kind === 'date') {
+            const seedKey = `${task.id}:date`;
+            if (seededEditor !== seedKey) {
+                seededEditor = seedKey;
+                dateValue = untrack(() => task.date ?? '');
+            }
             dateInput?.focus();
         }
     });
 
     $effect(() => {
-        if (isEditingTags) {
-            tagsValue = formatTags(task.tags);
+        if (uiStore.rowEditor?.taskId === task.id && uiStore.rowEditor.kind === 'tags') {
+            const seedKey = `${task.id}:tags`;
+            if (seededEditor !== seedKey) {
+                seededEditor = seedKey;
+                tagsValue = untrack(() => formatTags(task.tags));
+            }
             tagsInput?.focus();
         }
     });

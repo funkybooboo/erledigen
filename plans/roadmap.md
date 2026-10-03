@@ -21,8 +21,10 @@ green).
       r/m/t inline row editors, {mod}+Shift+Z redo), natural-language
       date + #tag parsing in task creation, and the complete command
       palette registry.
-    - v0.6.0 -- priority sort mode, date-range filter, mobile.
-      (Drag-and-drop was removed; design kept in the section.)
+    - v0.6.0 -- COMPLETE: priority sort mode (block-aware within-day
+      ordering + priority accents) and the date-range filter shipped;
+      drag-and-drop stays removed by design (the design is kept in the
+      section below). Remaining: mobile/bottom sheets (next slice).
     - v0.7.0 -- COMPLETE: storage + observability (SQLite, migrations,
       contract tests, preferences persistence, JSON logs, request IDs,
       `/api/metrics`, enhanced health); export (all four formats via
@@ -524,8 +526,8 @@ This release polishes the three-panel layout, completes drag-and-drop interactio
 
 ### Filtering
 
-- [ ] **Priority view mode:** Accessible through the Filter modal as a sort option. When "Priority" sort is active, tasks within each day section are ordered `#p1` -> `#p2` -> `#p3` -> untagged, with a subtle left-border accent per priority level.
-- [ ] **Date range filter:** Add date range picker to the Filter modal. Filters tasks by date range (from/to), applies to day list and Someday simultaneously.
+- [x] **Priority view mode:** Accessible through the Filter modal as a sort option. When "Priority" sort is active, tasks within each day section are ordered `#p1` -> `#p2` -> `#p3` -> untagged, with a subtle left-border accent per priority level.
+- [x] **Date range filter:** Add date range picker to the Filter modal. Filters tasks by date range (from/to), applies to day list and Someday simultaneously. (As built: scheduled tasks outside `[from, to]` stop rendering; date-less Someday tasks are exempt -- a range narrows the day rail, it does not empty the Someday panel.)
 - [x] **Filter persistence:** Active filters persist across sessions in `UserPreferences`. Always on -- the planned "start fresh" Settings toggle is not implemented.
 
 ### Responsiveness
