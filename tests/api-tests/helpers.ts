@@ -138,7 +138,7 @@ const created: Array<{ base: string; kind: string; id: string }> = [];
  *  test (e.g. leftover schedules auto-materialize into browser tests' day
  *  lists). */
 export function track(
-    kind: 'task' | 'project' | 'recurring' | 'group',
+    kind: 'task' | 'project' | 'recurring' | 'group' | 'holiday',
     id: string,
     base = '',
 ): void {
@@ -189,6 +189,17 @@ export async function createGroup(
     return res.body.data;
 }
 
+export async function createHoliday(
+    ctx: APIRequestContext,
+    input: Record<string, unknown>,
+    base = '',
+): Promise<BaseEntity> {
+    const res = await post(ctx, '/api/holidays', input, base);
+    assertCreated(res, 'holiday');
+    created.push({ base, kind: 'holiday', id: res.body.data.id });
+    return res.body.data;
+}
+
 /** Delete everything this test created. Safe to call in afterEach.
  *
  * Tracked entities are deleted through the live context passed in (the
@@ -205,7 +216,9 @@ export async function cleanup(ctx: APIRequestContext, base = ''): Promise<void> 
                   ? '/api/projects'
                   : item.kind === 'recurring'
                     ? '/api/recurring-tasks'
-                    : '/api/someday-groups';
+                    : item.kind === 'holiday'
+                      ? '/api/holidays'
+                      : '/api/someday-groups';
         await del(ctx, `${pathBase}/${item.id}`, item.base || base).catch(() => {});
     }
 }

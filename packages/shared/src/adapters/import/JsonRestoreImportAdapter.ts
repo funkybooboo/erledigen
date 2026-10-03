@@ -10,6 +10,7 @@
  */
 
 import type { ExportSnapshot } from '../../types/export';
+import type { Holiday } from '../../types/holiday';
 import type { Project } from '../../types/project';
 import type { RecurringTask } from '../../types/recurringTask';
 import type { SomeDayGroup } from '../../types/someDayGroup';
@@ -119,6 +120,29 @@ interface PreferencesRow {
     tagKindMap?: unknown;
     timeFormat?: unknown;
     updatedAt?: unknown;
+}
+
+interface HolidayRow {
+    id?: unknown;
+    name?: unknown;
+    date?: unknown;
+    createdAt?: unknown;
+}
+
+function validateHoliday(holiday: unknown, index: number): Holiday {
+    const where = `holidays[${index}]`;
+    const fail = (msg: string): never => {
+        throw new ImportValidationError(`Invalid snapshot: ${where}: ${msg}`);
+    };
+    if (!isRecord(holiday)) fail('expected a holiday object');
+    const h = holiday as HolidayRow;
+    if (typeof h.id !== 'string' || h.id === '') fail('id must be a non-empty string');
+    if (typeof h.name !== 'string' || h.name === '') fail('name must be a non-empty string');
+    if (typeof h.date !== 'string' || !ISO_DATE.test(h.date))
+        fail('date must be a yyyy-MM-dd string');
+    if (typeof h.createdAt !== 'string' || !ISO_TIMESTAMP.test(h.createdAt))
+        fail('createdAt must be an ISO 8601 timestamp');
+    return holiday as Holiday;
 }
 
 function validateTask(task: unknown, index: number): Task {
@@ -430,6 +454,13 @@ export class JsonRestoreImportAdapter implements ImportAdapter<ExportSnapshot> {
         if (!Array.isArray(doc.recurringTasks)) {
             throw new ImportValidationError('Invalid snapshot: recurringTasks must be an array');
         }
+        // Holidays joined the snapshot in v0.9.0 (ADR-008: new optional
+        // fields). Older snapshots lack the key entirely; they restore
+        // with the table emptied, matching the destructive-replace
+        // semantics every other table follows.
+        if (doc.holidays !== undefined && !Array.isArray(doc.holidays)) {
+            throw new ImportValidationError('Invalid snapshot: holidays must be an array');
+        }
         if (typeof doc.exportedAt !== 'string' || !ISO_TIMESTAMP.test(doc.exportedAt)) {
             throw new ImportValidationError(
                 'Invalid snapshot: exportedAt must be an ISO 8601 timestamp',
@@ -444,6 +475,7 @@ export class JsonRestoreImportAdapter implements ImportAdapter<ExportSnapshot> {
             someDayGroups: doc.someDayGroups.map(validateSomeDayGroup),
             projects: doc.projects.map(validateProject),
             recurringTasks: doc.recurringTasks.map(validateRecurringTask),
+            holidays: (doc.holidays ?? []).map(validateHoliday),
             userPreferences: validateUserPreferences(doc.userPreferences),
         };
 
@@ -452,6 +484,7 @@ export class JsonRestoreImportAdapter implements ImportAdapter<ExportSnapshot> {
             ['someDayGroup', snapshot.someDayGroups.map(g => g.id)],
             ['project', snapshot.projects.map(p => p.id)],
             ['recurringTask', snapshot.recurringTasks.map(r => r.id)],
+            ['holiday', snapshot.holidays.map(h => h.id)],
         ] as const) {
             if (new Set(ids).size !== ids.length) {
                 throw new ImportValidationError(`Invalid snapshot: duplicate ${kind} ids`);

@@ -1,0 +1,21 @@
+meta {
+  name: Get Holiday - Not Found
+  type: http
+  seq: 125
+}
+
+get {
+  url: {{baseUrl}}/api/holidays/nonexistent-id
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 404
+}
+
+tests {
+  test("should return 404 Not Found", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+}

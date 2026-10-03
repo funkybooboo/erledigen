@@ -1,0 +1,26 @@
+meta {
+  name: Get Holiday by ID
+  type: http
+  seq: 122
+}
+
+get {
+  url: {{baseUrl}}/api/holidays/{{holidayId}}
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("should return 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("should return the holiday", function() {
+    expect(res.getBody().data.id).to.equal(bru.getVar("holidayId"));
+    expect(res.getBody().data.name).to.equal("Bruno Day");
+  });
+}

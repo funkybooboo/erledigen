@@ -51,6 +51,9 @@ A cornerstone of our architecture is the **adapter pattern**. This pattern allow
 *   **`SomeDayGroupRepository`**: Abstracts data persistence for Someday panel groups.
     *   **`InMemorySomeDayGroupRepository`** (server): An in-memory implementation.
     *   **`SqliteSomeDayGroupRepository`** (server): SQLite-backed persistence.
+*   **`HolidayRepository`**: Abstracts persistence for named calendar dates (v0.9.0) -- day-list banners, Settings management, and .ics import (the `HolidayService` adds parse + duplicate suppression on top; see [ADR-009](decisions/ADR-009-import-semantics.md)'s IcalImportAdapter reuse).
+    *   **`InMemoryHolidayRepository`** (server): An in-memory implementation.
+    *   **`SqliteHolidayRepository`** (server): SQLite-backed persistence.
 *   **`UserPreferencesRepository`**: Abstracts data persistence for user settings.
     *   **`InMemoryUserPreferencesRepository`** (server): An in-memory singleton implementation.
     *   **`SqliteUserPreferencesRepository`** (server): SQLite-backed persistence.

@@ -7,7 +7,7 @@
     import { snapInsertBeforeId } from '$lib/dragReorder';
     import type { Task, UpdateTaskInput } from '@erledigen/shared';
     import { container } from '$lib/container';
-    import { dragStore, preferencesStore, taskStore, uiStore } from '$lib/stores';
+    import { dragStore, holidayStore, preferencesStore, taskStore, uiStore } from '$lib/stores';
 
     let { id, dateStr, label, tasks }: { id: string; dateStr: string; label: string; tasks: Task[] } = $props();
 
@@ -25,6 +25,11 @@
     // Flash tracker for freshly created rows (shared helper: the SvelteSet
     // reactivity trap is documented in one place).
     let newlyCreated = createNewlyCreatedTracker();
+
+    // Named dates on this day render as a banner strip above the
+    // header (v0.9.0 holidays). Store read is reactive, so a Settings
+    // add/import updates already-rendered sections immediately.
+    let holidays = $derived(holidayStore.holidaysOn(dateStr));
 
     // Instance of the section's InlineAddTask, for the store-driven focus
     // request below (bind:this, no DOM queries).
@@ -87,6 +92,11 @@
     ondragleave={handleDragLeave}
     ondrop={handleDrop}
 >
+    {#if holidays.length > 0}
+        <div class="holiday-banner" aria-label="Holiday: {holidays.map(h => h.name).join(', ')}">
+            {holidays.map(h => h.name).join(' - ')}
+        </div>
+    {/if}
     <SectionHeader
         {sectionId}
         title={label}
@@ -120,6 +130,20 @@
         margin: -8px -12px 16px -12px;
         padding: 8px 12px;
         border-radius: 8px;
+    }
+
+    /* Named-date banner above the header: a quiet accent strip that
+       reads in both themes (token inversion, not a theme fork). */
+    .holiday-banner {
+        display: inline-block;
+        margin-bottom: 4px;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--color-accent);
+        background: color-mix(in oklab, var(--color-accent) 10%, transparent);
+        border: 1px solid color-mix(in oklab, var(--color-accent) 25%, transparent);
     }
 
     /* Drop-zone highlight while a drag hovers this day, and the 2px

@@ -13,9 +13,11 @@
  */
 
 import type { ExportSnapshot } from '@erledigen/shared';
+import type { HolidayRepository } from './HolidayRepository';
 import type { ProjectRepository } from './ProjectRepository';
 import type { RecurringTaskRepository } from './RecurringTaskRepository';
 import type { SomeDayGroupRepository } from './SomeDayGroupRepository';
+import type { SqliteHolidayRepository } from './SqliteHolidayRepository';
 import type { SqliteProjectRepository } from './SqliteProjectRepository';
 import type { SqliteRecurringTaskRepository } from './SqliteRecurringTaskRepository';
 import type { SqliteSomeDayGroupRepository } from './SqliteSomeDayGroupRepository';
@@ -41,6 +43,7 @@ export class InMemorySnapshotRestoreWriter implements SnapshotRestoreWriter {
         private readonly groupRepo: SomeDayGroupRepository,
         private readonly projectRepo: ProjectRepository,
         private readonly recurringRepo: RecurringTaskRepository,
+        private readonly holidayRepo: HolidayRepository,
         private readonly prefsRepo: UserPreferencesRepository,
     ) {}
 
@@ -49,6 +52,7 @@ export class InMemorySnapshotRestoreWriter implements SnapshotRestoreWriter {
         await this.groupRepo.replaceAll(snapshot.someDayGroups);
         await this.projectRepo.replaceAll(snapshot.projects);
         await this.recurringRepo.replaceAll(snapshot.recurringTasks);
+        await this.holidayRepo.replaceAll(snapshot.holidays);
         await this.prefsRepo.restore(snapshot.userPreferences);
     }
 }
@@ -62,6 +66,7 @@ export class SqliteSnapshotRestoreWriter implements SnapshotRestoreWriter {
         private readonly groupRepo: SqliteSomeDayGroupRepository,
         private readonly projectRepo: SqliteProjectRepository,
         private readonly recurringRepo: SqliteRecurringTaskRepository,
+        private readonly holidayRepo: SqliteHolidayRepository,
         private readonly prefsRepo: SqliteUserPreferencesRepository,
     ) {}
 
@@ -74,6 +79,7 @@ export class SqliteSnapshotRestoreWriter implements SnapshotRestoreWriter {
             this.groupRepo.replaceAllSync(snapshot.someDayGroups);
             this.projectRepo.replaceAllSync(snapshot.projects);
             this.recurringRepo.replaceAllSync(snapshot.recurringTasks);
+            this.holidayRepo.replaceAllSync(snapshot.holidays);
             this.prefsRepo.restoreSync(snapshot.userPreferences);
         });
         return Promise.resolve();

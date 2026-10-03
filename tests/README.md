@@ -33,6 +33,7 @@ Covers, per resource:
   schedules (`daysOfWeek`), validation (frequency enum, ISO date,
   interval/day bounds), 404 paths.
 - **someday-groups** -- CRUD, validation (name/tag/position bounds).
+- **holidays** -- CRUD, validation (name/date bounds), `.ics` import (raw text + URL modes, duplicate skipping, non-iCal 400, failing-fetch 400), plain-text content negotiation, export snapshot coverage, and the pre-v0.9.0 snapshot-without-holidays restore path. Bruno mirrors these in `tests/api/*Holiday*.bru`.
 - **tags** -- list (sorted, de-duped), info (counts), rename, merge (incl.
   no-duplicate target), validation, content negotiation.
 - **user preferences** -- GET defaults, PATCH single-field/nested, validation
@@ -93,6 +94,9 @@ Covers:
   refreshing a page without reload.
 - **Someday panel** -- Ctrl+\\ collapse/expand, group create/add-task/rename
   through the panel, ungrouped tasks rendering.
+- **holidays** -- Settings add/delete flows and the day-list banner
+  (created live through Settings, created in another tab via the WS
+  broadcast, removed on delete).
 
 ## Running everything
 

@@ -89,6 +89,7 @@ export class ImportService {
                 someDayGroups: snapshot.someDayGroups.length,
                 projects: snapshot.projects.length,
                 recurringTasks: snapshot.recurringTasks.length,
+                holidays: snapshot.holidays.length,
                 preferences: true,
             },
             backupPath,

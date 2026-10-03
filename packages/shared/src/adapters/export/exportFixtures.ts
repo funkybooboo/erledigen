@@ -75,6 +75,7 @@ export function makeSnapshot(overrides: Partial<ExportSnapshot> = {}): ExportSna
         someDayGroups: [],
         projects: [],
         recurringTasks: [],
+        holidays: [],
         userPreferences: makeUserPreferences(),
         ...overrides,
     };

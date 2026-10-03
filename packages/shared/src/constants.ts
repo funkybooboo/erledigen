@@ -29,6 +29,11 @@ export const API_ROUTES = {
     SOMEDAY_GROUPS: '/api/someday-groups',
     SOMEDAY_GROUP_BY_ID: (id: string) => `/api/someday-groups/${id}`,
 
+    // Holidays (v0.9.0)
+    HOLIDAYS: '/api/holidays',
+    HOLIDAY_BY_ID: (id: string) => `/api/holidays/${id}`,
+    HOLIDAY_IMPORT: '/api/holidays/import',
+
     // Projects
     PROJECTS: '/api/projects',
     PROJECT_BY_ID: (id: string) => `/api/projects/${id}`,
@@ -72,6 +77,7 @@ export const API_ROUTES = {
     RECURRING_TASK_GENERATE_ALL_PATTERN: '/api/recurring-tasks/generate-all',
     RECURRING_TASK_STATS_PATTERN: '/api/recurring-tasks/:id/stats',
     SOMEDAY_GROUP_ROUTE_PATTERN: '/api/someday-groups/:id',
+    HOLIDAY_ROUTE_PATTERN: '/api/holidays/:id',
 } as const;
 
 export const TASK_DEFAULTS = {

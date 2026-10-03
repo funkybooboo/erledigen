@@ -9,6 +9,7 @@
 import { DEFAULT_CSV_COLUMNS, EXPORT_FORMATS } from '@erledigen/shared';
 import { z } from 'zod';
 import { registry } from '../registry';
+import { HolidaySchema } from './holiday';
 import { ProjectSchema } from './project';
 import { RecurringTaskSchema } from './recurringTask';
 import { SomeDayGroupSchema } from './someDayGroup';
@@ -26,6 +27,11 @@ export const ExportSnapshotSchema = registry.register(
         someDayGroups: z.array(SomeDayGroupSchema),
         projects: z.array(ProjectSchema),
         recurringTasks: z.array(RecurringTaskSchema),
+        holidays: z
+            .array(HolidaySchema)
+            .describe(
+                'Named calendar dates (v0.9.0); absent in snapshots exported before the entity existed',
+            ),
         userPreferences: UserPreferencesSchema,
     }),
 );

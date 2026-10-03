@@ -1,13 +1,14 @@
 /**
  * Export format contract (see ADR-008).
  *
- * The JSON export is the canonical, lossless backup format: every entity
- * (tasks including the trash, Someday groups, projects, recurring task
- * templates, user preferences) round-trips through it. CSV, Markdown, and
- * iCal are derived views of the task list -- readable by other tools, but
- * not backups.
+ * The JSON export is the canonical, lossless backup format: every
+ * entity (tasks including the trash, Someday groups, projects, recurring
+ * task templates, holidays, user preferences) round-trips through it.
+ * CSV, Markdown, and iCal are derived views of the task list -- readable
+ * by other tools, but not backups.
  */
 
+import type { Holiday } from './holiday';
 import type { Project } from './project';
 import type { RecurringTask } from './recurringTask';
 import type { SomeDayGroup } from './someDayGroup';
@@ -50,5 +51,9 @@ export interface ExportSnapshot {
     someDayGroups: SomeDayGroup[];
     projects: Project[];
     recurringTasks: RecurringTask[];
+    /** Named calendar dates (v0.9.0). Snapshots exported before the
+     *  entity existed lack this key; the restore adapter reads those
+     *  as `[]` (a restore replaces every table -- ADR-009). */
+    holidays: Holiday[];
     userPreferences: UserPreferences;
 }

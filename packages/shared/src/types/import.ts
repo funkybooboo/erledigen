@@ -76,6 +76,9 @@ export interface ImportResult {
         someDayGroups: number;
         projects: number;
         recurringTasks: number;
+        /** Holidays restored from a JSON snapshot (0 when the snapshot
+         *  predates the entity -- see ExportSnapshot.holidays). */
+        holidays: number;
         /** Preferences are always part of a restore. */
         preferences: true;
     } | null;

@@ -1,0 +1,35 @@
+meta {
+  name: Import Holidays ics
+  type: http
+  seq: 126
+}
+
+post {
+  url: {{baseUrl}}/api/holidays/import
+  body: text
+  auth: none
+}
+
+body:text {
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Bruno//Holidays//EN
+BEGIN:VEVENT
+SUMMARY:Bruno ics holiday
+DTSTART;VALUE=DATE:20271225
+UID:bruno-holiday-1
+END:VEVENT
+END:VCALENDAR
+}
+
+assert {
+  res.status: eq 200}
+
+tests {
+  test("should import the VEVENT as a named date", function() {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().data.holidays.length).to.equal(1);
+    expect(res.getBody().data.holidays[0].name).to.equal("Bruno ics holiday");
+    expect(res.getBody().data.holidays[0].date).to.equal("2027-12-25");
+  });
+}

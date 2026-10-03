@@ -3,6 +3,7 @@
  */
 
 import type {
+    Holiday,
     Project,
     RecurringTask,
     SomeDayGroup,
@@ -52,6 +53,11 @@ export function formatRecurringTasksAsText(tasks: RecurringTask[]): string {
             return `${t.text} (${freq}, from ${t.startDate}${t.endDate ? ` to ${t.endDate}` : ''})${tags}`;
         })
         .join('\n');
+}
+
+export function formatHolidaysAsText(holidays: Holiday[]): string {
+    if (holidays.length === 0) return 'No holidays found.';
+    return holidays.map(h => `${h.date}  ${h.name}`).join('\n');
 }
 
 export function formatTagsAsText(tags: string[]): string {
