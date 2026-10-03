@@ -18,6 +18,7 @@ import type {
 import { RECURRING_TASK_DEFAULTS } from '@erledigen/shared';
 import type { RecurringTaskRepository } from './RecurringTaskRepository';
 import { parseJsonColumn, toBoolean, toInteger } from './sqliteMapping';
+import { SqlUpdate } from './sqliteUpdate';
 
 const RECURRING_TASK_COLUMNS = `
     id, text, notes, tags, frequency, interval, days_of_week, day_of_month,
@@ -170,36 +171,33 @@ export class SqliteRecurringTaskRepository implements RecurringTaskRepository {
     }
 
     async update(id: string, input: UpdateRecurringTaskInput): Promise<RecurringTask | null> {
-        const sets: string[] = [];
-        const values: SQLQueryBindings[] = [];
+        const patch = new SqlUpdate();
 
-        const assign = (column: string, value: SQLQueryBindings): void => {
-            sets.push(`${column} = ?`);
-            values.push(value);
-        };
-
-        if ('text' in input) assign('text', input.text);
-        if ('notes' in input) assign('notes', input.notes);
-        if ('tags' in input) assign('tags', JSON.stringify(input.tags));
-        if ('frequency' in input) assign('frequency', input.frequency);
-        if ('interval' in input) assign('interval', input.interval);
+        if ('text' in input) patch.assign('text', input.text);
+        if ('notes' in input) patch.assign('notes', input.notes);
+        if ('tags' in input) patch.assign('tags', JSON.stringify(input.tags));
+        if ('frequency' in input) patch.assign('frequency', input.frequency);
+        if ('interval' in input) patch.assign('interval', input.interval);
         if ('daysOfWeek' in input)
-            assign('days_of_week', input.daysOfWeek ? JSON.stringify(input.daysOfWeek) : null);
-        if ('dayOfMonth' in input) assign('day_of_month', input.dayOfMonth);
-        if ('startDate' in input) assign('start_date', input.startDate);
-        if ('endDate' in input) assign('end_date', input.endDate);
+            patch.assign(
+                'days_of_week',
+                input.daysOfWeek ? JSON.stringify(input.daysOfWeek) : null,
+            );
+        if ('dayOfMonth' in input) patch.assign('day_of_month', input.dayOfMonth);
+        if ('startDate' in input) patch.assign('start_date', input.startDate);
+        if ('endDate' in input) patch.assign('end_date', input.endDate);
         if ('rolloverEnabled' in input)
-            assign('rollover_enabled', toInteger(input.rolloverEnabled));
-        if ('startTime' in input) assign('start_time', input.startTime);
+            patch.assign('rollover_enabled', toInteger(input.rolloverEnabled));
+        if ('startTime' in input) patch.assign('start_time', input.startTime);
 
-        if (sets.length === 0) return this.findById(id);
+        if (patch.isEmpty) return this.findById(id);
 
         // updatedAt always refreshes, matching InMemoryRecurringTaskRepository.
-        assign('updated_at', this.dateProvider.timestamp());
+        patch.assign('updated_at', this.dateProvider.timestamp());
 
         const result = this.db
-            .prepare(`UPDATE recurring_tasks SET ${sets.join(', ')} WHERE id = ?`)
-            .run(...values, id);
+            .prepare(`UPDATE recurring_tasks SET ${patch.assignments} WHERE id = ?`)
+            .run(...patch.parameters, id);
 
         if (result.changes === 0) return null;
         return this.findById(id);

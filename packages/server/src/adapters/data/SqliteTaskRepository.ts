@@ -10,6 +10,7 @@ import type { Database, SQLQueryBindings } from 'bun:sqlite';
 import type { CreateTaskInput, DateProvider, Task, UpdateTaskInput } from '@erledigen/shared';
 import { PURGE_RETENTION_DAYS, TASK_DEFAULTS } from '@erledigen/shared';
 import { parseJsonColumn, toBoolean, toInteger } from './sqliteMapping';
+import { SqlUpdate } from './sqliteUpdate';
 import type { TaskRepository } from './TaskRepository';
 
 const TASK_COLUMNS = `
@@ -234,42 +235,36 @@ export class SqliteTaskRepository implements TaskRepository {
     }
 
     async update(id: string, input: UpdateTaskInput): Promise<Task | null> {
-        const sets: string[] = [];
-        const values: SQLQueryBindings[] = [];
+        const patch = new SqlUpdate();
 
-        const assign = (column: string, value: SQLQueryBindings): void => {
-            sets.push(`${column} = ?`);
-            values.push(value);
-        };
-
-        if ('text' in input) assign('text', input.text);
-        if ('notes' in input) assign('notes', input.notes);
-        if ('completed' in input) assign('completed', toInteger(input.completed));
-        if ('date' in input) assign('date', input.date);
-        if ('tags' in input) assign('tags', JSON.stringify(input.tags));
-        if ('parentId' in input) assign('parent_id', input.parentId);
-        if ('someDayGroupId' in input) assign('some_day_group_id', input.someDayGroupId);
+        if ('text' in input) patch.assign('text', input.text);
+        if ('notes' in input) patch.assign('notes', input.notes);
+        if ('completed' in input) patch.assign('completed', toInteger(input.completed));
+        if ('date' in input) patch.assign('date', input.date);
+        if ('tags' in input) patch.assign('tags', JSON.stringify(input.tags));
+        if ('parentId' in input) patch.assign('parent_id', input.parentId);
+        if ('someDayGroupId' in input) patch.assign('some_day_group_id', input.someDayGroupId);
         if ('rolloverEnabled' in input)
-            assign('rollover_enabled', toInteger(input.rolloverEnabled));
-        if ('position' in input) assign('position', input.position);
-        if ('state' in input) assign('state', input.state);
-        if ('startTime' in input) assign('start_time', input.startTime);
-        if ('endTime' in input) assign('end_time', input.endTime);
+            patch.assign('rollover_enabled', toInteger(input.rolloverEnabled));
+        if ('position' in input) patch.assign('position', input.position);
+        if ('state' in input) patch.assign('state', input.state);
+        if ('startTime' in input) patch.assign('start_time', input.startTime);
+        if ('endTime' in input) patch.assign('end_time', input.endTime);
         // Server-internal only (adopt stamps these; the public
         // UpdateTaskSchema strips them -- see UpdateTaskInput).
-        if ('recurringTaskId' in input) assign('recurring_task_id', input.recurringTaskId);
-        if ('instanceDate' in input) assign('instance_date', input.instanceDate);
+        if ('recurringTaskId' in input) patch.assign('recurring_task_id', input.recurringTaskId);
+        if ('instanceDate' in input) patch.assign('instance_date', input.instanceDate);
         if ('reminder' in input) {
-            assign('reminder', input.reminder ? JSON.stringify(input.reminder) : null);
+            patch.assign('reminder', input.reminder ? JSON.stringify(input.reminder) : null);
         }
 
         // updatedAt always refreshes, even when no other field is provided
         // (matches InMemoryTaskRepository spread semantics).
-        assign('updated_at', this.dateProvider.timestamp());
+        patch.assign('updated_at', this.dateProvider.timestamp());
 
         const result = this.db
-            .prepare(`UPDATE tasks SET ${sets.join(', ')} WHERE id = ? AND deleted_at IS NULL`)
-            .run(...values, id);
+            .prepare(`UPDATE tasks SET ${patch.assignments} WHERE id = ? AND deleted_at IS NULL`)
+            .run(...patch.parameters, id);
 
         if (result.changes === 0) return null;
         return this.findById(id);

@@ -14,6 +14,7 @@ import type {
     UpdateSomeDayGroupInput,
 } from '@erledigen/shared';
 import type { SomeDayGroupRepository } from './SomeDayGroupRepository';
+import { SqlUpdate } from './sqliteUpdate';
 
 const GROUP_COLUMNS = 'id, name, description, tag, position, created_at';
 
@@ -108,24 +109,18 @@ export class SqliteSomeDayGroupRepository implements SomeDayGroupRepository {
     }
 
     async update(id: string, input: UpdateSomeDayGroupInput): Promise<SomeDayGroup | null> {
-        const sets: string[] = [];
-        const values: SQLQueryBindings[] = [];
+        const patch = new SqlUpdate();
 
-        const assign = (column: string, value: SQLQueryBindings): void => {
-            sets.push(`${column} = ?`);
-            values.push(value);
-        };
+        if ('name' in input) patch.assign('name', input.name);
+        if ('description' in input) patch.assign('description', input.description);
+        if ('tag' in input) patch.assign('tag', input.tag);
+        if ('position' in input) patch.assign('position', input.position);
 
-        if ('name' in input) assign('name', input.name);
-        if ('description' in input) assign('description', input.description);
-        if ('tag' in input) assign('tag', input.tag);
-        if ('position' in input) assign('position', input.position);
-
-        if (sets.length === 0) return this.findById(id);
+        if (patch.isEmpty) return this.findById(id);
 
         const result = this.db
-            .prepare(`UPDATE some_day_groups SET ${sets.join(', ')} WHERE id = ?`)
-            .run(...values, id);
+            .prepare(`UPDATE some_day_groups SET ${patch.assignments} WHERE id = ?`)
+            .run(...patch.parameters, id);
 
         if (result.changes === 0) return null;
         return this.findById(id);
