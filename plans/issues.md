@@ -19,11 +19,14 @@
 - I want a theme menu where uses can select the theming they would like for the app, this isn't settings its a theming menu, move all theming settings to this theming menu and out of the settings menu
 - you cant use natural language to make a habit and use tags at the same time, this should be possible
 - making a task a habit is only allowed at the time the task is created, I want to be able to create a task, then later put every day or every week, etc... and have it turn into a habit
-- I want tasks to by default be drag, you have to click a task to edit it, but if you just drag then it moves the task, I do not want the drag handle
+- I want tasks to by default be drag, you have to click a task to edit it, but if you just drag then it moves the task, I dont want the drag handle
 - someday should have lists, not groups, I should be able to create lists and put tasks into those lists and the lists are not tied to a date or the tasks in them
 - someday should have tabs by default there is one tab with one list, the one list is called someday and the one tab is called someday but the someday area should not have a title. users can create new tabs and new lists in the tabs make the someday area look better, minimal to the point, easy. should we make someday tabs and lists just be another modal or does the right hand side drawer work? explore this idea.
-- I think the theming and style of pretty much everything could be more simple, minimal, easy, idiomatic. I want calendar book vibes
-- I want to be able to order habits in the habit modal and have the habits reorder themselves on the daily task lists automatically to match what I have in the habit modal list order
+- I think the theming and style of pretty much everything could be more simple, minimal, easy, idomatic. I want calendar book vibes
+- I want to be able to order habits in the habit modal and have the habits reorder themselves on the daylie task lists automatically to match what I have in the habit modal list order
+- I want a noficiation modal
+- I want transparancy and openness built into the app, I want the app to be as minimal yet useful as possible 
+- settings look bad, make settings look better
 
 generally I think the app is going in the right direction but it still needs work in polishing, refining, and getting the app to a gold standard
 

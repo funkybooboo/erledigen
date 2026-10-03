@@ -26,7 +26,7 @@ green).
   shipped), v0.12.0 (ARIA, focus management, skip link shipped).
 - **Not started:** v0.10.0 (live markdown notes), v0.13.0 (i18n),
   v0.14.0 (calendar time-grid), v0.15.0 (2026-10-03 UX audit).
-- **UX audit (2026-10-03, extended same day):** twenty-four findings
+- **UX audit (2026-10-03, extended same day):** twenty-seven findings
   from a self-review of the shipped app (raw notes in
   [issues.md](issues.md)) are tracked in the v0.15.0 section below. Two reverse shipped decisions: the `/`
   command palette is REMOVED (plain `{mod}+K` search and every
@@ -1002,8 +1002,9 @@ This release adds a time-grid calendar view for tasks with start and end times.
 ## v0.15.0: UX Audit & Gold-Standard Polish
 
 Findings from the 2026-10-03 UX audit of the shipped app (raw notes:
-[issues.md](issues.md); a second wave the same day added seven more
--- 24 total). The audit's verdict:
+[issues.md](issues.md), kept verbatim -- the cspell dictionary
+absorbs the raw spellings; waves the same day added ten more -- 27
+total). The audit's verdict:
 the app is going in the right direction but needs work in polishing,
 refining, and getting to a gold standard. Two shipped decisions are
 reversed here (the command palette is removed; drag-and-drop
@@ -1024,6 +1025,13 @@ v0.10.0, v0.11.0).
       store ("245 tasks 0 done") and carries no meaning. Remove it;
       keep the date/clock button.
 
+### Notifications
+
+- [ ] **A Notification modal:** today notifications are transient
+      toasts only. Add a dedicated Notification modal (rail icon) that
+      surfaces what happened and what the app is doing -- see the
+      transparency item below.
+
 ### Theme Menu & Branding
 
 - [ ] **Dedicated Theme modal:** theming is not Settings. Add a Theme
@@ -1036,6 +1044,14 @@ v0.10.0, v0.11.0).
 - [ ] **Calendar-book vibes:** a broader style pass -- simpler, more
       minimal, more idiomatic across pretty much everything, in the
       direction of a paper calendar book.
+- [ ] **Settings restyle:** the Settings modal looks bad today --
+      functional but plain. Restyle it with the design system (pairs
+      with the v0.11.0 visual-consistency work and the theme-settings
+      move into the Theme modal).
+- [ ] **Transparency and openness:** a principle for the whole polish
+      pass -- the app stays as minimal yet useful as possible, with
+      transparency and openness built in (no hidden machinery; the
+      app shows what it is doing).
 
 ### Recurring Tasks / Habits
 
