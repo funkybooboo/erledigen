@@ -57,7 +57,10 @@ in numeric order from here on -- always complete the lowest version
 that is not complete before starting anything higher.** A same-day
 codebase audit verified every shipped-complete claim against the tree
 and fixed stale checkboxes in place: v0.6.0 is the lowest incomplete
-version.
+version. (One audit correction -- the claim that Bruno tests never
+shipped -- was itself wrong and is reverted in the v0.3.0 section;
+the collection is real: `tests/api/`, dockerized via `mise run
+test-api`.)
 
 **Current focus (2026-10-03): completing v0.6.0, the lowest incomplete
 version.** Remaining v0.6.0 scope: drag-and-drop (the reactivated
@@ -174,7 +177,7 @@ This release creates the REST API for all entities. The API is designed to be cl
 ### Technical Notes & Considerations
 
 - RESTful design throughout. Consistent error response shape: `{ error: string; code: string; details?: unknown }`.
-- API integration tests: the planned Bruno tooling was superseded before shipping -- every endpoint is covered by the black-box HTTP suite in `tests/api-tests/` (Playwright `api` project; zero `.bru` files exist). Verified 2026-10-03.
+- Bruno tests written before implementation (TDD). Every endpoint has a Bruno test file -- the collection in `tests/api/` (~90 `.bru` files) runs dockerized via `mise run test-api`; the Playwright `api` project in `tests/api-tests/` is the asserted automated suite over the same surface. (Correction 2026-10-03: an earlier same-day edit wrongly claimed the Bruno tooling never shipped.)
 - The OpenAPI spec is auto-served at `GET /openapi.yaml` and `GET /openapi.json`.
 - Content negotiation uses the `accepts` library or equivalent.
 - Rate limiting state lives in-memory for single-user; Redis-backed in v2 for multi-user scale.
@@ -193,7 +196,7 @@ This release creates the REST API for all entities. The API is designed to be cl
 
 ### Definition of Done
 
-- [x] All endpoints implemented and tested (API integration suite in `tests/api-tests/`; the planned Bruno tooling was superseded -- see Technical Notes).
+- [x] All endpoints implemented and tested with Bruno (tests written first).
 - [x] OpenAPI spec complete and served at `/openapi.yaml`.
 - [x] Zod validation on all inputs.
 - [x] Content negotiation working: JSON and plain-text responses for all list endpoints.
