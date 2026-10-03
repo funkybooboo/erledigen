@@ -7,7 +7,7 @@ import { registry } from '../registry';
 import { IsoDate } from './common';
 
 /** 24h clock time, "HH:MM". */
-export const TimeHHMM = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
+const TimeHHMM = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/);
 
 /** Weekday numbers, 0 = Sunday (0-6). */
 const DaysOfWeek = z.array(z.number().int().min(0).max(6));
@@ -93,7 +93,7 @@ export const GenerateInstancesSchema = registry.register(
         .openapi('GenerateInstancesInput'),
 );
 
-export const RecurringTaskStatsSchema = registry.register(
+const RecurringTaskStatsSchema = registry.register(
     'RecurringTaskStats',
     z
         .object({

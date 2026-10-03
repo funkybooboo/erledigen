@@ -8,7 +8,6 @@
 import { CSV_IMPORT_FIELDS, IMPORT_FORMATS } from '@erledigen/shared';
 import { z } from 'zod';
 import { registry } from '../registry';
-import { ErrorResponseSchema } from './common';
 
 /** Result summary for POST /api/import (ADR-009). */
 export const ImportResultSchema = registry.register(
@@ -68,6 +67,3 @@ export const ImportQuerySchema = z.object({
         ),
     mapping: CsvMappingQuerySchema.describe('CSV only: column mapping (field:columnIndex pairs)'),
 });
-
-/** Used by the route to surface import errors with issue details. */
-export const ImportErrorResponseSchema = ErrorResponseSchema;

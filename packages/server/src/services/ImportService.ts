@@ -43,7 +43,7 @@ import type { ExportService } from './ExportService';
 /** What an additive import hands back to the route: the API result plus
  *  the created tasks so the route can broadcast per-task realtime
  *  events (task:created / task:deleted for canceled rows). */
-export interface TaskImportOutcome {
+interface TaskImportOutcome {
     result: ImportResult;
     createdTasks: Task[];
     /** Ids of imported rows the source marked canceled (soft-deleted

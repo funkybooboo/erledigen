@@ -9,7 +9,6 @@ export type { ConfigProvider } from './adapters/config/ConfigProvider';
 export { ConfigError } from './adapters/config/ConfigProvider';
 // Adapters - Date
 export type { DateProvider } from './adapters/date/DateProvider';
-export { DateProviderError } from './adapters/date/DateProvider';
 export { NativeDateProvider } from './adapters/date/NativeDateProvider';
 export {
     type CsvColumn,
@@ -28,7 +27,6 @@ export { HttpClientError } from './adapters/http/HttpClient';
 export { autoDetectCsvMapping, CsvImportAdapter } from './adapters/import/CsvImportAdapter';
 export { IcalImportAdapter } from './adapters/import/IcalImportAdapter';
 export type { ImportAdapter } from './adapters/import/ImportAdapter';
-export { ImportValidationError } from './adapters/import/ImportValidationError';
 export { JsonRestoreImportAdapter } from './adapters/import/JsonRestoreImportAdapter';
 export { ThingsJsonImportAdapter } from './adapters/import/ThingsJsonImportAdapter';
 export { TodoistCsvImportAdapter } from './adapters/import/TodoistCsvImportAdapter';
@@ -45,19 +43,14 @@ export { RequestLogger } from './adapters/logging/RequestLogger';
 // Adapters - Metrics
 export type { MetricsAdapter } from './adapters/metrics/MetricsAdapter';
 export {
-    BUILD_INFO,
     DB_SIZE_BYTES,
-    HTTP_DURATION_BUCKETS,
     HTTP_REQUEST_DURATION_SECONDS,
     HTTP_REQUESTS_ACTIVE,
     HTTP_REQUESTS_TOTAL,
-    JOB_DURATION_BUCKETS,
     JOB_DURATION_SECONDS,
     JOBS_PENDING,
     JOBS_RUNNING,
     JOBS_TOTAL,
-    METRIC_HELP,
-    METRIC_PREFIX,
     TASKS_TOTAL,
     UPTIME_SECONDS,
     WS_CONNECTIONS_ACTIVE,
@@ -80,7 +73,6 @@ export {
     TASK_DEFAULTS,
     USER_PREFERENCES_DEFAULTS,
     WEEKDAY_ABBREVIATIONS,
-    WEEKDAY_NAMES,
 } from './constants';
 // Errors
 export type { AppErrorJson } from './errors/AppError';
@@ -89,11 +81,8 @@ export {
     BadRequestError,
     ConflictError,
     createNotFoundError,
-    createValidationError,
     ForbiddenError,
-    InternalServerError,
     NotFoundError,
-    RateLimitError,
     UnauthorizedError,
     ValidationError,
 } from './errors/AppError';
@@ -168,25 +157,20 @@ export {
     addDays,
     addMonths,
     dateRangeKeys,
-    daysBetween,
     describeRecurrence,
     extractDatePhrase,
     extractInlineTags,
-    formatFrequency,
     formatTags,
-    formatTime12,
     generateOccurrences,
     getTagsByKind,
     groupTasksByDate,
     hasDeadlineTag,
-    keyFromParts,
     monthKeyOf,
     monthRangeKeys,
     nextOccurrenceIso,
     parseRecurrence,
     parseTags,
     resolveDatePhrase,
-    resolveTagKind,
     slugify,
     splitKey,
     weekdayOf,

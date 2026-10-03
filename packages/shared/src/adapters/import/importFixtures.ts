@@ -8,30 +8,6 @@
  * tested against files the way the apps actually write them.
  */
 
-import type { ImportedTask, ParsedTasks } from '../../types/import';
-
-/** A minimal valid ImportedTask with every field overridable. */
-export function makeImportedTask(
-    overrides: Partial<ImportedTask> & Pick<ImportedTask, 'text'>,
-): ImportedTask {
-    return {
-        notes: null,
-        date: null,
-        startTime: null,
-        endTime: null,
-        tags: [],
-        completed: false,
-        canceled: false,
-        subtasks: [],
-        ...overrides,
-    };
-}
-
-/** A minimal valid ParsedTasks. */
-export function makeParsedTasks(overrides: Partial<ParsedTasks> = {}): ParsedTasks {
-    return { tasks: [], warnings: [], ...overrides };
-}
-
 /**
  * A REAL Todoist CSV project export (bboc/todoist-converter test data,
  * itself exported from Todoist): TYPE/CONTENT/PRIORITY/INDENT/AUTHOR/

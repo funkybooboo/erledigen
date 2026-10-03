@@ -8,7 +8,7 @@
  */
 
 /** Event type -> payload shape. */
-export type EventMap = Record<string, unknown>;
+type EventMap = Record<string, unknown>;
 
 export class EventBus<M extends EventMap = EventMap> {
     /** Internal storage stays loose; the public signatures carry the types. */

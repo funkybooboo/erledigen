@@ -20,11 +20,11 @@ import {
 import type { Job, JobQueue } from '../adapters/jobs/JobQueue';
 
 /** A handler for one job type. */
-export interface JobHandler {
+interface JobHandler {
     handle(job: Job): Promise<void>;
 }
 
-export interface JobRunnerConfig {
+interface JobRunnerConfig {
     /** Poll interval in ms (JOB_POLL_INTERVAL_MS, default 1000). */
     pollIntervalMs: number;
     /** Backoff base delay in ms (JOB_RETRY_BASE_DELAY_MS, default 5000):

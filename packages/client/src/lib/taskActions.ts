@@ -12,7 +12,7 @@ import type { Task } from '@erledigen/shared';
 import { notificationStore, preferencesStore, taskStore, uiStore } from '$lib/stores';
 
 /** How a requested deletion settled. */
-export type DeleteOutcome =
+type DeleteOutcome =
     /** The delete round-trip succeeded; an Undo toast is showing. */
     | 'deleted'
     /** The user answered the confirmation with Cancel/dismissed it. */

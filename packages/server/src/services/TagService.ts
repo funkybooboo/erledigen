@@ -1,6 +1,6 @@
 import type { TaskRepository } from '../adapters/data/TaskRepository';
 
-export interface TagInfoResult {
+interface TagInfoResult {
     name: string;
     count: number;
 }

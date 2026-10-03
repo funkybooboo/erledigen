@@ -364,7 +364,6 @@ function validateUserPreferences(prefs: unknown): UserPreferences {
 function validateReferences(snapshot: ExportSnapshot): void {
     const taskIds = new Set(snapshot.tasks.map(t => t.id));
     const groupIds = new Set(snapshot.someDayGroups.map(g => g.id));
-    const projectIds = new Set(snapshot.projects.map(p => p.id));
     const recurringIds = new Set(snapshot.recurringTasks.map(r => r.id));
 
     for (const [index, task] of snapshot.tasks.entries()) {
@@ -390,9 +389,6 @@ function validateReferences(snapshot: ExportSnapshot): void {
             );
         }
     }
-    // The task repo is the only one whose ids appear above; projects and
-    // groups have no outbound references.
-    void projectIds;
 }
 
 export class JsonRestoreImportAdapter implements ImportAdapter<ExportSnapshot> {

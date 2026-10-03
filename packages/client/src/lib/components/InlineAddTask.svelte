@@ -70,7 +70,6 @@
 </script>
 
 <div class="add-row">
-    <span class="drag-spacer" aria-hidden="true"></span>
     <span class="add-checkbox"><Icon src={LuCircle} /></span>
     <input
         bind:this={inputEl}
@@ -104,16 +103,6 @@
 
     .add-row:hover {
         background: var(--color-surface-hover);
-    }
-
-    .drag-spacer {
-        color: var(--color-text-muted);
-        font-size: 12px;
-        opacity: 0;
-        user-select: none;
-        width: 12px;
-        text-align: center;
-        flex-shrink: 0;
     }
 
     .add-checkbox {

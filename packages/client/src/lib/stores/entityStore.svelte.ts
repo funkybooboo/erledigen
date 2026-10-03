@@ -15,7 +15,7 @@
 
 import { container } from '$lib/container';
 
-export interface CrudService<T extends { id: string }, CreateInput, UpdateInput> {
+interface CrudService<T extends { id: string }, CreateInput, UpdateInput> {
     getAll(): Promise<T[]>;
     create(input: CreateInput): Promise<T>;
     update(id: string, input: UpdateInput): Promise<T>;
