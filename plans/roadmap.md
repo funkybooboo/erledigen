@@ -4,9 +4,9 @@ This document outlines the development roadmap for Erledigen. We use semantic ve
 
 ---
 
-## Where we stand (2026-10-01)
+## Where we stand (2026-10-03)
 
-Verified against the tree at `b347d91` (post-merge audit; all CI gates
+Verified against the tree at `22aabf2` (post-merge audit; all CI gates
 green).
 
 - **Package version tracks the roadmap** (decision, 2026-09-07):
@@ -48,14 +48,17 @@ recurring tasks are the big ones) -- treat the sections below as a
 feature catalog and choose the next release deliberately, not by
 number.
 
-**Current focus (2026-10-01): the v0.9.0 habits remainder is
-COMPLETE -- PR #18 shipped the habit detail view with the GitHub-style
-completion heatmap (completedDates stats history), and PR #20 shipped
-the make-recurring promote flow (POST /api/recurring-tasks/adopt + the
-shared HabitScheduleForm + the TaskDetailModal disclosure). Remaining
-catalog items to choose from next: v0.9.0 remainder (Kanban board,
-holidays, summary sections), v0.10.0 (markdown notes), v0.12.0
-remainder, v0.13.0 (i18n), v0.14.0 (calendar time-grid).
+**Current focus (2026-10-03): finishing v0.5.0, v0.6.0, and the
+v0.9.0 remainder as tracked in
+[plans/v0.5-v0.6-v0.9-completion.md](v0.5-v0.6-v0.9-completion.md).
+Shipped so far: v0.5.0 is COMPLETE (PR #22 natural-language dates +
+#tag extraction + the full command palette; PR #23 J/K section jumps,
+r/m/t inline row editors, redo), and v0.6.0's priority sort mode +
+date-range filter (PR #24). Remaining slices: v0.6.0 mobile/bottom
+sheets, then the v0.9.0 remainder (holidays, summary sections,
+Kanban board + auto-distribution). Other open catalog items:
+v0.10.0 (markdown notes), v0.12.0 remainder, v0.13.0 (i18n),
+v0.14.0 (calendar time-grid).
 
 ---
 
@@ -502,7 +505,7 @@ The palette has two modes distinguished by the first character:
 
 This release polishes the three-panel layout, completes drag-and-drop interactions, implements lazy loading and view modes, and adds responsive behavior.
 
-**Status:** Layout polish shipped (true infinite scroll, resizable + collapsible Someday panel, filter persistence). Drag-and-drop was removed in the frontend simplification (design kept below). Remaining: priority sort mode, date-range filter, mobile/bottom sheets.
+**Status:** Layout polish shipped (true infinite scroll, resizable + collapsible Someday panel, filter persistence). Drag-and-drop was removed in the frontend simplification (design kept below). Priority sort mode and the date-range filter shipped (PR #24). Remaining: mobile/bottom sheets.
 
 ### Drag-and-Drop (from v0.5.0)
 
