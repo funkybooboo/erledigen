@@ -163,6 +163,7 @@ export {
     addDays,
     addMonths,
     dateRangeKeys,
+    daysBetween,
     describeRecurrence,
     extractDatePhrase,
     extractInlineTags,
