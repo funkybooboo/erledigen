@@ -1,6 +1,7 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
     import HabitScheduleForm from '$lib/components/HabitScheduleForm.svelte';
+    import LiveMarkdownEditor from '$lib/components/LiveMarkdownEditor.svelte';
     import { notificationStore, recurringTaskStore, taskStore, uiStore } from '$lib/stores';
     import { deleteTaskWithUndo } from '$lib/taskActions';
     import {
@@ -203,16 +204,17 @@
                 />
             </label>
 
-            <label class="field">
+            <div class="field">
                 <span class="label">Notes</span>
-                <textarea
-                    class="textarea"
-                    bind:value={editNotes}
-                    rows={4}
-                    placeholder="Add notes (markdown supported later)"
-                    aria-label="Task notes"
-                ></textarea>
-            </label>
+                <div class="notes-editor">
+                    <LiveMarkdownEditor
+                        value={editNotes}
+                        onchange={notes => (editNotes = notes)}
+                        placeholder={"Add notes -- # headings, **bold**, *italic*, `code`, - lists, [links](https://...)"}
+                        ariaLabel="Task notes"
+                    />
+                </div>
+            </div>
 
             <label class="field">
                 <span class="label">Date</span>
@@ -430,7 +432,7 @@
         letter-spacing: 0.5px;
     }
 
-    .input, .textarea {
+    .input {
         padding: 8px 12px;
         border: 1px solid var(--color-border);
         border-radius: 6px;
@@ -441,14 +443,24 @@
         width: 100%;
     }
 
-    .input:focus, .textarea:focus {
+    /* The live-markdown editor replaces the old plain textarea; keep
+       the same field framing (border + dim surface) so the notes area
+       reads as a form field, not loose page text. */
+    .notes-editor {
+        padding: 8px 12px;
+        border: 1px solid var(--color-border);
+        border-radius: 6px;
+        font-size: 14px;
+        background: var(--color-surface-dim);
+        color: var(--color-text);
+    }
+
+    .notes-editor:focus-within {
         border-color: var(--color-accent);
     }
 
-    .textarea {
-        resize: vertical;
-        min-height: 80px;
-        font-family: inherit;
+    .input:focus {
+        border-color: var(--color-accent);
     }
 
     .date-row {

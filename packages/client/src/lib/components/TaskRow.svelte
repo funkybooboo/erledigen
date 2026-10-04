@@ -6,11 +6,20 @@
         TASK_CONSTRAINTS,
         formatTags,
         parseTags,
+        renderInlineMarkdown,
         resolveDatePhrase,
         type Task,
     } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
-    import { LuCheck, LuCircle, LuGripVertical, LuRepeat, LuFileText, LuX } from 'svelte-icons-pack/lu';
+    import {
+        LuCheck,
+        LuCircle,
+        LuGripVertical,
+        LuRepeat,
+        LuFileText,
+        LuStickyNote,
+        LuX,
+    } from 'svelte-icons-pack/lu';
     import { untrack } from 'svelte';
     import { tooltip } from '$lib/tooltip';
 
@@ -19,6 +28,8 @@
     let isEditing = $derived(uiStore.editingTaskId === task.id);
     let isFocused = $derived(uiStore.focusedTaskId === task.id);
     let hasStartTime = $derived(task.startTime !== null);
+    let titleHtml = $derived(renderInlineMarkdown(task.text));
+    let hasNotes = $derived(task.notes !== null && task.notes.trim() !== '');
 
     /** Subtle left-border accent per priority, only while the priority
      *  sort mode is active (Filter modal) -- the roadmap's visual cue. */
@@ -94,7 +105,11 @@
         taskStore.update(task.id, { completed: !task.completed });
     }
 
-    function startEdit() {
+    function startEdit(e: MouseEvent) {
+        // A rendered link inside the title follows the link; every other
+        // click opens the raw-syntax edit (the live model: the line
+        // under the caret shows source).
+        if (e.target instanceof HTMLAnchorElement) return;
         uiStore.focusTask(task.id);
         uiStore.startEditing(task.id);
     }
@@ -286,15 +301,20 @@
             onblur={commitTagsEdit}
         />
     {:else}
-        <button class="task-text" onclick={startEdit} use:tooltip={'editTask'}>
+        <button class="task-text" aria-label={task.text} onclick={startEdit} use:tooltip={'editTask'}>
             {#if hasStartTime}
                 <span class="time-badge">{task.startTime}</span>
             {/if}
-            {task.text}
+            <span class="md-root title-markdown">{@html titleHtml}</span>
         </button>
     {/if}
 
     <div class="task-meta">
+        {#if hasNotes}
+            <span class="has-notes" use:tooltip={{ label: 'Has notes' }}>
+                <Icon src={LuStickyNote} />
+            </span>
+        {/if}
         {#if task.recurringTaskId}
             <span class="recurring-icon" use:tooltip={{ label: 'Recurring habit instance' }}>
                 <Icon src={LuRepeat} />
@@ -452,6 +472,26 @@
         text-align: left;
     }
 
+    /* Live-markdown titles (v0.10.0): the md-root wrapper carries the
+       shared inline styles; headings read as bold section titles --
+       the groundwork for the v0.17.0 "# Morning" section tasks. */
+    .title-markdown {
+        font-size: 14px;
+        line-height: inherit;
+    }
+
+    .title-markdown :global(h1),
+    .title-markdown :global(h2),
+    .title-markdown :global(h3),
+    .title-markdown :global(h4),
+    .title-markdown :global(h5),
+    .title-markdown :global(h6) {
+        display: inline;
+        font-size: 14.5px;
+        font-weight: 650;
+        margin: 0;
+    }
+
     .edit-input {
         flex: 1;
         font-size: 14px;
@@ -483,6 +523,18 @@
     .recurring-icon :global(svg) {
         width: 13px;
         height: 13px;
+    }
+
+    /* Has-notes marker (UX-audit finding, v0.10.0): a quiet sticky note
+       so a task's notes are discoverable without opening the detail. */
+    .has-notes {
+        display: flex;
+        color: var(--color-text-muted);
+    }
+
+    .has-notes :global(svg) {
+        width: 12px;
+        height: 12px;
     }
 
     .tag-chip {

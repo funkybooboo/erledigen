@@ -184,6 +184,8 @@ export {
     parseRecurrence,
     parseTags,
     planProjectDistribution,
+    renderInlineMarkdown,
+    renderMarkdown,
     resolveDatePhrase,
     slugify,
     splitKey,
