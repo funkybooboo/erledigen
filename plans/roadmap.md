@@ -24,8 +24,9 @@ green).
   (PR #36). `mise run release` stamps 0.9.0 next.
 - **Partial:** v0.11.0 (design system, theme system, delete behavior
   shipped), v0.12.0 (ARIA, focus management, skip link shipped).
-- **Not started:** v0.10.0 (live markdown notes), v0.13.0 (i18n),
-  v0.14.0 (calendar time-grid), v0.15.0 (2026-10-03 UX audit),
+- **Not started:** v0.10.0 (live markdown notes incl. day notes and
+  the global notes view), v0.13.0 (i18n), v0.15.0 (2026-10-03 UX
+  audit),
   v0.16.0 (projects as umbrellas: someday tabs/lists, hill progress,
   day-list milestone notes; designed 2026-10-04), v0.17.0 (routines:
   full rename from habits/recurring, NL grammar overhaul + controls
@@ -51,14 +52,14 @@ dockerized via `mise run test-api`.)
 **Current focus (2026-10-04): v0.9.0 is RELEASED** -- tag `v0.9.0`
 cut with `mise run release minor` (the repo's first tagged release;
 package.json now carries 0.9.0). The lowest incomplete version is
-v0.10.0 (live markdown notes -- the Obsidian-style live-rendering
-model from the UX audit), then the v0.11.0/v0.12.0 remainders,
-v0.13.0 (i18n), v0.14.0 (calendar time-grid), v0.15.0 (UX audit
-remainder). UX-audit findings that live inside earlier sections ship
-with their home versions: live markdown with v0.10.0, the theme
-modal with v0.11.0 (the Summary keep-or-remove criterion's sections
-shipped with v0.9.0; the verdict itself stays open as a
-try-it-and-see decision -- see the v0.15.0 section).
+v0.10.0 (live markdown notes, day notes, and the global notes view
+-- the Obsidian-style live-rendering model from the UX audit), then
+the v0.11.0/v0.12.0 remainders, v0.13.0 (i18n), v0.15.0 (UX audit
+remainder); the v0.14.0 time-grid stays deferred (2026-10-04).
+UX-audit findings that live inside earlier sections ship with their
+home versions: live markdown with v0.10.0, the theme modal with
+v0.11.0. Summary's keep-or-remove verdict landed 2026-10-04: keep,
+renamed the Stats modal (see the v0.15.0 section).
 
 **System rules (2026-10-04, whole-app coherence pass).** The product
 identity, in one sentence: Erledigen is an **automated paper
@@ -77,8 +78,8 @@ feature obeys these rules:
 6. In-day sections are tasks whose text is a heading ("# Morning").
 7. Tags are the only join key: priority, project, routine, or
    free-form -- someday lists carry no tags of their own.
-8. Umbrellas read, never move: projects, holidays, and stats are
-   lenses over work that lives on days or in lists.
+8. Umbrellas read, never move: projects, holidays, stats, and the
+   notes view are lenses over work that lives on days or in lists.
 9. Routine instances are real tasks; generation is idempotent and
    history is immutable -- schedule edits reshape the future only.
 10. One noun per concept, used everywhere.
@@ -849,7 +850,8 @@ This release builds the full UI for project management and habit tracking.
 
 ## v0.10.0: Markdown Notes
 
-This release adds rich text support to task notes.
+This release adds rich text support to notes -- task notes and day
+notes -- plus a global view over all of them (2026-10-04 addition).
 
 **2026-10-03 UX audit (tracked in the v0.15.0 section):** the editing
 model becomes Obsidian-style live rendering -- notes render as
@@ -863,6 +865,19 @@ rows gain a has-notes indicator.
     - Supports: headings, bold, italic, inline code, code blocks, lists, links.
     - Live editing (supersedes the toggle): rendered Markdown everywhere; the line under the cursor shows raw syntax while it is edited.
 - [ ] **Sanitization:** All user-provided HTML is sanitized before rendering to prevent XSS.
+- [ ] **Day notes, the paper calendar's margin:** one live-markdown
+      field per day -- a subtle affordance in the day section,
+      collapsed when empty. Never a task, never reorderable; part of
+      the day in the export backup. Reuses the same live-markdown
+      machinery as task notes.
+- [ ] **Notes modal, the global view:** a lens over every note in the
+      system -- day notes and task notes grouped by their owner (day
+      sections in date order; task notes listed under their task),
+      each entry editing the owner's note in place and hopping back
+      to it (the day in the list, the task's detail). Notes only ever
+      exist attached to a task or a day; the modal never creates
+      standalone notes -- it reads and edits, it never owns.
+      (Rail slot vs. a Search surface is a build-time layout call.)
 
 ### Technical Notes & Considerations
 - `marked` for Markdown parsing.
@@ -1012,6 +1027,15 @@ This release adds infrastructure for multiple languages and locale-aware formatt
 
 ## v0.14.0: Calendar Time-Grid View
 
+> **Deferred (2026-10-04 whole-app coherence pass):** an hour-grid is
+> Google Calendar's shape, not a calendar book's -- it fights the
+> product identity ("automated paper calendar"). Time-awareness ships
+> where you live instead: times on tasks + arrival ordering by time
+> (v0.17.0), the "# Morning" sections, and the Calendar modal's
+> month-density overview (v0.15.0); external events bridge through
+> `.ics` import. Revisit a grid only if lived experience demands
+> minute-precision scheduling after v0.17.0.
+
 This release adds a time-grid calendar view for tasks with start and end times.
 
 - [ ] **View toggle:** The Calendar rail icon now offers two modes: `List` (the existing day list) and `Calendar` (time grid). Toggle saved to `UserPreferences`.
@@ -1061,6 +1085,9 @@ v0.10.0, v0.11.0).
       `{total} tasks {done} done` readout counts the entire loaded
       store ("245 tasks 0 done") and carries no meaning. Remove it;
       keep the date/clock button.
+- [ ] **Print the week:** a print stylesheet for the day list -- print
+      this week's pages, stick it on the fridge. Pure CSS print media
+      (a 2026-10-04 coherence-pass nicety, very on-identity).
 
 ### Notifications
 
@@ -1533,7 +1560,7 @@ The first stable, fully usable release of Erledigen. Goal: a complete daily driv
 - [x] **Trash & undo:** 7-day trash, undo toasts, Cmd+Z.
 - [x] **Holidays:** Manual + .ics import; banners in day list.
 - [ ] **Import/Export:** JSON, CSV, Markdown, iCal, Todoist CSV, Things 3 JSON all working.
-- [ ] **Start/end times:** Task model and detail modal support time fields. Calendar time-grid view functional.
+- [ ] **Start/end times:** Task model and detail modal support time fields. Calendar time-grid view functional. (The time-grid itself stays deferred -- see the v0.14.0 section.)
 - [ ] **Accessibility:** WCAG 2.1 AA audit passed. axe-core CI check green.
 - [ ] **Internationalization:** All strings in locale files; locale switching functional.
 - [ ] **User customization:** All preferences functional and persisted.
