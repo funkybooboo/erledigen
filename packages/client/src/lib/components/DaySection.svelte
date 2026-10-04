@@ -2,6 +2,7 @@
     import TaskRow from './TaskRow.svelte';
     import InlineAddTask from './InlineAddTask.svelte';
     import SectionHeader from './SectionHeader.svelte';
+    import DayNoteField from './DayNoteField.svelte';
     import { createNewlyCreatedTracker } from '$lib/newlyCreated.svelte';
     import { commitZoneDrop, zoneDragLeave, zoneDragOver } from '$lib/nndZone';
     import { snapInsertBeforeId } from '$lib/dragReorder';
@@ -105,6 +106,9 @@
         {completedCount}
         {isToday}
     />
+    <!-- The day's margin note (v0.10.0): part of the day, never a task,
+         collapsed when empty. -->
+    <DayNoteField {dateStr} {label} />
     <div class="task-list" bind:this={listEl} role="list">
         {#each tasks as task (task.id)}
             <div

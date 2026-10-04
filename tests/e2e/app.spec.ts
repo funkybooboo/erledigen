@@ -14,7 +14,7 @@ test.describe('app shell & navigation', () => {
         await expect(page.locator('[role="application"]')).toBeVisible();
     });
 
-    test('renders the icon rail with all 9 navigation items', async ({ page }) => {
+    test('renders the icon rail with all 10 navigation items', async ({ page }) => {
         await hydrated(page);
         const labels = [
             'Summary',
@@ -22,6 +22,7 @@ test.describe('app shell & navigation', () => {
             'Habits',
             'Calendar',
             'Search',
+            'Notes',
             'Filter',
             'Trash',
             'Settings',

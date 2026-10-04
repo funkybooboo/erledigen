@@ -5,6 +5,7 @@
     import HabitsModal from './modals/HabitsModal.svelte';
     import CalendarModal from './modals/CalendarModal.svelte';
     import SearchModal from './modals/SearchModal.svelte';
+    import NotesModal from './modals/NotesModal.svelte';
     import FilterModal from './modals/FilterModal.svelte';
     import TrashModal from './modals/TrashModal.svelte';
     import SettingsModal from './modals/SettingsModal.svelte';
@@ -29,6 +30,8 @@
     <CalendarModal onclose={close} />
 {:else if activeModal === 'search'}
     <SearchModal onclose={close} />
+{:else if activeModal === 'notes'}
+    <NotesModal onclose={close} />
 {:else if activeModal === 'filter'}
     <FilterModal onclose={close} />
 {:else if activeModal === 'trash'}

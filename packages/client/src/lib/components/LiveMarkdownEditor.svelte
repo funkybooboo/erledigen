@@ -256,6 +256,13 @@
         setCaret(line, (lines[line] ?? '').length);
     }
 
+    /** Start editing at a line (used by parents that open the editor
+     *  programmatically -- the day-note affordance jumps straight into
+     *  the raw line instead of a click-inside click-inside). */
+    export function startEditing(line = 0, col = 0): void {
+        startEdit(line, col);
+    }
+
     function handleRootKeydown(e: KeyboardEvent): void {
         // Idle: Enter or Space opens the first line for editing --
         // keyboard parity for the click-to-edit gesture.

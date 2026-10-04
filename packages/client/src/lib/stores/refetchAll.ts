@@ -8,6 +8,7 @@
  * its own events (the realtime double-skip).
  */
 
+import { dayNoteStore } from './dayNoteStore.svelte';
 import { holidayStore } from './holidayStore.svelte';
 import { preferencesStore } from './preferencesStore.svelte';
 import { projectStore } from './projectStore.svelte';
@@ -26,6 +27,7 @@ export async function refetchAllStores(): Promise<void> {
         projectStore.fetchAll(),
         someDayGroupStore.fetchAll(),
         holidayStore.fetchAll(),
+        dayNoteStore.fetchAll(),
         recurringTaskStore.fetchAll(),
     ]);
 }
