@@ -27,6 +27,8 @@
 - I want a noficiation modal
 - I want transparancy and openness built into the app, I want the app to be as minimal yet useful as possible 
 - settings look bad, make settings look better
+- tasks that are complete should have the full title text crossed out, no check box 
+- no coloring on the left side of reoccuring tasks
 
 generally I think the app is going in the right direction but it still needs work in polishing, refining, and getting the app to a gold standard
 
