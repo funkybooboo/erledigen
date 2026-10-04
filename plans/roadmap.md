@@ -7,19 +7,23 @@ This document outlines the development roadmap for Erledigen. We use semantic ve
 ## Where we stand (2026-10-04)
 
 - **Package version tracks the roadmap** (decision, 2026-09-07):
-  `package.json` carries the LAST SHIPPED roadmap milestone -- 0.9.0
-  since the `v0.9.0` release (2026-10-04, the repo's first tagged
-  release); interim PRs (branding, code cleanup) do not bump it. Cut
-  the next release with `mise run release`, which bumps every
-  manifest, bun.lock, and the runtime `version.ts` stamp together.
+  `package.json` carries the LAST SHIPPED roadmap milestone -- 0.10.0
+  since the `v0.10.0` release (2026-10-04; interim PRs like branding
+  and code cleanup do not bump it). Releases bump every manifest,
+  `bun.lock`, and the runtime `version.ts` stamp together. (2026-10-04:
+  `main` is branch-protected -- PRs and required CI, no direct
+  pushes -- so the release commit itself goes through a PR and the
+  tag lands on its merge commit, as `v0.10.0` did; `tools/release.sh`
+  still assumes the old push-to-main flow and needs the update.)
 - **Shipped complete:** v0.1.0, v0.2.0, v0.3.0, v0.4.0, v0.4.1, v0.5.0,
   v0.6.0, v0.7.0, v0.8.0, v0.9.0, v0.10.0.
-- **Shipped with v0.10.0 (2026-10-04):** live markdown everywhere
-  (safe-by-construction renderer, ADR-015 -- not marked+DOMPurify),
-  task-note + day-note + title live editing, day notes as the
-  calendar's margin (new DayNote entity, one per date), the Notes
-  modal lens on the icon rail (`g n`), the has-notes row indicator.
-  Bundle budget 624 -> 664 KiB (the whole live-markdown system).
+- **Shipped with v0.10.0 (2026-10-04, released as tag `v0.10.0`):**
+  live markdown everywhere (safe-by-construction renderer, ADR-015 --
+  not marked+DOMPurify), task-note + day-note + title live editing,
+  day notes as the calendar's margin (new DayNote entity, one per
+  date), the Notes modal lens on the icon rail (`g n`), the has-notes
+  row indicator. Bundle budget 624 -> 664 KiB (the whole live-markdown
+  system).
 - **Shipped with v0.9.0 (2026-10-04, released as tag `v0.9.0`):**
   holidays (Settings manager + `.ics` import + day-list banners,
   PR #34), the Summary modal's overdue/streak/next-14-days sections
@@ -41,12 +45,13 @@ This document outlines the development roadmap for Erledigen. We use semantic ve
        after the rebuilds).
     6. **v1.0.0 -- Public release.**
 - **Deferred:** v0.14.0 (calendar time-grid -- see its section).
-- **UX audit (2026-10-03, extended same day):** twenty-seven findings
-  from a self-review of the shipped app (raw notes in
-  [issues.md](issues.md)) ship with their home versions: the polish
-  remainder in v0.18.0, the habits findings in v0.17.0, the Someday
-  redesign in v0.16.0, live markdown + the notes indicator in
-  v0.10.0, the Theme modal + logo coloring in v0.11.0. Two shipped
+- **UX audit (2026-10-03, extended same day; two more findings added
+  2026-10-04):** twenty-nine findings from a self-review of the
+  shipped app (raw notes in [issues.md](issues.md)) ship with their
+  home versions: the polish remainder in v0.18.0, the habits findings
+  in v0.17.0, the Someday redesign in v0.16.0, live markdown + the
+  notes indicator in v0.10.0, the Theme modal + logo coloring in
+  v0.11.0. Two shipped
   decisions were reversed: the `/` command palette is REMOVED
   (plain `{mod}+K` search and every keyboard shortcut stay -- see
   the v0.5.0 note), and drag-and-drop was REACTIVATED (shipped with
@@ -1365,6 +1370,10 @@ two things.
 
 - [ ] The recurrence icon on a task row is clickable: opens the
       Routines modal at that routine's detail -- the UX-audit finding.
+- [ ] **No left-edge coloring on routine instances** (UX-audit finding,
+      added 2026-10-04): the shipped accent hairline on recurring rows
+      disappears -- the row icon is a routine instance's only marker.
+      (The priority-sort left borders die with the sort mode below.)
 - [ ] From the detail, jump to the routine's instances on days (the
       way back).
 
@@ -1402,7 +1411,7 @@ two things.
 - [ ] Routine order + time drive arrival placement; manual drags
       stick; `# ` section tasks render as headers with inline add.
 - [ ] The row icon opens the routine detail; instance jumps work both
-      directions.
+      directions; routine rows carry no left-edge color.
 - [ ] Routines have until, pause, editable start date, monthly rules,
       multi-times, and schedule edits that offer to reshape the
       future.
@@ -1418,7 +1427,8 @@ two things.
 
 Findings from the 2026-10-03 UX audit of the shipped app (raw notes:
 [issues.md](issues.md), kept verbatim -- the cspell dictionary
-absorbs the raw spellings; 27 findings total). The audit's verdict:
+absorbs the raw spellings; 29 findings total, two added 2026-10-04).
+The audit's verdict:
 the app is going in the right direction but needs work in polishing,
 refining, and getting to a gold standard. This pass carries the
 findings whose home is polish itself. The rest moved to their home
@@ -1428,7 +1438,8 @@ versions:
 - The Theme modal + logo-derived accents -> v0.11.0 (theming)
 - The Someday tabs/lists redesign -> v0.16.0 (absorbed with projects)
 - Every recurring/habits finding (delete semantics, trim stats, NL +
-  tags compose, row icon -> detail, ordering) -> v0.17.0 (routines)
+  tags compose, row icon -> detail, ordering, no left-edge color on
+  routine rows) -> v0.17.0 (routines)
 - Sub-tasks under parents everywhere -> a v0.16.0 build requirement
 - Drag-and-drop reactivation -> shipped with v0.6.0
 
@@ -1483,6 +1494,12 @@ versions:
 
 ### Day List & Filtering
 
+- [ ] **Completed rows: full title struck through, no checkbox**
+      (UX-audit finding, added 2026-10-04): a done task's row shows
+      the full title crossed out and drops the checkbox entirely --
+      the strike IS the completed state. Un-completing stays
+      reachable through the keyboard (`Space`) and the row actions;
+      the build decides the click affordance.
 - [ ] **Drag the task itself, not the grip:** today only the hover
       grip initiates a drag (so text stays selectable). The row
       should be draggable by default -- click to edit, drag to move,
@@ -1519,6 +1536,8 @@ versions:
 - The bottom bar carries a docs link and no store-wide counter; the
   week prints.
 - Rows drag themselves; the Filter modal has a title-text filter.
+- Completed rows show no checkbox -- the struck-through full title is
+  the state.
 - The Calendar modal shows month density.
 - The Stats modal carries its new name; the style pass (calendar-book
   vibes, Settings restyle, visual consistency) is done and the
