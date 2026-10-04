@@ -60,6 +60,31 @@ modal with v0.11.0 (the Summary keep-or-remove criterion's sections
 shipped with v0.9.0; the verdict itself stays open as a
 try-it-and-see decision -- see the v0.15.0 section).
 
+**System rules (2026-10-04, whole-app coherence pass).** The product
+identity, in one sentence: Erledigen is an **automated paper
+calendar** -- a day list you write by hand, plus an engine that fills
+in everything that recurs and never moves your handwriting. Every
+feature obeys these rules:
+
+1. One home per task -- a day or a someday list, never a modal.
+2. The date is the only bridge between the two worlds.
+3. One grammar in every input: text first, then qualifiers (`#tags`,
+   a date phrase, a routine phrase, times).
+4. Typed words and manual controls can never disagree.
+5. Arrivals are placed once (routine order, time, or the bottom);
+   after that, manual order is sovereign -- nothing reorders
+   continuously, and continuous sort modes do not exist.
+6. In-day sections are tasks whose text is a heading ("# Morning").
+7. Tags are the only join key: priority, project, routine, or
+   free-form -- someday lists carry no tags of their own.
+8. Umbrellas read, never move: projects, holidays, and stats are
+   lenses over work that lives on days or in lists.
+9. Routine instances are real tasks; generation is idempotent and
+   history is immutable -- schedule edits reshape the future only.
+10. One noun per concept, used everywhere.
+11. Automation never rewrites handwriting: it materializes, places
+    arrivals, and derives displays -- nothing else.
+
 ---
 
 ## v0.1.0: Foundations
@@ -1184,6 +1209,9 @@ findings. The items below are the historical findings.)
       with v0.9.0 -- overdue badges, active streaks, and the combined
       "Next 14 Days" list; the keep-or-remove verdict itself remains a
       try-it-and-see decision.)
+      (2026-10-04 verdict: keep -- the Summary modal is renamed and
+      reframed as the **Stats modal**; the shipped sections stand and
+      the rail label follows. Same content, honest name.)
 
 ### Technical Notes & Considerations
 
@@ -1263,6 +1291,14 @@ Never a second home for tasks.
 - [ ] **Scheduling bridge:** drag a parked task onto a day section
       (or set a date) and it becomes a day task wearing the project
       chip; clear the date and it returns to its list.
+- [ ] The panel keeps its name: it stays the **Someday panel** even
+      with tabs (the default tab is also named Someday).
+- [ ] Plain lists carry no tag of their own; a project tab's lists
+      inherit the project's tag. The old someday-group `tag` field
+      dies with the redesign -- tags mean priority, project, routine,
+      or free-form, nothing else.
+- [ ] Sub-tasks nest under their parents in every surface (the
+      v0.15.0 finding applies to the new tabs and lists too).
 - [ ] OPEN QUESTION (carried from the UX-audit notes): does the
       Someday area stay the right-hand drawer or become its own
       modal? Explore both before building the tab chrome.
@@ -1446,6 +1482,11 @@ two things.
 - [ ] **Manual wins and sticks:** once you drag a row, that day's
       placement is yours -- nothing reorders itself continuously.
       Automation only ever positions arrivals, never existing rows.
+- [ ] **Retire the priority sort mode** (2026-10-04 whole-app pass):
+      a continuous sort violates manual sovereignty -- ordering
+      belongs to arrival insertion plus manual drags. Priority tags
+      (p1/p2/p3) stay as colored tags; the Filter modal's sort option
+      goes (a v0.6.0 reversal, like the board reversal).
 - [ ] **User-defined sections:** a task whose text starts with
       `# ` (e.g. "# Morning") renders as a section header inside the
       day -- the same syntax as the v0.10.0 live-markdown titles --
