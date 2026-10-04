@@ -35,12 +35,16 @@ export class InMemoryDayNoteRepository implements DayNoteRepository {
             this.notes.set(date, updated);
             return { dayNote: updated, created: false };
         }
+        // Stamp ONCE: two timestamp() calls can straddle a clock tick
+        // and createdAt would differ from updatedAt (the contract suite
+        // asserts they match on create -- CI caught exactly that race).
+        const now = this.dateProvider.timestamp();
         const dayNote: DayNote = {
             id: `${++this.idCounter}`,
             date,
             notes: input.notes,
-            createdAt: this.dateProvider.timestamp(),
-            updatedAt: this.dateProvider.timestamp(),
+            createdAt: now,
+            updatedAt: now,
         };
         this.notes.set(date, dayNote);
         return { dayNote, created: true };
