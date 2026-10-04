@@ -7,10 +7,11 @@ Erledigen has three layers of automated tests:
 Fast, isolated tests of pure logic and adapters -- no network, no browser.
 Run with Bun's built-in test runner. ~600 tests across the three packages:
 
-- `packages/shared` -- date provider, HTTP client, errors, task types, tag utils, recurrence parsing (`parseRecurrence`), frequency formatting, the project auto-distribution planner (`planProjectDistribution`)
+- `packages/shared` -- date provider, HTTP client, errors, task types, tag utils, recurrence parsing (`parseRecurrence`), frequency formatting, the project auto-distribution planner (`planProjectDistribution`), and the safe-by-construction markdown renderer with its adversarial XSS battery (`renderMarkdown`, ADR-015)
 - `packages/server` -- repositories (in-memory **and** SQLite, via shared contract suites), services, middleware, utils, migration runner
 - `packages/client` -- DI container, filters, shortcut-registry invariants
-  (`keybindings`: every shortcut documented in help, no duplicate keystrokes)
+  (`keybindings`: every shortcut documented in help, no duplicate keystrokes),
+  and the live-editor line ops (`liveLines`: split/merge/list continuation)
 
 ## 2. API integration tests (`bun run test:e2e:api` / `mise run test-e2e`)
 
@@ -34,6 +35,7 @@ Covers, per resource:
   interval/day bounds), 404 paths.
 - **someday-groups** -- CRUD, validation (name/tag/position bounds).
 - **holidays** -- CRUD, validation (name/date bounds), `.ics` import (raw text + URL modes, duplicate skipping, non-iCal 400, failing-fetch 400), plain-text content negotiation, export snapshot coverage, and the pre-v0.9.0 snapshot-without-holidays restore path. Bruno mirrors these in `tests/api/*Holiday*.bru`.
+- **day notes** (v0.10.0) -- upsert create/replace by date, list/get/delete, validation (empty notes, malformed date), plain-text content negotiation, export snapshot coverage, the pre-v0.10.0 snapshot-without-dayNotes restore path, and duplicate-date rejection. Bruno mirrors these in `tests/api/*Day Note*.bru`.
 - **tags** -- list (sorted, de-duped), info (counts), rename, merge (incl.
   no-duplicate target), validation, content negotiation.
 - **user preferences** -- GET defaults, PATCH single-field/nested, validation
@@ -67,7 +69,7 @@ Location: `tests/e2e/` - Config: `playwright.config.ts` (project `e2e`).
 
 Covers:
 
-- **app shell** -- title/landmark, icon-rail (all 9 items), today section,
+- **app shell** -- title/landmark, icon-rail (all 10 items), today section,
   bottom bar (clock + task count), modal open/close + keyboard shortcuts
   (`/`, `?`, `n`), modal switching, j/k navigation within the Someday panel.
 - **keyboard task actions** -- j/k focus movement on the day list, Space
@@ -101,6 +103,14 @@ Covers:
   with days-late badges (completed past tasks excluded), the combined
   "Next 14 Days" deadline + holiday list with window bounds, and
   active habit streaks.
+- **notes** (v0.10.0) -- live markdown everywhere: rendered task titles
+  (raw text opens for editing, accessible name stays the source),
+  heading titles, the has-notes indicator, the detail modal's
+  live editor (rendered idle, raw line under the caret, Esc settles),
+  day notes in the day list (affordance -> write -> debounced persist,
+  WS live render, clear-to-delete), the Notes modal lens (grouped by
+  owner, edit in place, hop back, empty state), and a browser-side
+  XSS smoke (script payload renders inert -- ADR-015).
 - **kanban** (v0.9.0) -- column membership (sub-tasks excluded), drag
   Ready -> Scheduled (window-start date), Scheduled -> Ready (date
   cleared), -> Done (completed) with server-side verification,

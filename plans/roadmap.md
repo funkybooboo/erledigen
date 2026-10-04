@@ -13,7 +13,13 @@ This document outlines the development roadmap for Erledigen. We use semantic ve
   the next release with `mise run release`, which bumps every
   manifest, bun.lock, and the runtime `version.ts` stamp together.
 - **Shipped complete:** v0.1.0, v0.2.0, v0.3.0, v0.4.0, v0.4.1, v0.5.0,
-  v0.6.0, v0.7.0, v0.8.0, v0.9.0.
+  v0.6.0, v0.7.0, v0.8.0, v0.9.0, v0.10.0.
+- **Shipped with v0.10.0 (2026-10-04):** live markdown everywhere
+  (safe-by-construction renderer, ADR-015 -- not marked+DOMPurify),
+  task-note + day-note + title live editing, day notes as the
+  calendar's margin (new DayNote entity, one per date), the Notes
+  modal lens on the icon rail (`g n`), the has-notes row indicator.
+  Bundle budget 624 -> 664 KiB (the whole live-markdown system).
 - **Shipped with v0.9.0 (2026-10-04, released as tag `v0.9.0`):**
   holidays (Settings manager + `.ics` import + day-list banners,
   PR #34), the Summary modal's overdue/streak/next-14-days sections
@@ -23,20 +29,17 @@ This document outlines the development roadmap for Erledigen. We use semantic ve
   shipped), v0.12.0 (ARIA, focus management, skip link shipped).
 - **The queue (2026-10-04 restructure -- numeric order, polish
   last):**
-    1. **v0.10.0 -- Markdown notes:** live-markdown titles + task
-       notes, day notes (the paper calendar's margin), the global
-       Notes modal, has-notes row indicator.
-    2. **v0.11.0 / v0.12.0 remainders:** the Theme modal + accents +
+    1. **v0.11.0 / v0.12.0 remainders:** the Theme modal + accents +
        tag colors + Settings preferences (v0.11.0); accessibility
        (v0.12.0).
-    3. **v0.13.0 -- i18n.**
-    4. **v0.16.0 -- Projects as umbrellas + Someday tabs/lists**
+    2. **v0.13.0 -- i18n.**
+    3. **v0.16.0 -- Projects as umbrellas + Someday tabs/lists**
        (designed 2026-10-04).
-    5. **v0.17.0 -- Routines** (designed 2026-10-04).
-    6. **v0.18.0 -- Gold-standard polish:** the UX-audit remainder
+    4. **v0.17.0 -- Routines** (designed 2026-10-04).
+    5. **v0.18.0 -- Gold-standard polish:** the UX-audit remainder
        (renumbered from v0.15.0 so polish runs on final surfaces,
        after the rebuilds).
-    7. **v1.0.0 -- Public release.**
+    6. **v1.0.0 -- Public release.**
 - **Deferred:** v0.14.0 (calendar time-grid -- see its section).
 - **UX audit (2026-10-03, extended same day):** twenty-seven findings
   from a self-review of the shipped app (raw notes in
@@ -858,6 +861,11 @@ This release builds the full UI for project management and habit tracking.
 This release adds rich text support to notes -- task notes and day
 notes -- plus a global view over all of them (2026-10-04 addition).
 
+**Status:** COMPLETE (2026-10-04). A safe-by-construction markdown
+renderer (ADR-015) powers live rendering everywhere; day notes are a
+new `DayNote` entity (one per date) in the day sections and the
+export snapshot; the Notes modal is a 10th rail slot (`g n`).
+
 **2026-10-03 UX audit:** the editing
 model becomes Obsidian-style live rendering -- notes render as
 Markdown, and only the line under the cursor drops back to raw
@@ -866,46 +874,82 @@ edited). The task title uses the same live model. The edit/view
 toggle below is superseded; sanitization applies unchanged, and task
 rows gain a has-notes indicator.
 
-- [ ] **Markdown rendering:** Task notes (the `notes` field) are rendered as Markdown in the task detail modal.
+- [x] **Markdown rendering:** Task notes (the `notes` field) are rendered as Markdown in the task detail modal.
     - Supports: headings, bold, italic, inline code, code blocks, lists, links.
     - Live editing (supersedes the toggle): rendered Markdown everywhere; the line under the cursor shows raw syntax while it is edited.
-- [ ] **Sanitization:** All user-provided HTML is sanitized before rendering to prevent XSS.
-- [ ] **The task title uses the same live model** -- rendered, with
-      only the line under the cursor showing raw syntax.
-- [ ] **Has-notes indicator:** a subtle marker on task rows whose
+- [x] **Sanitization:** All user-provided HTML is sanitized before rendering to prevent XSS. (As built: safe by construction,
+      ADR-015 -- the renderer escapes first and never passes raw
+      HTML through, so there is nothing to sanitize after the fact;
+      adversarial inputs are tested in `markdown.test.ts`.)
+- [x] **The task title uses the same live model** -- rendered, with
+      only the line under the cursor showing raw syntax. (As built: a
+      title is one line, so the existing inline edit IS the raw view;
+      the row renders `renderInlineMarkdown` -- `# Morning` renders as
+      a bold section-style line, groundwork for the v0.17.0
+      in-day sections -- and the accessible name keeps the raw
+      source. Rendered links inside a title follow the link instead
+      of opening the edit.)
+- [x] **Has-notes indicator:** a subtle marker on task rows whose
       `notes` is non-empty (UX-audit finding riding this version).
-- [ ] **Day notes, the paper calendar's margin:** one live-markdown
+- [x] **Day notes, the paper calendar's margin:** one live-markdown
       field per day -- a subtle affordance in the day section,
       collapsed when empty. Never a task, never reorderable; part of
       the day in the export backup. Reuses the same live-markdown
-      machinery as task notes.
-- [ ] **Notes modal, the global view:** a lens over every note in the
+      machinery as task notes. (As built: a new `DayNote` entity --
+      one row per date, `PUT /api/day-notes/:date` upsert,
+      `DELETE` on clear; rides the snapshot as the optional
+      `dayNotes` key, the same ADR-008 rule holidays used. Saves are
+      debounced 800 ms; the affordance's first click jumps straight
+      into the raw line.)
+- [x] **Notes modal, the global view:** a lens over every note in the
       system -- day notes and task notes grouped by their owner (day
       sections in date order; task notes listed under their task),
       each entry editing the owner's note in place and hopping back
       to it (the day in the list, the task's detail). Notes only ever
       exist attached to a task or a day; the modal never creates
       standalone notes -- it reads and edits, it never owns.
-      (Rail slot vs. a Search surface is a build-time layout call.)
+      (As built: rail slot -- a 10th icon-rail item, `g n`; undated
+      task notes group under a trailing "Someday" section.)
 
 ### Technical Notes & Considerations
-- `marked` for Markdown parsing.
-- `DOMPurify` for sanitization.
+- ~~`marked` for Markdown parsing.~~ (As built, 2026-10-04: a
+  hand-written renderer in `packages/shared/src/utils/markdown.ts`
+  instead -- the bundle gate stood at 623 of 624 KiB and
+  marked+DOMPurify would add ~60 KB raw; the SSR app needs identical
+  server/client output, which DOMPurify (a DOM library) cannot give
+  without jsdom; and the required grammar is six constructs. See
+  [ADR-015](../docs/devs/architecture/decisions/ADR-015-safe-by-construction-markdown.md).)
+- ~~`DOMPurify` for sanitization.~~ (Superseded by the same ADR-015:
+  escape-first construction.)
 - XSS sanitization tested with adversarial inputs as part of TDD.
+  (Shipped: the adversarial battery in `markdown.test.ts` -- script,
+  iframe, style/form injection, `javascript:`/`data:`/`vbscript:`
+  hrefs, entity-encoded payloads, href quote-breakouts, and a
+  quote-aware attribute walk asserting no foreign attribute can ever
+  appear.)
+- The grammar is line-oriented by design (every non-blank source line
+  is one block; no soft-wrap joining) -- it matches the paper-calendar
+  identity and gives the live editor an exact line-to-block mapping
+  for click-to-edit.
+- Bundle budget raised 624 -> 664 KiB for the whole live-markdown
+  system (renderer, live editor, day-note field, Notes modal); the
+  v0.16.0 Kanban removal pays it back later.
 
 ### Security Considerations
-- All rendered Markdown is run through DOMPurify before insertion into the DOM.
+- ~~All rendered Markdown is run through DOMPurify before insertion into the DOM.~~ (As built: nothing reaches the DOM that was not
+  escaped at emission; the renderer's only tags are its own
+  literals -- ADR-015.)
 - Content Security Policy prevents inline script execution even if sanitization is bypassed.
 
 ### Definition of Done
-- Live markdown everywhere: task notes, the task title, and day notes
+- [x] Live markdown everywhere: task notes, the task title, and day notes
   render; only the edited line shows raw syntax.
-- Day notes render in every day section (collapsed when empty) and ride
+- [x] Day notes render in every day section (collapsed when empty) and ride
   the export backup.
-- The Notes modal views and edits every note, grouped by owner, with
+- [x] The Notes modal views and edits every note, grouped by owner, with
   hop-back.
-- Has-notes indicator on task rows.
-- XSS sanitization tested with adversarial inputs.
+- [x] Has-notes indicator on task rows.
+- [x] XSS sanitization tested with adversarial inputs.
 
 ---
 
@@ -1499,7 +1543,7 @@ The first stable, fully usable release of Erledigen. Goal: a complete daily driv
 - [x] **Rollover automation:** Incomplete tasks roll over by default; overdue indicators shown (a per-task days-late badge remains small UI polish).
 - [ ] **Tag system:** Full tag management -- colors, rename, merge, delete.
 - [ ] **Light & dark themes:** Polished and complete.
-- [ ] **Notes:** live-markdown notes on tasks and days, with the global notes view (v0.10.0).
+- [x] **Notes:** live-markdown notes on tasks and days, with the global notes view (v0.10.0).
 - [x] **Trash & undo:** 7-day trash, undo toasts, Cmd+Z.
 - [x] **Holidays:** Manual + .ics import; banners in day list.
 - [ ] **Import/Export:** JSON, CSV, Markdown, iCal, Todoist CSV, Things 3 JSON all working.
