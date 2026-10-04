@@ -20,7 +20,7 @@
     },
     "packages/client": {
       "name": "@erledigen/client",
-      "version": "0.9.0",
+      "version": "0.10.0",
       "dependencies": {
         "@erledigen/shared": "workspace:*",
         "@sveltejs/adapter-node": "^5.5.7",
@@ -44,7 +44,7 @@
     },
     "packages/server": {
       "name": "@erledigen/server",
-      "version": "0.9.0",
+      "version": "0.10.0",
       "dependencies": {
         "@asteasolutions/zod-to-openapi": "^8.5.0",
         "@erledigen/shared": "workspace:*",
@@ -59,7 +59,7 @@
     },
     "packages/shared": {
       "name": "@erledigen/shared",
-      "version": "0.9.0",
+      "version": "0.10.0",
       "devDependencies": {
         "@types/bun": "^1.4.0",
         "typescript": "^5.9.3",
