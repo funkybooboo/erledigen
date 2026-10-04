@@ -815,9 +815,9 @@ This release builds the full UI for project management and habit tracking.
 > umbrella over tags, someday tabs/lists, and habits instead of a
 > board over task state. The items below are the historical record of
 > what shipped.
-- [ ] **Habits modal:**
-    - List all recurring task templates with current streak and last completion date.
-    - `+ new habit` flow: text + recurrence rule builder (presets: daily, weekly, monthly; custom rrule).
+- [x] **Habits modal:** (Shipped across PRs #18/#20 and the v0.4.x habit slices -- the parent checkbox was left stale until this 2026-10-04 fix.)
+    - List all recurring task templates with current streak and last completion date. (Shipped: the list with streak badges; the detail view carries the full stats.)
+    - `+ new habit` flow: text + recurrence rule builder (presets: daily, weekly, monthly; custom rrule). (As built, a deliberate deviation: creation is natural-language parsing ("water plants every friday at 9am") plus the shared schedule form -- frequency/interval/day chips/day-of-month/start time. A custom rrule builder was never built, and v0.17.0 supersedes the idea: the parser is ordered anchored regexes, not an rrule engine.)
     - **Habit detail:** edit form + stats bar (current streak, longest streak, total completions) + GitHub-style completion heatmap. (Shipped 2026-09-27: stats bar + heatmap; the edit form stays on the list row.)
     - Promote any existing task to recurring: toggle "Make recurring" in the task detail modal. (Shipped 2026-09-30: via POST /api/recurring-tasks/adopt -- the task is stamped as the template's first instance; the schedule form is shared with the Habits modal through HabitScheduleForm.)
 - [x] **Summary modal:** (Shipped 2026-10-04 -- the v0.15.0 keep-or-remove criterion's "sections" half: the modal now earns its open.)
@@ -839,13 +839,13 @@ This release builds the full UI for project management and habit tracking.
 - `.ics` parsing with a library like `ical.js` (shared with v0.7.0 iCal adapter).
 
 ### Definition of Done
-- Projects modal fully functional with Kanban board.
-- Auto-distribution algorithm working.
-- Habits modal with heatmap and streak stats functional.
-- Summary modal shows accurate daily overview.
-- Calendar date picker jumps the day list correctly.
-- Holidays appear as banners in the day list.
-- "Make recurring" toggle in task detail modal works.
+- [x] Projects modal fully functional with Kanban board. (Superseded by the v0.16.0 umbrella design -- see the reversal note above.)
+- [x] Auto-distribution algorithm working.
+- [x] Habits modal with heatmap and streak stats functional.
+- [x] Summary modal shows accurate daily overview.
+- [x] Calendar date picker jumps the day list correctly.
+- [x] Holidays appear as banners in the day list.
+- [x] "Make recurring" toggle in task detail modal works.
 
 ---
 
