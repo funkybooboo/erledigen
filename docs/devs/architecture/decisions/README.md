@@ -19,6 +19,11 @@ An ADR captures an important architectural decision: what was decided, why, and 
 | [ADR-007](ADR-007-metric-prefix.md) | Metric Naming Prefix `erledigen_` (supersedes ADR-005 naming) | Accepted | 2026-09-05 |
 | [ADR-008](ADR-008-export-format-stability.md) | Stable Export Formats and the Canonical JSON Snapshot | Accepted | 2026-09-07 |
 | [ADR-009](ADR-009-import-semantics.md) | Import Semantics: Destructive Restore and Additive Imports | Accepted | 2026-09-07 |
+| [ADR-010](ADR-010-automated-paper-calendar.md) | The Automated Paper Calendar: Product Identity and System Rules | Accepted | 2026-10-04 |
+| [ADR-011](ADR-011-projects-as-umbrellas.md) | Projects as Umbrellas: Gathered Views Over Tags, Not Containers (supersedes the v0.9.0 Kanban design) | Accepted | 2026-10-04 |
+| [ADR-012](ADR-012-export-snapshot-v2-routines-rename.md) | Export Snapshot Version 2: The Routines Rename (extends ADR-008) | Accepted | 2026-10-04 |
+| [ADR-013](ADR-013-arrival-insertion-manual-sovereignty.md) | Day-List Ordering: Arrival Insertion and Manual Sovereignty (retires the priority sort mode) | Accepted | 2026-10-04 |
+| [ADR-014](ADR-014-scope-boundaries.md) | Deliberate Scope Boundaries: What Erledigen Is Not | Accepted | 2026-10-04 |
 
 ## Creating a New ADR
 

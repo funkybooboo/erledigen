@@ -65,8 +65,12 @@ test-api`.)
 **System rules (2026-10-04, whole-app coherence pass).** The product
 identity, in one sentence: Erledigen is an **automated paper
 calendar** -- a day list you write by hand, plus an engine that fills
-in everything that recurs and never moves your handwriting. Every
-feature obeys these rules:
+in everything that recurs and never moves your handwriting. Recorded
+as [ADR-010](../docs/devs/architecture/decisions/ADR-010-automated-paper-calendar.md);
+the adjacent-concept verdicts (no time grid, people as tags, no docs
+subsystem, modals as lenses) are
+[ADR-014](../docs/devs/architecture/decisions/ADR-014-scope-boundaries.md).
+Every feature obeys these rules:
 
 1. One home per task -- a day or a someday list, never a modal.
 2. The date is the only bridge between the two worlds.
@@ -1086,7 +1090,8 @@ This release adds a time-grid calendar view for tasks with start and end times.
 
 ## v0.16.0: Projects as Umbrellas
 
-**Status:** Designed 2026-10-04 (from living with the shipped v0.9.0 Kanban;
+**Status:** Designed 2026-10-04 (recorded as
+[ADR-011](../docs/devs/architecture/decisions/ADR-011-projects-as-umbrellas.md)) (from living with the shipped v0.9.0 Kanban;
 all decisions below are recorded from that conversation). Queued after
 v0.13.0 per the numeric-order policy (v0.14.0 is deferred; the
 v0.15.0 polish pass renumbered to v0.18.0 runs after the rebuilds).
@@ -1226,7 +1231,11 @@ Never a second home for tasks.
 
 ## v0.17.0: Routines
 
-**Status:** Designed 2026-10-04 (from living with the shipped habits /
+**Status:** Designed 2026-10-04 (recorded as
+[ADR-012](../docs/devs/architecture/decisions/ADR-012-export-snapshot-v2-routines-rename.md)
+for the rename + snapshot v2, and
+[ADR-013](../docs/devs/architecture/decisions/ADR-013-arrival-insertion-manual-sovereignty.md)
+for arrival insertion and manual sovereignty) (from living with the shipped habits /
 recurring split; all decisions recorded from that conversation).
 Queued after v0.16.0. Absorbs the UX audit's recurring/habits
 findings and pulls the `until` item in from v0.16.0. One decision
