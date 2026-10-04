@@ -25,7 +25,9 @@ green).
 - **Partial:** v0.11.0 (design system, theme system, delete behavior
   shipped), v0.12.0 (ARIA, focus management, skip link shipped).
 - **Not started:** v0.10.0 (live markdown notes), v0.13.0 (i18n),
-  v0.14.0 (calendar time-grid), v0.15.0 (2026-10-03 UX audit).
+  v0.14.0 (calendar time-grid), v0.15.0 (2026-10-03 UX audit),
+  v0.16.0 (projects as umbrellas: someday tabs/lists, hill progress,
+  day-list milestone notes, habits `until`; designed 2026-10-04).
 - **UX audit (2026-10-03, extended same day):** twenty-seven findings
   from a self-review of the shipped app (raw notes in
   [issues.md](issues.md)) are tracked in the v0.15.0 section below. Two reverse shipped decisions: the `/`
@@ -777,6 +779,12 @@ This release builds the full UI for project management and habit tracking.
     - [Auto-distribute] shows a preview before confirming. (`planProjectDistribution` in `@erledigen/shared` -- dependency-ordered (Kahn), round-robin across `[max(startDate, today), dueDate]`, never in the past; a past due date plans nothing.)
     - Dependency indicators: tasks blocked by incomplete predecessors show a lock icon. (As built: `dependsOn` joined the public task update API; the lock opens a blocked-by picker scoped to the project's tasks; completing the blocker releases the lock.)
     - Project tasks appear in the day list tagged with the project name (e.g., `#build-erledigen`).
+> **Partially reversed by the 2026-10-04 design conversation:** the
+> Kanban board, Activate, and the dependency locks are removed in
+> v0.16.0 ("Projects as Umbrellas") -- projects become a gathered
+> umbrella over tags, someday tabs/lists, and habits instead of a
+> board over task state. The items below are the historical record of
+> what shipped.
 - [ ] **Habits modal:**
     - List all recurring task templates with current streak and last completion date.
     - `+ new habit` flow: text + recurrence rule builder (presets: daily, weekly, monthly; custom rrule).
@@ -1153,6 +1161,10 @@ v0.10.0, v0.11.0).
       backlog? What does reviewing it need to feel like?
     - Once drag-and-drop returns, what should moving something out
       of Someday feel like?
+      (2026-10-04: absorbed into v0.16.0 -- "Projects as Umbrellas" --
+      which settles the shape: tabs + lists, one auto-created tab per
+      project, and this panel-vs-modal question carried over as
+      v0.16.0's open question.)
 
 ### Summary Modal
 
@@ -1191,6 +1203,141 @@ v0.10.0, v0.11.0).
   Someday.
 - The bottom bar carries a docs link and no store-wide counter;
   theming lives in its own Theme modal with logo-derived accents.
+
+---
+
+## v0.16.0: Projects as Umbrellas
+
+**Status:** Designed 2026-10-04 (from living with the shipped v0.9.0 Kanban;
+all decisions below are recorded from that conversation). Queued after
+the v0.10.0 -> v0.15.0 run per the numeric-order policy. This section
+absorbs the v0.15.0 Someday redesign (tabs/lists) and reverses parts
+of the shipped v0.9.0 Projects feature.
+
+A project is a group of tasks that all build up to the same thing -- a
+school assignment, a coding project, a house project: related work
+spanning multiple days under one umbrella.
+
+The v0.9.0 Kanban did not survive real use -- a scheduled task has
+no stages beyond done, so a board over real task state cannot mean
+anything. The settled shape is different: **a project is a
+higher-level abstraction that GATHERS related work instead of
+containing it** -- a named tag, clean metadata, and one gathered view.
+Never a second home for tasks.
+
+### The model: two worlds, one umbrella
+
+- **The tag is the join key.** Every member of a project already has
+  tags: tasks (`Task.tags`), habits (`RecurringTask.tags`), someday
+  lists (`SomeDayGroup.tag`). A project owns its tag; anything
+  carrying it is gathered into the project's view. No new task-level
+  fields, no stages, no board.
+- **Backlog world vs. calendar world.** Undated work parks in someday
+  lists (the planning surface, where the kanban idiom is true).
+  Dated work lives on days (the doing surface). Scheduling moves a
+  task between worlds; clearing the date returns it to its list. A task is
+  in exactly one world at a time, and a scheduled task has no
+  lifecycle beyond done.
+- **Project = metadata + gathered view.** Name, description,
+  start / due / completed dates, hill progress. The modal is a lens
+  over work that lives elsewhere, never a container.
+
+### Someday: tabs and lists
+
+- [ ] Someday becomes tabs holding lists (replacing the tag-based
+      groups). Default: one tab with one list, both named "Someday",
+      no title shown; minimal, to the point, easy.
+- [ ] Lists are not tied to a date; tasks parked in them are undated
+      backlog.
+- [ ] **Auto-tab:** creating a project automatically creates a
+      someday tab named for it, empty with "+ add list" ready. The
+      project's lists (its shelves) live in its tab.
+- [ ] **Scheduling bridge:** drag a parked task onto a day section
+      (or set a date) and it becomes a day task wearing the project
+      chip; clear the date and it returns to its list.
+- [ ] OPEN QUESTION (carried from the UX-audit notes): does the
+      Someday area stay the right-hand drawer or become its own
+      modal? Explore both before building the tab chrome.
+
+### The project home (Projects modal)
+
+- [ ] **Gathered view, Fizzy-grade:** Backlog (the project's undated
+      tasks grouped by their someday lists), Scheduled (dated tasks as
+      a compact strip grouped by day), Habits (the project's habits
+      with streaks; ended habits show their until), Done (count +
+      recent).
+- [ ] **Metadata row:** start / due / completed dates (premium inline
+      controls) + the hill progress control + "Mark complete".
+- [ ] **Create from the project:** "+ add task" (undated, auto-tagged,
+      lands in the backlog), "+ add habit", "+ add list" -- every
+      creation path auto-applies the project tag, which is the whole
+      linking mechanism.
+- [ ] **Cross-links:** someday lists show a project chip; habits and
+      day-list tasks show theirs (existing chips); each hops to the
+      project home. Clicking a scheduled task scrolls the day list to
+      it.
+
+### Progress: the Basecamp hill
+
+- [ ] A hill-style progress control: the user drags ONE marker on a
+      small hill -- uphill means "figuring it out", the top means
+      "scope settled", downhill means "executing". No percentage; the
+      hill is the language.
+- [ ] The user sets it by hand (Basecamp's philosophy: the user knows
+      what "done" feels like; stuck near the top for a month is
+      normal, and the app never auto-anything).
+- [ ] **"Mark complete"** is explicit and stamps `completedAt` (which
+      draws the completion note in the day list). Progress never
+      auto-triggers it.
+
+### Milestones in the day list
+
+- [ ] Banner-style notes on the project's dates: "X starts", "X due",
+      "X completed" (same family as the holiday banner, visually
+      distinct).
+- [ ] **Nag on today:** an uncompleted project keeps drawing its
+      due-date note on today ("X was due Oct 12") until it is marked
+      complete.
+
+### Habits with an `until`
+
+- [ ] Natural-language "every day until June 1" parses into an until
+      date; the habit schedule form gains an Until field; the live
+      hint shows it.
+- [ ] Generation stops past the until date (the template model's
+      existing `endDate`; generation already clamps to it -- this is
+      mostly parser + UI work). The habit shows an "ended" state
+      afterwards.
+
+### Removals (v0.9.0 reversals)
+
+- [ ] Remove the Kanban board and its component -- the derived
+      Ready/Scheduled/Done columns die with it (the two-world model
+      replaces them).
+- [ ] Remove Activate and the active/inactive distinction; `isActive`
+      drops from the UI and the schema (the only project states are
+      its dates).
+- [ ] Remove the dependency locks and the blocked-by picker; the
+      `dependsOn` field stays dormant in the model (tested, harmless).
+- [ ] No auto-distribute button; `planProjectDistribution` stays
+      dormant in shared. If spreading a backlog across a due-date
+      window is missed, it can return as an affordance on a project
+      tab.
+
+### Definition of Done
+
+- [ ] Projects gather tasks, habits, and someday lists by tag, with no
+      new task-level fields.
+- [ ] Creating a project creates its someday tab; lists park undated
+      backlog; the scheduling bridge works both directions.
+- [ ] The project home shows the gathered view with hill progress,
+      dates, and creation affordances.
+- [ ] Day-list milestone notes render on start / due / completed
+      dates, and overdue notes nag on today until completed.
+- [ ] Habits parse and display an until date and stop generating past
+      it.
+- [ ] The board, active/inactive, and dependency locks are gone; the
+      removals are recorded in the v0.9.0 section.
 
 ---
 
