@@ -79,6 +79,9 @@ export interface ImportResult {
         /** Holidays restored from a JSON snapshot (0 when the snapshot
          *  predates the entity -- see ExportSnapshot.holidays). */
         holidays: number;
+        /** Day notes restored from a JSON snapshot (0 when the snapshot
+         *  predates v0.10.0 -- see ExportSnapshot.dayNotes). */
+        dayNotes: number;
         /** Preferences are always part of a restore. */
         preferences: true;
     } | null;

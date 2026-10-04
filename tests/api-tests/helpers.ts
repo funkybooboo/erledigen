@@ -136,9 +136,12 @@ const created: Array<{ base: string; kind: string; id: string }> = [];
  *  full HTTP response (status code, envelope shape) post directly and must
  *  register the created id here -- leaked entities pollute every later
  *  test (e.g. leftover schedules auto-materialize into browser tests' day
- *  lists). */
+ *  lists).
+ *
+ *  For day notes the tracked "id" is the DATE (that is the addressable
+ *  key). */
 export function track(
-    kind: 'task' | 'project' | 'recurring' | 'group' | 'holiday',
+    kind: 'task' | 'project' | 'recurring' | 'group' | 'holiday' | 'dayNote',
     id: string,
     base = '',
 ): void {
@@ -218,7 +221,9 @@ export async function cleanup(ctx: APIRequestContext, base = ''): Promise<void> 
                     ? '/api/recurring-tasks'
                     : item.kind === 'holiday'
                       ? '/api/holidays'
-                      : '/api/someday-groups';
+                      : item.kind === 'dayNote'
+                        ? '/api/day-notes'
+                        : '/api/someday-groups';
         await del(ctx, `${pathBase}/${item.id}`, item.base || base).catch(() => {});
     }
 }

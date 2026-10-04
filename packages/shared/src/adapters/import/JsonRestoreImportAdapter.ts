@@ -9,6 +9,7 @@
  * half-restored backup silently violates the lossless contract.
  */
 
+import type { DayNote } from '../../types/dayNote';
 import type { ExportSnapshot } from '../../types/export';
 import type { Holiday } from '../../types/holiday';
 import type { Project } from '../../types/project';
@@ -129,6 +130,14 @@ interface HolidayRow {
     createdAt?: unknown;
 }
 
+interface DayNoteRow {
+    id?: unknown;
+    date?: unknown;
+    notes?: unknown;
+    createdAt?: unknown;
+    updatedAt?: unknown;
+}
+
 function validateHoliday(holiday: unknown, index: number): Holiday {
     const where = `holidays[${index}]`;
     const fail = (msg: string): never => {
@@ -143,6 +152,24 @@ function validateHoliday(holiday: unknown, index: number): Holiday {
     if (typeof h.createdAt !== 'string' || !ISO_TIMESTAMP.test(h.createdAt))
         fail('createdAt must be an ISO 8601 timestamp');
     return holiday as Holiday;
+}
+
+function validateDayNote(dayNote: unknown, index: number): DayNote {
+    const where = `dayNotes[${index}]`;
+    const fail = (msg: string): never => {
+        throw new ImportValidationError(`Invalid snapshot: ${where}: ${msg}`);
+    };
+    if (!isRecord(dayNote)) fail('expected a day note object');
+    const n = dayNote as DayNoteRow;
+    if (typeof n.id !== 'string' || n.id === '') fail('id must be a non-empty string');
+    if (typeof n.date !== 'string' || !ISO_DATE.test(n.date))
+        fail('date must be a yyyy-MM-dd string');
+    if (typeof n.notes !== 'string') fail('notes must be a string');
+    if (typeof n.createdAt !== 'string' || !ISO_TIMESTAMP.test(n.createdAt))
+        fail('createdAt must be an ISO 8601 timestamp');
+    if (typeof n.updatedAt !== 'string' || !ISO_TIMESTAMP.test(n.updatedAt))
+        fail('updatedAt must be an ISO 8601 timestamp');
+    return dayNote as DayNote;
 }
 
 function validateTask(task: unknown, index: number): Task {
@@ -461,6 +488,11 @@ export class JsonRestoreImportAdapter implements ImportAdapter<ExportSnapshot> {
         if (doc.holidays !== undefined && !Array.isArray(doc.holidays)) {
             throw new ImportValidationError('Invalid snapshot: holidays must be an array');
         }
+        // Day notes joined the snapshot in v0.10.0 (same optional-key
+        // rule as holidays: one row per date).
+        if (doc.dayNotes !== undefined && !Array.isArray(doc.dayNotes)) {
+            throw new ImportValidationError('Invalid snapshot: dayNotes must be an array');
+        }
         if (typeof doc.exportedAt !== 'string' || !ISO_TIMESTAMP.test(doc.exportedAt)) {
             throw new ImportValidationError(
                 'Invalid snapshot: exportedAt must be an ISO 8601 timestamp',
@@ -476,6 +508,7 @@ export class JsonRestoreImportAdapter implements ImportAdapter<ExportSnapshot> {
             projects: doc.projects.map(validateProject),
             recurringTasks: doc.recurringTasks.map(validateRecurringTask),
             holidays: (doc.holidays ?? []).map(validateHoliday),
+            dayNotes: (doc.dayNotes ?? []).map(validateDayNote),
             userPreferences: validateUserPreferences(doc.userPreferences),
         };
 
@@ -485,6 +518,7 @@ export class JsonRestoreImportAdapter implements ImportAdapter<ExportSnapshot> {
             ['project', snapshot.projects.map(p => p.id)],
             ['recurringTask', snapshot.recurringTasks.map(r => r.id)],
             ['holiday', snapshot.holidays.map(h => h.id)],
+            ['dayNote', snapshot.dayNotes.map(n => n.date)],
         ] as const) {
             if (new Set(ids).size !== ids.length) {
                 throw new ImportValidationError(`Invalid snapshot: duplicate ${kind} ids`);

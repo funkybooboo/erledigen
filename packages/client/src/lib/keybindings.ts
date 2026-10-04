@@ -48,7 +48,8 @@ export type ShortcutId =
     | 'openCalendar'
     | 'openFilter'
     | 'openTrash'
-    | 'openSettings';
+    | 'openSettings'
+    | 'openNotes';
 
 export interface Shortcut {
     /** One string per alternate way to trigger the action. Each is a
@@ -89,6 +90,7 @@ export const SHORTCUTS: Record<ShortcutId, Shortcut> = {
     openFilter: { bindings: ['g f'], label: 'Filter' },
     openTrash: { bindings: ['g x'], label: 'Trash' },
     openSettings: { bindings: ['g o'], label: 'Settings' },
+    openNotes: { bindings: ['g n'], label: 'Notes' },
 };
 
 /** Section layout for the help modal's shortcut table. */
@@ -131,6 +133,7 @@ export const SHORTCUT_SECTIONS: { title: string; ids: ShortcutId[] }[] = [
             'openProjects',
             'openHabits',
             'openCalendar',
+            'openNotes',
             'openFilter',
             'openTrash',
             'openSettings',

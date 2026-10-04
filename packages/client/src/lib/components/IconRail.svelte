@@ -1,7 +1,18 @@
 <script lang="ts">
     import { uiStore, type ModalType } from '$lib/stores';
     import { Icon } from 'svelte-icons-pack';
-    import { LuCalendar, LuBarChart3, LuRepeat, LuSearch, LuTag, LuTrash2, LuSettings, LuCircleHelp, LuList } from 'svelte-icons-pack/lu';
+    import {
+        LuCalendar,
+        LuBarChart3,
+        LuRepeat,
+        LuSearch,
+        LuStickyNote,
+        LuTag,
+        LuTrash2,
+        LuSettings,
+        LuCircleHelp,
+        LuList,
+    } from 'svelte-icons-pack/lu';
     import { tooltip } from '$lib/tooltip';
     import type { ShortcutId } from '$lib/keybindings';
 
@@ -11,6 +22,7 @@
         { id: 'habits', icon: LuRepeat, label: 'Habits', shortcut: 'openHabits' },
         { id: 'calendar', icon: LuCalendar, label: 'Calendar', shortcut: 'openCalendar' },
         { id: 'search', icon: LuSearch, label: 'Search', shortcut: 'search' },
+        { id: 'notes', icon: LuStickyNote, label: 'Notes', shortcut: 'openNotes' },
         { id: 'filter', icon: LuTag, label: 'Filter', shortcut: 'openFilter' },
         { id: 'trash', icon: LuTrash2, label: 'Trash', shortcut: 'openTrash' },
         { id: 'settings', icon: LuSettings, label: 'Settings', shortcut: 'openSettings' },

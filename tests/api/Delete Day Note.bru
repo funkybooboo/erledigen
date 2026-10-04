@@ -1,0 +1,25 @@
+meta {
+  name: Delete Day Note
+  type: http
+  seq: 133
+}
+
+delete {
+  url: {{baseUrl}}/api/day-notes/2027-10-04
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("should return 200 OK", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+
+  test("should report success", function() {
+    expect(res.getBody().data.success).to.equal(true);
+  });
+}

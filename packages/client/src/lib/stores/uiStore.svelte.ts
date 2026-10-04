@@ -4,6 +4,7 @@ export type ModalType =
     | 'habits'
     | 'calendar'
     | 'search'
+    | 'notes'
     | 'filter'
     | 'trash'
     | 'settings'

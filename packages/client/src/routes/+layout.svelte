@@ -3,6 +3,7 @@
     import { onMount } from 'svelte';
     import {
         connectionStore,
+        dayNoteStore,
         holidayStore,
         preferencesStore,
         projectStore,
@@ -52,6 +53,7 @@
         projectStore.fetchAll();
         someDayGroupStore.fetchAll();
         holidayStore.fetchAll();
+        dayNoteStore.fetchAll();
         taskStore.fetchAll();
         document.querySelector('.app-shell')?.setAttribute('data-hydrated', 'true');
 
@@ -61,6 +63,7 @@
         projectStore.initWebSocket();
         someDayGroupStore.initWebSocket();
         holidayStore.initWebSocket();
+        dayNoteStore.initWebSocket();
         recurringTaskStore.initWebSocket();
 
         // Route uncaught errors through the shared logger so client-side
@@ -89,6 +92,7 @@
             projectStore.destroyWebSocket();
             someDayGroupStore.destroyWebSocket();
             holidayStore.destroyWebSocket();
+            dayNoteStore.destroyWebSocket();
             recurringTaskStore.destroyWebSocket();
         };
     });

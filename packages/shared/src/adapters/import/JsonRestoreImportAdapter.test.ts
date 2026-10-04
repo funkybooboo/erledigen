@@ -104,4 +104,43 @@ describe('JsonRestoreImportAdapter', () => {
         expect(parsed.tasks[0]?.state).toBeNull();
         expect(parsed.tasks[0]?.reminder).toBeNull();
     });
+
+    // -- day notes (v0.10.0) ---------------------------------------------
+
+    const dayNote = {
+        id: 'n1',
+        date: '2026-01-15',
+        notes: '# Margin note\n- buy stamps',
+        createdAt: '2026-01-15T08:00:00.000Z',
+        updatedAt: '2026-01-15T08:00:00.000Z',
+    };
+
+    test('round-trips day notes', () => {
+        const parsed = adapter.import(JSON.stringify(makeSnapshot({ dayNotes: [dayNote] })));
+        expect(parsed.dayNotes).toEqual([dayNote]);
+    });
+
+    test('accepts snapshots that predate day notes (missing key restores as [])', () => {
+        const doc = JSON.parse(JSON.stringify(roundTrippable));
+        delete doc.dayNotes;
+        const parsed = adapter.import(JSON.stringify(doc));
+        expect(parsed.dayNotes).toEqual([]);
+    });
+
+    test('rejects a day note with an invalid date', () => {
+        const bad = makeSnapshot({ dayNotes: [{ ...dayNote, date: '15-01-2026' }] });
+        expect(() => adapter.import(JSON.stringify(bad))).toThrow(/dayNotes\[0\].*date/);
+    });
+
+    test('rejects a day note with non-string notes', () => {
+        const bad = makeSnapshot({
+            dayNotes: [{ ...dayNote, notes: 42 as unknown as string }],
+        });
+        expect(() => adapter.import(JSON.stringify(bad))).toThrow(/dayNotes\[0\].*notes/);
+    });
+
+    test('rejects duplicate day-note dates (one row per date)', () => {
+        const bad = makeSnapshot({ dayNotes: [dayNote, { ...dayNote, id: 'n2' }] });
+        expect(() => adapter.import(JSON.stringify(bad))).toThrow(/duplicate dayNote/);
+    });
 });

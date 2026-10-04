@@ -74,6 +74,23 @@ export const mockPriorityTask: Task = {
     tags: ['p1', 'urgent'],
 };
 
+/** A task with notes -- the has-notes row indicator (v0.10.0). */
+export const mockTaskWithNotes: Task = {
+    ...mockTask,
+    id: '10',
+    text: 'Prepare the talk',
+    notes: 'Structure: hook, three points, close.',
+};
+
+/** A heading task -- the live-markdown title renders "# Morning" as
+ *  a section heading (groundwork for the v0.17.0 in-day sections). */
+export const mockHeadingTask: Task = {
+    ...mockTask,
+    id: '11',
+    text: '# Morning',
+    tags: [],
+};
+
 export const mockTasks: Task[] = [
     mockTask,
     mockCompletedTask,

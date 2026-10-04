@@ -24,6 +24,7 @@ An ADR captures an important architectural decision: what was decided, why, and 
 | [ADR-012](ADR-012-export-snapshot-v2-routines-rename.md) | Export Snapshot Version 2: The Routines Rename (extends ADR-008) | Accepted | 2026-10-04 |
 | [ADR-013](ADR-013-arrival-insertion-manual-sovereignty.md) | Day-List Ordering: Arrival Insertion and Manual Sovereignty (retires the priority sort mode) | Accepted | 2026-10-04 |
 | [ADR-014](ADR-014-scope-boundaries.md) | Deliberate Scope Boundaries: What Erledigen Is Not | Accepted | 2026-10-04 |
+| [ADR-015](ADR-015-safe-by-construction-markdown.md) | Safe-by-Construction Markdown Renderer (No DOMPurify) | Accepted | 2026-10-04 |
 
 ## Creating a New ADR
 

@@ -8,6 +8,7 @@
  * by other tools, but not backups.
  */
 
+import type { DayNote } from './dayNote';
 import type { Holiday } from './holiday';
 import type { Project } from './project';
 import type { RecurringTask } from './recurringTask';
@@ -55,5 +56,9 @@ export interface ExportSnapshot {
      *  entity existed lack this key; the restore adapter reads those
      *  as `[]` (a restore replaces every table -- ADR-009). */
     holidays: Holiday[];
+    /** Day notes, the calendar's margin (v0.10.0). Same optional-key
+     *  rule as holidays: snapshots exported before v0.10.0 lack this
+     *  key and restore with the table emptied. */
+    dayNotes: DayNote[];
     userPreferences: UserPreferences;
 }

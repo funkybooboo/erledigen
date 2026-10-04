@@ -10,6 +10,7 @@ import type { HttpServer } from '../adapters/http/HttpServer';
 import type { HttpResponse } from '../adapters/http/types';
 import type { Container } from '../container';
 import { APP_VERSION } from '../version';
+import { registerDayNoteRoutes } from './dayNoteRoutes';
 import { registerExportRoutes } from './exportRoutes';
 import { registerHealthRoutes, type ServerStatusDeps } from './healthRoutes';
 import { registerHolidayRoutes } from './holidayRoutes';
@@ -72,6 +73,7 @@ export function registerAllRoutes(server: HttpServer, container: Container): voi
         container.eventBus,
         logger,
     );
+    registerDayNoteRoutes(server, container.dayNoteRepository, container.eventBus, logger);
     registerProjectRoutes(
         server,
         container.projectRepository,

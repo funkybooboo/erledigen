@@ -1,5 +1,6 @@
 export { connectionStore } from './connectionStore.svelte';
 export { dateViewStore } from './dateViewStore.svelte';
+export { dayNoteStore } from './dayNoteStore.svelte';
 export { dragStore } from './dragStore.svelte';
 export { holidayStore } from './holidayStore.svelte';
 export { notificationStore } from './notificationStore.svelte';

@@ -1,0 +1,27 @@
+meta {
+  name: Upsert Day Note - Validation Error
+  type: http
+  seq: 129
+}
+
+put {
+  url: {{baseUrl}}/api/day-notes/2027-10-05
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "notes": ""
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("should reject empty notes", function() {
+    expect(res.getStatus()).to.equal(400);
+  });
+}

@@ -1,3 +1,4 @@
+import type { DayNote } from './dayNote';
 import type { Holiday } from './holiday';
 import type { ImportResult } from './import';
 import type { Project } from './project';
@@ -30,6 +31,11 @@ export type WsServerEventMap = {
      *  equivalent of holiday:created (per-row events would flood the
      *  broadcast for a typical yearly calendar). */
     'holidays:imported': { holidays: Holiday[] };
+    'dayNote:created': { dayNote: DayNote };
+    'dayNote:updated': { dayNote: DayNote };
+    /** Day notes are addressed by their DATE, not their internal id --
+     *  the same key the client uses to upsert and delete. */
+    'dayNote:deleted': { date: string };
     'recurringTask:generated': RecurringTaskGeneratedPayload;
     /** Broadcast after a JSON restore replaced ALL application data
      *  (ADR-009): connected clients refetch everything they hold. */
