@@ -51,6 +51,7 @@ describe('runMigrations', () => {
             '004_jobs_table.sql',
             '005_rollover_trigger_time.sql',
             '006_holidays_table.sql',
+            '007_day_notes.sql',
         ]);
     });
 });

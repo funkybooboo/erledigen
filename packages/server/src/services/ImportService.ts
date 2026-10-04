@@ -90,6 +90,7 @@ export class ImportService {
                 projects: snapshot.projects.length,
                 recurringTasks: snapshot.recurringTasks.length,
                 holidays: snapshot.holidays.length,
+                dayNotes: snapshot.dayNotes.length,
                 preferences: true,
             },
             backupPath,

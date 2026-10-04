@@ -7,6 +7,7 @@
 
 import { describe, expect, test } from 'bun:test';
 import { NativeDateProvider } from '@erledigen/shared';
+import { InMemoryDayNoteRepository } from '../adapters/data/InMemoryDayNoteRepository';
 import { InMemoryHolidayRepository } from '../adapters/data/InMemoryHolidayRepository';
 import { InMemoryProjectRepository } from '../adapters/data/InMemoryProjectRepository';
 import { InMemoryRecurringTaskRepository } from '../adapters/data/InMemoryRecurringTaskRepository';
@@ -22,6 +23,7 @@ function makeService() {
     const projectRepo = new InMemoryProjectRepository(dateProvider);
     const recurringTaskRepo = new InMemoryRecurringTaskRepository(dateProvider);
     const holidayRepo = new InMemoryHolidayRepository(dateProvider);
+    const dayNoteRepo = new InMemoryDayNoteRepository(dateProvider);
     const preferencesRepo = new InMemoryUserPreferencesRepository(dateProvider);
     const service = new ExportService(
         taskRepo,
@@ -29,6 +31,7 @@ function makeService() {
         projectRepo,
         recurringTaskRepo,
         holidayRepo,
+        dayNoteRepo,
         preferencesRepo,
         dateProvider,
     );

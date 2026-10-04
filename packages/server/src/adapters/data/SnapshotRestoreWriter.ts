@@ -13,10 +13,12 @@
  */
 
 import type { ExportSnapshot } from '@erledigen/shared';
+import type { DayNoteRepository } from './DayNoteRepository';
 import type { HolidayRepository } from './HolidayRepository';
 import type { ProjectRepository } from './ProjectRepository';
 import type { RecurringTaskRepository } from './RecurringTaskRepository';
 import type { SomeDayGroupRepository } from './SomeDayGroupRepository';
+import type { SqliteDayNoteRepository } from './SqliteDayNoteRepository';
 import type { SqliteHolidayRepository } from './SqliteHolidayRepository';
 import type { SqliteProjectRepository } from './SqliteProjectRepository';
 import type { SqliteRecurringTaskRepository } from './SqliteRecurringTaskRepository';
@@ -44,6 +46,7 @@ export class InMemorySnapshotRestoreWriter implements SnapshotRestoreWriter {
         private readonly projectRepo: ProjectRepository,
         private readonly recurringRepo: RecurringTaskRepository,
         private readonly holidayRepo: HolidayRepository,
+        private readonly dayNoteRepo: DayNoteRepository,
         private readonly prefsRepo: UserPreferencesRepository,
     ) {}
 
@@ -53,6 +56,7 @@ export class InMemorySnapshotRestoreWriter implements SnapshotRestoreWriter {
         await this.projectRepo.replaceAll(snapshot.projects);
         await this.recurringRepo.replaceAll(snapshot.recurringTasks);
         await this.holidayRepo.replaceAll(snapshot.holidays);
+        await this.dayNoteRepo.replaceAll(snapshot.dayNotes);
         await this.prefsRepo.restore(snapshot.userPreferences);
     }
 }
@@ -67,6 +71,7 @@ export class SqliteSnapshotRestoreWriter implements SnapshotRestoreWriter {
         private readonly projectRepo: SqliteProjectRepository,
         private readonly recurringRepo: SqliteRecurringTaskRepository,
         private readonly holidayRepo: SqliteHolidayRepository,
+        private readonly dayNoteRepo: SqliteDayNoteRepository,
         private readonly prefsRepo: SqliteUserPreferencesRepository,
     ) {}
 
@@ -80,6 +85,7 @@ export class SqliteSnapshotRestoreWriter implements SnapshotRestoreWriter {
             this.projectRepo.replaceAllSync(snapshot.projects);
             this.recurringRepo.replaceAllSync(snapshot.recurringTasks);
             this.holidayRepo.replaceAllSync(snapshot.holidays);
+            this.dayNoteRepo.replaceAllSync(snapshot.dayNotes);
             this.prefsRepo.restoreSync(snapshot.userPreferences);
         });
         return Promise.resolve();

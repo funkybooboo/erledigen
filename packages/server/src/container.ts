@@ -30,7 +30,9 @@ import {
 import { FilePreRestoreBackupWriter } from './adapters/backup/FilePreRestoreBackupWriter';
 import { NullPreRestoreBackupWriter } from './adapters/backup/PreRestoreBackupWriter';
 import { EnvConfigProvider } from './adapters/config/EnvConfigProvider';
+import type { DayNoteRepository } from './adapters/data/DayNoteRepository';
 import type { HolidayRepository } from './adapters/data/HolidayRepository';
+import { InMemoryDayNoteRepository } from './adapters/data/InMemoryDayNoteRepository';
 import { InMemoryHolidayRepository } from './adapters/data/InMemoryHolidayRepository';
 import { InMemoryProjectRepository } from './adapters/data/InMemoryProjectRepository';
 import { InMemoryRecurringTaskRepository } from './adapters/data/InMemoryRecurringTaskRepository';
@@ -45,6 +47,7 @@ import {
     SqliteSnapshotRestoreWriter,
 } from './adapters/data/SnapshotRestoreWriter';
 import type { SomeDayGroupRepository } from './adapters/data/SomeDayGroupRepository';
+import { SqliteDayNoteRepository } from './adapters/data/SqliteDayNoteRepository';
 import { SqliteHolidayRepository } from './adapters/data/SqliteHolidayRepository';
 import { SqliteProjectRepository } from './adapters/data/SqliteProjectRepository';
 import { SqliteRecurringTaskRepository } from './adapters/data/SqliteRecurringTaskRepository';
@@ -88,6 +91,7 @@ export class Container {
     private _taskRepository: TaskRepository | null = null;
     private _someDayGroupRepository: SomeDayGroupRepository | null = null;
     private _holidayRepository: HolidayRepository | null = null;
+    private _dayNoteRepository: DayNoteRepository | null = null;
     private _projectRepository: ProjectRepository | null = null;
     private _recurringTaskRepository: RecurringTaskRepository | null = null;
     private _userPreferencesRepository: UserPreferencesRepository | null = null;
@@ -275,6 +279,16 @@ export class Container {
         return this._holidayRepository;
     }
 
+    get dayNoteRepository(): DayNoteRepository {
+        if (!this._dayNoteRepository) {
+            this._dayNoteRepository =
+                this.storageAdapter === 'sqlite'
+                    ? new SqliteDayNoteRepository(this.sqliteConnection.db, this.dateProvider)
+                    : new InMemoryDayNoteRepository(this.dateProvider);
+        }
+        return this._dayNoteRepository;
+    }
+
     get projectRepository(): ProjectRepository {
         if (!this._projectRepository) {
             this._projectRepository =
@@ -361,6 +375,7 @@ export class Container {
                 this.projectRepository,
                 this.recurringTaskRepository,
                 this.holidayRepository,
+                this.dayNoteRepository,
                 this.userPreferencesRepository,
                 this.dateProvider,
             );
@@ -390,6 +405,7 @@ export class Container {
                               this.dateProvider,
                           ),
                           new SqliteHolidayRepository(this.sqliteConnection.db, this.dateProvider),
+                          new SqliteDayNoteRepository(this.sqliteConnection.db, this.dateProvider),
                           new SqliteUserPreferencesRepository(
                               this.sqliteConnection.db,
                               this.dateProvider,
@@ -401,6 +417,7 @@ export class Container {
                           this.projectRepository,
                           this.recurringTaskRepository,
                           this.holidayRepository,
+                          this.dayNoteRepository,
                           this.userPreferencesRepository,
                       );
             this._importService = new ImportService(

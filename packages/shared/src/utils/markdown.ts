@@ -49,10 +49,10 @@ export interface RenderMarkdownOptions {
  *  user text reaches the output -- the security hinge of the design. */
 function escapeHtml(text: string): string {
     return text
-        .replaceAll('&', '&amp;')
-        .replaceAll('<', '&lt;')
-        .replaceAll('>', '&gt;')
-        .replaceAll('"', '&quot;');
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
 }
 
 /** Allowed link schemes; anything else renders as literal text. */

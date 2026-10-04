@@ -34,6 +34,10 @@ export const API_ROUTES = {
     HOLIDAY_BY_ID: (id: string) => `/api/holidays/${id}`,
     HOLIDAY_IMPORT: '/api/holidays/import',
 
+    // Day notes (one per date, upsert-by-date)
+    DAY_NOTES: '/api/day-notes',
+    DAY_NOTE_BY_DATE: (date: string) => `/api/day-notes/${date}`,
+
     // Projects
     PROJECTS: '/api/projects',
     PROJECT_BY_ID: (id: string) => `/api/projects/${id}`,
@@ -78,6 +82,7 @@ export const API_ROUTES = {
     RECURRING_TASK_STATS_PATTERN: '/api/recurring-tasks/:id/stats',
     SOMEDAY_GROUP_ROUTE_PATTERN: '/api/someday-groups/:id',
     HOLIDAY_ROUTE_PATTERN: '/api/holidays/:id',
+    DAY_NOTE_ROUTE_PATTERN: '/api/day-notes/:date',
 } as const;
 
 export const TASK_DEFAULTS = {

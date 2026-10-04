@@ -3,6 +3,7 @@
  */
 
 import type {
+    DayNote,
     Holiday,
     Project,
     RecurringTask,
@@ -58,6 +59,21 @@ export function formatRecurringTasksAsText(tasks: RecurringTask[]): string {
 export function formatHolidaysAsText(holidays: Holiday[]): string {
     if (holidays.length === 0) return 'No holidays found.';
     return holidays.map(h => `${h.date}  ${h.name}`).join('\n');
+}
+
+/** Day notes render as `date` then the note indented beneath it --
+ *  the margin under its heading. */
+export function formatDayNotesAsText(dayNotes: DayNote[]): string {
+    if (dayNotes.length === 0) return 'No day notes found.';
+    return dayNotes
+        .map(
+            n =>
+                `${n.date}\n${n.notes
+                    .split('\n')
+                    .map(line => `  ${line}`)
+                    .join('\n')}`,
+        )
+        .join('\n');
 }
 
 export function formatTagsAsText(tags: string[]): string {

@@ -1,0 +1,21 @@
+meta {
+  name: Get Day Note - Not Found
+  type: http
+  seq: 131
+}
+
+get {
+  url: {{baseUrl}}/api/day-notes/2099-01-01
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 404
+}
+
+tests {
+  test("should return 404 for a date with no note", function() {
+    expect(res.getStatus()).to.equal(404);
+  });
+}

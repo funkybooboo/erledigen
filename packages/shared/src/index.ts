@@ -92,10 +92,15 @@ export {
     ValidationError,
 } from './errors/AppError';
 export type { ApiResponse, ErrorResponseBody } from './types/api';
+// Types
+export type {
+    DayNote,
+    DayNoteUpsertResult,
+    UpsertDayNoteInput,
+} from './types/dayNote';
 // Types - export/import contract (ADR-008, ADR-009)
 export type { ExportFormat, ExportSnapshot } from './types/export';
 export { EXPORT_FORMAT_META, EXPORT_FORMATS } from './types/export';
-// Types
 export type { CreateHolidayInput, Holiday, UpdateHolidayInput } from './types/holiday';
 export type {
     CsvColumnMapping,

@@ -16,6 +16,7 @@ import {
     JsonExportAdapter,
     MarkdownExportAdapter,
 } from '@erledigen/shared';
+import type { DayNoteRepository } from '../adapters/data/DayNoteRepository';
 import type { HolidayRepository } from '../adapters/data/HolidayRepository';
 import type { ProjectRepository } from '../adapters/data/ProjectRepository';
 import type { RecurringTaskRepository } from '../adapters/data/RecurringTaskRepository';
@@ -40,6 +41,7 @@ export class ExportService {
         private readonly projectRepo: ProjectRepository,
         private readonly recurringTaskRepo: RecurringTaskRepository,
         private readonly holidayRepo: HolidayRepository,
+        private readonly dayNoteRepo: DayNoteRepository,
         private readonly preferencesRepo: UserPreferencesRepository,
         private readonly dateProvider: DateProvider,
     ) {}
@@ -53,6 +55,7 @@ export class ExportService {
             projects,
             recurringTasks,
             holidays,
+            dayNotes,
             userPreferences,
         ] = await Promise.all([
             this.taskRepo.findAll(),
@@ -61,6 +64,7 @@ export class ExportService {
             this.projectRepo.findAll(),
             this.recurringTaskRepo.findAll(),
             this.holidayRepo.findAll(),
+            this.dayNoteRepo.findAll(),
             this.preferencesRepo.get(),
         ]);
         return {
@@ -72,6 +76,7 @@ export class ExportService {
             projects,
             recurringTasks,
             holidays,
+            dayNotes,
             userPreferences,
         };
     }
