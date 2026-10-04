@@ -27,7 +27,10 @@ green).
 - **Not started:** v0.10.0 (live markdown notes), v0.13.0 (i18n),
   v0.14.0 (calendar time-grid), v0.15.0 (2026-10-03 UX audit),
   v0.16.0 (projects as umbrellas: someday tabs/lists, hill progress,
-  day-list milestone notes, habits `until`; designed 2026-10-04).
+  day-list milestone notes; designed 2026-10-04), v0.17.0 (routines:
+  full rename from habits/recurring, NL grammar overhaul + controls
+  blend, routine order + time-driven day-list insertion, user
+  sections; designed 2026-10-04).
 - **UX audit (2026-10-03, extended same day):** twenty-seven findings
   from a self-review of the shipped app (raw notes in
   [issues.md](issues.md)) are tracked in the v0.15.0 section below. Two reverse shipped decisions: the `/`
@@ -1064,6 +1067,10 @@ v0.10.0, v0.11.0).
 
 ### Recurring Tasks / Habits
 
+(2026-10-04: absorbed into v0.17.0 -- "Routines" -- which renames
+the concept end to end and records the design that supersedes these
+findings. The items below are the historical findings.)
+
 - [ ] **Delete semantics:** removing a recurring task must leave the
       already-completed instances in the past and remove the rest
       (future and incomplete instances). Today deletion keeps every
@@ -1228,8 +1235,9 @@ Never a second home for tasks.
 ### The model: two worlds, one umbrella
 
 - **The tag is the join key.** Every member of a project already has
-  tags: tasks (`Task.tags`), habits (`RecurringTask.tags`), someday
-  lists (`SomeDayGroup.tag`). A project owns its tag; anything
+  tags: tasks (`Task.tags`), routines (`Routine.tags` -- the entity
+  renamed from RecurringTask by v0.17.0), someday lists
+  (`SomeDayGroup.tag`). A project owns its tag; anything
   carrying it is gathered into the project's view. No new task-level
   fields, no stages, no board.
 - **Backlog world vs. calendar world.** Undated work parks in someday
@@ -1263,9 +1271,9 @@ Never a second home for tasks.
 
 - [ ] **Gathered view, Fizzy-grade:** Backlog (the project's undated
       tasks grouped by their someday lists), Scheduled (dated tasks as
-      a compact strip grouped by day), Habits (the project's habits
-      with streaks; ended habits show their until), Done (count +
-      recent).
+      a compact strip grouped by day), Routines (the project's
+      routines with streaks; ended routines show their until -- built
+      in v0.17.0), Done (count + recent).
 - [ ] **Metadata row:** start / due / completed dates (premium inline
       controls) + the hill progress control + "Mark complete".
 - [ ] **Create from the project:** "+ add task" (undated, auto-tagged,
@@ -1299,15 +1307,11 @@ Never a second home for tasks.
       due-date note on today ("X was due Oct 12") until it is marked
       complete.
 
-### Habits with an `until`
+### Routines with an `until` -- moved to v0.17.0
 
-- [ ] Natural-language "every day until June 1" parses into an until
-      date; the habit schedule form gains an Until field; the live
-      hint shows it.
-- [ ] Generation stops past the until date (the template model's
-      existing `endDate`; generation already clamps to it -- this is
-      mostly parser + UI work). The habit shows an "ended" state
-      afterwards.
+> The until item moved to v0.17.0 ("Routines"), which owns the
+> routine model, its naming, and the parser that reads until
+> phrases. v0.17.0 builds it as part of the routine control set.
 
 ### Removals (v0.9.0 reversals)
 
@@ -1334,10 +1338,136 @@ Never a second home for tasks.
       dates, and creation affordances.
 - [ ] Day-list milestone notes render on start / due / completed
       dates, and overdue notes nag on today until completed.
-- [ ] Habits parse and display an until date and stop generating past
-      it.
 - [ ] The board, active/inactive, and dependency locks are gone; the
-      removals are recorded in the v0.9.0 section.
+      removals are recorded in the v0.9.0 section. (The routine
+      `until` shipped by v0.17.0 rather than here.)
+
+---
+
+## v0.17.0: Routines
+
+**Status:** Designed 2026-10-04 (from living with the shipped habits /
+recurring split; all decisions recorded from that conversation).
+Queued after v0.16.0. Absorbs the v0.15.0 "Recurring Tasks / Habits"
+findings and pulls the `until` item in from v0.16.0. One decision
+drives everything: the feature has ONE name, everywhere --
+**routines**.
+
+A routine is any repeat you live with: "water the plants every mon
+and wed at 8am", "pay rent monthly", "study every weekday until the
+exam". The word fits the until semantics (a routine ends) and the
+project umbrella (projects gather routines by tag). "Habit" and
+"recurring task" both die as user-visible words -- they were never
+two things.
+
+### One name: routines everywhere
+
+- [ ] **Full rename, one deliberate breaking pass** (pre-1.0, so now
+      is the cheap time): entity `RecurringTask` -> `Routine`; routes
+      `/api/recurring-tasks` -> `/api/routines` (including adopt,
+      generate, generate-all, stats); the task field
+      `recurringTaskId` -> `routineId`; WS events
+      `recurringTask:generated` -> `routine:generated`; stores,
+      services, components, stories, e2e specs, Bruno files, and
+      user docs all follow. The Habits modal becomes the Routines
+      modal; "Make recurring" becomes "Make routine".
+- [ ] **Storage migration:** rename `recurring_tasks` -> `routines`,
+      `recurring_task_stats` -> `routine_stats`, and
+      `tasks.recurring_task_id` -> `tasks.routine_id`.
+- [ ] **Export snapshot v2 (ADR-008):** `recurringTasks` -> `routines`
+      and `recurringTaskId` -> `routineId` bump the snapshot version
+      to 2; the restore path accepts BOTH v1 and v2 so existing
+      backups keep restoring.
+
+### The grammar (NL, higher quality)
+
+- [ ] **Tags compose:** `#tags` and the recurrence phrase parse
+      together in any order ("water plants #home every mon and wed"
+      == "water plants every mon and wed #home") -- the tags land on
+      the template and its instances.
+- [ ] New phrases: "until <date>" (ends the routine), "starting
+      <date>", "twice a day", multiple times ("at 9am and 5pm" --
+      the model grows `times[]` from a single startTime; one instance
+      generated per time), "the first/last <weekday> of the month",
+      "biweekly", "quarterly", time ranges ("4 to 5pm" -- instances
+      carry startTime + endTime), and richer day lists.
+- [ ] The parser stays trailing-only, built as ordered anchored
+      regexes, fully unit-tested (the Bun backtracking rule from
+      code-standards.md).
+
+### The blend: NL and controls, one surface
+
+- [ ] Type NL; the manual controls auto-populate and stay editable;
+      touching any control rewrites the text to the canonical
+      phrase; the live hint always shows the understood schedule.
+      The words and the controls can never disagree.
+
+### The Routines modal (minimalistic, powerful, easy)
+
+- [ ] Rebuild as an orderable list of routine cards (drag sets the
+      routine order): name, canonical schedule, streak, paused/ended
+      state. Creation is NL-first with the blend form.
+- [ ] The detail carries the heatmap, trimmed stats (the v0.15.0
+      finding: no instance count, no empty stats for fresh routines),
+      and the full control set:
+- [ ] **Until date** ("until June 1" parses; the schedule form gains
+      an Until field; generation stops past it; an "ended" state
+      shows afterwards).
+- [ ] **Pause/resume:** generation stops while paused; existing
+      instances stay real tasks; resume continues. Same semantics as
+      ended, but manual and reversible.
+- [ ] **Editable start date** (affects future generation only).
+- [ ] **Richer monthly rules:** first/last weekday of the month.
+- [ ] **Per-occurrence edits made obvious:** instances are real
+      tasks; changing one day's occurrence never touches the template
+      -- surface that affordance instead of leaving it implicit.
+- [ ] **Schedule edits offer to reshape future instances:** editing a
+      routine's schedule offers to delete uncompleted future instances
+      and regenerate them on the new schedule; completed history is
+      never touched.
+- [ ] Delete keeps past completed instances and removes the rest
+      (future + incomplete) -- the v0.15.0 finding.
+
+### From the day list
+
+- [ ] The recurrence icon on a task row is clickable: opens the
+      Routines modal at that routine's detail -- the v0.15.0 finding.
+- [ ] From the detail, jump to the routine's instances on days (the
+      way back).
+
+### Day-list ordering: automated insertion, manual sovereignty
+
+- [ ] **Routine order drives arrival order:** the drag order in the
+      Routines modal positions freshly generated routine instances on
+      a day, relative to each other.
+- [ ] **Time drives insertion:** a task created with a time slots in
+      by time among the day's timed tasks; tasks without a time land at the
+      bottom. (Both apply to ARRIVALS only.)
+- [ ] **Manual wins and sticks:** once you drag a row, that day's
+      placement is yours -- nothing reorders itself continuously.
+      Automation only ever positions arrivals, never existing rows.
+- [ ] **User-defined sections:** a task whose text starts with
+      `# ` (e.g. "# Morning") renders as a section header inside the
+      day -- the same syntax as the v0.10.0 live-markdown titles --
+      and carries its own inline add beneath it. Sections and tasks
+      are one manual sequence; a task belongs to the section above it
+      by position. Tags are `#word` with no space, so "# Morning" can
+      never collide with tagging.
+
+### Definition of Done
+
+- [ ] One word: no user-visible "habit" or "recurring task" remains;
+      the codebase, API, storage, and export all say routine.
+- [ ] Old (v1) JSON backups still restore on the renamed model.
+- [ ] NL covers every grammar form above and composes with tags; the
+      blend keeps words and controls in agreement.
+- [ ] Routine order + time drive arrival placement; manual drags
+      stick; `# ` section tasks render as headers with inline add.
+- [ ] The row icon opens the routine detail; instance jumps work both
+      directions.
+- [ ] Routines have until, pause, editable start date, monthly rules,
+      multi-times, and schedule edits that offer to reshape the
+      future.
 
 ---
 
