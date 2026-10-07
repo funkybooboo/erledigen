@@ -176,9 +176,18 @@ step "Merging when the required checks pass"
 if gh pr merge "$BRANCH_NAME" --squash --delete-branch --auto >/dev/null 2>&1; then
     note "auto-merge enabled -- merging as soon as the checks pass"
 else
-    note "auto-merge is not enabled -- watching checks, then merging"
-    gh pr checks "$BRANCH_NAME" --watch >/dev/null 2>&1 || true
-    gh pr merge "$BRANCH_NAME" --squash --delete-branch
+    note "auto-merge is not enabled -- waiting for the checks, then merging"
+    # gh pr checks --watch can exit before the run is even scheduled (a
+    # zero-check instant exit), so poll until every check has a verdict
+    # or the PR merges -- never merge while checks are still pending.
+    for _ in $(seq 1 120); do # 120 x 15s = 30 minutes
+        STATE="$(gh pr view "$BRANCH_NAME" --json state --jq .state 2>/dev/null || true)"
+        [ "$STATE" = "MERGED" ] && break
+        PENDING="$(gh pr checks "$BRANCH_NAME" 2>/dev/null | grep -cE 'pending|queued|in progress' || true)"
+        [ "$PENDING" = "0" ] && break
+        sleep 15
+    done
+    gh pr merge "$BRANCH_NAME" --squash --delete-branch || true
 fi
 
 # CI (e2e + api + build + storybook) takes minutes even when green --
