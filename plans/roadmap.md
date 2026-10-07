@@ -13,8 +13,9 @@ This document outlines the development roadmap for Erledigen. We use semantic ve
   `bun.lock`, and the runtime `version.ts` stamp together. (2026-10-04:
   `main` is branch-protected -- PRs and required CI, no direct
   pushes -- so the release commit itself goes through a PR and the
-  tag lands on its merge commit, as `v0.10.0` did; `tools/release.sh`
-  still assumes the old push-to-main flow and needs the update.)
+  tag lands on its merge commit, as `v0.10.0` did; 2026-10-06:
+  `tools/release.sh` now automates exactly that flow end to end,
+  including the CHANGELOG.md section and the GitHub Release.)
 - **Shipped complete:** v0.1.0, v0.2.0, v0.3.0, v0.4.0, v0.4.1, v0.5.0,
   v0.6.0, v0.7.0, v0.8.0, v0.9.0, v0.10.0.
 - **Shipped with v0.10.0 (2026-10-04, released as tag `v0.10.0`):**

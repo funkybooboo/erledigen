@@ -170,7 +170,7 @@ description = "Bump the version everywhere: major | minor | patch | X.Y.Z (tools
 run = "tools/update-version.sh"
 
 [tasks.release]
-description = "Cut a release: gates + version bump + commit + tag. Args: [--full] [--push] <bump> (tools/release.sh)"
+description = "Cut a release via PR: gates + bump + CHANGELOG + merge + tag + GitHub Release. Args: [--full] [--yes] <bump> (tools/release.sh)"
 run = "tools/release.sh"
 
 # -- Maintenance ----------------------------------------------------------------
