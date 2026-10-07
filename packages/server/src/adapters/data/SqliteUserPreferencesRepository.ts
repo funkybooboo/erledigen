@@ -18,6 +18,7 @@ import type { UserPreferencesRepository } from './UserPreferencesRepository';
 interface PreferencesRow {
     id: string;
     theme: string;
+    accent: string;
     locale: string;
     some_day_panel_width: number;
     some_day_panel_collapsed: number;
@@ -38,6 +39,7 @@ function mapPreferencesRow(row: PreferencesRow): UserPreferences {
     return {
         id: 'default',
         theme: row.theme as UserPreferences['theme'],
+        accent: row.accent as UserPreferences['accent'],
         locale: row.locale,
         someDayPanelWidth: row.some_day_panel_width,
         someDayPanelCollapsed: toBoolean(row.some_day_panel_collapsed),
@@ -70,7 +72,7 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
         const row = this.db
             .prepare(
                 `
-                SELECT id, theme, locale, some_day_panel_width,
+                SELECT id, theme, accent, locale, some_day_panel_width,
                        some_day_panel_collapsed, some_day_panel_last_open_width,
                        rollover_enabled, rollover_trigger_time, show_empty_days,
                        delete_confirmation,
@@ -108,15 +110,16 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
             .prepare(
                 `
                 INSERT INTO user_preferences
-                    (id, theme, locale, some_day_panel_width,
+                    (id, theme, accent, locale, some_day_panel_width,
                      some_day_panel_collapsed, some_day_panel_last_open_width,
                      rollover_enabled, rollover_trigger_time, show_empty_days,
                      delete_confirmation,
                      active_filters, tag_kinds, tag_kind_map, time_format,
                      timezone, updated_at)
-                VALUES ('default', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES ('default', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     theme = excluded.theme,
+                    accent = excluded.accent,
                     locale = excluded.locale,
                     some_day_panel_width = excluded.some_day_panel_width,
                     some_day_panel_collapsed = excluded.some_day_panel_collapsed,
@@ -135,6 +138,7 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
             )
             .run(
                 prefs.theme,
+                prefs.accent,
                 prefs.locale,
                 prefs.someDayPanelWidth,
                 toInteger(prefs.someDayPanelCollapsed),
@@ -161,8 +165,11 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
      *  (ADR-009) -- see SqliteTaskRepository.replaceAllSync. */
     restoreSync(prefs: UserPreferences): void {
         // Verbatim write of the snapshot's preferences, updatedAt included
-        // (update() stamps a fresh timestamp; a restore must not).
-        this.write({ ...prefs });
+        // (update() stamps a fresh timestamp; a restore must not). The one
+        // normalization: a pre-v0.11.0 snapshot has no accent field, and
+        // the column is NOT NULL -- fill the default instead of writing
+        // an SQL NULL (same idea as the activeFilters shape fill).
+        this.write({ ...prefs, accent: prefs.accent ?? 'blue' });
     }
 
     async reset(): Promise<void> {

@@ -42,6 +42,7 @@ function makeUserPreferences(): UserPreferences {
     return {
         id: 'default',
         theme: 'system',
+        accent: 'blue',
         locale: 'en',
         someDayPanelWidth: 280,
         someDayPanelCollapsed: false,

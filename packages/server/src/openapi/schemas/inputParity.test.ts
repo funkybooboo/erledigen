@@ -211,6 +211,7 @@ describe('user preferences schema', () => {
     test('UpdateUserPreferencesSchema keeps every UpdateUserPreferencesInput field', () => {
         const sample: Required<UpdateUserPreferencesInput> = {
             theme: 'system',
+            accent: 'blue',
             locale: 'en',
             someDayPanelWidth: 280,
             someDayPanelCollapsed: false,

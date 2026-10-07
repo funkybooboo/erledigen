@@ -1,4 +1,5 @@
 import type {
+    AccentSchemeId,
     ActiveFilters,
     DeleteConfirmationType,
     RolloverTriggerTime,
@@ -30,6 +31,7 @@ type SavablePreferences = Omit<UserPreferences, 'id' | 'updatedAt' | 'someDayPan
 class PreferencesStore {
     id = $state('default');
     theme = $state<ThemeType>('system');
+    accent = $state<AccentSchemeId>('blue');
     locale = $state('en');
     someDayPanelWidth = $state<number>(USER_PREFERENCES_DEFAULTS.someDayPanelWidth);
     someDayPanelLastOpenWidth = $state<number>(USER_PREFERENCES_DEFAULTS.someDayPanelLastOpenWidth);
@@ -89,6 +91,7 @@ class PreferencesStore {
             const prefs = await preferencesService.get();
             this.id = prefs.id;
             this.theme = prefs.theme;
+            this.accent = prefs.accent ?? 'blue';
             this.locale = prefs.locale;
             this.someDayPanelWidth = prefs.someDayPanelWidth;
             this.someDayPanelLastOpenWidth =
@@ -148,6 +151,10 @@ class PreferencesStore {
 
     setTheme(theme: ThemeType) {
         void this.save({ theme });
+    }
+
+    setAccent(accent: AccentSchemeId) {
+        void this.save({ accent });
     }
 
     setPanelWidth(width: number) {

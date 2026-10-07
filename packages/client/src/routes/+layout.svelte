@@ -100,6 +100,12 @@
     $effect(() => {
         applyTheme(preferencesStore.theme);
     });
+
+    // The accent scheme reskins the accent token family (USE-3); it is
+    // independent of light/dark, so it rides its own attribute + effect.
+    $effect(() => {
+        document.documentElement.setAttribute('data-accent', preferencesStore.accent);
+    });
 </script>
 
 <svelte:window onkeydown={handleGlobalKeydown} />

@@ -63,6 +63,7 @@ export { NullMetricsAdapter } from './adapters/metrics/NullMetricsAdapter';
 export { PrometheusMetricsAdapter } from './adapters/metrics/PrometheusMetricsAdapter';
 // Constants
 export {
+    ACCENT_SCHEMES,
     API_ROUTES,
     CONTENT_TYPE_TEXT,
     DEFAULT_RATE_LIMIT_RPM,
@@ -134,6 +135,7 @@ export {
     isValidTimeString,
 } from './types/task';
 export type {
+    AccentSchemeId,
     ActiveFilters,
     DeleteConfirmationType,
     RolloverTriggerTime,

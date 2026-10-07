@@ -43,7 +43,8 @@ export class InMemoryUserPreferencesRepository implements UserPreferencesReposit
         this.preferences = {
             ...prefs,
             // Snapshots restored from older exports can predate the later
-            // filter fields; normalize so the stored shape is always full.
+            // fields; normalize so the stored shape is always full.
+            accent: prefs.accent ?? 'blue',
             activeFilters: normalizeActiveFilters(prefs.activeFilters),
             tagKinds: [...prefs.tagKinds],
             tagKindMap: { ...prefs.tagKindMap },

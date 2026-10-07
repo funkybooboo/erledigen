@@ -91,6 +91,7 @@ export function formatPreferencesAsText(prefs: UserPreferences): string {
     // tag-kind blobs (tagKinds/tagKindMap) stay in the JSON response only.
     return [
         `theme: ${prefs.theme}`,
+        `accent: ${prefs.accent}`,
         `locale: ${prefs.locale}`,
         `timeFormat: ${prefs.timeFormat}`,
         `timezone: ${prefs.timezone ?? 'system'}`,
