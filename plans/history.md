@@ -539,11 +539,11 @@ canceled/deleted rows landing in the trash.
 ### Storage
 - [x] **I/O Abstraction Layer:** Solidify the adapter pattern so the application core is independent of the data source. (Repository interfaces live in `packages/shared`; services never touch SQL -- verified 2026-10-03.)
 - [x] **In-Memory Adapter:** Already exists; keep for testing and ephemeral sessions. (`STORAGE_ADAPTER=memory`; drives the shared adapter contract tests and the e2e stack.)
-- [x] **SQLite Adapter:** Implement a file-based SQLite adapter as the first real persistence layer (see [ADR-001](../docs/devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md)).
+- [x] **SQLite Adapter:** Implement a file-based SQLite adapter as the first real persistence layer (see [ADR-001](../docs/build/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md)).
     - Zero-config for self-hosted use: single `.db` file on disk (`./data/erledigen.db`, configurable via `DB_PATH`).
-    - Raw SQL via `bun:sqlite` -- no ORM (see [ADR-001](../docs/devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md)).
+    - Raw SQL via `bun:sqlite` -- no ORM (see [ADR-001](../docs/build/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md)).
     - JSON columns for `tags[]`, `reminder`, nested objects -- repository handles `JSON.parse`/`JSON.stringify` at the boundary.
-    - Schema migrations via raw SQL files (see [ADR-003](../docs/devs/architecture/decisions/ADR-003-raw-sql-migrations.md)): sequentially-numbered `.sql` files, forward-only, lightweight runner (~50 LOC).
+    - Schema migrations via raw SQL files (see [ADR-003](../docs/build/architecture/decisions/ADR-003-raw-sql-migrations.md)): sequentially-numbered `.sql` files, forward-only, lightweight runner (~50 LOC).
     - Supports all entities: tasks, sub-tasks, Someday groups, projects, recurring tasks, `UserPreferences`.
     - Indexes on `tasks(date)`, `tasks(some_day_group_id)`, `tasks(parent_id)`, `tasks(recurring_task_id)`, `tasks(deleted_at)`.
 - [x] **Configuration:** Select adapter via environment variable (`STORAGE_ADAPTER=sqlite|memory`, default: `sqlite`; Playwright/test runs force `memory`).
@@ -559,7 +559,7 @@ canceled/deleted rows landing in the trash.
     - All behavioral toggles (rollover, completion animation, delete confirmation, etc.)
 
 ### Structured Logging
-- [x] **JSON log format:** Upgrade `ConsoleLogger` to emit structured JSON when `LOG_FORMAT=json` (production default), human-readable text when `LOG_FORMAT=text` (development default) (see [ADR-004](../docs/devs/architecture/decisions/ADR-004-structured-json-logging.md)).
+- [x] **JSON log format:** Upgrade `ConsoleLogger` to emit structured JSON when `LOG_FORMAT=json` (production default), human-readable text when `LOG_FORMAT=text` (development default) (see [ADR-004](../docs/build/architecture/decisions/ADR-004-structured-json-logging.md)).
 - [x] **Request ID middleware:** Generate a `requestId` (UUID) per HTTP request. Attach to all logs in that request's scope via child logger pattern. Return as `X-Request-Id` response header.
 - [x] **Request duration logging:** Log method, path, status code, and duration in ms for every HTTP request.
 - [x] **Job-scoped logging:** Background jobs log with `jobId` and `jobType` in context.
@@ -567,7 +567,7 @@ canceled/deleted rows landing in the trash.
 - [x] **Error logging:** Errors always include `error.message` and `error.stack` in structured context.
 
 ### Metrics
-- [x] **`MetricsAdapter` interface** in `packages/shared/src/adapters/metrics/` (see [ADR-005](../docs/devs/architecture/decisions/ADR-005-prometheus-metrics.md)).
+- [x] **`MetricsAdapter` interface** in `packages/shared/src/adapters/metrics/` (see [ADR-005](../docs/build/architecture/decisions/ADR-005-prometheus-metrics.md)).
 - [x] **`PrometheusMetricsAdapter`:** In-memory counters, gauges, and histograms. Renders Prometheus text format on `/api/metrics`.
 - [x] **`NullMetricsAdapter`:** No-op implementation for tests and `METRICS_ENABLED=false`.
 - [x] **HTTP request metrics:** `erledigen_http_requests_total` (counter by method, path, status), `erledigen_http_request_duration_seconds` (histogram by method, path), `erledigen_http_requests_active` (gauge by method).
@@ -580,7 +580,7 @@ canceled/deleted rows landing in the trash.
 - [x] **Enhanced `/api/health`:** Rich response including `version`, `uptime`, `database` (type, path, size), `connections` (websocket count), `jobs` (pending, running counts).
 
 ### Export
-- [x] **JSON** -- canonical format; lossless round-trip. All entities included (see [ADR-008](../docs/devs/architecture/decisions/ADR-008-export-format-stability.md)).
+- [x] **JSON** -- canonical format; lossless round-trip. All entities included (see [ADR-008](../docs/build/architecture/decisions/ADR-008-export-format-stability.md)).
 - [x] **CSV** -- flat task list; configurable columns (text, date, tags, priority, completed, notes).
 - [x] **Markdown** -- task list as `- [ ] text #tags` per line, grouped by date.
 - [x] **iCal / .ics** -- tasks with `startTime`/`endTime` exported as VEVENT; all-day tasks as all-day VEVENT.
@@ -597,23 +597,23 @@ canceled/deleted rows landing in the trash.
 - [x] **`ImportAdapter<T>`** interface in `packages/shared` -- implement one adapter per format.
 
 ### Technical Notes & Considerations
-- SQLite via `bun:sqlite` (built into Bun -- no extra dependency). No ORM -- raw SQL per [ADR-001](../docs/devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md).
-- Migrations are forward-only raw SQL files per [ADR-003](../docs/devs/architecture/decisions/ADR-003-raw-sql-migrations.md). No `down()` migrations -- fix-forward is the policy.
+- SQLite via `bun:sqlite` (built into Bun -- no extra dependency). No ORM -- raw SQL per [ADR-001](../docs/build/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md).
+- Migrations are forward-only raw SQL files per [ADR-003](../docs/build/architecture/decisions/ADR-003-raw-sql-migrations.md). No `down()` migrations -- fix-forward is the policy.
 - Keep PostgreSQL adapter for v2.3.0 when multi-user auth is added. Same repository interfaces, different SQL implementations.
 - The JSON export format is documented and stable -- users can rely on it for backups.
 - Import UI: a file picker in Settings > Import/Export with format selection and column mapping for CSV.
 - All import adapters are tested with real export files from the source apps.
 - `Logger` interface stays the same -- `ConsoleLogger` implementation gains JSON output. Child logger pattern adds context without changing the interface.
-- OTEL SDK is deferred to v2.x (see [ADR-004](../docs/devs/architecture/decisions/ADR-004-structured-json-logging.md)). The current `Logger` interface is OTEL-compatible.
+- OTEL SDK is deferred to v2.x (see [ADR-004](../docs/build/architecture/decisions/ADR-004-structured-json-logging.md)). The current `Logger` interface is OTEL-compatible.
 
 ### Documentation & ADRs
-- [ADR-001](../docs/devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md): SQLite with raw SQL (no ORM)
-- [ADR-003](../docs/devs/architecture/decisions/ADR-003-raw-sql-migrations.md): Raw SQL migration files (forward-only)
-- [ADR-004](../docs/devs/architecture/decisions/ADR-004-structured-json-logging.md): Structured JSON logging & request tracing
-- [ADR-005](../docs/devs/architecture/decisions/ADR-005-prometheus-metrics.md): Prometheus-compatible metrics endpoint
-- [ADR-008](../docs/devs/architecture/decisions/ADR-008-export-format-stability.md): export format stability commitment (JSON as canonical).
-- [ADR-009](../docs/devs/architecture/decisions/ADR-009-import-semantics.md): import semantics (destructive JSON restore, additive task imports, upsert-by-id rejected).
-- User docs: export guide ([export.md](../docs/users/export.md)) and import guide ([import.md](../docs/users/import.md)).
+- [ADR-001](../docs/build/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md): SQLite with raw SQL (no ORM)
+- [ADR-003](../docs/build/architecture/decisions/ADR-003-raw-sql-migrations.md): Raw SQL migration files (forward-only)
+- [ADR-004](../docs/build/architecture/decisions/ADR-004-structured-json-logging.md): Structured JSON logging & request tracing
+- [ADR-005](../docs/build/architecture/decisions/ADR-005-prometheus-metrics.md): Prometheus-compatible metrics endpoint
+- [ADR-008](../docs/build/architecture/decisions/ADR-008-export-format-stability.md): export format stability commitment (JSON as canonical).
+- [ADR-009](../docs/build/architecture/decisions/ADR-009-import-semantics.md): import semantics (destructive JSON restore, additive task imports, upsert-by-id rejected).
+- User docs: export guide ([export.md](../docs/use/export.md)) and import guide ([import.md](../docs/use/import.md)).
 - Dev docs: `ExportAdapter` and `ImportAdapter` interface contracts (architecture.md adapter section + ADR-008).
 
 ### Security Considerations
@@ -651,7 +651,7 @@ wins. Recurring instances never roll (their occurrence date is fixed
 by `instanceDate`; missed-habit handling belongs to streaks).
 
 ### Background Job System
-- [x] **`JobQueue` interface** in `packages/server/src/adapters/jobs/` (see [ADR-002](../docs/devs/architecture/decisions/ADR-002-sqlite-backed-job-queue.md)).
+- [x] **`JobQueue` interface** in `packages/server/src/adapters/jobs/` (see [ADR-002](../docs/build/architecture/decisions/ADR-002-sqlite-backed-job-queue.md)).
 - [x] **`SqliteJobQueue` implementation:** SQLite-backed persistent job queue (same database as application data). An `InMemoryJobQueue` serves `STORAGE_ADAPTER=memory` runs; a shared contract suite keeps the two in parity.
 - [x] **`JobRunner` service:** Polls for pending jobs every 1 second (configurable via `JOB_POLL_INTERVAL_MS`). Processes jobs sequentially (single worker, concurrency=1).
 - [x] **Job types:** `rollover`, `purge-deleted` (`generate-recurring` intentionally stays on-demand, not a job; `send-reminder` stubbed for v2.2.0).
@@ -685,14 +685,14 @@ by `instanceDate`; missed-habit handling belongs to streaks).
 - [x] **Streak tracking:** Current/longest streak and total completions shown as badges in the Habits modal (the GitHub-style heatmap shipped with the v0.9.0 habit detail view).
 
 ### Technical Notes & Considerations
-- Job queue is SQLite-backed per [ADR-002](../docs/devs/architecture/decisions/ADR-002-sqlite-backed-job-queue.md). Same database, `jobs` table.
+- Job queue is SQLite-backed per [ADR-002](../docs/build/architecture/decisions/ADR-002-sqlite-backed-job-queue.md). Same database, `jobs` table.
 - `rrule.js` for recurring date generation.
 - Streak calculation: check if yesterday's instance was completed when today's is completed.
 - All automation logic has unit tests written before implementation.
-- Job metrics are exposed via `/api/metrics` (see [ADR-005](../docs/devs/architecture/decisions/ADR-005-prometheus-metrics.md)): `erledigen_jobs_total`, `erledigen_job_duration_seconds`, `erledigen_jobs_pending`, `erledigen_jobs_running`.
+- Job metrics are exposed via `/api/metrics` (see [ADR-005](../docs/build/architecture/decisions/ADR-005-prometheus-metrics.md)): `erledigen_jobs_total`, `erledigen_job_duration_seconds`, `erledigen_jobs_pending`, `erledigen_jobs_running`.
 
 ### Documentation & ADRs
-- [ADR-002](../docs/devs/architecture/decisions/ADR-002-sqlite-backed-job-queue.md): SQLite-backed job queue
+- [ADR-002](../docs/build/architecture/decisions/ADR-002-sqlite-backed-job-queue.md): SQLite-backed job queue
 
 ### Definition of Done
 - [x] `JobQueue` interface and `SqliteJobQueue` implementation tested.
@@ -829,7 +829,7 @@ rows gain a has-notes indicator.
   marked+DOMPurify would add ~60 KB raw; the SSR app needs identical
   server/client output, which DOMPurify (a DOM library) cannot give
   without jsdom; and the required grammar is six constructs. See
-  [ADR-015](../docs/devs/architecture/decisions/ADR-015-safe-by-construction-markdown.md).)
+  [ADR-015](../docs/build/architecture/decisions/ADR-015-safe-by-construction-markdown.md).)
 - ~~`DOMPurify` for sanitization.~~ (Superseded by the same ADR-015:
   escape-first construction.)
 - XSS sanitization tested with adversarial inputs as part of TDD.

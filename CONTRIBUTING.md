@@ -6,13 +6,13 @@ in the app before you spend time on it.
 
 ## Getting set up
 
-Start with the [Getting Started guide](./docs/devs/process/getting-started.md) -- it covers tooling (mise, bun, docker) and how to run the app and the test suites. The client runs at `http://localhost:3000`, the server at `http://localhost:4000`.
+Start with the [Getting Started guide](./docs/build/process/getting-started.md) -- it covers tooling (mise, bun, docker) and how to run the app and the test suites. The client runs at `http://localhost:3000`, the server at `http://localhost:4000`.
 
 ## How we work
 
-*   Read the [code standards](./docs/devs/standards/code-standards.md) and the [testing standards](./docs/devs/standards/testing.md) before writing code -- both record traps that have shipped real bugs.
-*   Conventional Commits, short-lived branches, squash-merged pull requests: see the [git workflow](./docs/devs/standards/git-workflow.md).
-*   Architecture decisions are immutable ADRs: see the [architecture doc](./docs/devs/architecture/architecture.md).
+*   Read the [code standards](./docs/build/standards/code-standards.md) and the [testing standards](./docs/build/standards/testing.md) before writing code -- both record traps that have shipped real bugs.
+*   Conventional Commits, short-lived branches, squash-merged pull requests: see the [git workflow](./docs/build/standards/git-workflow.md).
+*   Architecture decisions are immutable ADRs: see the [architecture doc](./docs/build/architecture/architecture.md).
 
 ## Pull requests
 

@@ -30,4 +30,4 @@ mise run test-api
 
 ## Learn More
 
-To learn more about our testing strategy and how we use Bruno, check out the [**Testing**](../../docs/devs/standards/testing.md) documentation.
+To learn more about our testing strategy and how we use Bruno, check out the [**Testing**](../../docs/build/standards/testing.md) documentation.

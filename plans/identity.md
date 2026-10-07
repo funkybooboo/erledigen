@@ -9,10 +9,10 @@ ADR that supersedes ADR-010, not an edit here.
 Erledigen is an **automated paper calendar** -- a day list you write
 by hand, plus an engine that fills in everything that recurs and never
 moves your handwriting. Recorded as
-[ADR-010](../docs/devs/architecture/decisions/ADR-010-automated-paper-calendar.md);
+[ADR-010](../docs/build/architecture/decisions/ADR-010-automated-paper-calendar.md);
 the adjacent-concept verdicts (no time grid, people as tags, no docs
 subsystem, modals as lenses) are
-[ADR-014](../docs/devs/architecture/decisions/ADR-014-scope-boundaries.md).
+[ADR-014](../docs/build/architecture/decisions/ADR-014-scope-boundaries.md).
 Every feature obeys these rules:
 
 1. One home per task -- a day or a someday list, never a modal.

@@ -1,4 +1,6 @@
-# Developer Documentation
+# Build
+
+For developers -- how to work on erledigen itself.
 
 ## Start Here
 

@@ -12,16 +12,16 @@ these pointers accurate.
 
 ## Start here
 
-- Doc index: [docs/devs/README.md](docs/devs/README.md)
+- Doc index: [docs/build/README.md](docs/build/README.md)
 - Workflow -- `wt` worktrees, branches, pull requests, commit rules:
-  [docs/devs/standards/git-workflow.md](docs/devs/standards/git-workflow.md)
+  [docs/build/standards/git-workflow.md](docs/build/standards/git-workflow.md)
 - How everything runs (mise tasks, docker stacks, ports):
   [mise.toml](mise.toml), [README.md](README.md),
-  [docs/devs/process/getting-started.md](docs/devs/process/getting-started.md)
+  [docs/build/process/getting-started.md](docs/build/process/getting-started.md)
 - Test layers and how to run them: [tests/README.md](tests/README.md)
-- Conventions: [code-standards.md](docs/devs/standards/code-standards.md) and
-  [testing.md](docs/devs/standards/testing.md)
-- Architecture and ADRs: [architecture.md](docs/devs/architecture/architecture.md)
+- Conventions: [code-standards.md](docs/build/standards/code-standards.md) and
+  [testing.md](docs/build/standards/testing.md)
+- Architecture and ADRs: [architecture.md](docs/build/architecture/architecture.md)
   (ADRs are immutable; a new decision gets a new ADR)
 
 ## Read before working in an area
