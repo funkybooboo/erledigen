@@ -1,0 +1,28 @@
+name: Story proposal
+description: Propose work -- every change must serve one of the three roles
+labels: ['story-proposal']
+body:
+    - type: dropdown
+      id: role
+      attributes:
+          label: Which role does this serve?
+          options:
+              - App user -- I use the day list (USE-)
+              - Operator -- I run an instance (HOST-)
+              - Developer -- I build on the code (BUILD-)
+      validations:
+          required: true
+    - type: textarea
+      id: problem
+      attributes:
+          label: The problem today
+          description: What cannot be done, or what hurts, as that role.
+      validations:
+          required: true
+    - type: textarea
+      id: proposal
+      attributes:
+          label: What you propose
+          description: The shape of the fix, if you have one. Stories that get accepted become files in plans/stories/ (ADR-017).
+      validations:
+          required: false

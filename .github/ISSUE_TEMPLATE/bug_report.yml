@@ -1,0 +1,37 @@
+name: Bug report
+description: Something is broken -- in the app, while hosting it, or in the code
+labels: ['bug']
+body:
+    - type: dropdown
+      id: role
+      attributes:
+          label: Where did it break?
+          options:
+              - Using the app (day list, modals, input)
+              - Hosting an instance (install, upgrade, backup, monitoring)
+              - Working on the code (build, tests, API)
+      validations:
+          required: true
+    - type: textarea
+      id: what-happened
+      attributes:
+          label: What happened?
+          description: What you did, what you expected, what happened instead.
+      validations:
+          required: true
+    - type: textarea
+      id: reproduction
+      attributes:
+          label: Steps to reproduce
+          placeholder: |
+              1. ...
+              2. ...
+      validations:
+          required: false
+    - type: textarea
+      id: environment
+      attributes:
+          label: Environment
+          description: Version (Settings -> About or /api/health), how you run it (compose, Kubernetes, local dev), browser if relevant.
+      validations:
+          required: false
