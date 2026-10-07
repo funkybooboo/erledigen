@@ -864,3 +864,97 @@ rows gain a has-notes indicator.
 
 ---
 
+## v0.10.1: Platform and roles
+
+The platform milestone: the repo learns to serve all three roles --
+app user, operator, developer -- instead of only the developer. The
+license, the plans, the deployment substrate, and the docs each take
+a role-shaped form.
+
+**Status:** COMPLETE (2026-10-07, released as tag `v0.10.1`). Five
+decisions preceded the build -- AGPL-3.0-only (ADR-016), stories as
+the unit of work (ADR-017), the deployment architecture (ADR-018:
+GHCR images, compose canonical, Helm for k8s), no tracking anywhere
+(ADR-019), docs by role (ADR-020) -- and the whole arc shipped in
+one day (PRs #44-#51).
+
+- [x] **License clarity (BUILD-1):** AGPL-3.0-only -- the full
+      LICENSE text, REUSE.toml SPDX declarations, the README badge
+      and section, the package.json license field. Honest open
+      source with network-use copyleft; dual licensing stays open to
+      the sole author (ADR-016).
+- [x] **Story-first plans (BUILD-2):** plans/ restructures into
+      identity.md (the constitution), roadmap.md (the queue),
+      history.md (this record), and one file per story in stories/
+      with USE-/HOST-/BUILD- role prefixes; commitlint enforces a
+      `Story: <ID>` footer on every commit (chore(release) exempt),
+      and the PR template and role issue templates follow
+      (ADR-017).
+- [x] **Docs by role (USE-1):** docs/use (app users), docs/host
+      (operators -- install, configuration, upgrade,
+      backup/restore, monitoring), docs/build (developers), each
+      with a README routing the role in; CONTRIBUTING.md stays at
+      the repo root; the README points each role at its home
+      (ADR-020).
+- [x] **Install from published images (HOST-1):** publish-images.yml
+      pushes erledigen-server and erledigen-client to GHCR on every
+      release tag plus a floating `latest`; compose.prod.yaml pulls
+      them, so the operator path starts with a pull, not a git
+      clone.
+- [x] **Kubernetes via Helm (HOST-2):** the in-repo chart
+      (deploy/helm/erledigen) ships the server Deployment + PVC,
+      the client Deployment, an Ingress routing /api and /ws to the
+      server and / to the client, probes, and resource hints. The
+      single-replica constraint is documented honestly: SQLite on a
+      PVC, WebSocket in-process, jobs in-app -- scale-out is the
+      v2.x architecture, not a values tweak (ADR-018).
+- [x] **Graceful shutdown (HOST-3):** SIGTERM (and SIGINT) stops the
+      job runner, stops accepting connections, drains in-flight
+      requests, closes every WebSocket, closes SQLite, exits 0 --
+      container restarts and rollouts never drop a request or tear
+      a socket mid-write.
+- [x] **Liveness + readiness (HOST-4):** /healthz answers "the
+      process is alive" (cheap, no dependency checks), /readyz
+      answers "dependencies reachable" (a SQLite SELECT 1; 503
+      pauses traffic without restarting the process); both are
+      registered in the OpenAPI so route parity enforces them, and
+      the human-oriented /api/health stays untouched.
+- [x] **The operator runbooks (HOST-5 through HOST-8):** docs/host
+      carries the upgrade path (pull the new tag, restart,
+      migrations apply at boot fail-fast, verify with /api/health),
+      backup and restore (both layers: the SQLite volume and the
+      ADR-008 JSON snapshot, with the pre-restore safety backup),
+      the configuration reference (every env var, its default, what
+      it does, and which container consumes it), and the monitoring
+      hookup (a Prometheus scrape of /api/metrics, /healthz for
+      uptime monitors, METRICS_ENABLED=false as the off switch).
+
+### Technical Notes & Considerations
+
+- The Helm chart deploys the server with a Recreate strategy:
+  SQLite on a PVC cannot take two writers, so a rolling update
+  would briefly stack two replicas against the same volume
+  (ADR-018).
+- Release mechanics grew with the milestone: tools/release.sh now
+  cuts a release end to end through a PR -- bump every manifest and
+  the CHANGELOG section, PR, auto-merge, tag the merge commit,
+  GitHub Release -- and the tag fires publish-images.yml to GHCR.
+  The first run tripped on `gh pr checks --watch` exiting instantly
+  while checks were still unscheduled; the poll-until-verdict fix
+  followed (PR #51).
+- The trail, for the record: ADR-016..020 and the license swap
+  (#44), plans as stories (#45), docs by role (#46), commitlint and
+  templates (#47), the host platform (#48), close-out (#49), the
+  release (#50).
+
+### Definition of Done
+
+- [x] All eleven v0.10.1 stories done: BUILD-1, BUILD-2, USE-1,
+      HOST-1 through HOST-8.
+- [x] Released as tag `v0.10.1` -- the first CHANGELOG section, and
+      the first release cut end to end by the PR-based release.sh.
+- [x] Every role has a home: the operator installs from a pull, the
+      app user reads docs/use, the developer works story-first.
+
+---
+

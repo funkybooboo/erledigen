@@ -8,17 +8,16 @@ The queue. Versions are the release cadence; stories are the work
 
 ## Where we stand (2026-10-07)
 
-- Package version tracks the LAST SHIPPED milestone: `0.10.0` since
-  the `v0.10.0` release. Releases go through PRs (main is
+- Package version tracks the LAST SHIPPED milestone: `0.10.1` since
+  the `v0.10.1` release. Releases go through PRs (main is
   branch-protected) via `tools/release.sh`, which also writes the
   CHANGELOG section and creates the GitHub Release.
-- Shipped complete: v0.1.0 through v0.10.0 (the full record, with the
+- Shipped complete: v0.1.0 through v0.10.1 (the full record, with the
   as-built notes, lives in [history.md](./history.md)).
-- **v0.10.1 (Platform and roles) is ACTIVE** -- the milestone that
-  makes the repo serve all three roles: AGPL-3.0-only (ADR-016),
-  stories as the unit of work (ADR-017), the deployment architecture
-  (ADR-018: GHCR images, compose canonical, Helm for k8s), no
-  tracking anywhere (ADR-019), docs by role (ADR-020).
+- **v0.11.0 (Theming and customization) is NEXT** -- the Theme modal
+  on the icon rail, accent schemes, tag colors and management,
+  animations, and the remaining preferences: the calendar gets its
+  own look (USE-2 through USE-8).
 - Policy: numeric order -- always complete the lowest incomplete
   version before starting anything higher. The recorded exceptions
   stand: the v0.14.0 time grid is deferred (ADR-014) and the polish
@@ -26,23 +25,7 @@ The queue. Versions are the release cadence; stories are the work
 
 ---
 
-## v0.10.1: Platform and roles (ACTIVE)
-
-| Story | What it earns | Status |
-|-------|---------------|--------|
-| [BUILD-1](./stories/BUILD-1-know-the-license.md) | License clarity (AGPL-3.0-only, ADR-016) | done |
-| [BUILD-2](./stories/BUILD-2-work-story-first.md) | Story-first plans + enforced linkage (ADR-017) | done |
-| [USE-1](./stories/USE-1-docs-for-my-role.md) | docs/use, docs/host, docs/build (ADR-020) | done |
-| [HOST-1](./stories/HOST-1-install-from-images.md) | Install from published images (GHCR) | done |
-| [HOST-2](./stories/HOST-2-run-on-kubernetes.md) | Kubernetes via Helm chart | done |
-| [HOST-3](./stories/HOST-3-graceful-shutdown.md) | Restarts without dropped requests | done |
-| [HOST-4](./stories/HOST-4-liveness-readiness.md) | Distinct liveness + readiness | done |
-| [HOST-5](./stories/HOST-5-upgrade-runbook.md) | A boring upgrade path | done |
-| [HOST-6](./stories/HOST-6-backup-restore-runbook.md) | Backup + restore, documented | done |
-| [HOST-7](./stories/HOST-7-configuration-reference.md) | Every knob in one table | done |
-| [HOST-8](./stories/HOST-8-monitoring-hookup.md) | Monitoring hookup docs | done |
-
-## v0.11.0: Theming and customization
+## v0.11.0: Theming and customization (NEXT)
 
 [USE-2 theme modal](./stories/USE-2-theme-modal.md),
 [USE-3 accent schemes](./stories/USE-3-accent-schemes.md),
