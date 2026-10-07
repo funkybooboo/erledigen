@@ -163,7 +163,7 @@ The docker test stack (`compose.test.yaml`) is fully self-contained: no bind mou
 | `mise run clean` | Remove all build artifacts, caches, and node_modules (`tools/clean-repo.sh`; `-n` for a dry run) |
 | `mise run ci` | Full local CI mirror -- mirrors GitHub Actions, fully dockerized tests (`tools/ci.sh`) |
 | `mise run update-version` | Bump the version in all four package.json files + bun.lock: `major` / `minor` / `patch` / `X.Y.Z` (`tools/update-version.sh`) |
-| `mise run release` | Cut a release: quality gates + version bump + release commit + annotated tag (`tools/release.sh`; `--full` adds the dockerized integration suite, `--push` pushes) |
+| `mise run release` | Cut a release through a PR: quality gates + version bump + CHANGELOG section, then a tag on the merge commit + the GitHub Release (`tools/release.sh`; `--full` adds the dockerized integration suite) |
 | `mise run doctor` | Pre-flight environment check: tool pins, cross-file version sync (mise.toml/Dockerfile/bun.lock), docker, ports, repo state (`tools/doctor.sh`) |
 | `mise run update-deps` | Update dependencies the safe way (per-workspace `bun update`; `--fresh` re-resolves the lockfile to pull transitive fixes; gates after) (`tools/update-deps.sh`) |
 | `mise run changelog` | Generate release notes from the commit log; `--write` prepends the section to CHANGELOG.md (`tools/changelog.sh`) |

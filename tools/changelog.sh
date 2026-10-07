@@ -9,6 +9,9 @@
 #   tools/changelog.sh                     latest tag..HEAD
 #   tools/changelog.sh <from> [<to>]       any refs (tags, shas, HEAD)
 #   tools/changelog.sh --write [...]       prepend the section to CHANGELOG.md
+#   tools/changelog.sh --title <t> [...]    force the section title (used by
+#                                          release.sh, which knows the
+#                                          version before the tag exists)
 #
 # Examples:
 #   tools/changelog.sh                     notes since the last tag
@@ -20,16 +23,22 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 WRITE=0
+TITLE_OVERRIDE=""
 REFS=()
-for arg in "$@"; do
-    case "$arg" in
+while [ $# -gt 0 ]; do
+    case "$1" in
         --write) WRITE=1 ;;
+        --title)
+            shift
+            TITLE_OVERRIDE="${1:?--title needs a value}"
+            ;;
         -h | --help)
             sed -n '2,17p' "$0" | sed 's/^# \{0,1\}//'
             exit 0
             ;;
-        *) REFS+=("$arg") ;;
+        *) REFS+=("$1") ;;
     esac
+    shift
 done
 
 FROM="${REFS[0]:-}"
@@ -55,7 +64,12 @@ fi
 # -- resolve title, date, compare link ----------------------------------------
 
 TITLE="$(git -C "$REPO_ROOT" describe --tags --exact-match "$TO" 2>/dev/null || true)"
-if [ -z "$TITLE" ]; then
+if [ -n "$TITLE_OVERRIDE" ]; then
+    # release.sh knows the version before any tag exists -- it passes the
+    # title explicitly and the section is dated today.
+    TITLE="$TITLE_OVERRIDE"
+    DATE="$(date +%Y-%m-%d)"
+elif [ -z "$TITLE" ]; then
     TITLE="Unreleased"
     DATE="$(date +%Y-%m-%d)"
 else
