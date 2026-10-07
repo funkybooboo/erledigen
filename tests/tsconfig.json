@@ -1,0 +1,29 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "ESNext",
+        "lib": ["ES2022", "DOM"],
+        "moduleResolution": "bundler",
+        "paths": {
+            "@erledigen/shared": ["../packages/shared/src/index.ts"]
+        },
+        "skipLibCheck": true,
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noFallthroughCasesInSwitch": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "types": ["node"],
+        "noImplicitOverride": true,
+        "noPropertyAccessFromIndexSignature": true,
+        "allowUnusedLabels": false,
+        "allowUnreachableCode": false,
+        "exactOptionalPropertyTypes": true,
+        "useUnknownInCatchVariables": true,
+        "noUncheckedIndexedAccess": true,
+        "noImplicitReturns": true,
+        "forceConsistentCasingInFileNames": true
+    },
+    "include": ["api-tests/**/*.ts", "e2e/**/*.ts", "../playwright.config.ts"]
+}

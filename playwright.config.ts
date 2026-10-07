@@ -14,18 +14,18 @@ import { defineConfig, devices } from '@playwright/test';
  * `bun run test:e2e:api`     -> api only
  * `bun run test:e2e:ui`      -> e2e only
  */
-const CHROMIUM = process.env.PLAYWRIGHT_CHROMIUM ?? '/usr/bin/chromium';
-const BUNDLED_CHROMIUM = process.env.PLAYWRIGHT_USE_BUNDLED_CHROMIUM === '1';
-const API_BASE_URL = process.env.PLAYWRIGHT_API_BASE_URL ?? 'http://localhost:4000';
-const E2E_BASE_URL = process.env.PLAYWRIGHT_E2E_BASE_URL ?? 'http://localhost:3000';
-const NO_SERVER = process.env.PLAYWRIGHT_NO_SERVER === '1';
+const CHROMIUM = process.env['PLAYWRIGHT_CHROMIUM'] ?? '/usr/bin/chromium';
+const BUNDLED_CHROMIUM = process.env['PLAYWRIGHT_USE_BUNDLED_CHROMIUM'] === '1';
+const API_BASE_URL = process.env['PLAYWRIGHT_API_BASE_URL'] ?? 'http://localhost:4000';
+const E2E_BASE_URL = process.env['PLAYWRIGHT_E2E_BASE_URL'] ?? 'http://localhost:3000';
+const NO_SERVER = process.env['PLAYWRIGHT_NO_SERVER'] === '1';
 
 export default defineConfig({
     testDir: './tests',
     fullyParallel: false,
     workers: 1,
-    forbidOnly: !!process.env.CI,
-    retries: process.env.CI ? 1 : 0,
+    forbidOnly: !!process.env['CI'],
+    retries: process.env['CI'] ? 1 : 0,
     timeout: 60_000,
     expect: { timeout: 15_000 },
     reporter: [['list']],
@@ -90,7 +90,7 @@ export default defineConfig({
                   {
                       command: 'bun run --cwd packages/client dev',
                       port: 3000,
-                      reuseExistingServer: !process.env.CI,
+                      reuseExistingServer: !process.env['CI'],
                       timeout: 120_000,
                   },
               ],

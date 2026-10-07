@@ -10,9 +10,7 @@ test.afterEach(async ({ request }) => {
 
 /** An empty-snapshot restore: leaves the shared in-memory test server
  *  clean without tracking server-created ids. */
-async function restoreEmpty(
-    request: Parameters<typeof get>[0],
-): Promise<void> {
+async function restoreEmpty(request: Parameters<typeof get>[0]): Promise<void> {
     const prefs = (await get(request, '/api/preferences')).body.data as Record<string, unknown>;
     const res = await postText(
         request,
@@ -37,7 +35,7 @@ test.describe('import -- POST /api/import (ADR-009)', () => {
     }) => {
         const keepText = uniq('import-restore-keeps');
         const dropText = uniq('import-restore-drops');
-        const keep = await post(request, '/api/tasks', {
+        await post(request, '/api/tasks', {
             text: keepText,
             date: '2026-03-14',
             tags: ['p1'],
@@ -60,11 +58,7 @@ test.describe('import -- POST /api/import (ADR-009)', () => {
             userPreferences: { ...snapshot.userPreferences, theme: 'dark' },
         };
 
-        const res = await postText(
-            request,
-            '/api/import?format=json',
-            JSON.stringify(modified),
-        );
+        const res = await postText(request, '/api/import?format=json', JSON.stringify(modified));
         expect(res.status).toBe(200);
         expect(res.body.data.mode).toBe('restore');
         expect(res.body.data.restored.tasks).toBe(modified.tasks.length);
@@ -89,16 +83,20 @@ test.describe('import -- POST /api/import (ADR-009)', () => {
         const text = uniq('import-rejects');
         const task = await post(request, '/api/tasks', { text, date: null });
 
-        const bad = await postText(request, '/api/import?format=json', JSON.stringify({
-            format: 'erledigen-export',
-            version: 2, // unsupported version
-            exportedAt: '2026-01-01T00:00:00.000Z',
-            tasks: [],
-            someDayGroups: [],
-            projects: [],
-            recurringTasks: [],
-            userPreferences: {},
-        }));
+        const bad = await postText(
+            request,
+            '/api/import?format=json',
+            JSON.stringify({
+                format: 'erledigen-export',
+                version: 2, // unsupported version
+                exportedAt: '2026-01-01T00:00:00.000Z',
+                tasks: [],
+                someDayGroups: [],
+                projects: [],
+                recurringTasks: [],
+                userPreferences: {},
+            }),
+        );
         expect(bad.status).toBe(400);
         expect(bad.body.code).toBe('IMPORT_ERROR');
 
@@ -171,14 +169,12 @@ test.describe('import -- POST /api/import (ADR-009)', () => {
 
         const after = await get(request, '/api/tasks');
         // Existing task untouched, additive rows present.
-        expect(after.body.data.some((t: { text: string }) => t.text === existingText)).toBe(
-            true,
-        );
+        expect(after.body.data.some((t: { text: string }) => t.text === existingText)).toBe(true);
         const top = after.body.data.find((t: { tags: string[] }) => t.tags.includes('errands'));
         expect(top.tags).toEqual(expect.arrayContaining(['errands', 'home', 'p2']));
         expect(top.startTime).toBe('17:00');
         const sub = after.body.data.find(
-            (t: { text: string }) => t.parentId === top.id,
+            (t: { text: string; parentId: string }) => t.parentId === top.id,
         );
         expect(sub).toBeDefined();
     });
@@ -243,20 +239,14 @@ test.describe('import -- POST /api/import (ADR-009)', () => {
         const after = await get(request, '/api/tasks');
         const done = after.body.data.find((t: { text: string }) => t.text === titles.done);
         expect(done.completed).toBe(true);
-        const someday = after.body.data.find(
-            (t: { text: string }) => t.text === titles.someday,
-        );
+        const someday = after.body.data.find((t: { text: string }) => t.text === titles.someday);
         expect(someday.date).toBeNull();
         expect(someday.notes).toContain('Deadline: 2026-12-31');
         // Canceled lands in the trash, restorable.
-        const canceled = after.body.data.find(
-            (t: { text: string }) => t.text === titles.canceled,
-        );
+        const canceled = after.body.data.find((t: { text: string }) => t.text === titles.canceled);
         expect(canceled).toBeUndefined();
         const trash = await get(request, '/api/tasks/trash');
-        const trashed = trash.body.data.find(
-            (t: { text: string }) => t.text === titles.canceled,
-        );
+        const trashed = trash.body.data.find((t: { text: string }) => t.text === titles.canceled);
         expect(trashed).toBeDefined();
     });
 
@@ -305,11 +295,7 @@ test.describe('import -- POST /api/import (ADR-009)', () => {
         const text = uniq('csv-mapped');
         const csv = ['idea,when', `${text},2026-04-02`, ''].join('\r\n');
         // "idea" -> text (col 0), "when" -> date (col 1)
-        const res = await postText(
-            request,
-            '/api/import?format=csv&mapping=text:0,date:1',
-            csv,
-        );
+        const res = await postText(request, '/api/import?format=csv&mapping=text:0,date:1', csv);
         expect(res.status).toBe(200);
         expect(res.body.data.created).toBe(1);
         const after = await get(request, '/api/tasks');

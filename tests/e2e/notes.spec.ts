@@ -6,10 +6,10 @@
  * day-list day-note surface and the modal are exercised in the browser.
  */
 
+import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
 import { cleanup, createTask, track, uniq } from '../api-tests/helpers';
 import { dayISO, hydrated, modal, SERVER_URL, todayISO } from './util';
-import type { Page } from '@playwright/test';
 
 test.afterEach(async ({ request }) => {
     await cleanup(request, SERVER_URL);
@@ -241,9 +241,7 @@ test.describe('the Notes modal -- a lens over every note', () => {
         await taskEntry.locator('.hop-btn').click();
         const detail = modal(page, 'Task Details');
         await expect(detail).toBeVisible();
-        await expect(detail.locator('.notes-editor .md-root p')).toHaveText(
-            'the edited task note',
-        );
+        await expect(detail.locator('.notes-editor .md-root p')).toHaveText('the edited task note');
     });
 
     test('empty state: no notes anywhere explains where notes live', async ({ page }) => {

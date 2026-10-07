@@ -7,7 +7,7 @@ test.afterEach(async ({ request }) => {
 });
 
 test.describe('task CRUD through the UI', () => {
-    test('create a task in today\'s section via the inline input', async ({ page }) => {
+    test("create a task in today's section via the inline input", async ({ page }) => {
         const text = uniq('UiCreated');
         const input = await todayInput(page);
         await input.fill(text);
@@ -47,7 +47,11 @@ test.describe('task CRUD through the UI', () => {
     test('inline edit changes the task text and persists', async ({ page }) => {
         const original = uniq('UiEditOrig');
         const edited = uniq('UiEditDone');
-        const task = await createTask(page.request, { text: original, date: todayISO() }, SERVER_URL);
+        const task = await createTask(
+            page.request,
+            { text: original, date: todayISO() },
+            SERVER_URL,
+        );
         await hydrated(page);
         const row = page.locator('.task-row', { hasText: original }).first();
         await row.locator('.task-text').click();
@@ -111,12 +115,16 @@ test.describe('task CRUD through the UI', () => {
         await tagsInput.fill('#e2e, #work');
         await modalEl.getByRole('button', { name: 'Save', exact: true }).click();
         // Save closes the modal and PATCHes; the server reflects the tags.
-        await expect.poll(async () => {
-            const r = await page.request.get(`${SERVER_URL}/api/tasks/${task.id}`);
-            return (await r.json()).data.tags;
-        }).toEqual(['#e2e', '#work']);
+        await expect
+            .poll(async () => {
+                const r = await page.request.get(`${SERVER_URL}/api/tasks/${task.id}`);
+                return (await r.json()).data.tags;
+            })
+            .toEqual(['#e2e', '#work']);
         // Tag chip renders on the row after the store re-syncs.
-        await expect(page.locator('.task-row', { hasText: text }).locator('.tag-chip', { hasText: '#e2e' })).toBeVisible();
+        await expect(
+            page.locator('.task-row', { hasText: text }).locator('.tag-chip', { hasText: '#e2e' }),
+        ).toBeVisible();
     });
 });
 test.describe('delete confirmation preference', () => {

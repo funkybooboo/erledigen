@@ -79,9 +79,7 @@ test.describe('Calendar modal', () => {
             .poll(async () => {
                 const box = await section.boundingBox();
                 const viewport = page.viewportSize();
-                return (
-                    !!box && !!viewport && box.y >= 0 && box.y + box.height <= viewport.height
-                );
+                return !!box && !!viewport && box.y >= 0 && box.y + box.height <= viewport.height;
             })
             .toBe(true);
     });

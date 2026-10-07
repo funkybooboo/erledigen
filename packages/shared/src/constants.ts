@@ -97,7 +97,9 @@ export const RECURRING_TASK_DEFAULTS = {
 } as const;
 
 export const PURGE_RETENTION_DAYS = 7;
-export const DEFAULT_RATE_LIMIT_RPM = 300;
+/** Matches the compose stacks' default (600) so bare `bun src/index.ts`
+ *  runs behave like containerized ones; override with RATE_LIMIT_RPM. */
+export const DEFAULT_RATE_LIMIT_RPM = 600;
 
 /** Habit heatmap (GitHub-style year grid) geometry. The window is
  *  53 weeks: the widest grid a calendar year can render (a year

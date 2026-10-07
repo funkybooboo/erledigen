@@ -15,12 +15,12 @@
     "dependencies": {
         "@erledigen/shared": "workspace:*",
         "@asteasolutions/zod-to-openapi": "^8.5.0",
-        "@types/bun": "latest",
         "js-yaml": "^4.3.2",
         "zod": "^4.5.4"
     },
     "devDependencies": {
+        "@types/bun": "^1.4.0",
         "@types/js-yaml": "^4.0.9",
-        "typescript": "^5.9.3"
+        "typescript": "^6.0.3"
     }
 }

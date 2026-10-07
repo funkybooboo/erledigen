@@ -2,7 +2,7 @@
 # Build the docker images for a stack WITHOUT starting anything.
 #
 # tools/build.sh builds the app packages locally (bun + vite, outputs under
-# packages/*/dist and packages/client/build). This script is the other half:
+# packages/server/dist and packages/client/build). This script is the other half:
 # it builds the container images from the multi-stage Dockerfile via the
 # compose files. Useful to pre-warm the image cache (a cold test-stack build
 # takes 10+ minutes) or to verify a Dockerfile change without booting a stack.

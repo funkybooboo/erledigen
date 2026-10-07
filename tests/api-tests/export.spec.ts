@@ -36,9 +36,7 @@ test.describe('export -- GET /api/export (ADR-008)', () => {
         expect(exported.text).toBe('Export spec task');
     });
 
-    test('json: includes soft-deleted tasks (the backup keeps the trash)', async ({
-        request,
-    }) => {
+    test('json: includes soft-deleted tasks (the backup keeps the trash)', async ({ request }) => {
         const task = await createTask(request, { text: 'Trash me for export', date: '2026-01-15' });
         await del(request, `/api/tasks/${task.id}`);
 

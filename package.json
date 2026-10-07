@@ -21,11 +21,12 @@
         "spellcheck": "cspell lint .",
         "check-links": "lychee --config lychee.toml .",
         "scan-secrets": "gitleaks detect --source . --config .gitleaks.toml --no-banner --redact",
-        "type-check": "bun run type-check:shared && bun run type-check:server && bun run type-check:client",
+        "type-check": "bun run type-check:shared && bun run type-check:server && bun run type-check:client && bun run type-check:tests",
         "check:svelte": "bun run --cwd packages/client check:svelte",
         "type-check:client": "bun run --cwd packages/client type-check",
         "type-check:server": "bunx tsc --noEmit -p packages/server/tsconfig.json",
         "type-check:shared": "bunx tsc --noEmit -p packages/shared/tsconfig.json",
+        "type-check:tests": "bunx tsc --noEmit -p tests/tsconfig.json",
         "validate": "bun run check:ci && bun run type-check",
         "test": "bun run test:unit",
         "test:unit": "bun run test:unit:shared && bun run test:unit:server && bun run test:unit:client",
@@ -55,24 +56,23 @@
     },
     "overrides": {
         "picomatch": "^4.0.4",
-        "ajv": ">=8.18.0",
+        "ajv": "^8.18.0",
         "fast-uri": "3.1.8",
-        "follow-redirects": ">=1.15.11",
-        "postcss": ">=8.5.10",
+        "follow-redirects": "^1.15.11",
+        "postcss": "^8.5.10",
         "cookie": "1.1.1",
-        "devalue": "^5.9.4"
+        "devalue": "^5.9.4",
+        "shell-quote": "^1.11.0"
     },
     "devDependencies": {
         "@biomejs/biome": "2.5.11",
         "@commitlint/cli": "^21.2.2",
         "@commitlint/config-conventional": "^21.2.2",
-        "@playwright/test": "^1.62.1",
+        "@playwright/test": "1.63.0",
+        "@types/node": "^25.9.5",
         "concurrently": "^10.0.5",
         "cspell": "^10.2.0",
         "husky": "^9.1.7",
         "lint-staged": "^17.4.1"
-    },
-    "dependencies": {
-        "fast-uri": "^3.1.8"
     }
 }

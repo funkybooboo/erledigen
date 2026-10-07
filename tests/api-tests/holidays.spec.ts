@@ -1,6 +1,6 @@
-import { expect, test } from '@playwright/test';
 import { createServer, type Server } from 'node:http';
 import { networkInterfaces } from 'node:os';
+import { expect, test } from '@playwright/test';
 import { cleanup, createHoliday, del, get, post, postText, put, track, uniq } from './helpers';
 
 test.afterEach(async ({ request }) => {
@@ -45,7 +45,7 @@ function runnerHost(): string {
 }
 
 async function serveIcsFixture(status = 200): Promise<{ url: string; close: () => void }> {
-    const server: Server = createServer((req, res) => {
+    const server: Server = createServer((_req, res) => {
         if (status !== 200) {
             res.writeHead(status);
             res.end('nope');
@@ -93,7 +93,10 @@ test.describe('holidays -- create (POST /api/holidays)', () => {
     });
 
     test('rejects a name over 500 chars with 400', async ({ request }) => {
-        const res = await post(request, '/api/holidays', { name: 'x'.repeat(501), date: '2027-01-01' });
+        const res = await post(request, '/api/holidays', {
+            name: 'x'.repeat(501),
+            date: '2027-01-01',
+        });
         expect(res.status).toBe(400);
     });
 
@@ -142,7 +145,7 @@ test.describe('holidays -- list & by id', () => {
         });
         const res = await get(request, '/api/holidays', { Accept: 'text/plain' });
         expect(res.status).toBe(200);
-        expect(String(res.body)).toContain(holiday.name);
+        expect(String(res.body)).toContain(holiday['name']);
         expect(String(res.body)).toContain('2027-04-04');
     });
 });
@@ -258,7 +261,9 @@ test.describe('holidays -- export & restore coverage (ADR-008/009)', () => {
         expect(snapshot.holidays.some(h => h.id === holiday.id)).toBe(true);
     });
 
-    test('a snapshot without the holidays key restores with holidays wiped', async ({ request }) => {
+    test('a snapshot without the holidays key restores with holidays wiped', async ({
+        request,
+    }) => {
         // A pre-v0.9.0 snapshot lacks the holidays key entirely; the
         // destructive restore must still succeed (and empty the table).
         const orphan = await createHoliday(request, {

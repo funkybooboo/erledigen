@@ -1,7 +1,7 @@
-import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
-import { cleanup, createTask, uniq } from '../api-tests/helpers';
-import { hydrated, SERVER_URL, todayISO } from './util';
+import { expect, test } from '@playwright/test';
+import { createTask, uniq } from '../api-tests/helpers';
+import { hydrated, SERVER_URL } from './util';
 
 const PREFIX = 'SomedayE2E';
 
@@ -86,17 +86,19 @@ test.describe('Someday panel', () => {
 
         // Server-side the task is unscheduled and linked to the group.
         const groupsRes = await request.get(`${SERVER_URL}/api/someday-groups`);
-        const groupJson = ((await groupsRes.json()).data as Array<{ id: string; name: string }>).find(
-            g => g.name === name,
-        );
+        const groupJson = (
+            (await groupsRes.json()).data as Array<{ id: string; name: string }>
+        ).find(g => g.name === name);
         expect(groupJson).toBeDefined();
         const tasksRes = await request.get(`${SERVER_URL}/api/tasks`);
-        const taskJson = ((await tasksRes.json()).data as Array<{
-            id: string;
-            text: string;
-            date: string | null;
-            someDayGroupId: string | null;
-        }>).find(t => t.text === text);
+        const taskJson = (
+            (await tasksRes.json()).data as Array<{
+                id: string;
+                text: string;
+                date: string | null;
+                someDayGroupId: string | null;
+            }>
+        ).find(t => t.text === text);
         expect(taskJson?.date).toBeNull();
         expect(taskJson?.someDayGroupId).toBe(groupJson?.id);
 

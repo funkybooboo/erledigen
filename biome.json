@@ -62,6 +62,8 @@
         "includes": [
             "**/packages/**/*/src/**/*.ts",
             "**/packages/**/*/src/**/*.tsx",
+            "**/tests/**/*.ts",
+            "playwright.config.ts",
             "**/packages/**/*/*.json",
             "**/*.json",
             "!**/node_modules",
@@ -72,7 +74,6 @@
             "!**/coverage",
             "!**/*.tsbuildinfo",
             "!**/bun.lock",
-            "!**/.claude",
             "!**/storybook-static",
             "!**/playwright-report",
             "!**/test-results",

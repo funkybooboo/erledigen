@@ -151,7 +151,7 @@ run = "tools/clean-repo.sh"
 # their images on demand, so build-images is for pre-warming or verifying.
 
 [tasks.build]
-description = "Build the app packages locally (shared/server via bun build, client via vite) + bundle-size budget"
+description = "Build the app packages locally (server via bun build, client via vite) + bundle-size budget"
 run = "tools/build.sh"
 
 [tasks.build-images]

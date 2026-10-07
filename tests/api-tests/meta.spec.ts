@@ -77,12 +77,20 @@ test.describe('meta -- OpenAPI spec is served', () => {
         expect(res.body).toHaveProperty('openapi');
         expect(res.body).toHaveProperty('paths');
         // A representative path from each resource should be documented.
-        for (const path of ['/api/tasks', '/api/projects', '/api/recurring-tasks', '/api/someday-groups', '/api/preferences']) {
+        for (const path of [
+            '/api/tasks',
+            '/api/projects',
+            '/api/recurring-tasks',
+            '/api/someday-groups',
+            '/api/preferences',
+        ]) {
             expect(res.body.paths).toHaveProperty(path);
         }
     });
 
-    test('GET /openapi.yaml returns YAML with application/yaml content type', async ({ request }) => {
+    test('GET /openapi.yaml returns YAML with application/yaml content type', async ({
+        request,
+    }) => {
         const res = await get(request, '/openapi.yaml');
         expect(res.status).toBe(200);
         expect(res.headers['content-type']).toContain('application/yaml');

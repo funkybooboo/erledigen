@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { cleanup, createProject, createTask, put, track, uniq } from '../api-tests/helpers';
+import { cleanup, createProject, put, track, uniq } from '../api-tests/helpers';
 import { dayISO, hydrated, modal, SERVER_URL, todayISO } from './util';
 
 /**
@@ -48,17 +48,15 @@ async function openBoard(
 }
 
 test.describe('project Kanban board', () => {
-    test('renders the three columns with the right cards; sub-tasks stay off', async ({
-        page,
-    }) => {
+    test('renders the three columns with the right cards; sub-tasks stay off', async ({ page }) => {
         const projectName = uniq(`${MARKER} Board columns`);
         const project = await createProject(page.request, { name: projectName }, SERVER_URL);
-        await projectTask(page.request, project.tag, { date: null });
-        await projectTask(page.request, project.tag, { date: todayISO() });
-        await projectTask(page.request, project.tag, { date: null, completed: false });
-        const done = await projectTask(page.request, project.tag, { date: todayISO() });
+        await projectTask(page.request, project['tag'], { date: null });
+        await projectTask(page.request, project['tag'], { date: todayISO() });
+        await projectTask(page.request, project['tag'], { date: null, completed: false });
+        const done = await projectTask(page.request, project['tag'], { date: todayISO() });
         await put(page.request, `/api/tasks/${done.id}`, { completed: true }, SERVER_URL);
-        const sub = await projectTask(page.request, project.tag, { date: null });
+        const sub = await projectTask(page.request, project['tag'], { date: null });
         await put(page.request, `/api/tasks/${sub.id}`, { parentId: done.id }, SERVER_URL);
 
         const board = await openBoard(page, projectName);
@@ -84,7 +82,7 @@ test.describe('project Kanban board', () => {
             { name: projectName, startDate: start, dueDate: dayISO(10) },
             SERVER_URL,
         );
-        const ready = await projectTask(page.request, project.tag, { date: null });
+        const ready = await projectTask(page.request, project['tag'], { date: null });
 
         const board = await openBoard(page, projectName);
         const card = board.locator('.kanban-card', { hasText: ready.text });
@@ -104,7 +102,7 @@ test.describe('project Kanban board', () => {
     test('dragging a Scheduled card back to Ready clears its date', async ({ page }) => {
         const projectName = uniq(`${MARKER} Drag unschedule`);
         const project = await createProject(page.request, { name: projectName }, SERVER_URL);
-        const scheduledTask = await projectTask(page.request, project.tag, {
+        const scheduledTask = await projectTask(page.request, project['tag'], {
             date: dayISO(5),
         });
 
@@ -113,7 +111,9 @@ test.describe('project Kanban board', () => {
         const readyColumn = board.locator('.kanban-column[aria-label="Ready column"]');
         await card.dragTo(readyColumn);
 
-        await expect(readyColumn.locator('.kanban-card', { hasText: scheduledTask.text })).toBeVisible();
+        await expect(
+            readyColumn.locator('.kanban-card', { hasText: scheduledTask.text }),
+        ).toBeVisible();
         const res = await page.request.get(`${SERVER_URL}/api/tasks/${scheduledTask.id}`);
         expect(((await res.json()).data as { date: string | null }).date).toBeNull();
     });
@@ -121,7 +121,7 @@ test.describe('project Kanban board', () => {
     test('dragging into Done completes the task', async ({ page }) => {
         const projectName = uniq(`${MARKER} Drag done`);
         const project = await createProject(page.request, { name: projectName }, SERVER_URL);
-        const ready = await projectTask(page.request, project.tag, { date: null });
+        const ready = await projectTask(page.request, project['tag'], { date: null });
 
         const board = await openBoard(page, projectName);
         const card = board.locator('.kanban-card', { hasText: ready.text });
@@ -144,12 +144,14 @@ test.describe('project Kanban board', () => {
             { name: projectName, startDate: start, dueDate: dayISO(4) },
             SERVER_URL,
         );
-        const a = await projectTask(page.request, project.tag, { date: null });
-        const b = await projectTask(page.request, project.tag, { date: null });
-        const c = await projectTask(page.request, project.tag, { date: null });
+        const a = await projectTask(page.request, project['tag'], { date: null });
+        const b = await projectTask(page.request, project['tag'], { date: null });
+        const c = await projectTask(page.request, project['tag'], { date: null });
 
         const board = await openBoard(page, projectName);
-        await board.getByRole('button', { name: 'Preview auto-distribution of unscheduled tasks' }).click();
+        await board
+            .getByRole('button', { name: 'Preview auto-distribution of unscheduled tasks' })
+            .click();
 
         const preview = board.locator('.distribution-preview');
         await expect(preview).toBeVisible();
@@ -181,8 +183,8 @@ test.describe('project Kanban board', () => {
             { data: {} },
         );
         expect(deactivate.status()).toBe(200);
-        const a = await projectTask(page.request, project.tag, { date: null });
-        const b = await projectTask(page.request, project.tag, { date: null });
+        const a = await projectTask(page.request, project['tag'], { date: null });
+        const b = await projectTask(page.request, project['tag'], { date: null });
 
         const board = await openBoard(page, projectName, 'inactive');
         await board.getByRole('button', { name: 'Activate', exact: true }).click();
@@ -214,18 +216,15 @@ test.describe('project Kanban board', () => {
     test('a blocked task shows the lock; completing the blocker clears it', async ({ page }) => {
         const projectName = uniq(`${MARKER} Lock`);
         const project = await createProject(page.request, { name: projectName }, SERVER_URL);
-        const blocker = await projectTask(page.request, project.tag, { date: null });
-        const blocked = await projectTask(page.request, project.tag, { date: null });
-        await put(
-            page.request,
-            `/api/tasks/${blocked.id}`,
-            { dependsOn: blocker.id },
-            SERVER_URL,
-        );
+        const blocker = await projectTask(page.request, project['tag'], { date: null });
+        const blocked = await projectTask(page.request, project['tag'], { date: null });
+        await put(page.request, `/api/tasks/${blocked.id}`, { dependsOn: blocker.id }, SERVER_URL);
 
         const board = await openBoard(page, projectName);
         const blockedCard = board.locator('.kanban-card', { hasText: blocked.text });
-        const lock = blockedCard.getByRole('button', { name: `Set blocked-by for ${blocked.text}` });
+        const lock = blockedCard.getByRole('button', {
+            name: `Set blocked-by for ${blocked.text}`,
+        });
         await expect(lock).toHaveClass(/blocked/);
 
         // Completing the blocker releases the lock.
@@ -236,14 +235,12 @@ test.describe('project Kanban board', () => {
     test('the blocked-by picker sets and clears the dependency', async ({ page }) => {
         const projectName = uniq(`${MARKER} Picker`);
         const project = await createProject(page.request, { name: projectName }, SERVER_URL);
-        const first = await projectTask(page.request, project.tag, { date: null });
-        const second = await projectTask(page.request, project.tag, { date: null });
+        const first = await projectTask(page.request, project['tag'], { date: null });
+        const second = await projectTask(page.request, project['tag'], { date: null });
 
         const board = await openBoard(page, projectName);
         const secondCard = board.locator('.kanban-card', { hasText: second.text });
-        await secondCard
-            .getByRole('button', { name: `Set blocked-by for ${second.text}` })
-            .click();
+        await secondCard.getByRole('button', { name: `Set blocked-by for ${second.text}` }).click();
 
         // The picker renders as the card's sibling inside the list item.
         const secondLi = board.locator('.kanban-cards li', { hasText: second.text });
@@ -253,9 +250,7 @@ test.describe('project Kanban board', () => {
         expect(((await res.json()).data as { dependsOn: string | null }).dependsOn).toBe(first.id);
 
         // Clearing through the picker removes the dependency.
-        await secondCard
-            .getByRole('button', { name: `Set blocked-by for ${second.text}` })
-            .click();
+        await secondCard.getByRole('button', { name: `Set blocked-by for ${second.text}` }).click();
         await secondLi.locator('.blocked-picker select').selectOption({ label: '(not blocked)' });
         const after = await page.request.get(`${SERVER_URL}/api/tasks/${second.id}`);
         expect(((await after.json()).data as { dependsOn: string | null }).dependsOn).toBeNull();

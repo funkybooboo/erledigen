@@ -54,7 +54,7 @@ test.describe('holidays', () => {
     test('deleting a holiday from Settings removes its banner', async ({ page }) => {
         const name = uniq('Deleted Banner');
         const date = dayISO(20);
-        const holiday = await createHoliday(page.request, { name, date }, SERVER_URL);
+        await createHoliday(page.request, { name, date }, SERVER_URL);
 
         await hydrated(page);
         const section = daySection(page, date);
