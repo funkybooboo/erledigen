@@ -2,6 +2,7 @@
     "name": "erledigen",
     "version": "0.10.0",
     "private": true,
+    "license": "AGPL-3.0-only",
     "workspaces": [
         "packages/*"
     ],

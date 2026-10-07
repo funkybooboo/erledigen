@@ -25,6 +25,11 @@ An ADR captures an important architectural decision: what was decided, why, and 
 | [ADR-013](ADR-013-arrival-insertion-manual-sovereignty.md) | Day-List Ordering: Arrival Insertion and Manual Sovereignty (retires the priority sort mode) | Accepted | 2026-10-04 |
 | [ADR-014](ADR-014-scope-boundaries.md) | Deliberate Scope Boundaries: What Erledigen Is Not | Accepted | 2026-10-04 |
 | [ADR-015](ADR-015-safe-by-construction-markdown.md) | Safe-by-Construction Markdown Renderer (No DOMPurify) | Accepted | 2026-10-04 |
+| [ADR-016](ADR-016-agpl-license.md) | AGPL-3.0-only License | Accepted | 2026-10-07 |
+| [ADR-017](ADR-017-stories-as-unit-of-work.md) | User Stories Are the Unit of Work | Accepted | 2026-10-07 |
+| [ADR-018](ADR-018-deployment-architecture.md) | Deployment Architecture: Self-Hostable, K8s-Ready, SaaS-Later | Accepted | 2026-10-07 |
+| [ADR-019](ADR-019-privacy-under-saas.md) | Privacy Under SaaS: No Tracking, Anywhere | Accepted | 2026-10-07 |
+| [ADR-020](ADR-020-docs-by-role.md) | Documentation by Role: Use / Host / Build | Accepted | 2026-10-07 |
 
 ## Creating a New ADR
 
