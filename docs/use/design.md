@@ -23,7 +23,7 @@ groups, Someday, and filters.
 - Auto-rollover for incomplete tasks with "late" tracking
 - Streak tracking for recurring habits
 - A layout that gets out of your way: clean, calm, spacious, Basecamp-inspired
-- **No AI in the UI** -- AI automation, if it ever ships, lives outside the UI (CLI/MCP server), never in it
+- **No AI in the UI** -- AI automation, if it ever ships, lives outside the UI (the CLI, per ADR-021), never in it
 - **Privacy first** -- no analytics, no telemetry, minimal user data stored
 
 ---

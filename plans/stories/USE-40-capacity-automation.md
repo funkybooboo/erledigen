@@ -5,7 +5,7 @@ daily capacity limit that automation respects, so that the app helps
 me keep pace instead of burying me.
 
 **Status**: planned
-**Version**: v2.6.0
+**Version**: v2.5.0
 
 ## Acceptance criteria
 - [ ] 2-day rule: priority rises over time for routines not completed
@@ -14,4 +14,4 @@ me keep pace instead of burying me.
 
 ## Notes
 
-Smart scheduling stays MCP/CLI-only (no AI in the UI, ADR-014).
+Smart scheduling stays CLI-only (no AI in the UI, ADR-014 + ADR-021).

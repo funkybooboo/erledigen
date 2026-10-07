@@ -5,7 +5,7 @@ adapter behind the same repository interfaces, so that the instance
 scales horizontally past what SQLite-on-a-volume can serve.
 
 **Status**: planned
-**Version**: v2.3.0
+**Version**: v2.2.0
 
 ## Acceptance criteria
 - [ ] PostgreSQL adapter behind the existing repository interfaces

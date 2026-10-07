@@ -124,12 +124,12 @@ one self-hosted user. The gate:
 
 ## v2.x: The hosted-services arc
 
-- v2.0.0 [BUILD-4 CLI](./stories/BUILD-4-cli.md)
-- v2.1.0 [BUILD-5 MCP server](./stories/BUILD-5-mcp-server.md)
-- v2.2.0 [USE-38 reminders](./stories/USE-38-reminders.md)
-- v2.3.0 [USE-39 multi-user auth](./stories/USE-39-multi-user-auth.md) +
+- v2.0.0 [BUILD-4 CLI](./stories/BUILD-4-cli.md) -- the automation
+  surface (ADR-021: CLI only, no MCP server)
+- v2.1.0 [USE-38 reminders](./stories/USE-38-reminders.md)
+- v2.2.0 [USE-39 multi-user auth](./stories/USE-39-multi-user-auth.md) +
   [HOST-10 PostgreSQL at scale](./stories/HOST-10-postgresql-scale.md)
-- v2.4.0 [HOST-11 security hardening](./stories/HOST-11-security-hardening.md)
-- v2.5.0 [HOST-12 SaaS billing, inert when off](./stories/HOST-12-saas-billing.md)
-- v2.6.0 [USE-40 capacity + automation](./stories/USE-40-capacity-automation.md)
-- v2.7.0 [USE-41 Canvas sync](./stories/USE-41-canvas-sync.md)
+- v2.3.0 [HOST-11 security hardening](./stories/HOST-11-security-hardening.md)
+- v2.4.0 [HOST-12 SaaS billing, inert when off](./stories/HOST-12-saas-billing.md)
+- v2.5.0 [USE-40 capacity + automation](./stories/USE-40-capacity-automation.md)
+- v2.6.0 [USE-41 Canvas sync](./stories/USE-41-canvas-sync.md)

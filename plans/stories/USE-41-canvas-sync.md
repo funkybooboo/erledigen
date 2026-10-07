@@ -5,7 +5,7 @@ dates pulled into erledigen as tasks, so that coursework lives with
 everything else.
 
 **Status**: planned
-**Version**: v2.7.0
+**Version**: v2.6.0
 
 ## Acceptance criteria
 - [ ] CanvasCalendarAdapter (ImportAdapter interface): one-way pull
@@ -17,4 +17,4 @@ everything else.
 
 ## Notes
 
-Needs auth (v2.3.0) for per-user token storage.
+Needs auth (v2.2.0) for per-user token storage.
