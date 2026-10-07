@@ -7,7 +7,7 @@ Follows the adapter pattern: route handlers are thin HTTP adapters that delegate
 ## Quick Start
 
 ```bash
-mise run server   # dockerized dev container
+docker compose up server   # dev container
 # or locally: bun run --cwd packages/server dev
 ```
 
@@ -21,11 +21,14 @@ migrations run at boot; `memory` for ephemeral runs and tests).
 |----------|-----------|
 | Tasks | `GET/POST /api/tasks`, `GET/PUT/DELETE /api/tasks/:id`, `POST /api/tasks/:id/restore`, `GET /api/tasks/trash`, `POST /api/tasks/purge` |
 | Projects | `GET/POST /api/projects`, `GET/PUT/DELETE /api/projects/:id`, `POST /api/projects/:id/activate`, `POST /api/projects/:id/deactivate` |
-| Recurring Tasks | `GET/POST /api/recurring-tasks`, `GET/PUT/DELETE /api/recurring-tasks/:id`, `POST /api/recurring-tasks/:id/generate`, `POST /api/recurring-tasks/generate-all`, `GET /api/recurring-tasks/:id/stats` |
+| Recurring Tasks | `GET/POST /api/recurring-tasks`, `GET/PUT/DELETE /api/recurring-tasks/:id`, `POST /api/recurring-tasks/:id/generate`, `POST /api/recurring-tasks/generate-all`, `POST /api/recurring-tasks/adopt`, `GET /api/recurring-tasks/:id/stats` |
 | Someday Groups | `GET/POST /api/someday-groups`, `GET/PUT/DELETE /api/someday-groups/:id` |
+| Holidays | `GET/POST /api/holidays`, `GET/PUT/DELETE /api/holidays/:id`, `POST /api/holidays/import` (`.ics` by URL or raw body) |
+| Day Notes | `GET /api/day-notes`, `GET/PUT/DELETE /api/day-notes/:date` (one note per date, upsert by date) |
 | Tags | `GET /api/tags`, `GET /api/tags/info`, `POST /api/tags/rename`, `POST /api/tags/merge` |
-| Preferences | `GET /api/preferences`, `PATCH /api/preferences` |
-| Meta | `GET /api/health`, `GET /openapi.yaml`, `GET /openapi.json` |
+| Preferences | `GET/PATCH /api/preferences` |
+| Export / Import | `GET /api/export` (`json`, `csv`, `md`, `ics`), `POST /api/import` (destructive JSON restore + additive formats) |
+| Meta | `GET /api/health`, `GET /api/metrics` (Prometheus text), `GET /openapi.yaml`, `GET /openapi.json` |
 
 The full OpenAPI 3.1 spec is served at `http://localhost:4000/openapi.yaml` (or `/openapi.json`).
 
@@ -44,8 +47,10 @@ src/
 |   \-- schemas/   # Zod schemas -- single source of truth for spec + validation
 |-- presentation/  # Content-negotiated formatters (JSON + plain text)
 |-- routes/        # Thin HTTP adapters per resource + openApiRoutes
-|-- services/      # Domain services (Task, Tag, RecurringTask, Project, WebSocketManager, EventBus)
-\-- utils/         # Error handling, route helpers, validation, recurring utils
+|-- services/      # Domain services (Task, Tag, RecurringTask, Project, Holiday,
+|                #   Import, Export, WebSocketManager, EventBus, Rollover,
+|                #   JobRunner, JobScheduler)
+\-- utils/         # Error handling, route helpers, validation, content negotiation
 ```
 
 ## Scripts

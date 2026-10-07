@@ -82,14 +82,14 @@ function handleError(error: unknown): string {
 ```svelte
 <!-- [OK] GOOD -->
 <script lang="ts">
-  import type { User } from '@erledigen/shared';
+  import type { Task } from '@erledigen/shared';
 
   interface Props {
-    user: User;
-    onEdit?: (user: User) => void;
+    task: Task;
+    onEdit?: (task: Task) => void;
   }
 
-  let { user, onEdit }: Props = $props();
+  let { task, onEdit }: Props = $props();
 </script>
 ```
 

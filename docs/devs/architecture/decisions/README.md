@@ -28,7 +28,7 @@ An ADR captures an important architectural decision: what was decided, why, and 
 
 ## Creating a New ADR
 
-1. Copy the template: `ADR-NNN-brief-title.md`
+1. Copy the template: `ADR-000-template.md`
 2. Fill in: Context, Decision, Rationale, Consequences
 3. Add to the index above
 4. Submit with your PR for review

@@ -7,7 +7,7 @@ Welcome to Erledigen! This guide will walk you through setting up your developme
 Before you begin, make sure you have the following installed:
 
 - [mise](https://mise.jdx.dev) -- the project's task runner and tool version manager (Bun, lychee, and gitleaks are managed automatically by mise)
-- Docker (or podman + a `docker` wrapper) with compose support -- the dev, prod, and test stacks all run in containers
+- Docker (or podman + a `docker` wrapper) with compose support -- the dev, prod, and test stacks all run in containers. On rootless podman with btrfs storage, `mount_program` must be set under `[storage.options.overlay]` in `storage.conf` or image builds fail.
 
 ```bash
 # Install mise (macOS with Homebrew)
@@ -139,6 +139,7 @@ All tasks are run via `mise run <task>` (pass arguments with `mise run <task> --
 | `mise run check-links` | Verify all markdown/source links resolve (lychee) |
 | `mise run scan-secrets` | Scan the working tree for secrets (gitleaks) |
 | `mise run type-check` | Type-check all packages |
+| `mise run svelte-check` | Svelte diagnostics (a11y, unused CSS, runes misuse) -- fails on warnings |
 | `mise run security` | Run `bun audit` |
 
 ### Testing

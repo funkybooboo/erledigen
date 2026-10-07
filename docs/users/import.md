@@ -5,7 +5,8 @@ pick a source, choose a file, and confirm:
 
 - **Erledigen backup (JSON)** -- RESTORE: replaces EVERYTHING on this
   instance with the backup's contents (tasks including the trash,
-  Someday groups, projects, habits, and your settings). A restore asks
+  Someday groups, projects, habits, holidays, day notes, and your
+  settings). A restore asks
   for confirmation first, and the server writes a safety backup next to
   the database before it wipes anything, so even a mistaken restore is
   itself restorable.

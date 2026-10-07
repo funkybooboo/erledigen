@@ -6,14 +6,20 @@ This document describes the full product vision and design of Erledigen -- the l
 
 ## Core Philosophy
 
-Erledigen is a unified task management system built around one simple idea: **you should only need one place to manage your work and your life**.
+Erledigen is an **automated paper calendar**: a day list you write by hand,
+plus an engine that fills in everything that recurs and never moves your
+handwriting. One place to manage your work and your life -- no accounts,
+no analytics, your data in your own database.
 
-The daily list is the execution surface. Someday is the capture net. Projects and habits feed into the daily list automatically. Everything is organized with tags -- the same tag system works across tasks, groups, Someday, and filters.
+The daily list is the execution surface. The Someday panel is the capture
+net. Habits generate their instances into the daily list automatically.
+Everything is organized with tags -- the same tag system works across tasks,
+groups, Someday, and filters.
 
 **Key principles:**
 - One task type that appears differently depending on its attributes and context
 - Tags as the primary organizational paradigm (including priority: `#p1`, `#p2`, `#p3`)
-- Project tasks and recurring tasks feed into the daily list automatically -- no manual re-entry
+- Habit templates generate their instances into the daily list -- no manual re-entry
 - Auto-rollover for incomplete tasks with "late" tracking
 - Streak tracking for recurring habits
 - A layout that gets out of your way: clean, calm, spacious, Basecamp-inspired
@@ -45,10 +51,11 @@ The daily list is the execution surface. Someday is the capture net. Projects an
 ```
 
 Rail icons are abbreviated in the mockup above: M=Summary, P=Projects,
-H=Habits, C=Calendar, S=Search, F=Filter, T=Trash, G=Settings, ?=Help.
+H=Habits, C=Calendar, S=Search, F=Filter, N=Notes, T=Trash, G=Settings,
+?=Help.
 
 Four zones:
-- **Left icon rail** -- slim vertical rail; each icon opens a large centered modal (also via `g`-sequences: `g s` Summary, `g p` Projects, `g h` Habits, `g c` Calendar, `g f` Filter, `g x` Trash, `g o` Settings)
+- **Left icon rail** -- slim vertical rail; each icon opens a large centered modal (also via `g`-sequences: `g s` Summary, `g p` Projects, `g h` Habits, `g c` Calendar, `g n` Notes, `g f` Filter, `g x` Trash, `g o` Settings)
 - **Center day list** -- the primary working area; a continuously-scrolling list of day sections with a month minimap on the left edge
 - **Right Someday panel** -- always visible by default; collapsible (`Cmd/Ctrl+\\`) and drag-to-resize (width persisted)
 - **Bottom bar** -- `erledigen logo (home/today) | live clock | filter chips | task count | ^ Today`
@@ -85,36 +92,13 @@ server, and API schemas alike) -- conceptually:
 - **Holiday** -- a named calendar date (name, date, no recurrence rule;
   one row per named date). Rendered as day-list banners and importable
   from `.ics` calendars.
+- **DayNote** -- one note per calendar date: the day's margin. Never a
+  task, never scheduled; collapsed away when empty, and included in the
+  JSON backup like everything else.
 - **UserPreferences** -- a single row holding every setting: theme,
   panel widths and collapse states, rollover behavior, delete
   confirmation, tag kinds, active filters (tags, completion, sort mode,
   date range), and more.
-
----
-
-## Extensibility: Interface Inventory
-
-Every major subsystem has an interface in `packages/shared`. Adapters implement the interface. New implementations can be swapped in without changing application code.
-
-| Interface | Status | Adapters |
-|-----------|--------|----------|
-| `TaskRepository` / `ProjectRepository` / `RecurringTaskRepository` / `SomeDayGroupRepository` / `UserPreferencesRepository` | **Implemented** | In-memory, SQLite (raw SQL, [ADR-001](../devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md)) |
-| `HttpClient` / `Logger` / `DateProvider` / `ConfigProvider` | **Implemented** | Fetch, Console, NativeDate, env/Vite |
-| `ExportAdapter` / `ImportAdapter` | **Implemented** | Export: JSON (canonical backup), CSV, Markdown, iCal. Import: JSON restore, generic CSV (column mapping), iCal, Todoist CSV, Things 3 JSON |
-| `JobQueue` | **Implemented** | SQLite-backed, in-memory (see [ADR-002](../devs/architecture/decisions/ADR-002-sqlite-backed-job-queue.md)) |
-| `MetricsAdapter` | **Implemented** | Prometheus text exposition, null (see [ADR-005](../devs/architecture/decisions/ADR-005-prometheus-metrics.md)) |
-
-Future adapters (email, payments, i18n, notifications) are sketched in
-the [roadmap](../../plans/roadmap.md), not built.
-
----
-
-## Command Palette Convention
-
-The command palette (Cmd/Ctrl+K, or `/`) has two modes:
-
-- **Plain text** -> search across all tasks (text, notes, tags; substring match). Results scroll the day list to the matching task on selection, and arrow keys move the selection.
-- **`/` prefix** -> command mode, driven by the full command registry (`/add`, `/go`, `/move`, `/tag`, `/filter`, ... -- the complete list is under Key Features below). `/add <text>` creates a task, parsing a natural-language date and `#tags`; a trailing recurrence phrase ("water plants every friday at 9am") creates a habit instead.
 
 ---
 
@@ -124,8 +108,8 @@ The command palette (Cmd/Ctrl+K, or `/`) has two modes:
 Tags are the primary organizational tool. A task can have any number of tags. Special tag conventions:
 - `#p1`, `#p2`, `#p3` -- priority levels
 - `#deadline` -- promoted in Summary modal
-- `#project-name` -- links task visually to a project
-- `#habit-name` -- useful for grouping recurring tasks
+- `project:`-prefixed tags -- link a task to its project
+- Habit templates carry their own tags, stamped onto every generated instance
 
 ### Someday Panel
 The right-side Someday panel captures ideas and unscheduled work. Tasks are organized into user-created groups (tag-based). Works identically to the day list but without dates or automation. Global filtering applies.
@@ -140,6 +124,9 @@ Projects are collections of tasks linked by their `project:`-prefixed tag. The P
 
 Cards carry a lock button for dependencies: pick the task it is blocked by (a red lock shows while the predecessor is incomplete; completing the blocker releases it), and the blocked task schedules after its blocker in every distribution.
 
+### Notes
+Notes are the margin of the calendar. Task titles, task notes, and each day's margin note are live markdown -- only the line under your cursor shows the raw syntax while everything else renders. Tasks carrying notes show a sticky-note marker on their row, and the Notes modal (`g n`) is a lens over every note in one place: day notes by date, each day's task notes beneath them, and undated task notes at the end. Notes never exist standalone -- they always belong to a day or a task.
+
 ### Habit Tracking
 Recurring tasks ("habits") are created from natural-language phrases -- type "water plants every friday at 9am" in any inline add input or the Habits modal and the schedule is parsed live. Instances are generated idempotently into the daily list (+90-day horizon) and tagged with the habit. Completing instances builds streaks (current, longest, total completions) shown as badges in the Habits modal, and the habit detail view shows a GitHub-style completion heatmap. Any existing task can be promoted to a habit with the "Make recurring" toggle in the task detail modal.
 
@@ -150,17 +137,6 @@ Settings > Holidays manages named calendar dates: add one by name and date, impo
 Incomplete tasks roll over to the next day by default, on a schedule configurable app-wide (midnight / 9am / manual) and per task (`rolloverEnabled`). The `daysLate` counter tracks how overdue a task is, counted from the date it was first planned.
 
 ### Calendar Modal
-The Calendar rail icon opens a month-grid date picker: picking a date scrolls (and centers) the day list on it; **Today** is a full view reset (day list + month minimap). A time-grid view for tasks with `startTime`/`endTime` is planned for v0.14.0.
+The Calendar rail icon opens a month-grid date picker: picking a date scrolls (and centers) the day list on it; **Today** is a full view reset (day list + month minimap). A time-grid view for tasks with `startTime`/`endTime` is deferred -- see the [roadmap](../../plans/roadmap.md).
 
 ---
-
-## Persistence Strategy
-
-| Phase | Adapter | Status |
-|-------|---------|--------|
-| Development / tests | In-memory (`STORAGE_ADAPTER=memory`) | Implemented |
-| Self-hosted v1 | SQLite (raw SQL via `bun:sqlite`, [ADR-001](../devs/architecture/decisions/ADR-001-sqlite-raw-sql-persistence.md)) | Implemented (default) |
-| Multi-user v2 | PostgreSQL (raw SQL, same repository interfaces) | Planned v2.3.0 |
-
-The repository layout lives in the [README](../../README.md); the
-architecture deep-dive in [architecture.md](../devs/architecture/architecture.md).

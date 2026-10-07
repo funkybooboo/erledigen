@@ -967,7 +967,7 @@ the logo-derived accents moved here -- theming is this version's
 whole job.)
 
 ### Design System & Theming
-- [x] **Design system:** Established a consistent visual language using Tailwind + CSS custom properties.
+- [x] **Design system:** Established a consistent visual language using hand-written scoped CSS over OKLCH design tokens (no utility framework; Tailwind was dropped in a review follow-up).
     - Inspired by Basecamp / 37signals (Fizzy): clean, spacious, warm, calm. No clutter.
     - Typography: system font stack (no web fonts).
     - Spacing, border radius (pill buttons), layered shadows, and an OKLCH color scale defined as CSS variables in `app.css` (light + dark).
@@ -1011,12 +1011,11 @@ whole job.)
 - Document this commitment explicitly in the user docs.
 
 ### Technical Notes & Considerations
-- Tailwind's dark mode with `class` strategy for manual toggle support.
 - CSS custom properties for tokens that need to be dynamic (theme switching, tag colors).
 - Svelte's built-in transition functions for animations.
 
 ### Documentation & ADRs
-- ADR: design system approach (Tailwind + CSS custom properties).
+- ADR: design system approach (scoped CSS + design tokens).
 - ADR: `UserPreferences` schema and persistence strategy.
 - Dev docs: design system reference (tokens, typography, spacing).
 - User docs: full Settings reference.
@@ -1450,7 +1449,12 @@ versions:
       the frontend simplification. Docs strategy: do not document
       everything; document the advanced things (natural-language
       input, routine schedules, filtering, import/export, keyboard
-      shortcuts).
+      shortcuts). (2026-10-06: the hosted-docs commitment moved here
+      from documentation-standards.md -- user docs get hosted on a
+      Writebook instance covering getting started, features, shortcuts,
+      import/export, and customization; the bottom-bar link opens it and
+      the Help modal's bottom links follow. A future commitment, not a
+      shipped one.)
 - [ ] **Remove the store-wide task counter:** the bottom-right
       `{total} tasks {done} done` readout counts the entire loaded
       store ("245 tasks 0 done") and carries no meaning. Remove it;

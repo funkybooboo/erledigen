@@ -1,9 +1,11 @@
-name: TODO issues
+name: Marker issues
 
-# Turns new TODO/FIXME/BUG/HACK comments in pushed commits into GitHub issues.
-# Runs only on pushes to main (PR merges included) so branch churn doesn't
-# spawn issues that get closed a few commits later. Issues are automatically
-# closed when the TODO is removed (closeIssues defaults to true).
+# Turns new code-marker comments (the action's defaults) found in pushed
+# commits into GitHub issues. Runs only on pushes to main (PR merges
+# included) so branch churn does not spawn issues that get closed a few
+# commits later. Issues close automatically when their marker comment is
+# removed. The workflow's own directory is excluded so this file can never
+# match itself.
 
 on:
   push:
@@ -15,10 +17,12 @@ permissions:
 
 jobs:
   todo:
-    name: todo-to-issue
+    name: marker-to-issue
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Turn TODO comments into issues
+      - name: Turn marker comments into issues
         uses: alstr/todo-to-issue-action@v5.1.13
+        with:
+          exclude: '^\.github/.*'

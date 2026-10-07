@@ -16,6 +16,8 @@ erledigen/
 |   \-- shared/          # Shared types and utilities
 |-- docs/                # Project documentation
 |-- tests/               # Playwright api/e2e suites + Bruno collection
+|-- tools/               # Build, test, release, and maintenance scripts
+|-- deploy/              # Caddy edge proxy for the prod stack
 |-- plans/               # Roadmap and planning docs
 \-- package.json         # Root workspace config
 ```
@@ -57,6 +59,9 @@ A cornerstone of our architecture is the **adapter pattern**. This pattern allow
 *   **`UserPreferencesRepository`**: Abstracts data persistence for user settings.
     *   **`InMemoryUserPreferencesRepository`** (server): An in-memory singleton implementation.
     *   **`SqliteUserPreferencesRepository`** (server): SQLite-backed persistence.
+*   **`DayNoteRepository`**: Abstracts persistence for day notes (v0.10.0) -- one note row per calendar date, upserted by date.
+    *   **`InMemoryDayNoteRepository`** (server): An in-memory implementation.
+    *   **`SqliteDayNoteRepository`** (server): SQLite-backed persistence.
 *   **`MetricsAdapter`**: Abstracts metrics collection (see [ADR-005](decisions/ADR-005-prometheus-metrics.md)).
     *   `PrometheusMetricsAdapter` (shared): Prometheus text-exposition metrics for HTTP, jobs, and application gauges; served at `/api/metrics` (the endpoint is removed when `METRICS_ENABLED=false`).
     *   `NullMetricsAdapter` (shared): no-op for metrics-disabled deployments.
@@ -69,6 +74,17 @@ A cornerstone of our architecture is the **adapter pattern**. This pattern allow
     *   The server's `ExportService` assembles the snapshot from the repositories and serves it at `GET /api/export` as a raw, attachment-disposition document -- NOT wrapped in the usual `{ data }` envelope.
     *   Import adapters (shared): `JsonRestoreImportAdapter` (strict version-1 snapshot validation, cross-reference checks), `CsvImportAdapter` (generic CSV, column-mapping + header auto-detect), `IcalImportAdapter`, `TodoistCsvImportAdapter`, `ThingsJsonImportAdapter`. All parse-only; semantics live in the server's `ImportService`.
     *   The server's `ImportService` runs `POST /api/import`: format `json` is a DESTRUCTIVE restore (one transaction via the `SnapshotRestoreWriter` port -- the repos' async facade cannot compose a cross-table SQLite transaction, so the SQLite repos expose synchronous `replaceAllSync`/`restoreSync` cores); every other format is an additive import (new rows only). A pre-restore backup file is written before any wipe; connected clients learn about a restore through the `data:restored` broadcast (ADR-009).
+
+Future adapters (email, payments, i18n, notifications) are sketched in the
+[roadmap](../../../plans/roadmap.md), not built.
+
+### Persistence strategy
+
+| Phase | Adapter | Status |
+|-------|---------|--------|
+| Development / tests | In-memory (`STORAGE_ADAPTER=memory`) | Implemented |
+| Self-hosted v1 | SQLite (raw SQL via `bun:sqlite`, [ADR-001](decisions/ADR-001-sqlite-raw-sql-persistence.md)) | Implemented (default) |
+| Multi-user v2 | PostgreSQL (raw SQL, same repository interfaces) | Planned v2.3.0 |
 
 ### Benefits of the Adapter Pattern
 
@@ -96,7 +112,7 @@ This approach allows us to easily manage the lifecycle of our dependencies and p
 
 The `@erledigen/shared` package is the secret sauce that enables type-safe, end-to-end communication between our client and server. It contains all the code that is shared between the two, including:
 
-*   **Types**: All of our data models, such as `Task` and `User`.
+*   **Types**: All of our data models, such as `Task` and `UserPreferences`.
 *   **API Contracts**: The request and response types for our API endpoints.
 *   **Constants**: Shared constants like API routes and validation rules.
 *   **Interfaces**: The adapter interfaces described above.
@@ -177,7 +193,7 @@ The observability core shipped in v0.8.0 ([ADR-004](decisions/ADR-004-structured
 
 1.  **Logs**: `ConsoleLogger` renders JSON or human-readable text (`LOG_FORMAT`; JSON in production), and request handlers log through a `RequestLogger` child logger carrying the request's correlation ID.
 2.  **Health**: Rich `GET /api/health` -- status, version, uptime, database details, WebSocket connection count, and job-queue depth.
-3.  **Metrics**: `GET /api/metrics` in Prometheus text-exposition format -- HTTP request counters/latency and in-flight gauges, job metrics, and application gauges (uptime, tasks, WebSocket connections, DB size). Set `METRICS_ENABLED=false` to remove the endpoint entirely. The Loki + Prometheus + Grafana stack (`docker-compose.monitoring.yml`) for self-hosted deployments is still planned.
+3.  **Metrics**: `GET /api/metrics` in Prometheus text-exposition format -- HTTP request counters/latency and in-flight gauges, job metrics, and application gauges (uptime, tasks, WebSocket connections, DB size). Set `METRICS_ENABLED=false` to remove the endpoint entirely. The Loki + Prometheus + Grafana stack for self-hosted deployments ([ADR-006](decisions/ADR-006-observability-stack.md)) remains planned future work.
 
 ## Dockerized
 

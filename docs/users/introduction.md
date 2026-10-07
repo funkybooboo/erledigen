@@ -1,7 +1,34 @@
 # Introduction
 
-Welcome to Erledigen! Erledigen is a modern task application inspired by the simplicity and elegance of TeuxDeux. It's designed to be a playground for exploring modern web development techniques, with a focus on clean architecture, type safety, and a great developer experience.
+Erledigen is an **automated paper calendar**: a day list you write by hand,
+plus an engine that fills in everything that recurs and never moves your
+handwriting. It is self-hosted -- your tasks live in your own database, on
+your own machine, with no accounts, no analytics, and no telemetry.
 
-Our goal is to build a beautiful, functional, and maintainable application that's a joy to work on. We believe that good software is built on a solid foundation, which is why we've put a lot of thought into the project's structure, coding standards, and development workflows.
+The interface is inspired by the clean, simple feel of
+[TeuxDeux](https://teuxdeux.com): one continuously scrolling list of days,
+and nothing between you and it.
 
-Whether you're here to learn, contribute, or just take a look around, we're glad to have you!
+In practice:
+
+*   The **daily list** is where work happens. Days stack and load as you
+    scroll; you add and edit inline, and a month minimap on the left keeps
+    you oriented.
+*   The **Someday panel** is the capture net -- a place on the right for
+    everything that is an idea rather than a plan.
+*   **Habits** are written once ("water plants every friday at 9am") and
+    generate their instances into the daily list on their own schedule.
+*   **Notes** are the calendar's margin -- on every day and every task,
+    rendered as live markdown while you write.
+*   **Tags** are the whole organizational system: priorities, projects,
+    and anything else you make up. One filter covers all of it.
+
+Everything syncs live across every open window over WebSocket, and a full
+JSON backup of all your data can be exported and restored anywhere.
+
+Read on:
+
+*   [Design](./design.md) -- the product, its data model, and how the
+    pieces fit together
+*   [Notes](./notes.md) -- day notes, task notes, and markdown everywhere
+*   [Export](./export.md) / [Import](./import.md) -- your data, in and out

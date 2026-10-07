@@ -60,17 +60,3 @@ Significant architecture and product decisions are recorded as immutable
 ADRs in `docs/devs/architecture/decisions/` (numbered sequentially, ADR-001,
 ADR-002, ...). ADRs are never edited after acceptance -- a new decision gets
 a new ADR. See that directory's README for the format and index.
-
-## Documentation Architecture
-
-This is a standing commitment across every release.
-
-- **User docs**: Hosted on a Writebook instance. Covers getting started, all
-  features, keyboard shortcuts, import/export, and customization. Linked
-  from the bottom bar of the app.
-- **Dev docs**: Architecture, standards, process, and ADRs -- this
-  `docs/devs/` tree.
-- **In-app help**: The `?` Help modal shows all keyboard shortcuts organized
-  by category. Links at the bottom open the full Writebook docs.
-- **Writebook link**: Bottom bar far-right corner -- a small "docs" link
-  that opens the user docs home page.

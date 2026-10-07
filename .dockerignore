@@ -1,4 +1,4 @@
-# Build context exclusions for every Dockerfile in docker/.
+# Build context exclusions for the root Dockerfile.
 # Keeps contexts small and, critically, prevents host state from leaking
 # into images: host node_modules (wrong platform / stale), local SQLite
 # data, playwright artifacts, build outputs.
