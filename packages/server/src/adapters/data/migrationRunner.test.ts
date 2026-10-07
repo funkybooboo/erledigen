@@ -52,6 +52,18 @@ describe('runMigrations', () => {
             '005_rollover_trigger_time.sql',
             '006_holidays_table.sql',
             '007_day_notes.sql',
+            '008_preferences_accent.sql',
         ]);
+    });
+
+    test('fresh databases carry the accent column with the blue default', () => {
+        const db = new Database(':memory:');
+        runMigrations(db);
+        const cols = db.query("PRAGMA table_info('user_preferences')").all() as Array<{
+            name: string;
+            dflt_value: string | null;
+        }>;
+        const accent = cols.find(col => col.name === 'accent');
+        expect(accent?.dflt_value).toBe("'blue'");
     });
 });

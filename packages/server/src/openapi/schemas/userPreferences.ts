@@ -35,6 +35,7 @@ export const UserPreferencesSchema = registry.register(
         .object({
             id: z.literal('default'),
             theme: z.enum(['light', 'dark', 'system']),
+            accent: z.enum(['blue', 'coral', 'amber']),
             locale: z.string(),
             someDayPanelWidth: z.number().int(),
             someDayPanelCollapsed: z.boolean(),
@@ -58,6 +59,7 @@ export const UpdateUserPreferencesSchema = registry.register(
     z
         .object({
             theme: z.enum(['light', 'dark', 'system']).optional(),
+            accent: z.enum(['blue', 'coral', 'amber']).optional(),
             locale: z.string().optional(),
             someDayPanelWidth: z.number().int().min(0).max(800).optional(),
             someDayPanelCollapsed: z.boolean().optional(),

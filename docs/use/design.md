@@ -96,9 +96,9 @@ server, and API schemas alike) -- conceptually:
   task, never scheduled; collapsed away when empty, and included in the
   JSON backup like everything else.
 - **UserPreferences** -- a single row holding every setting: theme,
-  panel widths and collapse states, rollover behavior, delete
-  confirmation, tag kinds, active filters (tags, completion, sort mode,
-  date range), and more.
+  accent scheme, panel widths and collapse states, rollover behavior,
+  delete confirmation, tag kinds, active filters (tags, completion,
+  sort mode, date range), and more.
 
 ---
 

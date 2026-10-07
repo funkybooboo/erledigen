@@ -106,6 +106,21 @@ export const PURGE_RETENTION_DAYS = 7;
  *  runs behave like containerized ones; override with RATE_LIMIT_RPM. */
 export const DEFAULT_RATE_LIMIT_RPM = 600;
 
+/** The selectable accent schemes (USE-3): each is a full accent palette
+ *  drawn from the logo's pill colors -- blue is the Fizzy link blue the
+ *  app has always shipped (sibling of the logo's blue pill), coral takes
+ *  the red pill's hue, amber the yellow pill's. The ids are the API
+ *  values and the CSS [data-accent] keys; `label` is what the Theme
+ *  modal shows. */
+export const ACCENT_SCHEMES: ReadonlyArray<{
+    id: import('./types/userPreferences').AccentSchemeId;
+    label: string;
+}> = [
+    { id: 'blue', label: 'Blue' },
+    { id: 'coral', label: 'Coral' },
+    { id: 'amber', label: 'Amber' },
+];
+
 /** Habit heatmap (GitHub-style year grid) geometry. The window is
  *  53 weeks: the widest grid a calendar year can render (a year
  *  spanning 53 Sundays), so the server's completedDates window
@@ -146,6 +161,7 @@ export const PRIORITY_TAGS: readonly string[] = ['p1', 'p2', 'p3'];
 
 export const USER_PREFERENCES_DEFAULTS = {
     theme: 'system' as const,
+    accent: 'blue' as const,
     locale: 'en',
     someDayPanelWidth: 280,
     someDayPanelCollapsed: false,

@@ -69,6 +69,30 @@ test.describe('Theme modal', () => {
         await page.keyboard.press('Escape');
         await expect(modal(page, 'Theme')).toBeHidden();
     });
+
+    test('switching the accent scheme applies it and persists to the server', async ({ page }) => {
+        await hydrated(page);
+        await page.getByRole('button', { name: 'Theme', exact: true }).click();
+        const theme = modal(page, 'Theme');
+        await expect(theme).toBeVisible();
+        await theme.getByRole('radio', { name: 'Coral' }).check();
+        // The layout's $effect mirrors the store onto the document root.
+        await expect
+            .poll(async () =>
+                page.evaluate(() => document.documentElement.getAttribute('data-accent')),
+            )
+            .toBe('coral');
+        // And the server persists it.
+        await expect
+            .poll(async () => {
+                const r = await page.request.get(`${SERVER_URL}/api/preferences`);
+                return (await r.json()).data.accent;
+            })
+            .toBe('coral');
+
+        // Restore the default accent for the shared server.
+        await page.request.patch(`${SERVER_URL}/api/preferences`, { data: { accent: 'blue' } });
+    });
 });
 
 test.describe('Search modal', () => {

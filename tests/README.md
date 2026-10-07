@@ -39,7 +39,7 @@ Covers, per resource:
 - **tags** -- list (sorted, de-duped), info (counts), rename, merge (incl.
   no-duplicate target), validation, content negotiation.
 - **user preferences** -- GET defaults, PATCH single-field/nested, validation
-  (theme/width enums/bounds), content negotiation.
+  (theme/accent/width enums/bounds), content negotiation.
 - **export** -- `GET /api/export` (ADR-008): canonical JSON snapshot (raw
   document, attachment headers, trash included), CSV (header row, RFC 4180
   escaping, `columns` subset + unknown-column 400), Markdown (day sections

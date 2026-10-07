@@ -96,6 +96,15 @@ export function runUserPreferencesRepositoryContractTests(
             expect(after.updatedAt).toBeDefined();
             expect(typeof after.updatedAt).toBe('string');
         });
+
+        test('persists the accent scheme', async () => {
+            const repo = makeRepo();
+            await repo.update({ accent: 'coral' });
+            const prefs = await repo.get();
+            expect(prefs.accent).toBe('coral');
+            // Partial update does not clobber the other theme field.
+            expect(prefs.theme).toBe('system');
+        });
     });
 
     describe('reset', () => {
@@ -116,6 +125,19 @@ export function runUserPreferencesRepositoryContractTests(
                 expect(restored.someDayPanelWidth).toBe(321);
                 expect(restored.timezone).toBe('America/Denver');
                 expect(restored.updatedAt).toBe('2026-01-15T09:00:00.000Z');
+            });
+
+            test('fills the accent default when a pre-v0.11.0 snapshot has none', async () => {
+                const repo = makeRepo();
+                const current = await repo.get();
+                // A v0.10.x export predates the accent field entirely.
+                const legacy = {
+                    ...current,
+                    accent: undefined,
+                } as unknown as UserPreferences;
+                await repo.restore(legacy);
+                const prefs = await repo.get();
+                expect(prefs.accent).toBe('blue');
             });
         });
 

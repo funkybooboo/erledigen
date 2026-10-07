@@ -8,6 +8,7 @@ test.describe('user preferences -- GET /api/preferences', () => {
         const prefs = res.body.data;
         expect(prefs.id).toBe('default');
         expect(['light', 'dark', 'system']).toContain(prefs.theme);
+        expect(['blue', 'coral', 'amber']).toContain(prefs.accent);
         expect(['instant', 'confirm']).toContain(prefs.deleteConfirmation);
         expect(['12h', '24h']).toContain(prefs.timeFormat);
         expect(['midnight', '9am', 'manual']).toContain(prefs.rolloverTriggerTime);
@@ -89,6 +90,21 @@ test.describe('user preferences -- PATCH /api/preferences', () => {
         expect(res.status).toBe(400);
         expect(res.body.code).toBe('VALIDATION_ERROR');
         expect(res.body.details?.fields).toHaveProperty('theme');
+    });
+
+    test('updates and validates the accent scheme', async ({ request }) => {
+        const res = await patch(request, '/api/preferences', { accent: 'coral' });
+        expect(res.status).toBe(200);
+        expect(res.body.data.accent).toBe('coral');
+        // Theme field untouched by the accent update.
+        expect(['light', 'dark', 'system']).toContain(res.body.data.theme);
+
+        const bad = await patch(request, '/api/preferences', { accent: 'magenta' });
+        expect(bad.status).toBe(400);
+        expect(bad.body.code).toBe('VALIDATION_ERROR');
+
+        // Restore the default for the shared singleton.
+        await patch(request, '/api/preferences', { accent: 'blue' });
     });
 
     test('rejects someDayPanelWidth over 800 with 400', async ({ request }) => {

@@ -2,6 +2,12 @@ export type ThemeType = 'light' | 'dark' | 'system';
 export type DeleteConfirmationType = 'instant' | 'confirm';
 export type TimeFormatType = '12h' | '24h';
 
+/** The accent scheme ids. Each is an accent palette drawn from the
+ *  logo's pill colors (see ACCENT_SCHEMES in constants.ts): 'blue' is
+ *  the default and stays the :root token set; 'coral' and 'amber' take
+ *  their hues from the logo's red and yellow pills. */
+export type AccentSchemeId = 'blue' | 'coral' | 'amber';
+
 /** When the daily rollover job runs (server timezone). 'manual' = no
  *  daily schedule; stale tasks are only caught up at server startup. */
 export type RolloverTriggerTime = 'midnight' | '9am' | 'manual';
@@ -57,6 +63,8 @@ export function normalizeActiveFilters(
 export interface UserPreferences {
     id: 'default';
     theme: ThemeType;
+    /** Accent palette id (ACCENT_SCHEMES) -- 'blue' is the default. */
+    accent: AccentSchemeId;
     locale: string;
     someDayPanelWidth: number;
     someDayPanelCollapsed: boolean;
