@@ -8,15 +8,20 @@
 # and its types are enforced by type-check. A shared `dist/` was produced
 # here for a while and consumed by nothing.)
 #
-# The budget (664 KiB by default, on the browser payload) mirrors the gate
+# The budget (676 KiB by default, on the browser payload) mirrors the gate
 # documented in .github/workflows/ci.yml. Override it with MAX_CLIENT_BYTES;
 # set MAX_CLIENT_BYTES=0 to skip the check entirely.
+#
+# History: 664 KiB was the pre-v0.11.0 ceiling; raised +12 KiB once for the
+# v0.11.0 theming build (Theme modal, accent schemes, tag colors/management,
+# animations, preference UIs) so each story PR does not whack the gate --
+# re-evaluate at the v1.0.0 gate.
 
 set -euo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
-DEFAULT_MAX_BYTES=679936 # 664 KiB
+DEFAULT_MAX_BYTES=692224 # 676 KiB
 MAX_BYTES="${MAX_CLIENT_BYTES:-$DEFAULT_MAX_BYTES}"
 
 step "Building server"
