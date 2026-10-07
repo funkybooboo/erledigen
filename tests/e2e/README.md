@@ -21,4 +21,4 @@ bun run test:e2e:no-server
 
 ## Learn More
 
-To learn more about our testing strategy and how we use Playwright, check out the [**Testing**](../../docs/devs/standards/testing.md) documentation.
+To learn more about our testing strategy and how we use Playwright, check out the [**Testing**](../../docs/build/standards/testing.md) documentation.

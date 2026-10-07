@@ -5,8 +5,8 @@
 
 ## Context
 
-The docs today split by audience into `docs/users/` (app users) and
-`docs/devs/` (developers) -- but the repo now serves a third role with
+The docs today split by audience into `docs/use/` (app users) and
+`docs/build/` (developers) -- but the repo now serves a third role with
 no documentation home: the **operator** who runs an instance
 (self-hosted or hosted). Installation, configuration, upgrades,
 backups, and monitoring are currently fragments of README and
@@ -23,12 +23,12 @@ the code.
 prefixes (ADR-017):
 
 - **`docs/use/`** -- app users: what the app is, how to work in it,
-  notes, import/export. (Today's `docs/users/` moves here.)
+  notes, import/export. (Today's `docs/use/` moves here.)
 - **`docs/host/`** -- operators: install (compose and Kubernetes),
   the configuration reference, upgrades, backups, monitoring,
   troubleshooting. (New.)
 - **`docs/build/`** -- developers: architecture, standards, process,
-  ADRs, and everything needed to contribute. (Today's `docs/devs/`
+  ADRs, and everything needed to contribute. (Today's `docs/build/`
   moves here.)
 
 Supporting decisions:
@@ -51,7 +51,7 @@ question.
 
 ## Consequences
 
-- `docs/users/` -> `docs/use/`, `docs/devs/` -> `docs/build/`; every
+- `docs/use/` -> `docs/use/`, `docs/build/` -> `docs/build/`; every
   cross-reference in the tree updates (lychee enforces this in CI).
 - `docs/host/` is authored from scratch as part of the platform
   milestone.

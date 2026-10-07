@@ -59,4 +59,4 @@ src/
 
 ## Learn More
 
-See [Architecture](../../docs/devs/architecture/architecture.md) for how the client fits into the broader system.
+See [Architecture](../../docs/build/architecture/architecture.md) for how the client fits into the broader system.

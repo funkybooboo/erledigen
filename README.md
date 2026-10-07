@@ -42,7 +42,7 @@ SQLite database, synced live to every open window over WebSocket.
 
 Also: sub-tasks with completion roll-up, holidays with `.ics` import,
 soft-delete trash with undo, and import from Todoist, Things 3, CSV, and
-iCal. The [user docs](./docs/users/README.md) cover all of it.
+iCal. The [user docs](./docs/use/README.md) cover all of it.
 
 ## Quick start
 
@@ -73,7 +73,7 @@ mise run dev      # docker dev stack: client on :3000, server on :4000
 | `mise run release` | Cut a release: gates + version bump + PR + tag |
 
 App-running tasks (dev, prod, tests) execute in containers and never touch
-your host environment. The [full task list](./docs/devs/process/getting-started.md)
+your host environment. The [full task list](./docs/build/process/getting-started.md)
 lives in the developer docs.
 
 ## Docker
@@ -128,19 +128,19 @@ Bruno collection; Storybook for components; Biome for lint and format.
 
 ## Learn more
 
-*   [User docs](./docs/users/README.md) -- introduction, design, notes, import/export
-*   [Architecture](./docs/devs/architecture/architecture.md) -- how the app is built
-*   [Getting started](./docs/devs/process/getting-started.md) -- setup and every task
-*   [Code standards](./docs/devs/standards/code-standards.md) -- how the code is written
-*   [Testing](./docs/devs/standards/testing.md) -- the three test layers
-*   [Git workflow](./docs/devs/standards/git-workflow.md) -- worktrees, PRs, commits
+*   [User docs](./docs/use/README.md) -- introduction, design, notes, import/export
+*   [Architecture](./docs/build/architecture/architecture.md) -- how the app is built
+*   [Getting started](./docs/build/process/getting-started.md) -- setup and every task
+*   [Code standards](./docs/build/standards/code-standards.md) -- how the code is written
+*   [Testing](./docs/build/standards/testing.md) -- the three test layers
+*   [Git workflow](./docs/build/standards/git-workflow.md) -- worktrees, PRs, commits
 *   [Roadmap](./plans/roadmap.md) -- release-by-release development plan
 
 ## Contribute
 
 This is a personal project, published openly -- you are welcome to hack on
 it. Start with [CONTRIBUTING.md](./CONTRIBUTING.md), then the
-[getting started guide](./docs/devs/process/getting-started.md).
+[getting started guide](./docs/build/process/getting-started.md).
 
 ## License
 

@@ -10,7 +10,7 @@ nothing I read assumes a different job than mine.
 ## Acceptance criteria
 - [ ] `docs/use/` (app users), `docs/host/` (operators), `docs/build/`
       (developers) exist with a README routing each role in
-- [ ] Today's `docs/users/` and `docs/devs/` content moves there with
+- [ ] Today's `docs/use/` and `docs/build/` content moves there with
       every cross-reference updated (lychee enforces)
 - [ ] CONTRIBUTING.md stays at the repo root and routes readers to
       their role home

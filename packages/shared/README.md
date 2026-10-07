@@ -20,4 +20,4 @@ If only the client needs it -> `packages/client`.
 
 ## Learn More
 
-See [Architecture](../../docs/devs/architecture/architecture.md) for how the shared package fits into the broader system.
+See [Architecture](../../docs/build/architecture/architecture.md) for how the shared package fits into the broader system.

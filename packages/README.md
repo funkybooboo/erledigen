@@ -6,4 +6,4 @@ This directory contains the source code for the Erledigen application, which is 
 *   [`server`](./server) -- The Bun API server.
 *   [`shared`](./shared) -- Code that is shared between the client and server.
 
-To learn more about the project's architecture, see the [**Architecture**](../docs/devs/architecture/architecture.md) documentation.
+To learn more about the project's architecture, see the [**Architecture**](../docs/build/architecture/architecture.md) documentation.
