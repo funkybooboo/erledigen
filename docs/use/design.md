@@ -39,23 +39,23 @@ groups, Someday, and filters.
 |S |  -------------------------------------  |  ----------- |
 |F |   o 09:00 fix auth  #work  #p1          |   o idea     |
 |T |   o unit tests                          |   o thing    |
-|G |   o write tests       #p2               |  + add task  |
-|? |  + add task   (every friday -> habit)    |              |
+|A |   o write tests       #p2               |  + add task  |
+|G |  + add task   (every friday -> habit)    |              |
 |  |                                          |  #school     |
 |  |  March 31, Monday  -  2 tasks            |  ----------- |
 |  |  -------------------------------------  |   o essay    |
-|  |   o deploy to prod   #p1               |              |
+|? |   o deploy to prod   #p1               |              |
 |--+------------------------------------------+--------------|
 |  erledigen   14:32   #work x  #p1 x    12 tasks - 4 done  ^ Today |
 \------------------------------------------------------------/
 ```
 
 Rail icons are abbreviated in the mockup above: M=Summary, P=Projects,
-H=Habits, C=Calendar, S=Search, F=Filter, N=Notes, T=Trash, G=Settings,
-?=Help.
+H=Habits, C=Calendar, S=Search, F=Filter, N=Notes, T=Trash, A=Theme,
+G=Settings, ?=Help.
 
 Four zones:
-- **Left icon rail** -- slim vertical rail; each icon opens a large centered modal (also via `g`-sequences: `g s` Summary, `g p` Projects, `g h` Habits, `g c` Calendar, `g n` Notes, `g f` Filter, `g x` Trash, `g o` Settings)
+- **Left icon rail** -- slim vertical rail; each icon opens a large centered modal (also via `g`-sequences: `g s` Summary, `g p` Projects, `g h` Habits, `g c` Calendar, `g n` Notes, `g f` Filter, `g x` Trash, `g a` Theme, `g o` Settings)
 - **Center day list** -- the primary working area; a continuously-scrolling list of day sections with a month minimap on the left edge
 - **Right Someday panel** -- always visible by default; collapsible (`Cmd/Ctrl+\\`) and drag-to-resize (width persisted)
 - **Bottom bar** -- `erledigen logo (home/today) | live clock | filter chips | task count | ^ Today`

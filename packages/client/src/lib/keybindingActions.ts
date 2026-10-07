@@ -234,6 +234,7 @@ const keyboardActions: Record<ShortcutId, KeyboardAction> = {
     openFilter: { run: () => openModal('filter') },
     openTrash: { run: () => openModal('trash') },
     openSettings: { run: () => openModal('settings') },
+    openTheme: { run: () => openModal('theme') },
     openNotes: { run: () => openModal('notes') },
 };
 

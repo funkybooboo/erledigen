@@ -49,6 +49,7 @@ export type ShortcutId =
     | 'openFilter'
     | 'openTrash'
     | 'openSettings'
+    | 'openTheme'
     | 'openNotes';
 
 export interface Shortcut {
@@ -90,6 +91,7 @@ export const SHORTCUTS: Record<ShortcutId, Shortcut> = {
     openFilter: { bindings: ['g f'], label: 'Filter' },
     openTrash: { bindings: ['g x'], label: 'Trash' },
     openSettings: { bindings: ['g o'], label: 'Settings' },
+    openTheme: { bindings: ['g a'], label: 'Theme' },
     openNotes: { bindings: ['g n'], label: 'Notes' },
 };
 
@@ -137,6 +139,7 @@ export const SHORTCUT_SECTIONS: { title: string; ids: ShortcutId[] }[] = [
             'openFilter',
             'openTrash',
             'openSettings',
+            'openTheme',
             'help',
             'closeModal',
         ],
