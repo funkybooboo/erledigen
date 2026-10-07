@@ -5,7 +5,7 @@ at all on my instance; as the project's host, I want Stripe billing
 on the managed tier, so that both worlds come from one codebase.
 
 **Status**: planned
-**Version**: v2.5.0
+**Version**: v2.4.0
 
 ## Acceptance criteria
 - [ ] PaymentAdapter interface in the server; Stripe implements it;

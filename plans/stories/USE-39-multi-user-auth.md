@@ -5,7 +5,7 @@ and see only my tasks, so that a household or team can share one
 instance without sharing data.
 
 **Status**: planned
-**Version**: v2.3.0
+**Version**: v2.2.0
 
 ## Acceptance criteria
 - [ ] Passwordless auth: passkeys (WebAuthn) primary, magic-link

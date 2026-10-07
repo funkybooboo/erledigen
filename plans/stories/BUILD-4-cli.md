@@ -17,5 +17,5 @@ manageable from the shell and scripts.
 
 ## Notes
 
-No AI in the UI (ADR-014) -- the CLI is one of the sanctioned
-automation surfaces.
+No AI in the UI (ADR-014 + ADR-021) -- the CLI is the
+sanctioned automation surface.

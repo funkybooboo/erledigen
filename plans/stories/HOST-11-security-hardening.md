@@ -5,7 +5,7 @@ dedicated security hardening pass, so that user data is defended
 before authentication and billing land on it.
 
 **Status**: planned
-**Version**: v2.4.0
+**Version**: v2.3.0
 
 ## Acceptance criteria
 - [ ] OWASP Top 10 audit of all endpoints; findings remediated

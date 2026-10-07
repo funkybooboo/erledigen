@@ -4,7 +4,7 @@ As an app user, I want per-task reminders through browser push or
 email, so that time-sensitive work reaches me outside the app.
 
 **Status**: planned
-**Version**: v2.2.0
+**Version**: v2.1.0
 
 ## Acceptance criteria
 - [ ] Per-task reminders: time + channels (push, email)
