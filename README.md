@@ -13,7 +13,7 @@ No accounts, no analytics, no telemetry. Your data lives in your own
 SQLite database, synced live to every open window over WebSocket.
 
 [![CI](https://github.com/funkybooboo/erledigen/actions/workflows/ci.yml/badge.svg)](https://github.com/funkybooboo/erledigen/actions/workflows/ci.yml)
-[![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](./LICENSE)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](./LICENSE)
 
 ![The Erledigen daily list with the Someday panel open](docs/assets/screenshot.png)
 
@@ -144,5 +144,6 @@ it. Start with [CONTRIBUTING.md](./CONTRIBUTING.md), then the
 
 ## License
 
-Erledigen is released under the [GPL-3.0 license](./LICENSE). Found a
+Erledigen is released under the [AGPL-3.0-only license](./LICENSE)
+(ADR-016). Found a
 security issue? See [SECURITY.md](./SECURITY.md).
