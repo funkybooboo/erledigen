@@ -17,6 +17,11 @@ export const API_ROUTES = {
     // Health & metrics
     HEALTH: '/api/health',
     METRICS: '/api/metrics',
+    /** Orchestrator probes (ADR-018): liveness is the process, readiness
+     *  is the dependencies -- deliberately separate from the rich
+     *  human-oriented /api/health. */
+    HEALTHZ: '/healthz',
+    READYZ: '/readyz',
 
     // Tasks
     TASKS: '/api/tasks',

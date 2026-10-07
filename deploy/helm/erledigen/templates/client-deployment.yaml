@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: {{ include "erledigen.fullname" . }}-client
+    labels:
+        {{- include "erledigen.labels" . | nindent 8 }}
+        erledigen.io/component: client
+spec:
+    replicas: {{ .Values.client.replicas }}
+    selector:
+        matchLabels:
+            app.kubernetes.io/name: {{ include "erledigen.name" . }}
+            erledigen.io/component: client
+    template:
+        metadata:
+            labels:
+                {{- include "erledigen.labels" . | nindent 16 }}
+                erledigen.io/component: client
+        spec:
+            containers:
+                - name: client
+                  # Built same-origin (empty VITE_API_URL): the browser
+                  # talks to this deployment's origin, and the ingress
+                  # routes /api and /ws to the server (ADR-018).
+                  image: {{ include "erledigen.clientImage" . }}
+                  imagePullPolicy: IfNotPresent
+                  ports:
+                      - name: http
+                        containerPort: {{ .Values.client.port }}
+                  livenessProbe:
+                      httpGet:
+                          path: /
+                          port: http
+                      periodSeconds: 30
+                      timeoutSeconds: 3
+                  resources:
+                    {{- toYaml .Values.client.resources | nindent 24 }}

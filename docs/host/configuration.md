@@ -1,31 +1,45 @@
 # Configuration
 
-Every knob an operator can turn. All configuration is environment
+Every knob an operator can turn. Configuration is environment
 variables (12-factor); containers take them from the compose files,
-Kubernetes from the chart's values.
+Kubernetes from the Helm chart's values.
 
-> This page is the start of the one-table configuration reference
-> ([HOST-7](../../plans/stories/HOST-7-configuration-reference.md));
-> the full table is being filled in there. Until then, the
-> complete live list with defaults and explanations lives in the
-> [getting-started guide](../build/process/getting-started.md).
+## Server
 
-## The ones you will actually touch
+| Variable | Default | What it does |
+|----------|---------|--------------|
+| `PORT` | `4000` | HTTP + WebSocket port |
+| `CORS_ORIGIN` | `*` | Allowed origins (same-origin via the proxy by default) |
+| `NODE_ENV` | `production` | Environment flag (logging defaults) |
+| `STORAGE_ADAPTER` | `sqlite` | `memory` for ephemeral runs (data does not survive restarts) |
+| `DB_PATH` | `/data/erledigen.db` in containers | SQLite file -- keep it on the volume |
+| `RATE_LIMIT_RPM` | `600` | Requests per minute per client |
+| `LOG_FORMAT` | `json` in prod | `json` for log collectors (ADR-004), `text` for humans |
+| `LOG_LEVEL` | `info` in prod | Minimum log level |
+| `METRICS_ENABLED` | `true` | `false` removes `/api/metrics` entirely (ADR-005, ADR-019) |
+| `APP_VERSION` | the release stamp | Version reported by `/api/health` |
+| `JOB_POLL_INTERVAL_MS` | `1000` | Job runner poll interval (ADR-002) |
+| `JOB_MAX_ATTEMPTS` | `3` | Attempts before a job is marked dead |
+| `JOB_RETRY_BASE_DELAY_MS` | `5000` | Backoff base: the Nth failure retries after 2^N x this |
+| `JOB_TIMEOUT_MS` | `30000` | Per-attempt job handler timeout |
 
-| Variable | Container | Default | What it does |
-|----------|-----------|---------|--------------|
-| `PROD_PORT` | proxy | `8080` | The single published port |
-| `DB_PATH` | server | `/data/erledigen.db` | SQLite file (keep it on the volume) |
-| `CORS_ORIGIN` | server | `*` | Allowed origins (same-origin via the proxy by default) |
-| `RATE_LIMIT_RPM` | server | `600` | Requests per minute per client |
-| `METRICS_ENABLED` | server | `true` | `false` removes the metrics endpoint entirely (ADR-005, ADR-019) |
-| `STORAGE_ADAPTER` | server | `sqlite` | `memory` for ephemeral runs (tests, throwaways -- data does not survive restarts) |
-| `VITE_API_URL` | client (build) | empty = same-origin | Absolute URL only for split-origin deployments |
+## Client
+
+| Variable | Default | What it does |
+|----------|---------|--------------|
+| `VITE_API_URL` (build-time) | empty = same-origin | Absolute URL only for split-origin deployments |
+| `VITE_PORT` | `3000` | Dev server port |
+
+## Compose-level
+
+| Variable | Default | What it does |
+|----------|---------|--------------|
+| `PROD_PORT` | `8080` | The single published port (the proxy) |
 
 ## Rules of thumb
 
 - Same-origin (the default) needs no CORS and no WebSocket origin
   configuration -- the proxy routes everything.
 - Never move `DB_PATH` off the volume; that file is all your data.
-- `LOG_FORMAT=json` and `LOG_LEVEL=info` are the production defaults;
-  see the [logging ADR-004](../build/architecture/decisions/ADR-004-structured-json-logging.md).
+- Every value the Helm chart exposes mirrors this table
+  ([deploy/helm/erledigen/values.yaml](../../deploy/helm/erledigen/values.yaml)).

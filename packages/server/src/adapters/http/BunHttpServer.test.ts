@@ -80,6 +80,42 @@ describe('BunHttpServer', () => {
         });
     });
 
+    describe('graceful shutdown (ADR-018, HOST-3)', () => {
+        it('drains an in-flight request before stopping', async () => {
+            const server = await startServer();
+            let handlerDone = false;
+            server.route('GET', '/api/slow', async () => {
+                await new Promise(resolve => setTimeout(resolve, 150));
+                handlerDone = true;
+                return { status: 200, headers: {}, body: { data: 'done' } };
+            });
+
+            // Fire a request, then stop while it is in flight.
+            const pending = fetch(server, 'GET', '/api/slow');
+            await new Promise(resolve => setTimeout(resolve, 25));
+            await server.stop(2_000);
+
+            const res = await pending;
+            expect(handlerDone).toBe(true);
+            expect(res.status).toBe(200);
+        });
+
+        it('closes the listener immediately on stop', async () => {
+            const server = await startServer();
+            const port = server.getPort();
+            if (port === null) throw new Error('Server not started');
+            await server.stop(0);
+            expect(server.getPort()).toBeNull();
+            await expect(globalThis.fetch(`http://localhost:${port}/api/health`)).rejects.toThrow();
+        });
+
+        it('closing WebSockets on stop is safe with no connection manager', async () => {
+            const server = await startServer();
+            await server.stop(0);
+            expect(server.getPort()).toBeNull();
+        });
+    });
+
     describe('guards', () => {
         it('guard returning null lets the request through', async () => {
             const server = await startServer();

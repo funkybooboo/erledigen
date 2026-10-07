@@ -1,0 +1,63 @@
+name: Publish images
+
+# Publishes the production images to GHCR on every release tag (ADR-018,
+# HOST-1): operators install from published images; building from source
+# stays possible via the compose build sections.
+
+on:
+    push:
+        tags:
+            - 'v*'
+
+permissions:
+    contents: read
+    packages: write
+
+env:
+    REGISTRY: ghcr.io
+    # ghcr requires lowercase owner names
+    OWNER: funkybooboo
+
+jobs:
+    publish:
+        name: Build and push server + client images
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+
+        strategy:
+            matrix:
+                include:
+                    - name: erledigen-server
+                      target: production-server
+                    - name: erledigen-client
+                      target: production-client
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Log in to GHCR
+              uses: docker/login-action@v3
+              with:
+                  registry: ${{ env.REGISTRY }}
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Extract the version from the tag
+              id: version
+              run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+            - name: Build and push
+              uses: docker/build-push-action@v6
+              with:
+                  context: .
+                  target: ${{ matrix.target }}
+                  push: true
+                  # The release tag pins the release; `latest` floats for
+                  # operators who want to track main (see docs/host/upgrade.md).
+                  tags: |
+                      ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.name }}:${{ steps.version.outputs.version }}
+                      ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.name }}:latest
+                  # amd64 first (the operator story); arm64 joins when a
+                  # builder matrix lands -- tracked as a HOST story.
+                  platforms: linux/amd64

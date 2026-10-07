@@ -1,0 +1,12 @@
+apiVersion: v2
+name: erledigen
+description: >
+  Self-hosted task management -- an automated paper calendar: a day
+  list you write by hand, plus an engine that fills in everything that
+  recurs. Single-replica by design (SQLite on a PVC, WebSockets
+  in-process, jobs in-app); see docs/host/ in the repository.
+type: application
+version: 0.1.0
+appVersion: "0.10.1"
+maintainers:
+    - name: funkybooboo

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: {{ include "erledigen.fullname" . }}-server
+    labels:
+        {{- include "erledigen.labels" . | nindent 8 }}
+        erledigen.io/component: server
+spec:
+    type: ClusterIP
+    selector:
+        app.kubernetes.io/name: {{ include "erledigen.name" . }}
+        erledigen.io/component: server
+    ports:
+        - name: http
+          port: {{ .Values.server.port }}
+          targetPort: http

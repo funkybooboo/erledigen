@@ -54,6 +54,12 @@ export class BunHttpServer implements HttpServer {
     private connectionManager: ConnectionManager | null = null;
     private logger: Logger | null;
     private metrics: MetricsAdapter | null;
+    /** In-flight HTTP requests -- the drain loop in stop() waits for it
+     *  to reach zero (graceful shutdown, ADR-018). */
+    private inFlight = 0;
+    /** True once stop() has begun: new HTTP requests get a fast 503 so
+     *  orchestrators see unready-ness immediately instead of hanging. */
+    private draining = false;
 
     constructor(config: HttpServerConfig = {}) {
         this.logger = config.logger ?? null;
@@ -142,8 +148,15 @@ export class BunHttpServer implements HttpServer {
 
         const requestId = resolveRequestId(Object.fromEntries(req.headers.entries()));
 
+        // Draining (SIGTERM received): answer immediately with 503 so
+        // load balancers move on; readiness probes report not-ready too.
+        if (this.draining) {
+            return new Response('Shutting down', { status: 503 });
+        }
+
         // In-flight gauge goes up before any response path can return (and
         // back down in finishRequest), so it tracks requests, not routes.
+        this.inFlight++;
         this.metrics?.incrementGauge(HTTP_REQUESTS_ACTIVE, { method: req.method });
 
         const entry = this.routes.find(r => r.method === req.method && r.regex.test(url.pathname));
@@ -235,6 +248,7 @@ export class BunHttpServer implements HttpServer {
             );
             this.metrics.decrementGauge(HTTP_REQUESTS_ACTIVE, { method });
         }
+        this.inFlight--;
 
         if (!this.logger) return;
         const context: LogContext = { requestId, method, path, statusCode: status, durationMs };
@@ -245,10 +259,30 @@ export class BunHttpServer implements HttpServer {
         }
     }
 
-    async stop(): Promise<void> {
-        if (this.server) {
-            this.server.stop();
-            this.server = null;
+    async stop(drainMs = 10_000): Promise<void> {
+        const server = this.server;
+        if (!server) return;
+        this.server = null;
+        this.draining = true;
+        // Stop accepting new connections; in-flight requests finish.
+        server.stop();
+
+        // Drain: wait (up to the deadline) for in-flight requests to
+        // complete so a rollout never drops one mid-write.
+        const deadline = Date.now() + drainMs;
+        while (this.inFlight > 0 && Date.now() < deadline) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
+
+        // Close remaining WebSockets so clients reconnect cleanly to
+        // wherever the orchestrator sends them next.
+        this.connectionManager?.closeAll();
+
+        // Still-busy past the deadline: force-terminate (k8s kills the
+        // process at its own grace period anyway -- this at least closes
+        // the sockets before it does).
+        if (this.inFlight > 0) {
+            server.stop(true);
         }
     }
 

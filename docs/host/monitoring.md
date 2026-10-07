@@ -10,9 +10,14 @@ Grafana/Loki stack ships at v1.0.0 as
 - `GET /api/health` -- the rich check: status, version, uptime,
   database details, WebSocket connection count, job-queue depth.
   Use it for uptime monitors.
-- Distinct liveness and readiness endpoints (`/healthz`, `/readyz`)
-  land with [HOST-4](../../plans/stories/HOST-4-liveness-readiness.md)
-  for orchestrated deployments.
+- `GET /healthz` -- liveness: the process is alive, deliberately no
+  dependency checks (a database outage must not get the container
+  restarted).
+- `GET /readyz` -- readiness: dependencies reachable (a SQLite SELECT 1
+  catches a detached or corrupted database file); answers 503 while
+  not, which pauses traffic without restarting anything.
+- The compose healthcheck uses `/api/health`; the Helm chart wires
+  `/healthz` to liveness and `/readyz` to readiness.
 
 ## Metrics
 

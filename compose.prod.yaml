@@ -37,7 +37,7 @@ services:
         build:
             context: .
             target: production-server
-        image: erledigen/server
+        image: ghcr.io/funkybooboo/erledigen-server:latest
         # Internal only -- the proxy is the sole entry point.
         environment:
             NODE_ENV: production
@@ -62,7 +62,7 @@ services:
             # No VITE_API_URL arg on purpose: an empty value builds the
             # client same-origin, which is what the proxy serves. Only pass
             # an absolute URL here for split-origin deployments.
-        image: erledigen/client
+        image: ghcr.io/funkybooboo/erledigen-client:latest
         environment:
             NODE_ENV: production
             HOSTNAME: 0.0.0.0

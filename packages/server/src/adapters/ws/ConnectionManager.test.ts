@@ -93,4 +93,23 @@ describe('ConnectionManager', () => {
         expect(all.get('c1')).toBe(ws1);
         expect(all.get('c2')).toBe(ws2);
     });
+
+    it('closeAll closes every socket and empties the maps (HOST-3)', () => {
+        const cm = new ConnectionManager();
+        const closed: string[] = [];
+        const ws = {
+            close: () => {
+                closed.push('closed');
+            },
+        } as unknown as WebSocket;
+        cm.add('c1', ws);
+        cm.add('c2', {} as WebSocket); // no close() -- must be dropped safely
+
+        cm.closeAll();
+
+        expect(closed).toEqual(['closed']);
+        expect(cm.size()).toBe(0);
+        expect(cm.has('c1')).toBe(false);
+        expect(cm.has('c2')).toBe(false);
+    });
 });

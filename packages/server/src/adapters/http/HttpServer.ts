@@ -60,9 +60,13 @@ export interface HttpServer {
     start(port: number): Promise<void>;
 
     /**
-     * Stop the server
+     * Stop the server. Graceful when drainMs is given: stop accepting
+     * new connections, let in-flight requests finish (up to the
+     * deadline), then close WebSockets -- so container restarts and
+     * rollouts never drop a request or tear a socket mid-write
+     * (ADR-018).
      */
-    stop(): Promise<void>;
+    stop(drainMs?: number): Promise<void>;
 
     /**
      * Get the current server port

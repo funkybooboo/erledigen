@@ -3,14 +3,14 @@
 As an operator, I want a documented, boring upgrade path, so that
 moving to a new release is a pull-and-restart with no surprises.
 
-**Status**: planned
+**Status**: done
 **Version**: v0.10.1
 
 ## Acceptance criteria
-- [ ] docs/host/ upgrade runbook: pull the new image tag, restart,
+- [x] docs/host/ upgrade runbook: pull the new image tag, restart,
       migrations apply at boot (fail-fast), verify with /api/health
-- [ ] Image tag policy documented (release tags + floating tag)
-- [ ] The runbook covers compose and Helm
+- [x] Image tag policy documented (release tags + floating tag)
+- [x] The runbook covers compose and Helm
 
 ## Notes
 
