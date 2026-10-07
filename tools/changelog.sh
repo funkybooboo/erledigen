@@ -66,12 +66,15 @@ fi
 TITLE="$(git -C "$REPO_ROOT" describe --tags --exact-match "$TO" 2>/dev/null || true)"
 if [ -n "$TITLE_OVERRIDE" ]; then
     # release.sh knows the version before any tag exists -- it passes the
-    # title explicitly and the section is dated today.
+    # title explicitly and the section is dated today. UTC, like the tag
+    # and the GitHub Release it is about to create: a local-timezone
+    # date can land a day off (v0.10.1 shipped tagged Oct 7 UTC but
+    # its CHANGELOG section said Oct 6).
     TITLE="$TITLE_OVERRIDE"
-    DATE="$(date +%Y-%m-%d)"
+    DATE="$(date -u +%Y-%m-%d)"
 elif [ -z "$TITLE" ]; then
     TITLE="Unreleased"
-    DATE="$(date +%Y-%m-%d)"
+    DATE="$(date -u +%Y-%m-%d)"
 else
     DATE="$(git -C "$REPO_ROOT" log -1 --format=%as "$TO")"
 fi
