@@ -54,6 +54,23 @@ export class ConnectionManager {
         return this.clients.size;
     }
 
+    /** Close every WebSocket (graceful shutdown, ADR-018): clients see a
+     *  clean close and reconnect to wherever the orchestrator sends
+     *  them next. Sockets are stored as unknown (the manager is
+     *  runtime-agnostic); anything without a close() is simply dropped. */
+    closeAll(): void {
+        for (const ws of this.clients.values()) {
+            try {
+                (ws as { close?: () => void }).close?.();
+            } catch {
+                // already closed -- the map entry dies with the socket's
+                // own disconnect callback
+            }
+        }
+        this.clients.clear();
+        this.clientData.clear();
+    }
+
     onConnect(callback: (clientId: string) => void): void {
         this.onConnectCallback = callback;
     }

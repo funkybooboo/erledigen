@@ -3,15 +3,15 @@
 As an operator, I want documented monitoring integration, so that my
 instance is observable with the tools I already run.
 
-**Status**: planned
+**Status**: done
 **Version**: v0.10.1
 
 ## Acceptance criteria
-- [ ] docs/host/ documents the Prometheus scrape config for
+- [x] docs/host/ documents the Prometheus scrape config for
       /api/metrics (the metric families it exposes)
-- [ ] Health-check guidance for uptime monitors (/healthz)
-- [ ] METRICS_ENABLED=false documented as the off switch
-- [ ] The full Loki/Grafana stack stays a v1.0-era story (HOST-9)
+- [x] Health-check guidance for uptime monitors (/healthz)
+- [x] METRICS_ENABLED=false documented as the off switch
+- [x] The full Loki/Grafana stack stays a v1.0-era story (HOST-9)
 
 ## Notes
 

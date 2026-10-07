@@ -28,6 +28,23 @@ test.describe('meta -- platform endpoints', () => {
         expect(res.headers['x-request-id']).toBe('meta-trace-42');
     });
 
+    test('GET /healthz answers liveness with no dependency checks (HOST-4)', async ({
+        request,
+    }) => {
+        const res = await get(request, '/healthz');
+        expect(res.status).toBe(200);
+        expect(res.body.data).toEqual({ status: 'ok' });
+    });
+
+    test('GET /readyz answers readiness for the running adapter (HOST-4)', async ({ request }) => {
+        // The api project runs STORAGE_ADAPTER=memory: no dependency to
+        // check, readiness is a plain ok. The SQLite SELECT-1 path is
+        // covered by the dev/prod stacks' own health checks.
+        const res = await get(request, '/readyz');
+        expect(res.status).toBe(200);
+        expect(res.body.data).toEqual({ status: 'ready' });
+    });
+
     test('GET /api/metrics serves Prometheus text with live request series', async ({
         request,
     }) => {

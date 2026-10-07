@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: {{ include "erledigen.fullname" . }}-server
+    labels:
+        {{- include "erledigen.labels" . | nindent 8 }}
+        erledigen.io/component: server
+spec:
+    replicas: {{ .Values.server.replicas }}
+    # The database is a PVC: a rolling replacement would race on the
+    # volume. Recreate tears down before it builds up.
+    strategy:
+        type: Recreate
+    selector:
+        matchLabels:
+            app.kubernetes.io/name: {{ include "erledigen.name" . }}
+            erledigen.io/component: server
+    template:
+        metadata:
+            labels:
+                {{- include "erledigen.labels" . | nindent 16 }}
+                erledigen.io/component: server
+        spec:
+            terminationGracePeriodSeconds: {{ .Values.server.terminationGracePeriodSeconds }}
+            containers:
+                - name: server
+                  image: {{ include "erledigen.serverImage" . }}
+                  imagePullPolicy: IfNotPresent
+                  ports:
+                      - name: http
+                        containerPort: {{ .Values.server.port }}
+                  env:
+                      - name: NODE_ENV
+                        value: production
+                      - name: PORT
+                        value: {{ .Values.server.port | quote }}
+                      - name: CORS_ORIGIN
+                        value: {{ .Values.server.config.corsOrigin | quote }}
+                      - name: RATE_LIMIT_RPM
+                        value: {{ .Values.server.config.rateLimitRpm | quote }}
+                      - name: LOG_FORMAT
+                        value: {{ .Values.server.config.logFormat | quote }}
+                      - name: LOG_LEVEL
+                        value: {{ .Values.server.config.logLevel | quote }}
+                      - name: METRICS_ENABLED
+                        value: {{ .Values.server.config.metricsEnabled | quote }}
+                      - name: DB_PATH
+                        value: /data/erledigen.db
+                  volumeMounts:
+                      - name: data
+                        mountPath: /data
+                  livenessProbe:
+                      # The process only (ADR-018): a database outage must
+                      # not get the container restarted.
+                      httpGet:
+                          path: /healthz
+                          port: http
+                      periodSeconds: 15
+                      timeoutSeconds: 3
+                  readinessProbe:
+                      # Dependencies reachable (SQLite SELECT 1).
+                      httpGet:
+                          path: /readyz
+                          port: http
+                      periodSeconds: 10
+                      timeoutSeconds: 3
+                  resources:
+                    {{- toYaml .Values.server.resources | nindent 24 }}
+            volumes:
+                {{- if .Values.persistence.enabled }}
+                - name: data
+                  persistentVolumeClaim:
+                      claimName: {{ include "erledigen.fullname" . }}-data
+                {{- else }}
+                - name: data
+                  emptyDir: {}
+                {{- end }}

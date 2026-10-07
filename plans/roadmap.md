@@ -33,14 +33,14 @@ The queue. Versions are the release cadence; stories are the work
 | [BUILD-1](./stories/BUILD-1-know-the-license.md) | License clarity (AGPL-3.0-only, ADR-016) | done |
 | [BUILD-2](./stories/BUILD-2-work-story-first.md) | Story-first plans + enforced linkage (ADR-017) | doing |
 | [USE-1](./stories/USE-1-docs-for-my-role.md) | docs/use, docs/host, docs/build (ADR-020) | doing |
-| [HOST-1](./stories/HOST-1-install-from-images.md) | Install from published images (GHCR) | doing |
-| [HOST-2](./stories/HOST-2-run-on-kubernetes.md) | Kubernetes via Helm chart | planned |
-| [HOST-3](./stories/HOST-3-graceful-shutdown.md) | Restarts without dropped requests | planned |
-| [HOST-4](./stories/HOST-4-liveness-readiness.md) | Distinct liveness + readiness | planned |
-| [HOST-5](./stories/HOST-5-upgrade-runbook.md) | A boring upgrade path | planned |
-| [HOST-6](./stories/HOST-6-backup-restore-runbook.md) | Backup + restore, documented | planned |
-| [HOST-7](./stories/HOST-7-configuration-reference.md) | Every knob in one table | planned |
-| [HOST-8](./stories/HOST-8-monitoring-hookup.md) | Monitoring hookup docs | planned |
+| [HOST-1](./stories/HOST-1-install-from-images.md) | Install from published images (GHCR) | done |
+| [HOST-2](./stories/HOST-2-run-on-kubernetes.md) | Kubernetes via Helm chart | done |
+| [HOST-3](./stories/HOST-3-graceful-shutdown.md) | Restarts without dropped requests | done |
+| [HOST-4](./stories/HOST-4-liveness-readiness.md) | Distinct liveness + readiness | done |
+| [HOST-5](./stories/HOST-5-upgrade-runbook.md) | A boring upgrade path | done |
+| [HOST-6](./stories/HOST-6-backup-restore-runbook.md) | Backup + restore, documented | done |
+| [HOST-7](./stories/HOST-7-configuration-reference.md) | Every knob in one table | done |
+| [HOST-8](./stories/HOST-8-monitoring-hookup.md) | Monitoring hookup docs | done |
 
 ## v0.11.0: Theming and customization
 

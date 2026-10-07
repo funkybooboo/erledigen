@@ -43,6 +43,61 @@ registry.registerPath({
     },
 });
 
+// -- Orchestrator probes (ADR-018) ------------------------------------------------
+
+registry.registerPath({
+    method: 'get',
+    path: '/healthz',
+    summary: 'Liveness probe',
+    description:
+        'The process is alive. Deliberately performs no dependency checks -- ' +
+        'a database outage must not get the container restarted. Orchestration ' +
+        'convention (Kubernetes liveness/readiness); the human-oriented health ' +
+        'report lives on /api/health.',
+    operationId: 'getHealthz',
+    responses: {
+        200: {
+            description: 'Process is alive',
+            content: {
+                'application/json': {
+                    schema: z.object({ data: z.object({ status: z.enum(['ok']) }) }),
+                },
+            },
+        },
+    },
+});
+
+registry.registerPath({
+    method: 'get',
+    path: '/readyz',
+    summary: 'Readiness probe',
+    description:
+        'Dependencies reachable (a SQLite SELECT 1 catches a detached or ' +
+        'corrupted database file). 503 pauses traffic without restarting the ' +
+        'process.',
+    operationId: 'getReadyz',
+    responses: {
+        200: {
+            description: 'Ready to serve',
+            content: {
+                'application/json': {
+                    schema: z.object({ data: z.object({ status: z.enum(['ready']) }) }),
+                },
+            },
+        },
+        503: {
+            description: 'A dependency is unreachable',
+            content: {
+                'application/json': {
+                    schema: z.object({
+                        error: z.object({ code: z.string(), message: z.string() }),
+                    }),
+                },
+            },
+        },
+    },
+});
+
 // -- Metrics --------------------------------------------------------------------
 
 registry.registerPath({

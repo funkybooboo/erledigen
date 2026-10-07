@@ -1,0 +1,56 @@
+# Default values for the erledigen chart.
+# Every knob mirrors docs/host/configuration.md -- the chart exposes the
+# same environment variables compose does.
+
+image:
+    registry: ghcr.io
+    owner: funkybooboo
+    # Use the release tag you want to run; `latest` floats with releases.
+    tag: "0.10.1"
+
+server:
+    # Single replica (ADR-018): SQLite + WebSockets + jobs are in-process.
+    replicas: 1
+    port: 4000
+    config:
+        corsOrigin: "*"
+        rateLimitRpm: "600"
+        logFormat: "json"
+        logLevel: "info"
+        metricsEnabled: "true"
+    resources:
+        requests:
+            cpu: 100m
+            memory: 128Mi
+        limits:
+            memory: 512Mi
+    # How long SIGTERM gets to drain before k8s kills the process
+    # (matches the server's 10s drain default).
+    terminationGracePeriodSeconds: 20
+
+client:
+    replicas: 1
+    port: 3000
+    resources:
+        requests:
+            cpu: 50m
+            memory: 64Mi
+        limits:
+            memory: 256Mi
+
+persistence:
+    enabled: true
+    # The SQLite database (one file -- the instance's entire data).
+    storageClassName: ""
+    size: 1Gi
+
+ingress:
+    enabled: true
+    className: nginx
+    # The public host the instance is served on. TLS via cert-manager or
+    # the ingress controller's default issuer.
+    host: erledigen.example.com
+    tls: false
+
+# WebSocket routing depends on the controller's timeout and upgrade
+# settings (see docs/host/); nginx-class defaults work.

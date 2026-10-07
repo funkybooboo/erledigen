@@ -61,3 +61,30 @@ if (port === null) throw new Error('Server failed to start -- port is null');
 logger.info(`Server running at http://localhost:${port}`);
 logger.info(`WebSocket available at ws://localhost:${port}`);
 logger.info('Startup complete', { nodeEnv: NODE_ENV, rateLimitRpm: RATE_LIMIT_RPM });
+
+// Graceful shutdown (ADR-018): SIGTERM (docker stop / k8s pod end)
+// stops the job runner, drains in-flight requests, and closes
+// WebSockets before exiting -- rollouts never drop a request or tear
+// a socket mid-write. A second signal falls through to the default
+// (immediate) termination.
+let shuttingDown = false;
+async function shutdown(signal: NodeJS.Signals): Promise<void> {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    logger.info(`Received ${signal} -- shutting down gracefully`);
+    try {
+        await container.jobRunner.stop(); // finish the in-flight job; start none
+        await server.stop(); // stop accepting, drain, close WebSockets
+        if (container.storageAdapter === 'sqlite') {
+            container.sqliteConnection.close();
+            logger.info('Storage closed');
+        }
+        logger.info('Shutdown complete');
+        process.exitCode = 0;
+    } catch (error) {
+        logger.error('Shutdown failed', { error: String(error) });
+        process.exitCode = 1;
+    }
+}
+process.on('SIGTERM', () => void shutdown('SIGTERM'));
+process.on('SIGINT', () => void shutdown('SIGINT'));

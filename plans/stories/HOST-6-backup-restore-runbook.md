@@ -3,15 +3,15 @@
 As an operator, I want a documented backup and restore procedure, so
 that my data survives host failures and my own mistakes.
 
-**Status**: planned
+**Status**: done
 **Version**: v0.10.1
 
 ## Acceptance criteria
-- [ ] docs/host/ documents the two layers: the SQLite volume and the
+- [x] docs/host/ documents the two layers: the SQLite volume and the
       app-level JSON snapshot (ADR-008 export)
-- [ ] The pre-restore safety backup is documented (it already exists)
-- [ ] A restore walkthrough from a JSON snapshot on a fresh instance
-- [ ] Volume-level backup guidance for compose and k8s (PVC snapshots)
+- [x] The pre-restore safety backup is documented (it already exists)
+- [x] A restore walkthrough from a JSON snapshot on a fresh instance
+- [x] Volume-level backup guidance for compose and k8s (PVC snapshots)
 
 ## Notes
 

@@ -75,4 +75,32 @@ export function registerHealthRoutes(server: HttpServer, deps: ServerStatusDeps)
         const data = await buildHealthData(deps);
         return { status: 200, headers: {}, body: { data } };
     });
+
+    // Orchestrator probes (ADR-018): deliberately separate endpoints so
+    // liveness ("the process is alive") never restarts a pod that merely
+    // has a flapping dependency (readiness pauses traffic instead).
+    server.route('GET', API_ROUTES.HEALTHZ, () => {
+        // Liveness: no dependency checks by design -- a DB outage must
+        // not get the process killed.
+        return { status: 200, headers: {}, body: { data: { status: 'ok' } } };
+    });
+
+    server.route('GET', API_ROUTES.READYZ, () => {
+        // Readiness: dependencies reachable. SQLite runs on a volume in
+        // every orchestrated deployment -- a SELECT 1 catches a detached
+        // or corrupted database file. The memory adapter has no
+        // dependency to check.
+        if (deps.storageAdapter === 'sqlite' && deps.sqliteConnection) {
+            try {
+                deps.sqliteConnection.db.query('SELECT 1').get();
+            } catch {
+                return {
+                    status: 503,
+                    headers: {},
+                    body: { error: { code: 'NOT_READY', message: 'database unreachable' } },
+                };
+            }
+        }
+        return { status: 200, headers: {}, body: { data: { status: 'ready' } } };
+    });
 }

@@ -1,0 +1,17 @@
+Erledigen {{ .Chart.AppVersion }} is installed.
+
+1. The server and client deployments serve inside the cluster on
+   {{ include "erledigen.fullname" . }}-server and
+   {{ include "erledigen.fullname" . }}-client services.
+2. The database is the PersistentVolumeClaim
+   {{ include "erledigen.fullname" . }}-data -- that volume is the
+   instance's entire data. Back it up (docs/host/backup-restore.md).
+3. {{- if .Values.ingress.enabled }} Point your DNS at the ingress
+   ({{ .Values.ingress.host }}) and open it in a browser.
+   {{- else }} No ingress was installed (ingress.enabled=false) --
+   port-forward to reach the app:
+   kubectl port-forward svc/{{ include "erledigen.fullname" . }}-client 3000:{{ .Values.client.port }}
+   {{- end }}
+
+Single replica, on purpose (ADR-018): scale the machine, not the
+replica count. Probes: /healthz (liveness) and /readyz (readiness).
