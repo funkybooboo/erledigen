@@ -86,8 +86,6 @@ FROM node:24-alpine AS production-client
 # 1. Install prod deps for the whole workspace at the monorepo root. Bun's
 #    isolated linker puts each workspace's deps in its own
 #    packages/*/node_modules (symlinks into /app/node_modules/.bun).
-#    bun is copied in ONLY for this install (it reads bun.lock); the alpine
-#    bun binary matches this alpine (musl) base.
 WORKDIR /app
 COPY --from=bun-alpine-dist /usr/local/bin/bun /usr/local/bin/bun
 COPY --from=bun-alpine-dist /usr/local/bin/bunx /usr/local/bin/bunx

@@ -1,99 +1,80 @@
 # Erledigen
 
-**Self-hosted, keyboard-first task management.** "Erledigen" is German for "to get done", and that is the whole idea: one place to manage your work and your life, inspired by the clean, simple interface of [TeuxDeux](https://teuxdeux.com).
+Erledigen is an **automated paper calendar**: a day list you write by hand,
+plus an engine that fills in everything that recurs and never moves your
+handwriting. "Erledigen" is German for "to get done".
 
-The daily list is the execution surface. The Someday panel is the capture net. Habits generate their instances into the daily list automatically (projects will too, once auto-distribution lands). Everything is organized with tags -- the same tag system works across tasks, groups, Someday, and filters.
+The daily list is the execution surface. The Someday panel is the capture
+net. Habits generate their instances into the daily list on their own
+schedule. Everything is organized with tags -- the same tags work across
+tasks, lists, and filters, and there is nothing else to configure.
 
-No accounts, no analytics, no telemetry. Your data lives in your own database, synced live to every open client over WebSocket.
+No accounts, no analytics, no telemetry. Your data lives in your own
+SQLite database, synced live to every open window over WebSocket.
 
 [![CI](https://github.com/funkybooboo/erledigen/actions/workflows/ci.yml/badge.svg)](https://github.com/funkybooboo/erledigen/actions/workflows/ci.yml)
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](./LICENSE)
-[![Svelte 5](https://img.shields.io/badge/Svelte_5-kit-ff3e00?logo=svelte&logoColor=white)](https://svelte.dev)
-[![Bun](https://img.shields.io/badge/Bun-000000?logo=bun&logoColor=white)](https://bun.sh)
-[![TypeScript](https://img.shields.io/badge/TypeScript-end_to_end-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 
 ![The Erledigen daily list with the Someday panel open](docs/assets/screenshot.png)
 
-## Key Features
+## Key features
 
-*   **Daily list** -- the primary working area; a continuously-scrolling list of day sections (loads more days as you scroll) with inline add/edit and a month minimap for orientation.
-*   **Someday panel** -- a right-side capture net for unscheduled work, organized into tag-based groups; drag-to-resize and collapsible (`Cmd/Ctrl+\`).
-*   **Tags as the primary organization** -- `#p1`/`#p2`/`#p3` priority, `project:`-prefixed project tags, and any free-form tags. One filter system covers everything.
-*   **Projects** -- collections of ordered tasks with activate/deactivate and a detail view.
-*   **Habits / recurring tasks** -- natural-language templates ("water plants every friday at 9am") that generate instances into the daily list, with streak tracking and a management modal.
-*   **Sub-tasks** -- nested tasks under a parent; completion rolls up.
-*   **Command palette** (`Cmd/Ctrl+K` or `/`) -- search across task text, notes, and tags, plus the full `/`-prefixed command registry (`/add` with natural-language dates + `#tags`, `/go`, `/move`, `/tag`, `/filter`, ...), with habit phrases like "every day" creating habits.
-*   **Keyboard-first + tooltips** -- vim + arrow navigation, `g`-sequences for modals, priority keys `1`/`2`/`3`/`0`, `Cmd/Ctrl+Z` undo; every UI action shows its keybinding on hover.
-*   **Real-time sync** -- every mutation broadcasts to all connected clients instantly; open two windows and watch them stay in step.
-*   **Icon-rail modals** -- Calendar, Summary, Projects, Habits, Search, Filter, Settings, Trash, Help.
-*   **Trash with undo** -- soft delete with an undo toast (or `Cmd/Ctrl+Z`), restore from Trash, and a manual purge of soft-deleted tasks older than 7 days.
-*   **Import/export** -- a canonical JSON snapshot of everything (ADR-008), restorable on a fresh instance.
-*   **Privacy first** -- no analytics, no telemetry, no tracking. Your data stays in your own database.
+*   **A scrolling daily list** -- the primary working area. Days stack and load
+    as you scroll, with inline add/edit and a month minimap for orientation.
+*   **A Someday panel** -- a capture net for unscheduled work, organized into
+    tag-based lists you create yourself; drag-to-resize and collapsible
+    (`Cmd/Ctrl+\`).
+*   **Habits that fill themselves in** -- type "water plants every friday at
+    9am" once, in any add input or the Habits modal; instances appear on their
+    schedule with streaks and a completion heatmap.
+*   **Notes that render as you write** -- task titles, task notes, and each
+    day's margin note are live markdown: only the line under your cursor shows
+    raw syntax, everything else renders.
+*   **Tags are the whole organizational system** -- `#p1`/`#p2`/`#p3`
+    priority, `project:`-prefixed project tags, and any free-form tag; one
+    filter covers everything.
+*   **Keyboard-first** -- every action has a key (vim-style navigation,
+    `g`-sequences for modals, priority keys `1`/`2`/`3`/`0`, `Cmd/Ctrl+Z`
+    undo); hover anything to see its binding.
+*   **Live sync, your data** -- every mutation broadcasts to every connected
+    client instantly; a canonical JSON snapshot of everything can be exported
+    and restored on a fresh instance.
 
-## What's Inside?
+Also: sub-tasks with completion roll-up, holidays with `.ics` import,
+soft-delete trash with undo, and import from Todoist, Things 3, CSV, and
+iCal. The [user docs](./docs/users/README.md) cover all of it.
 
-Erledigen is a **monorepo** built with a modern tech stack designed for a great developer experience:
+## Quick start
 
-*   **Frontend**: [SvelteKit](https://kit.svelte.dev/) + [Svelte 5 runes](https://svelte.dev/) -- a fast, modern, reactive UI; hand-written scoped CSS over OKLCH design tokens (no utility framework).
-*   **Backend**: [Bun](https://bun.sh/) -- an incredibly fast JavaScript runtime, bundler, and package manager, all in one.
-*   **Language**: [TypeScript](https://www.typescriptlang.org/) -- end-to-end type safety.
-*   **Real-time**: WebSocket sync -- every mutation broadcasts to all connected clients instantly.
-*   **API**: Schema-first [OpenAPI 3.1](https://www.openapis.org/) generated from Zod, served at `/openapi.yaml` and `/openapi.json`.
-*   **Architecture**: [Adapter Pattern](./docs/devs/architecture/architecture.md) -- a clean, modular architecture where every subsystem is behind an interface, so implementations can be swapped without touching application code.
-*   **Code Quality**: [Biome](https://biomejs.dev/) -- formatting and linting.
-*   **Testing**: [Bun test](https://bun.sh/docs/cli/test) for units, [Playwright](https://playwright.dev/) for E2E, and [Bruno](https://www.usebruno.com/) for API tests.
-*   **Components**: [Storybook](https://storybook.js.org/) -- isolated component development and visual review.
+This project uses [mise](https://mise.jdx.dev) as its task runner and tool
+version manager. Install it first, then:
 
-## Getting Started
-
-This project uses [mise](https://mise.jdx.dev) as its task runner and tool version manager. Install it first, then:
-
-1.  **Install dependencies**:
-
-    ```bash
-    mise run install
-    ```
-
-2.  **Run the development servers** (requires Docker / podman + compose):
-
-    ```bash
-    mise run dev
-    ```
-
-That's it! The client runs at `http://localhost:3000` and the server at `http://localhost:4000`.
+```bash
+mise run install   # dependencies
+mise run dev      # docker dev stack: client on :3000, server on :4000
+```
 
 ### Common tasks
 
 | Command | What it does |
 |---------|--------------|
 | `mise run dev` | Start the docker dev stack (server + client) |
-| `mise run prod` / `mise run prod-stop` | Build + start / stop the docker prod stack |
+| `mise run prod` / `prod-stop` | Build + start / stop the docker prod stack |
 | `mise run dev-refresh` | Rebuild dev images after changing dependencies |
-| `mise run nuke-db` | Permanently delete the dev or prod database (stops the stack; deletes the DB volume) |
-| `mise run storybook` | Start Storybook on port 6006 (local, not dockerized) |
-| `mise run lint` | Lint all files with Biome (auto-fix) |
-| `mise run format` | Format all files with Biome (auto-fix) |
-| `mise run spellcheck` | Spell-check the codebase with cspell |
-| `mise run check-links` | Verify all markdown/source links resolve (lychee) |
-| `mise run scan-secrets` | Scan for secrets in the working tree (gitleaks) |
+| `mise run nuke-db` | Permanently delete the dev or prod database volume |
+| `mise run lint` / `format` | Biome lint / format (auto-fix) |
 | `mise run type-check` | Type-check all packages |
 | `mise run test` | Run all unit tests in a container |
-| `mise run test-e2e` | Run Playwright E2E + api tests in the docker test stack |
-| `mise run test-api` | Run Bruno API tests in the docker test stack |
-| `mise run build` | Build the app packages locally (artifacts in the repo) + bundle-size budget |
-| `mise run build-images` | Build docker images without starting a stack: dev / test / prod / all |
-| `mise run update-version` | Bump the version everywhere (major / minor / patch / X.Y.Z) |
-| `mise run release` | Cut a release: gates + version bump + release commit + tag |
-| `mise run doctor` | Pre-flight environment check (tools, versions, docker, ports, repo state) |
-| `mise run update-deps` | Update dependencies the safe way (in-place; `--fresh` re-resolves for transitive fixes) |
-| `mise run changelog` | Generate release notes from the commit log |
-| `mise run ci` | Run the full local CI mirror (local, mirrors GitHub Actions) |
-| `mise run clean` | Remove build artifacts and caches |
+| `mise run test-e2e` | Playwright e2e + api tests in the docker test stack |
+| `mise run test-api` | Bruno API tests in the docker test stack |
+| `mise run build` | Build all packages + client bundle-size budget |
+| `mise run ci` | Full local CI mirror |
+| `mise run doctor` | Pre-flight environment check |
+| `mise run release` | Cut a release: gates + version bump + PR + tag |
 
 App-running tasks (dev, prod, tests) execute in containers and never touch
-your host environment. Repo-management tasks (install, format, lint,
-type-check, build, clean, ci) run locally against the working tree, because
-they manage the repo itself.
+your host environment. The [full task list](./docs/devs/process/getting-started.md)
+lives in the developer docs.
 
 ## Docker
 
@@ -102,52 +83,29 @@ One multi-stage `Dockerfile` at the repo root; compose picks the stage via
 
 | Stage | Used by | What it is |
 |-------|---------|------------|
-| `development` | `server`, `client` (dev), all test services | bun + workspace deps + source |
-| `production-server` | `prod-server` | minimal bun runtime + server bundle |
-| `production-client` | `prod-client` | node runtime + SvelteKit adapter-node build |
-| `e2e` | `e2e` runner (test stack) | mcr.microsoft.com/playwright + bun + source |
+| `development` | dev stack, test services | bun + workspace deps + source |
+| `production-server` | prod stack | minimal bun runtime + server bundle |
+| `production-client` | prod stack | node runtime + SvelteKit adapter-node build |
+| `e2e` | e2e runner (test stack) | mcr.microsoft.com/playwright + bun + source |
 
-**Dev** (`compose.yaml`, default): source is bind-mounted, so code edits are
-picked up live by `bun --watch` (server) and vite HMR (client) -- no rebuild
-needed. `node_modules` are shielded from the bind mount by anonymous volumes
-seeded from the image; after changing dependencies run `mise run dev-refresh`.
-The dev DB lives in the `dev-data` named volume (`DB_PATH=/data`), never in
-the repo. `mise run nuke-db -- dev` stops the stack and deletes that volume
-when you want a truly fresh database (migrations recreate the schema on the
-next start).
+**Dev** (`compose.yaml`): source is bind-mounted, so code edits are picked
+up live -- no rebuild needed. The dev DB lives in the `dev-data` named
+volume, never in the repo.
 
-**Prod** (`compose.prod.yaml`, `mise run prod`): built artifacts only, no
-bind mounts, behind a Caddy reverse proxy (single published port, default
-8080 -- never collides with dev). The client is built same-origin by default;
-for a split-origin deployment pass an absolute URL as the `client` build
-arg:
-
-    docker compose -f compose.prod.yaml build --build-arg VITE_API_URL=https://api.example.com client
-    docker compose -f compose.prod.yaml up -d
-
-Server data persists in the `prod-data` named volume; `mise run nuke-db --
-prod` stops the stack and deletes it.
+**Prod** (`compose.prod.yaml`): built artifacts only, behind a Caddy
+reverse proxy on a single port (default 8080). Client and API are
+same-origin by default; pass an absolute `VITE_API_URL` build arg for a
+split-origin deployment.
 
 **Tests** (`compose.test.yaml`): fully self-contained -- no bind mounts, no
-named volumes, nothing written to the host. Source is baked into the images,
-the test server runs with `STORAGE_ADAPTER=memory`, and the Playwright runner
-uses the Chromium bundled in the mcr image (no `playwright install` needed
-locally, no browsers polluting your machine).
+published ports, `STORAGE_ADAPTER=memory`, Chromium bundled in the runner
+image.
 
-Version pins to keep in sync:
+Version pins to keep in sync: `BUN_VERSION` in the `Dockerfile` must match
+`[tools] bun` in `mise.toml`; `PLAYWRIGHT_VERSION` must match the
+`@playwright/test` version in `bun.lock`.
 
-- `BUN_VERSION` in the `Dockerfile` must match `[tools] bun` in `mise.toml`.
-- `PLAYWRIGHT_VERSION` in the `Dockerfile` must match the `@playwright/test`
-  version in `bun.lock` -- bump both together or the bundled browsers fail
-  version validation.
-
-> **Note (this machine):** `docker` here is a `podman` wrapper (rootless,
-> fuse-overlayfs storage). The podman `storage.conf` fix that makes
-> `docker compose build` work on btrfs lives in the dotfiles
-> (`~/.config/containers/storage.conf`) -- `mount_program` must be set under
-> `[storage.options.overlay]`, not `[storage.options]`.
-
-## Monorepo Layout
+## Layout
 
 ```
 erledigen/
@@ -156,30 +114,35 @@ erledigen/
 |   |-- server/   # Bun REST API + WebSocket server
 |   \-- shared/   # Types, adapter interfaces, constants, universal utilities
 |-- docs/         # User + developer documentation, ADRs
-|-- tests/        # Playwright E2E + Bruno API test suites
+|-- tests/        # Playwright e2e + api suites, Bruno collection
+|-- tools/        # Build, test, release, and maintenance scripts
+|-- deploy/       # Caddy edge proxy for the prod stack
 |-- plans/        # Roadmap and planning docs
 \-- package.json
 ```
 
-## Learn More
+Client and server both talk to `@erledigen/shared` -- the same Zod-driven
+types and the same adapter interfaces, so the API contract cannot drift
+between the two sides. Testing: Bun unit tests, Playwright e2e + api,
+Bruno collection; Storybook for components; Biome for lint and format.
 
-*   [**Introduction**](./docs/users/introduction.md) -- a brief introduction to the project.
-*   [**Product Design**](./docs/users/design.md) -- the full product vision, data model, and feature set.
-*   [**Getting Started**](./docs/devs/process/getting-started.md) -- detailed setup and run instructions.
-*   [**Architecture**](./docs/devs/architecture/architecture.md) -- overview of the project's architecture.
-*   [**Code Standards**](./docs/devs/standards/code-standards.md) -- writing clean, consistent, maintainable code.
-*   [**Testing**](./docs/devs/standards/testing.md) -- testing strategies and tools.
-*   [**Git Workflow**](./docs/devs/standards/git-workflow.md) -- how we work with git and pull requests.
-*   [**Roadmap**](./plans/roadmap.md) -- release-by-release development plan.
+## Learn more
+
+*   [User docs](./docs/users/README.md) -- introduction, design, notes, import/export
+*   [Architecture](./docs/devs/architecture/architecture.md) -- how the app is built
+*   [Getting started](./docs/devs/process/getting-started.md) -- setup and every task
+*   [Code standards](./docs/devs/standards/code-standards.md) -- how the code is written
+*   [Testing](./docs/devs/standards/testing.md) -- the three test layers
+*   [Git workflow](./docs/devs/standards/git-workflow.md) -- worktrees, PRs, commits
+*   [Roadmap](./plans/roadmap.md) -- release-by-release development plan
 
 ## Contribute
 
-We'd love for you to join us! Whether you're a seasoned developer or just starting out, there are many ways to contribute to Erledigen. Start with [CONTRIBUTING.md](./CONTRIBUTING.md), then check out the [**Getting Started**](./docs/devs/process/getting-started.md) guide.
+This is a personal project, published openly -- you are welcome to hack on
+it. Start with [CONTRIBUTING.md](./CONTRIBUTING.md), then the
+[getting started guide](./docs/devs/process/getting-started.md).
 
 ## License
 
-Erledigen is released under the [GPL-3.0 license](./LICENSE). Found a security issue? See [SECURITY.md](./SECURITY.md).
-
----
-
-Happy coding!
+Erledigen is released under the [GPL-3.0 license](./LICENSE). Found a
+security issue? See [SECURITY.md](./SECURITY.md).
