@@ -7,7 +7,9 @@ test.afterEach(async ({ request }) => {
 });
 
 test.describe('Settings modal', () => {
-    test('changing theme applies it to the document and persists to the server', async ({ page }) => {
+    test('changing theme applies it to the document and persists to the server', async ({
+        page,
+    }) => {
         // Capture original to restore.
         const before = await page.request.get(`${SERVER_URL}/api/preferences`);
         const origTheme = (await before.json()).data.theme;
@@ -20,7 +22,9 @@ test.describe('Settings modal', () => {
         // Theme selection drives an immediate PATCH and the layout's $effect sets
         // document data-theme, so assert the user-visible outcome first.
         await expect
-            .poll(async () => page.evaluate(() => document.documentElement.getAttribute('data-theme')))
+            .poll(async () =>
+                page.evaluate(() => document.documentElement.getAttribute('data-theme')),
+            )
             .toBe('dark');
         // And the server persists it.
         await expect
@@ -52,9 +56,7 @@ test.describe('Settings modal', () => {
         const download = await downloadPromise;
 
         // The blob download carries the server-side naming convention.
-        expect(download.suggestedFilename()).toMatch(
-            /^erledigen-export-\d{4}-\d{2}-\d{2}\.json$/,
-        );
+        expect(download.suggestedFilename()).toMatch(/^erledigen-export-\d{4}-\d{2}-\d{2}\.json$/);
     });
 });
 
@@ -281,8 +283,16 @@ test.describe('Trash modal', () => {
 
     test('trash lists deleted tasks each with a restore button', async ({ page }) => {
         // Seed at least one deleted task so the trash has known content.
-        const a = await createTask(page.request, { text: uniq('TrashA'), date: todayISO() }, SERVER_URL);
-        const b = await createTask(page.request, { text: uniq('TrashB'), date: todayISO() }, SERVER_URL);
+        const a = await createTask(
+            page.request,
+            { text: uniq('TrashA'), date: todayISO() },
+            SERVER_URL,
+        );
+        const b = await createTask(
+            page.request,
+            { text: uniq('TrashB'), date: todayISO() },
+            SERVER_URL,
+        );
         await del(page.request, `/api/tasks/${a.id}`, SERVER_URL);
         await del(page.request, `/api/tasks/${b.id}`, SERVER_URL);
         await hydrated(page);
@@ -324,8 +334,16 @@ test.describe('Filter modal', () => {
         const plainText = uniq('FilterPlain');
         // Creation order is plain, p2, p1 -- priority sort must flip it.
         await createTask(page.request, { text: plainText, date: todayISO() }, SERVER_URL);
-        await createTask(page.request, { text: p2Text, date: todayISO(), tags: ['p2'] }, SERVER_URL);
-        await createTask(page.request, { text: p1Text, date: todayISO(), tags: ['p1'] }, SERVER_URL);
+        await createTask(
+            page.request,
+            { text: p2Text, date: todayISO(), tags: ['p2'] },
+            SERVER_URL,
+        );
+        await createTask(
+            page.request,
+            { text: p1Text, date: todayISO(), tags: ['p1'] },
+            SERVER_URL,
+        );
         await hydrated(page);
         const todaySection = page.locator(`section#day-${todayISO()}`);
         await expect(todaySection.getByText(p1Text)).toBeVisible();
@@ -343,8 +361,8 @@ test.describe('Filter modal', () => {
             .poll(async () => {
                 // allTextContents keeps the template's whitespace around the
                 // task text -- trim before comparing.
-                const order = (await todaySection.locator('.task-text').allTextContents()).map(
-                    t => t.trim(),
+                const order = (await todaySection.locator('.task-text').allTextContents()).map(t =>
+                    t.trim(),
                 );
                 return (
                     order.indexOf(p1Text) < order.indexOf(p2Text) &&
@@ -363,11 +381,7 @@ test.describe('Filter modal', () => {
         const inRange = uniq('RangeIn');
         const outOfRange = uniq('RangeOut');
         await createTask(page.request, { text: inRange, date: todayISO() }, SERVER_URL);
-        await createTask(
-            page.request,
-            { text: outOfRange, date: dayISO(20) },
-            SERVER_URL,
-        );
+        await createTask(page.request, { text: outOfRange, date: dayISO(20) }, SERVER_URL);
         await hydrated(page);
         await expect(page.locator(`section#day-${todayISO()}`).getByText(inRange)).toBeVisible();
         await expect(page.locator(`section#day-${dayISO(20)}`).getByText(outOfRange)).toBeVisible();

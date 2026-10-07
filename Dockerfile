@@ -21,7 +21,7 @@
 # =============================================================================
 
 ARG BUN_VERSION=1.3.10
-ARG PLAYWRIGHT_VERSION=1.62.1
+ARG PLAYWRIGHT_VERSION=1.63.0
 
 # ---- bun binary sources -----------------------------------------------------
 # BuildKit does not support variable expansion in `COPY --from=<image>`

@@ -199,10 +199,7 @@ test.describe('weekday and weekend habits', () => {
 });
 
 test.describe('streak stats', () => {
-    test('completing an instance shows a streak in the Habits modal', async ({
-        page,
-        request,
-    }) => {
+    test('completing an instance shows a streak in the Habits modal', async ({ page, request }) => {
         const text = uniq('HabitE2E Streaky');
         const today = todayISO();
 
@@ -287,10 +284,7 @@ test.describe('streak stats', () => {
 });
 
 test.describe('command palette /add', () => {
-    test('"/add <text> every day" creates a habit from the palette', async ({
-        page,
-        request,
-    }) => {
+    test('"/add <text> every day" creates a habit from the palette', async ({ page, request }) => {
         const text = uniq('HabitE2E PalRead');
         await hydrated(page);
 
@@ -348,16 +342,14 @@ test.describe('make recurring (adopt from task detail)', () => {
 
         // The server holds the template (weekly, started today) and the
         // task is stamped as its first instance.
-        const habits = (await (
-            await request.get(`${SERVER_URL}/api/recurring-tasks`)
-        ).json()).data as Array<{ text: string; frequency: string; startDate: string }>;
+        const habits = (await (await request.get(`${SERVER_URL}/api/recurring-tasks`)).json())
+            .data as Array<{ text: string; frequency: string; startDate: string }>;
         const habit = habits.find(h => h.text === text);
         expect(habit?.frequency).toBe('weekly');
         expect(habit?.startDate).toBe(todayISO());
 
-        const updated = (await (
-            await request.get(`${SERVER_URL}/api/tasks/${task.id}`)
-        ).json()).data as { recurringTaskId: string | null; instanceDate: string | null };
+        const updated = (await (await request.get(`${SERVER_URL}/api/tasks/${task.id}`)).json())
+            .data as { recurringTaskId: string | null; instanceDate: string | null };
         expect(updated.recurringTaskId).not.toBeNull();
         expect(updated.instanceDate).toBe(todayISO());
 

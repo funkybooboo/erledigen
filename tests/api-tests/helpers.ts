@@ -33,7 +33,7 @@ export async function get(
     headers?: Record<string, string>,
     base = '',
 ): Promise<ApiResult> {
-    return toResult(await ctx.get(url(base, path), { headers }));
+    return toResult(await ctx.get(url(base, path), { ...(headers ? { headers } : {}) }));
 }
 
 export async function post(
@@ -104,7 +104,7 @@ export async function del(
     base = '',
     headers?: Record<string, string>,
 ): Promise<ApiResult> {
-    return toResult(await ctx.delete(url(base, path), { headers }));
+    return toResult(await ctx.delete(url(base, path), { ...(headers ? { headers } : {}) }));
 }
 
 export async function fetchRaw(

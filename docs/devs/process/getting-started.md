@@ -156,7 +156,7 @@ The docker test stack (`compose.test.yaml`) is fully self-contained: no bind mou
 ### Build / clean / CI / release / maintenance
 | Task | Description |
 |------|-------------|
-| `mise run build` | Build the app packages locally (shared + server via bun build, client via vite) + client bundle-size budget (`tools/build.sh`) |
+| `mise run build` | Build the app packages locally (server via bun build, client via vite) + client bundle-size budget (`tools/build.sh`) |
 | `mise run build-images` | Build docker images without starting a stack: `dev` / `test` / `prod` / `all` (`tools/build-images.sh`) |
 | `mise run build-storybook` | Build Storybook |
 | `mise run clean` | Remove all build artifacts, caches, and node_modules (`tools/clean-repo.sh`; `-n` for a dry run) |

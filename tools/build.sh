@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
-# Build the app packages locally: shared -> server -> client, plus the
-# client bundle-size budget. This does NOT build docker images -- use
+# Build the app packages locally: server -> client, plus the client
+# bundle-size budget. This does NOT build docker images -- use
 # tools/build-images.sh for those (the compose stacks build them on demand).
+#
+# (The shared package has no standalone build: both consumers bundle it
+# straight from source -- the server via `bun build`, the client via vite --
+# and its types are enforced by type-check. A shared `dist/` was produced
+# here for a while and consumed by nothing.)
 #
 # The budget (664 KiB by default, on the browser payload) mirrors the gate
 # documented in .github/workflows/ci.yml. Override it with MAX_CLIENT_BYTES;
@@ -13,9 +18,6 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
 DEFAULT_MAX_BYTES=679936 # 664 KiB
 MAX_BYTES="${MAX_CLIENT_BYTES:-$DEFAULT_MAX_BYTES}"
-
-step "Building shared"
-(cd "$REPO_ROOT/packages/shared" && bun run build)
 
 step "Building server"
 (cd "$REPO_ROOT/packages/server" && bun run build)

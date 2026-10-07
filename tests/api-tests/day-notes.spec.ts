@@ -44,9 +44,9 @@ test.describe('day notes -- upsert (PUT /api/day-notes/:date)', () => {
         expect(second.body.data.id).toBe(first.body.data.id);
 
         const list = await get(request, '/api/day-notes');
-        expect(
-            list.body.data.filter((n: { date: string }) => n.date === '2026-10-05').length,
-        ).toBe(1);
+        expect(list.body.data.filter((n: { date: string }) => n.date === '2026-10-05').length).toBe(
+            1,
+        );
     });
 
     test('rejects empty notes (clearing is DELETE)', async ({ request }) => {

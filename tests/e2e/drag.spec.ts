@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
 import type { Locator, Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { cleanup, createGroup, createTask, uniq } from '../api-tests/helpers';
 import { dayISO, hydrated, SERVER_URL, todayISO } from './util';
 
@@ -109,7 +109,9 @@ test.describe('drag and drop', () => {
         await expect(todaySection(page).locator('.task-row', { hasText: text })).toHaveCount(0);
         // ...and the server moved it to tomorrow (position rewritten to 0).
         const res = await page.request.get(`${SERVER_URL}/api/tasks/${task.id}`);
-        const body = (await res.json()) as { data: { date: string | null; position: number | null } };
+        const body = (await res.json()) as {
+            data: { date: string | null; position: number | null };
+        };
         expect(body.data.date).toBe(tomorrow);
         expect(body.data.position).toBe(0);
     });
@@ -124,7 +126,7 @@ test.describe('drag and drop', () => {
         );
         await openPanel(page);
 
-        const groupEl = page.locator('.someday-group', { hasText: group.name });
+        const groupEl = page.locator('.someday-group', { hasText: group['name'] });
         await expect(groupEl).toBeVisible();
         await grip(page, text).dragTo(groupEl, { targetPosition: { x: 100, y: 20 } });
 

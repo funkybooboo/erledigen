@@ -1,15 +1,5 @@
 import { expect, test } from '@playwright/test';
-import {
-    cleanup,
-    createGroup,
-    createTask,
-    del,
-    get,
-    post,
-    put,
-    track,
-    uniq,
-} from './helpers';
+import { cleanup, createGroup, createTask, del, get, post, put, track, uniq } from './helpers';
 
 test.afterEach(async ({ request }) => {
     await cleanup(request);
@@ -71,7 +61,10 @@ test.describe('tasks -- create (POST /api/tasks)', () => {
     });
 
     test('rejects text exceeding MAX_TEXT_LENGTH (500)', async ({ request }) => {
-        const res = await post(request, '/api/tasks', { text: 'x'.repeat(501), date: '2026-04-06' });
+        const res = await post(request, '/api/tasks', {
+            text: 'x'.repeat(501),
+            date: '2026-04-06',
+        });
         expect(res.status).toBe(400);
         expect(res.body.code).toBe('VALIDATION_ERROR');
     });
@@ -157,7 +150,7 @@ test.describe('tasks -- list (GET /api/tasks)', () => {
     });
 
     test('filters by completion (?completed=false)', async ({ request }) => {
-        const t1 = await createTask(request, { text: 'incomplete', date: '2026-05-10' });
+        await createTask(request, { text: 'incomplete', date: '2026-05-10' });
         const t2 = await createTask(request, { text: 'complete', date: '2026-05-10' });
         await put(request, `/api/tasks/${t2.id}`, { completed: true });
         const res = await get(request, '/api/tasks?completed=false');
@@ -213,7 +206,7 @@ test.describe('tasks -- update (PUT /api/tasks/:id)', () => {
         const t = await createTask(request, { text: 'Bump', date: '2026-05-11' });
         const res = await put(request, `/api/tasks/${t.id}`, { text: 'Bumped' });
         expect(res.status).toBe(200);
-        expect(res.body.data.updatedAt >= t.updatedAt).toBe(true);
+        expect(res.body.data.updatedAt >= t['updatedAt']).toBe(true);
     });
 
     test('sets and clears the Kanban dependency link (dependsOn)', async ({ request }) => {
@@ -285,7 +278,9 @@ test.describe('tasks -- delete / trash / restore / purge', () => {
         const res = await get(request, '/api/tasks/trash');
         expect(res.status).toBe(200);
         expect(res.body.data.some((x: { id: string }) => x.id === t.id)).toBe(true);
-        expect(res.body.data.every((x: { deletedAt: string | null }) => x.deletedAt !== null)).toBe(true);
+        expect(res.body.data.every((x: { deletedAt: string | null }) => x.deletedAt !== null)).toBe(
+            true,
+        );
     });
 
     test('POST /api/tasks/:id/restore brings a task back', async ({ request }) => {

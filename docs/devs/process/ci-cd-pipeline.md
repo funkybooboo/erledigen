@@ -16,7 +16,7 @@ Merging to `main` is blocked unless all gates pass:
 | Unit tests | `mise run test` | All Bun unit tests (dockerized); repository contract suites run against BOTH adapters, so SQL bugs are caught here |
 | E2E | `mise run test-e2e` | Playwright browser specs + black-box `api` project against the self-contained docker test stack (`compose.test.yaml`, `STORAGE_ADAPTER=memory`, bundled Chromium); 1 retry allowed |
 | API | `mise run test-api` | The Bruno collection in `tests/api/` against the dockerized test server |
-| Build | `mise run build` | All packages compile; client bundle (browser payload in `packages/client/build/client`) <= 664 KiB |
+| Build | `mise run build` | Server + client compile; client bundle (browser payload in `packages/client/build/client`) <= 664 KiB |
 | Storybook | `mise run build-storybook` | Storybook builds |
 | Security | `mise run security` | `bun audit` -- `continue-on-error`: advisories surface for review without blocking merges |
 

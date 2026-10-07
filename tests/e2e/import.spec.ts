@@ -1,7 +1,7 @@
+import type { ExportSnapshot } from '@erledigen/shared';
 import { expect, test } from '@playwright/test';
 import { createTask, post, postText, uniq } from '../api-tests/helpers';
 import { hydrated, modal, SERVER_URL, todayISO } from './util';
-import type { ExportSnapshot } from '@erledigen/shared';
 
 /** Fetch the live server's snapshot via the API (for restore fixtures). */
 async function getSnapshot(request: Parameters<typeof createTask>[0]): Promise<ExportSnapshot> {
@@ -16,13 +16,23 @@ async function restoreEmpty(request: Parameters<typeof createTask>[0]): Promise<
     await postText(
         request,
         '/api/import?format=json',
-        JSON.stringify({ ...snapshot, tasks: [], someDayGroups: [], projects: [], recurringTasks: [] }),
+        JSON.stringify({
+            ...snapshot,
+            tasks: [],
+            someDayGroups: [],
+            projects: [],
+            recurringTasks: [],
+        }),
         SERVER_URL,
     );
 }
 
 /** Minimal task row for a restore snapshot. */
-function snapshotTask(id: string, text: string, date: string | null): ExportSnapshot['tasks'][number] {
+function snapshotTask(
+    id: string,
+    text: string,
+    date: string | null,
+): ExportSnapshot['tasks'][number] {
     return {
         id,
         text,

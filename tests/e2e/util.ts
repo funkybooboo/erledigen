@@ -10,7 +10,7 @@
 import type { Page } from '@playwright/test';
 
 /** The API server origin, for seeding/cleanup calls that bypass the client. */
-export const SERVER_URL = process.env.PLAYWRIGHT_API_BASE_URL ?? 'http://localhost:4000';
+export const SERVER_URL = process.env['PLAYWRIGHT_API_BASE_URL'] ?? 'http://localhost:4000';
 
 /** Wait for the app to hydrate so Svelte event handlers are active. */
 export async function hydrated(page: Page): Promise<void> {

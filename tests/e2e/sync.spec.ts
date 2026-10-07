@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { cleanup, createGroup, createTask, uniq } from '../api-tests/helpers';
 import { hydrated, SERVER_URL, todayInput, todayISO } from './util';
 
@@ -93,10 +93,7 @@ test.describe('live sync between open tabs (WebSocket)', () => {
         await expect(tabB.locator('.task-row', { hasText: text })).toHaveCount(0);
     });
 
-    test('a Someday group created in one tab appears in the other', async ({
-        page,
-        context,
-    }) => {
+    test('a Someday group created in one tab appears in the other', async ({ page, context }) => {
         await hydrated(page);
         const tabB = await context.newPage();
         await hydrated(tabB);

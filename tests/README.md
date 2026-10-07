@@ -154,6 +154,10 @@ published ports, nothing written to the host; it sets the same test env
   exerciser (manual in the Bruno GUI, or automated via `mise run test-api` /
   `bun run test:api`); the Playwright `tests/api-tests/` suite is the
   automated, asserted version of the same surface.
+- The Playwright suites and `playwright.config.ts` are biome-linted and
+  type-checked like everything else: `tests/tsconfig.json` carries the same
+  strict flags as the packages and joins the `mise run type-check` chain
+  (`bun run type-check:tests`).
 - **Flake triage**: locally, vite occasionally binds `::1` only, producing
   intermittent ERR_CONNECTION_REFUSED failures that rotate between tests.
   Any connection-looking failure must be re-run STANDALONE; only a standalone

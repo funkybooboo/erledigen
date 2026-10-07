@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { cleanup, createTask, del, get, post } from './helpers';
+import { cleanup, createTask, get, post } from './helpers';
 
 test.afterEach(async ({ request }) => {
     await cleanup(request);
@@ -129,7 +129,9 @@ test.describe('tags -- content negotiation', () => {
         expect(res.body).toContain('#beta');
     });
 
-    test('GET /api/tags/info Accept: text/plain returns name (count) lines', async ({ request }) => {
+    test('GET /api/tags/info Accept: text/plain returns name (count) lines', async ({
+        request,
+    }) => {
         await createTask(request, { text: 'A', date: '2026-05-01', tags: ['#alpha'] });
         const res = await get(request, '/api/tags/info', { Accept: 'text/plain' });
         expect(res.status).toBe(200);

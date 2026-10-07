@@ -1,15 +1,6 @@
 import type { APIRequestContext } from '@playwright/test';
 import { expect, test } from '@playwright/test';
-import {
-    cleanup,
-    createRecurring,
-    createTask,
-    del,
-    get,
-    post,
-    put,
-    track,
-} from './helpers';
+import { cleanup, createRecurring, createTask, del, get, post, put, track } from './helpers';
 import type { ApiResult } from './types';
 
 /** POST /api/recurring-tasks, assert 201, and track the template for
@@ -350,6 +341,7 @@ test.describe('recurring-tasks -- streak stats', () => {
 
         // Complete the remaining (oldest) day: the run becomes 3.
         const oldest = instances[0];
+        if (oldest === undefined) throw new Error('expected a generated instance');
         await put(request, `/api/tasks/${oldest.id}`, { completed: true });
         const grown = (await get(request, `/api/recurring-tasks/${rt.id}/stats`)).body.data;
         expect(grown.currentStreak).toBe(3);
@@ -358,6 +350,7 @@ test.describe('recurring-tasks -- streak stats', () => {
         // Uncomplete the middle day: current drops to 1, longest stays 3
         // (the best run ever is never forgotten).
         const middle = instances[1];
+        if (middle === undefined) throw new Error('expected a second generated instance');
         await put(request, `/api/tasks/${middle.id}`, { completed: false });
         const broken = (await get(request, `/api/recurring-tasks/${rt.id}/stats`)).body.data;
         expect(broken.currentStreak).toBe(1);
@@ -411,7 +404,11 @@ test.describe('recurring-tasks -- adopt (make recurring)', () => {
 
         // The remaining occurrences through the horizon; the adopted
         // date is never re-generated.
-        const generated = res.body.data.tasks as Array<{ id: string; instanceDate: string }>;
+        const generated = res.body.data.tasks as Array<{
+            id: string;
+            instanceDate: string;
+            recurringTaskId: string;
+        }>;
         expect(generated.length).toBeGreaterThan(0);
         expect(generated.every(t => t.recurringTaskId === rt.id)).toBe(true);
         expect(generated.every(t => t.instanceDate > start)).toBe(true);
@@ -419,9 +416,7 @@ test.describe('recurring-tasks -- adopt (make recurring)', () => {
         expect(generated.some(t => t.instanceDate === localDate(0))).toBe(true);
     });
 
-    test('adopting a Someday task moves it to today as the schedule start', async ({
-        request,
-    }) => {
+    test('adopting a Someday task moves it to today as the schedule start', async ({ request }) => {
         const task = await createTask(request, { text: 'Evening stretch', date: null });
 
         const res = await post(request, '/api/recurring-tasks/adopt', {

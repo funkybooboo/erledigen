@@ -94,9 +94,7 @@ test.describe('Summary modal', () => {
         const summary = await openSummary(page);
         await expect(summary.getByRole('heading', { name: 'Today' })).toBeVisible();
         await expect(summary.getByRole('heading', { name: /Overdue/ })).toHaveCount(0);
-        await expect(
-            summary.getByRole('heading', { name: 'Active Streaks' }),
-        ).toHaveCount(0);
+        await expect(summary.getByRole('heading', { name: 'Active Streaks' })).toHaveCount(0);
         await expect(summary.getByRole('heading', { name: 'Next 14 Days' })).toHaveCount(0);
     });
 
@@ -108,7 +106,11 @@ test.describe('Summary modal', () => {
         await createTask(page.request, { text: overdueText, date: dayISO(-3) }, SERVER_URL);
         // The public create schema strips `completed` (ADR-009) -- complete
         // through the PUT update path instead.
-        const doneTask = await createTask(page.request, { text: doneText, date: dayISO(-3) }, SERVER_URL);
+        const doneTask = await createTask(
+            page.request,
+            { text: doneText, date: dayISO(-3) },
+            SERVER_URL,
+        );
         await page.request.put(`${SERVER_URL}/api/tasks/${doneTask.id}`, {
             data: { completed: true },
         });
