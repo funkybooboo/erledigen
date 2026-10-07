@@ -8,6 +8,7 @@
     import NotesModal from './modals/NotesModal.svelte';
     import FilterModal from './modals/FilterModal.svelte';
     import TrashModal from './modals/TrashModal.svelte';
+    import ThemeModal from './modals/ThemeModal.svelte';
     import SettingsModal from './modals/SettingsModal.svelte';
     import HelpModal from './modals/HelpModal.svelte';
     import TaskDetailModal from './modals/TaskDetailModal.svelte';
@@ -36,6 +37,8 @@
     <FilterModal onclose={close} />
 {:else if activeModal === 'trash'}
     <TrashModal onclose={close} />
+{:else if activeModal === 'theme'}
+    <ThemeModal onclose={close} />
 {:else if activeModal === 'settings'}
     <SettingsModal onclose={close} />
 {:else if activeModal === 'help'}

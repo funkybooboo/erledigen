@@ -7,37 +7,6 @@ test.afterEach(async ({ request }) => {
 });
 
 test.describe('Settings modal', () => {
-    test('changing theme applies it to the document and persists to the server', async ({
-        page,
-    }) => {
-        // Capture original to restore.
-        const before = await page.request.get(`${SERVER_URL}/api/preferences`);
-        const origTheme = (await before.json()).data.theme;
-
-        await hydrated(page);
-        await page.getByRole('button', { name: 'Settings', exact: true }).click();
-        const settings = modal(page, 'Settings');
-        await expect(settings).toBeVisible();
-        await settings.locator('#theme-select').selectOption('dark');
-        // Theme selection drives an immediate PATCH and the layout's $effect sets
-        // document data-theme, so assert the user-visible outcome first.
-        await expect
-            .poll(async () =>
-                page.evaluate(() => document.documentElement.getAttribute('data-theme')),
-            )
-            .toBe('dark');
-        // And the server persists it.
-        await expect
-            .poll(async () => {
-                const r = await page.request.get(`${SERVER_URL}/api/preferences`);
-                return (await r.json()).data.theme;
-            })
-            .toBe('dark');
-
-        // Restore theme - the modal also leaves it dirty, so close and reset.
-        await page.request.patch(`${SERVER_URL}/api/preferences`, { data: { theme: origTheme } });
-    });
-
     test('clearing the timezone input resets it', async ({ page }) => {
         await hydrated(page);
         await page.getByRole('button', { name: 'Settings', exact: true }).click();
@@ -57,6 +26,48 @@ test.describe('Settings modal', () => {
 
         // The blob download carries the server-side naming convention.
         expect(download.suggestedFilename()).toMatch(/^erledigen-export-\d{4}-\d{2}-\d{2}\.json$/);
+    });
+});
+
+test.describe('Theme modal', () => {
+    test('changing theme applies it to the document and persists to the server', async ({
+        page,
+    }) => {
+        // Capture original to restore.
+        const before = await page.request.get(`${SERVER_URL}/api/preferences`);
+        const origTheme = (await before.json()).data.theme;
+
+        await hydrated(page);
+        await page.getByRole('button', { name: 'Theme', exact: true }).click();
+        const theme = modal(page, 'Theme');
+        await expect(theme).toBeVisible();
+        await theme.locator('#theme-select').selectOption('dark');
+        // Theme selection drives an immediate PATCH and the layout's $effect sets
+        // document data-theme, so assert the user-visible outcome first.
+        await expect
+            .poll(async () =>
+                page.evaluate(() => document.documentElement.getAttribute('data-theme')),
+            )
+            .toBe('dark');
+        // And the server persists it.
+        await expect
+            .poll(async () => {
+                const r = await page.request.get(`${SERVER_URL}/api/preferences`);
+                return (await r.json()).data.theme;
+            })
+            .toBe('dark');
+
+        // Restore theme - the modal also leaves it dirty, so close and reset.
+        await page.request.patch(`${SERVER_URL}/api/preferences`, { data: { theme: origTheme } });
+    });
+
+    test('the "g a" chord opens the Theme modal', async ({ page }) => {
+        await hydrated(page);
+        await page.keyboard.press('g');
+        await page.keyboard.press('a');
+        await expect(modal(page, 'Theme')).toBeVisible();
+        await page.keyboard.press('Escape');
+        await expect(modal(page, 'Theme')).toBeHidden();
     });
 });
 

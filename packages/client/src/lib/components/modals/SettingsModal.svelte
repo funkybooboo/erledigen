@@ -25,7 +25,6 @@
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
-    let themeSelection = $state(preferencesStore.theme);
     let rolloverEnabled = $state(preferencesStore.rolloverEnabled);
     let rolloverTriggerTime = $state(preferencesStore.rolloverTriggerTime);
     let deleteConfirmation = $state(preferencesStore.deleteConfirmation);
@@ -38,7 +37,6 @@
     const tzOptions: string[] = Intl.supportedValuesOf('timeZone');
 
     $effect(() => {
-        themeSelection = preferencesStore.theme;
         rolloverEnabled = preferencesStore.rolloverEnabled;
         rolloverTriggerTime = preferencesStore.rolloverTriggerTime;
         deleteConfirmation = preferencesStore.deleteConfirmation;
@@ -68,11 +66,6 @@
         });
         const zoneLabel = (tz ?? Intl.DateTimeFormat().resolvedOptions().timeZone) || 'system';
         return `Now: ${time} (${zoneLabel})`;
-    }
-
-    function handleThemeChange(e: Event) {
-        const value = (e.target as HTMLSelectElement).value as 'light' | 'dark' | 'system';
-        preferencesStore.setTheme(value);
     }
 
     function handleRolloverChange(e: Event) {
@@ -341,15 +334,7 @@
 <Modal title="Settings" onclose={onclose}>
     <div class="settings">
         <fieldset class="section">
-            <legend class="section-heading">Appearance</legend>
-            <label class="field">
-                <span class="label" id="theme-label">Theme</span>
-                <select class="select" value={themeSelection} onchange={handleThemeChange} aria-labelledby="theme-label" id="theme-select">
-                    <option value="system">System</option>
-                    <option value="light">Light</option>
-                    <option value="dark">Dark</option>
-                </select>
-            </label>
+            <legend class="section-heading">Time</legend>
             <label class="field">
                 <span class="label" id="time-format-label">Time format</span>
                 <select class="select" value={timeFormat} onchange={handleTimeFormatChange} aria-labelledby="time-format-label" id="time-format-select">

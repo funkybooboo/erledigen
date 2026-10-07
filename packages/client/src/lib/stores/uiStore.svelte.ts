@@ -7,6 +7,7 @@ export type ModalType =
     | 'notes'
     | 'filter'
     | 'trash'
+    | 'theme'
     | 'settings'
     | 'help'
     | 'taskDetail';

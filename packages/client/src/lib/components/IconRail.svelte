@@ -9,6 +9,7 @@
         LuStickyNote,
         LuTag,
         LuTrash2,
+        LuPalette,
         LuSettings,
         LuCircleHelp,
         LuList,
@@ -25,6 +26,7 @@
         { id: 'notes', icon: LuStickyNote, label: 'Notes', shortcut: 'openNotes' },
         { id: 'filter', icon: LuTag, label: 'Filter', shortcut: 'openFilter' },
         { id: 'trash', icon: LuTrash2, label: 'Trash', shortcut: 'openTrash' },
+        { id: 'theme', icon: LuPalette, label: 'Theme', shortcut: 'openTheme' },
         { id: 'settings', icon: LuSettings, label: 'Settings', shortcut: 'openSettings' },
         { id: 'help', icon: LuCircleHelp, label: 'Help', shortcut: 'help' },
     ];
