@@ -31,8 +31,8 @@ The queue. Versions are the release cadence; stories are the work
 | Story | What it earns | Status |
 |-------|---------------|--------|
 | [BUILD-1](./stories/BUILD-1-know-the-license.md) | License clarity (AGPL-3.0-only, ADR-016) | done |
-| [BUILD-2](./stories/BUILD-2-work-story-first.md) | Story-first plans + enforced linkage (ADR-017) | doing |
-| [USE-1](./stories/USE-1-docs-for-my-role.md) | docs/use, docs/host, docs/build (ADR-020) | doing |
+| [BUILD-2](./stories/BUILD-2-work-story-first.md) | Story-first plans + enforced linkage (ADR-017) | done |
+| [USE-1](./stories/USE-1-docs-for-my-role.md) | docs/use, docs/host, docs/build (ADR-020) | done |
 | [HOST-1](./stories/HOST-1-install-from-images.md) | Install from published images (GHCR) | done |
 | [HOST-2](./stories/HOST-2-run-on-kubernetes.md) | Kubernetes via Helm chart | done |
 | [HOST-3](./stories/HOST-3-graceful-shutdown.md) | Restarts without dropped requests | done |
