@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { preferencesStore, someDayGroupStore, dragStore, taskStore, uiStore, type TaskSection } from '$lib/stores';
+    import { notificationStore, preferencesStore, someDayGroupStore, dragStore, taskStore, uiStore, type TaskSection } from '$lib/stores';
     import { applyFilters } from '$lib/filters';
     import { byPositionThenCreated, snapInsertBeforeId } from '$lib/dragReorder';
     import { commitZoneDrop, zoneDragLeave, zoneDragOver } from '$lib/nndZone';
@@ -143,11 +143,16 @@
         return snapInsertBeforeId(zoneTasks, dragStore.insertBeforeId);
     }
 
-    function submitNewGroup() {
+    async function submitNewGroup() {
         const name = newGroupName.trim();
         if (!name) return;
         const tag = slugify(name);
-        someDayGroupStore.create({ name, tag, position: groups.length });
+        const created = await someDayGroupStore.create({ name, tag, position: groups.length });
+        if (!created) {
+            // The form stays open; say why (USE-12: errors are announced).
+            notificationStore.push('Could not create the group', { kind: 'error' });
+            return;
+        }
         newGroupName = '';
         showAddGroupForm = false;
     }
@@ -166,11 +171,28 @@
         if (!editingGroupId) return;
         const name = editGroupName.trim();
         if (name) {
-            const tag = slugify(name);
-            someDayGroupStore.update(editingGroupId, { name, tag });
+            void commitRename();
+        } else {
+            editingGroupId = null;
+            editGroupName = '';
         }
-        editingGroupId = null;
-        editGroupName = '';
+    }
+
+    async function commitRename() {
+        // Snapshot before awaiting (the repo's async-handler rule).
+        const id = editingGroupId;
+        const name = editGroupName.trim();
+        if (id === null || !name) return;
+        const tag = slugify(name);
+        const updated = await someDayGroupStore.update(id, { name, tag });
+        if (!updated) {
+            notificationStore.push('Could not rename the group', { kind: 'error' });
+            return; // keep the editor open with the text
+        }
+        if (editingGroupId === id) {
+            editingGroupId = null;
+            editGroupName = '';
+        }
     }
 
     function cancelRenameGroup() {
@@ -257,6 +279,7 @@
                                 bind:value={newGroupName}
                                 class="new-group-input"
                                 placeholder="Group name..."
+                                aria-label="New group name"
                                 onkeydown={handleNewGroupKeydown}
                                 onblur={() => { if (!newGroupName.trim()) cancelNewGroup(); }}
                             />
@@ -302,6 +325,7 @@
                                     bind:this={editGroupInput}
                                     bind:value={editGroupName}
                                     class="rename-input"
+                                    aria-label="Rename group"
                                     onkeydown={handleRenameKeydown}
                                     onblur={commitRenameGroup}
                                 />

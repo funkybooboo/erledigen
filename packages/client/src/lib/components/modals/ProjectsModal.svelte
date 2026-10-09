@@ -1,7 +1,7 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
     import KanbanBoard from '$lib/components/KanbanBoard.svelte';
-    import { projectStore, taskStore, uiStore } from '$lib/stores';
+    import { notificationStore, projectStore, taskStore, uiStore } from '$lib/stores';
     import { Icon } from 'svelte-icons-pack';
     import { LuPlus, LuPencil, LuTrash2, LuArrowLeft } from 'svelte-icons-pack/lu';
     import { onMount } from 'svelte';
@@ -56,6 +56,10 @@
             newProjectName = '';
             newProjectDesc = '';
             showNewForm = false;
+        } else {
+            // A failed create must be heard, not just silently kept (the
+            // form stays open either way).
+            notificationStore.push('Could not create the project', { kind: 'error' });
         }
     }
 
@@ -151,8 +155,8 @@
 
             {#if editingProjectId === selectedProject.id}
                 <div class="inline-form">
-                    <input type="text" bind:value={editName} placeholder="Project name" onkeydown={handleEditKeydown} />
-                    <input type="text" bind:value={editDesc} placeholder="Description (optional)" onkeydown={handleEditKeydown} />
+                    <input type="text" bind:value={editName} placeholder="Project name" aria-label="Project name" onkeydown={handleEditKeydown} />
+                    <input type="text" bind:value={editDesc} placeholder="Description (optional)" aria-label="Project description" onkeydown={handleEditKeydown} />
                     <div class="form-actions">
                         <button class="btn btn-primary" onclick={saveEdit}>Save</button>
                         <button class="btn btn-secondary" onclick={cancelEdit}>Cancel</button>
@@ -189,8 +193,8 @@
 
             {#if showNewForm}
                 <div class="inline-form">
-                    <input type="text" bind:value={newProjectName} placeholder="Project name" onkeydown={handleNewKeydown} />
-                    <input type="text" bind:value={newProjectDesc} placeholder="Description (optional)" onkeydown={handleNewKeydown} />
+                    <input type="text" bind:value={newProjectName} placeholder="Project name" aria-label="Project name" onkeydown={handleNewKeydown} />
+                    <input type="text" bind:value={newProjectDesc} placeholder="Description (optional)" aria-label="Project description" onkeydown={handleNewKeydown} />
                     <div class="form-actions">
                         <button class="btn btn-primary" onclick={createProject} disabled={!newProjectName.trim() || creating}>
                             {creating ? 'Creating...' : 'Create'}
@@ -206,8 +210,8 @@
                     {#each activeProjects as project (project.id)}
                         {#if editingProjectId === project.id}
                             <div class="project-card editing">
-                                <input type="text" bind:value={editName} placeholder="Project name" onkeydown={handleEditKeydown} />
-                                <input type="text" bind:value={editDesc} placeholder="Description (optional)" onkeydown={handleEditKeydown} />
+                                <input type="text" bind:value={editName} placeholder="Project name" aria-label="Project name" onkeydown={handleEditKeydown} />
+                                <input type="text" bind:value={editDesc} placeholder="Description (optional)" aria-label="Project description" onkeydown={handleEditKeydown} />
                                 <div class="form-actions">
                                     <button class="btn btn-primary" onclick={saveEdit}>Save</button>
                                     <button class="btn btn-secondary" onclick={cancelEdit}>Cancel</button>

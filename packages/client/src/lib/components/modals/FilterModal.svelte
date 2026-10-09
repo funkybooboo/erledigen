@@ -91,6 +91,7 @@
                     onfocus={() => showSuggestions = true}
                     onblur={() => setTimeout(() => showSuggestions = false, 150)}
                     id="filter-tag-input"
+                    aria-label="Filter by tag"
                 />
                 <button class="add-btn" onclick={() => addTag(tagInput)} disabled={!tagInput.trim()}>
                     +
