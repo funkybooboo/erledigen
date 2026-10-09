@@ -127,6 +127,17 @@ Covers:
   Auto-distribute preview + apply, Activate's confirm-and-distribute,
   and the blocked-by lock (blocked class, release on completion,
   picker set/clear).
+- **accessibility** (v0.12.0) -- two specs: `accessibility.spec.ts`
+  holds the focus-management and live-region behaviors (skip link as
+  the first Tab stop, focus trap, Esc focus restore, completion state
+  announcements, delete announcement through role=status), and
+  `a11y.spec.ts` runs axe-core (WCAG 2.1 A/AA tags) over the page in
+  both themes and every modal (plus the Habits form, the project
+  detail board, the Someday add-group form, and stacked dialogs),
+  asserting zero violations per run; the contrast token pairs are
+  unit-tested in `packages/client/src/lib/contrast.test.ts`.
+  The manual NVDA/VoiceOver half of the standard is the protocol in
+  docs/build/standards/accessibility.md.
 
 ## Running everything
 
