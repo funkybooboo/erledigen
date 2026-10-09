@@ -1150,7 +1150,7 @@
 
     .hint {
         font-size: 13px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
     }
 
     .hint.invalid {
@@ -1216,7 +1216,7 @@
 
     .holiday-date {
         font-size: 11px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         font-variant-numeric: tabular-nums;
     }
 
@@ -1257,7 +1257,7 @@
 
     .tag-count {
         font-size: 11px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         white-space: nowrap;
     }
 
@@ -1413,7 +1413,7 @@
         margin: 4px 0 0;
         padding-left: 18px;
         font-size: 12px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
     }
 
     .tz-input {
@@ -1429,7 +1429,7 @@
     .tz-help {
         margin-top: 4px;
         font-size: 12px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
     }
 
     .tz-help summary {

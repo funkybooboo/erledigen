@@ -24,17 +24,30 @@
     --color-border: oklch(92% 0.003 254);
     --color-border-focus: oklch(56% 0.014 260);
     --color-text: oklch(26% 0.05 264);
-    --color-text-secondary: oklch(66% 0.008 258);
+    /* AA (USE-11): secondary ink darkened from Fizzy's 66% -- the old
+       value cleared 4.5:1 only on pure white; every real surface here
+       (canvas, hover tint, the today/accent washes) needs the darker
+       grade. Muted ink below stays for placeholders and decorative
+       icons only -- never for readable text. */
+    --color-text-secondary: oklch(50.8% 0.008 258);
     --color-text-muted: oklch(84% 0.005 256);
-    --color-accent: oklch(57% 0.1895 260.46);
+    /* AA (USE-11): the link-grade accent darkened from 57% so accent
+       text clears 4.5:1 on the canvas washes (accent-light, the 10%
+       holiday tint) and on the page background, not just pure white.
+       White-on-accent buttons rise with it. */
+    --color-accent: oklch(51.6% 0.1895 260.46);
     --color-accent-hover: oklch(40% 0.166 262);
     --color-accent-light: oklch(92% 0.026 254);
     --color-on-accent: oklch(100% 0 0);
-    --color-danger: oklch(59% 0.19 38);
+    /* AA (USE-11): the status hues follow the same rule -- danger,
+       success, and warning all render as small text on their pastel
+       tints and on the today wash, so each is darkened to the grade
+       that clears 4.5:1 on its own -light background. */
+    --color-danger: oklch(55.6% 0.19 38);
     --color-danger-light: oklch(96% 0.013 46);
-    --color-success: oklch(55% 0.162 147);
+    --color-success: oklch(49.2% 0.162 147);
     --color-success-light: oklch(96% 0.022 143);
-    --color-warning: oklch(58% 0.156 60);
+    --color-warning: oklch(55% 0.156 60);
     --color-warning-light: oklch(96% 0.034 100);
     --color-p1: oklch(66% 0.204 40);
     --color-p2: oklch(74% 0.184 70);
@@ -88,13 +101,13 @@
  * ------------------------------------------------------------------ */
 
 [data-accent="coral"] {
-    --color-accent: oklch(56% 0.181 40);
+    --color-accent: oklch(53.4% 0.181 40);
     --color-accent-hover: oklch(41% 0.152 40);
     --color-accent-light: oklch(93% 0.028 40);
 }
 
 [data-accent="amber"] {
-    --color-accent: oklch(52% 0.128 70);
+    --color-accent: oklch(52.2% 0.128 70);
     --color-accent-hover: oklch(44% 0.108 70);
     --color-accent-light: oklch(93% 0.035 75);
 }
@@ -313,7 +326,10 @@
 }
 
 .empty {
-    color: var(--color-text-muted);
+    /* Secondary ink, not muted: empty-state copy is real text and must
+       clear AA contrast (USE-11); muted is reserved for placeholders and
+       decorative icons. */
+    color: var(--color-text-secondary);
     text-align: center;
     padding: 20px 0;
 }
@@ -487,7 +503,9 @@
 .md-root .md-marker {
     flex: 0 0 auto;
     min-width: 1.5ch;
-    color: var(--color-text-muted);
+    /* The marker is typed content, not decoration -- readable ink
+       (USE-11). */
+    color: var(--color-text-secondary);
 }
 
 .md-root .md-item-text {

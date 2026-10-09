@@ -64,7 +64,7 @@
     }
 
     .alt {
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         margin: 0 2px;
     }
 

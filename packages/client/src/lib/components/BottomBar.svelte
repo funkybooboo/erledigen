@@ -156,7 +156,7 @@
         background: none;
         border: none;
         font-size: 11px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         cursor: pointer;
         text-decoration: underline;
     }
