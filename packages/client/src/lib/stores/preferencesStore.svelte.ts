@@ -55,6 +55,7 @@ class PreferencesStore {
     fontSize = $state<FontSize>('medium');
     rowDensity = $state<RowDensity>('comfortable');
     completionAnimation = $state<CompletionAnimation>('flash');
+    persistActiveFilters = $state(true);
     timezone = $state<string | null>(null);
     updatedAt = $state(new Date().toISOString());
 
@@ -125,10 +126,18 @@ class PreferencesStore {
             this.fontSize = prefs.fontSize ?? 'medium';
             this.rowDensity = prefs.rowDensity ?? 'comfortable';
             this.completionAnimation = prefs.completionAnimation ?? 'flash';
+            this.persistActiveFilters = prefs.persistActiveFilters ?? true;
             this.timezone = prefs.timezone ?? null;
             this.updatedAt = prefs.updatedAt;
             container.setDateProviderTimeZone(this.timezone);
             this.loaded = true;
+            if (!this.persistActiveFilters) {
+                // Fresh start (USE-7): every session opens with no filters.
+                // The saved set is cleared here AND on the server, so a
+                // filter set mid-session lives only until the next load.
+                this.activeFilters = normalizeActiveFilters(null);
+                void this.save({ activeFilters: this.activeFilters });
+            }
         } catch (error) {
             // Use defaults
             container.logger.warn('Failed to load preferences -- using defaults', {
@@ -226,6 +235,10 @@ class PreferencesStore {
 
     setCompletionAnimation(completionAnimation: CompletionAnimation) {
         void this.save({ completionAnimation });
+    }
+
+    setPersistActiveFilters(persistActiveFilters: boolean) {
+        void this.save({ persistActiveFilters });
     }
 
     /**

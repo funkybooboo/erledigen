@@ -155,6 +155,25 @@ export function runUserPreferencesRepositoryContractTests(
                 expect(prefs.completionAnimation).toBe('none');
             });
 
+            test('persists the fresh-start toggle without touching the filters', async () => {
+                const repo = makeRepo();
+                await repo.update({
+                    activeFilters: {
+                        tags: ['keep-me'],
+                        showCompleted: true,
+                        sortMode: 'manual',
+                        dateFrom: null,
+                        dateTo: null,
+                    },
+                    persistActiveFilters: false,
+                });
+                const prefs = await repo.get();
+                expect(prefs.persistActiveFilters).toBe(false);
+                // The filters themselves persist server-side; the CLIENT
+                // clears them on load when the toggle is off.
+                expect(prefs.activeFilters.tags).toEqual(['keep-me']);
+            });
+
             test('fills the accent default when a pre-v0.11.0 snapshot has none', async () => {
                 const repo = makeRepo();
                 const current = await repo.get();
@@ -166,6 +185,7 @@ export function runUserPreferencesRepositoryContractTests(
                     fontSize: undefined,
                     rowDensity: undefined,
                     completionAnimation: undefined,
+                    persistActiveFilters: undefined,
                 } as unknown as UserPreferences;
                 await repo.restore(legacy);
                 const prefs = await repo.get();
@@ -174,6 +194,7 @@ export function runUserPreferencesRepositoryContractTests(
                 expect(prefs.fontSize).toBe('medium');
                 expect(prefs.rowDensity).toBe('comfortable');
                 expect(prefs.completionAnimation).toBe('flash');
+                expect(prefs.persistActiveFilters).toBe(true);
             });
         });
 

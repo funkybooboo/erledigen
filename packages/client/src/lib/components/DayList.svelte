@@ -55,10 +55,10 @@
     let visibleEndDate = $state(addDays(todayStr, CHUNK_DAYS));
 
     let displayDateKeys = $derived.by(() => {
-        // Empty days always render -- nothing is hidden. Every day in the
-        // visible window is shown whether it has tasks or not, so the list
-        // is always a clean contiguous calendar rail. today and any pending
-        // navigation target are inside this range by construction.
+        // The visible rail: every day in the loaded window -- empty days
+        // always render unless the user hid them (USE-7), so the list is
+        // a clean contiguous calendar rail by default. TODAY always
+        // renders regardless: there must be a place to land and add.
         // An active date-range filter clamps the rail to [dateFrom, dateTo]
         // (intersected with the loaded window; the range narrows the view,
         // it never widens it beyond what has scrolled in).
@@ -68,7 +68,20 @@
         if (filters.dateFrom !== null && filters.dateFrom > start) start = filters.dateFrom;
         if (filters.dateTo !== null && filters.dateTo < end) end = filters.dateTo;
         if (start > end) return [];
-        return dateRangeKeys(start, end);
+        let keys = dateRangeKeys(start, end);
+        if (!preferencesStore.showEmptyDays) {
+            // With empty days hidden, keep the days that hold tasks, TODAY
+            // (the landing pad), and any pending navigation target (the
+            // minimap/calendar may jump to an empty day; it must render
+            // for the scroll to find it). Tracking the target keeps this
+            // derivation honest to its inputs.
+            const pendingTarget = dateViewStore.pendingScrollTarget;
+            keys = keys.filter(
+                k =>
+                    (tasksByDate.get(k)?.length ?? 0) > 0 || k === todayStr || k === pendingTarget,
+            );
+        }
+        return keys;
     });
 
     // --- infinite scroll state ---

@@ -54,6 +54,7 @@ export const UserPreferencesSchema = registry.register(
             fontSize: z.enum(['small', 'medium', 'large']),
             rowDensity: z.enum(['compact', 'comfortable']),
             completionAnimation: z.enum(['flash', 'none']),
+            persistActiveFilters: z.boolean(),
             timezone: z.string().nullable(),
             updatedAt: z.string(),
         })
@@ -93,6 +94,7 @@ export const UpdateUserPreferencesSchema = registry.register(
             fontSize: z.enum(['small', 'medium', 'large']).optional(),
             rowDensity: z.enum(['compact', 'comfortable']).optional(),
             completionAnimation: z.enum(['flash', 'none']).optional(),
+            persistActiveFilters: z.boolean().optional(),
             timezone: z
                 .string()
                 // Reject at the door: a stored bad zone would throw in

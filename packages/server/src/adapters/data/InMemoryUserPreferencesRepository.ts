@@ -54,6 +54,7 @@ export class InMemoryUserPreferencesRepository implements UserPreferencesReposit
             fontSize: prefs.fontSize ?? 'medium',
             rowDensity: prefs.rowDensity ?? 'comfortable',
             completionAnimation: prefs.completionAnimation ?? 'flash',
+            persistActiveFilters: prefs.persistActiveFilters ?? true,
         };
     }
 }

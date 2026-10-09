@@ -31,6 +31,8 @@
 
     let rolloverEnabled = $state(preferencesStore.rolloverEnabled);
     let rolloverTriggerTime = $state(preferencesStore.rolloverTriggerTime);
+    let showEmptyDays = $state(preferencesStore.showEmptyDays);
+    let persistActiveFilters = $state(preferencesStore.persistActiveFilters);
     let deleteConfirmation = $state(preferencesStore.deleteConfirmation);
     let timeFormat = $state(preferencesStore.timeFormat);
     let timezoneInput = $state((preferencesStore.timezone ?? '').toString());
@@ -43,6 +45,8 @@
     $effect(() => {
         rolloverEnabled = preferencesStore.rolloverEnabled;
         rolloverTriggerTime = preferencesStore.rolloverTriggerTime;
+        showEmptyDays = preferencesStore.showEmptyDays;
+        persistActiveFilters = preferencesStore.persistActiveFilters;
         deleteConfirmation = preferencesStore.deleteConfirmation;
         timeFormat = preferencesStore.timeFormat;
         timezoneInput = (preferencesStore.timezone ?? '').toString();
@@ -80,6 +84,16 @@
     function handleRolloverTriggerChange(e: Event) {
         const value = (e.target as HTMLSelectElement).value as RolloverTriggerTime;
         preferencesStore.save({ rolloverTriggerTime: value });
+    }
+
+    function handleShowEmptyDaysChange(e: Event) {
+        const value = (e.target as HTMLInputElement).checked;
+        preferencesStore.save({ showEmptyDays: value });
+    }
+
+    function handlePersistActiveFiltersChange(e: Event) {
+        const value = (e.target as HTMLInputElement).checked;
+        preferencesStore.setPersistActiveFilters(value);
     }
 
     function handleDeleteConfirmationChange(e: Event) {
@@ -512,6 +526,24 @@
             <label class="checkbox-field">
                 <input type="checkbox" checked={rolloverEnabled} onchange={handleRolloverChange} id="rollover-enabled" />
                 <span>Auto-rollover incomplete tasks</span>
+            </label>
+            <label class="checkbox-field">
+                <input
+                    type="checkbox"
+                    checked={showEmptyDays}
+                    onchange={handleShowEmptyDaysChange}
+                    id="show-empty-days"
+                />
+                <span>Show empty days (today always shows)</span>
+            </label>
+            <label class="checkbox-field">
+                <input
+                    type="checkbox"
+                    checked={persistActiveFilters}
+                    onchange={handlePersistActiveFiltersChange}
+                    id="persist-active-filters"
+                />
+                <span>Keep filters between sessions (off = start fresh)</span>
             </label>
             {#if rolloverEnabled}
                 <label class="field">

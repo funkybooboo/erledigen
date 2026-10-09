@@ -7,6 +7,62 @@ test.afterEach(async ({ request }) => {
 });
 
 test.describe('Settings modal', () => {
+    test('hiding empty days collapses the rail to days with tasks (today stays)', async ({
+        page,
+    }) => {
+        const text = uniq('UiEmptyDays');
+        await createTask(page.request, { text, date: todayISO() }, SERVER_URL);
+        await hydrated(page);
+        // Default: the window renders a contiguous rail incl. empty days.
+        const before = await page.locator('.day-section').count();
+        expect(before).toBeGreaterThan(10);
+
+        await page.getByRole('button', { name: 'Settings', exact: true }).click();
+        const settings = modal(page, 'Settings');
+        await settings.locator('#show-empty-days').uncheck();
+        await expect.poll(async () => page.locator('.day-section').count()).toBeLessThan(before);
+        // Today (holding the task) stays rendered; a far empty day does not.
+        await expect(page.locator('.day-section.today')).toBeVisible();
+        const todayCount = await page.locator('.day-section.today').count();
+        expect(todayCount).toBe(1);
+
+        // Restore the default for the shared singleton.
+        await page.request.patch(`${SERVER_URL}/api/preferences`, {
+            data: { showEmptyDays: true },
+        });
+        await settings.locator('#show-empty-days').check();
+        await expect.poll(async () => page.locator('.day-section').count()).toBeGreaterThan(10);
+    });
+
+    test('fresh start clears the saved filters on load when enabled off', async ({ page }) => {
+        // Seed a saved filter + the fresh-start preference directly.
+        await patch(
+            page.request,
+            '/api/preferences',
+            {
+                activeFilters: {
+                    tags: ['FreshStart'],
+                    showCompleted: true,
+                    sortMode: 'manual',
+                    dateFrom: null,
+                    dateTo: null,
+                },
+            },
+            SERVER_URL,
+        );
+        await patch(page.request, '/api/preferences', { persistActiveFilters: false }, SERVER_URL);
+
+        await hydrated(page);
+        // The load path cleared the filters: no chips in the bottom bar.
+        await expect(page.locator('.bottom-bar .chip')).toHaveCount(0);
+        // ...and the server state is clean too.
+        const r = await page.request.get(`${SERVER_URL}/api/preferences`);
+        expect((await r.json()).data.activeFilters.tags).toEqual([]);
+
+        // Restore the default for the shared singleton.
+        await patch(page.request, '/api/preferences', { persistActiveFilters: true }, SERVER_URL);
+    });
+
     test('clearing the timezone input resets it', async ({ page }) => {
         await hydrated(page);
         await page.getByRole('button', { name: 'Settings', exact: true }).click();

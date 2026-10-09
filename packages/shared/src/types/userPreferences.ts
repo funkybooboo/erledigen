@@ -105,6 +105,9 @@ export interface UserPreferences {
     rowDensity: RowDensity;
     /** The completion pulse ('flash' default; 'none' disables). */
     completionAnimation: CompletionAnimation;
+    /** False = every session starts with no filters (the saved set is
+     *  cleared on load); true keeps the last session's filters (default). */
+    persistActiveFilters: boolean;
     /** IANA timezone (e.g. 'America/Denver') or null to follow the device zone. */
     timezone: string | null;
     updatedAt: string;
