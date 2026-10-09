@@ -8,6 +8,11 @@ export type TimeFormatType = '12h' | '24h';
  *  their hues from the logo's red and yellow pills. */
 export type AccentSchemeId = 'blue' | 'coral' | 'amber';
 
+/** The tag color palette ids (USE-4). Each id maps to a --tag-<id> CSS
+ *  token (light + dark variants in app.css); values of the tagColors
+ *  map on UserPreferences are exactly these ids. */
+export type TagColorId = 'coral' | 'amber' | 'lime' | 'sage' | 'sky' | 'violet' | 'rose' | 'slate';
+
 /** When the daily rollover job runs (server timezone). 'manual' = no
  *  daily schedule; stale tasks are only caught up at server startup. */
 export type RolloverTriggerTime = 'midnight' | '9am' | 'manual';
@@ -76,6 +81,11 @@ export interface UserPreferences {
     activeFilters: ActiveFilters;
     tagKinds: TagKind[];
     tagKindMap: Record<string, string>;
+    /** Per-tag color overrides (USE-4): tag name -> palette id
+     *  (TagColorId). Tags absent from the map get the auto-assigned or
+     *  priority-semantic color; the map only ever holds explicit choices
+     *  plus the client's auto-assignments, both persisted here. */
+    tagColors: Record<string, TagColorId>;
     timeFormat: TimeFormatType;
     /** IANA timezone (e.g. 'America/Denver') or null to follow the device zone. */
     timezone: string | null;

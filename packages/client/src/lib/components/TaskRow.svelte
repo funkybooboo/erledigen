@@ -22,6 +22,7 @@
     } from 'svelte-icons-pack/lu';
     import { untrack } from 'svelte';
     import { tooltip } from '$lib/tooltip';
+    import { tagChipStyle } from '$lib/tagColors';
 
     let { task, isNew = false }: { task: Task; isNew?: boolean } = $props();
 
@@ -321,8 +322,8 @@
             </span>
         {/if}
 
-        {#each task.tags as tag}
-            <span class="tag-chip">#{tag}</span>
+        {#each task.tags as tag (tag)}
+            <span class="tag-chip" style={tagChipStyle(tag)}>#{tag}</span>
         {/each}
     </div>
 
@@ -543,7 +544,11 @@
         border-radius: 10px;
         background: var(--color-surface-hover);
         color: var(--color-text-secondary);
+        border: 1px solid transparent;
     }
+
+    /* A colored chip (tagChipStyle inline) keeps its token colors; the
+       inline style overrides background/color/border-color wholesale. */
 
     .task-actions {
         display: flex;

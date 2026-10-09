@@ -3,6 +3,7 @@ import type {
     ActiveFilters,
     DeleteConfirmationType,
     RolloverTriggerTime,
+    TagColorId,
     TagKind,
     ThemeType,
     TimeFormatType,
@@ -44,9 +45,18 @@ class PreferencesStore {
     );
     tagKinds = $state<TagKind[]>([...DEFAULT_TAG_KINDS]);
     tagKindMap = $state<Record<string, string>>({ ...DEFAULT_TAG_KIND_MAP });
+    tagColors = $state<Record<string, TagColorId>>({
+        ...USER_PREFERENCES_DEFAULTS.tagColors,
+    });
     timeFormat = $state<TimeFormatType>('12h');
     timezone = $state<string | null>(null);
     updatedAt = $state(new Date().toISOString());
+
+    /** True once load() has fetched the persisted preferences. Stores
+     *  that react to preferences (tag color auto-assignment) must wait
+     *  for this -- acting on the defaults would race the user's saved
+     *  tagColors and overwrite real assignments. */
+    loaded = $state(false);
 
     /** Reactive "today" date key: reading this.timezone anchors the
      *  reactive dependency, so callers' $derived re-run when the user's
@@ -104,10 +114,12 @@ class PreferencesStore {
             this.activeFilters = normalizeActiveFilters(prefs.activeFilters);
             this.tagKinds = prefs.tagKinds ?? [...DEFAULT_TAG_KINDS];
             this.tagKindMap = prefs.tagKindMap ?? { ...DEFAULT_TAG_KIND_MAP };
+            this.tagColors = prefs.tagColors ?? {};
             this.timeFormat = prefs.timeFormat ?? '12h';
             this.timezone = prefs.timezone ?? null;
             this.updatedAt = prefs.updatedAt;
             container.setDateProviderTimeZone(this.timezone);
+            this.loaded = true;
         } catch (error) {
             // Use defaults
             container.logger.warn('Failed to load preferences -- using defaults', {
@@ -155,6 +167,12 @@ class PreferencesStore {
 
     setAccent(accent: AccentSchemeId) {
         void this.save({ accent });
+    }
+
+    /** Replace the whole tag-color map (the client always sends the full
+     *  map -- repo PATCH semantics replace, not merge). */
+    setTagColors(tagColors: Record<string, TagColorId>) {
+        void this.save({ tagColors });
     }
 
     setPanelWidth(width: number) {

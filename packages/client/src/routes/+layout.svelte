@@ -48,8 +48,11 @@
     onMount(() => {
         preferencesStore.load().then(() => {
             applyTheme(preferencesStore.theme);
+            // Tags fetch AFTER the preferences land: color auto-assignment
+            // (USE-4) reads the persisted tagColors map, and assigning
+            // from the defaults would race the user's saved colors.
+            tagStore.fetchAll();
         });
-        tagStore.fetchAll();
         projectStore.fetchAll();
         someDayGroupStore.fetchAll();
         holidayStore.fetchAll();

@@ -60,6 +60,7 @@ function makeUserPreferences(): UserPreferences {
         },
         tagKinds: [],
         tagKindMap: {},
+        tagColors: {},
         timeFormat: '12h',
         timezone: null,
         updatedAt: '2026-01-10T09:00:00.000Z',

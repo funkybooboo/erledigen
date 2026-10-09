@@ -15,6 +15,8 @@ const TagKindSchema = z.object({
     color: z.string().nullable(),
 });
 
+const TagColorSchema = z.enum(['coral', 'amber', 'lime', 'sage', 'sky', 'violet', 'rose', 'slate']);
+
 const ActiveFiltersSchema = z.object({
     tags: z.array(z.string()),
     showCompleted: z.boolean(),
@@ -47,6 +49,7 @@ export const UserPreferencesSchema = registry.register(
             activeFilters: ActiveFiltersSchema,
             tagKinds: z.array(TagKindSchema),
             tagKindMap: z.record(z.string(), z.string()),
+            tagColors: z.record(z.string(), TagColorSchema),
             timeFormat: z.enum(['12h', '24h']),
             timezone: z.string().nullable(),
             updatedAt: z.string(),
@@ -75,6 +78,10 @@ export const UpdateUserPreferencesSchema = registry.register(
             activeFilters: ActiveFiltersSchema.optional(),
             tagKinds: z.array(TagKindSchema).optional(),
             tagKindMap: z.record(z.string(), z.string()).optional(),
+            // Tag color overrides: keys are free-form tag names, values
+            // must be known palette ids -- an unknown color would render
+            // no chip color at all, so it is rejected at the door.
+            tagColors: z.record(z.string(), TagColorSchema).optional(),
             // timeFormat/timezone were once missing here: parseBody strips
             // unknown keys, so PATCH silently discarded the user's clock
             // format and timezone on every save (the client kept them in

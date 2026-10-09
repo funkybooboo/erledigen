@@ -121,6 +121,21 @@ export const ACCENT_SCHEMES: ReadonlyArray<{
     { id: 'amber', label: 'Amber' },
 ];
 
+/** The tag color palette (USE-4), in assignment order: auto-assignment
+ *  walks this list picking the color already used by the fewest tags, so
+ *  the ORDER decides ties. The ids are the tagColors map values and the
+ *  --tag-<id> CSS token names. */
+export const TAG_COLORS = [
+    'coral',
+    'amber',
+    'lime',
+    'sage',
+    'sky',
+    'violet',
+    'rose',
+    'slate',
+] as const satisfies readonly import('./types/userPreferences').TagColorId[];
+
 /** Habit heatmap (GitHub-style year grid) geometry. The window is
  *  53 weeks: the widest grid a calendar year can render (a year
  *  spanning 53 Sundays), so the server's completedDates window
@@ -179,6 +194,7 @@ export const USER_PREFERENCES_DEFAULTS = {
     },
     tagKinds: DEFAULT_TAG_KINDS,
     tagKindMap: { ...DEFAULT_TAG_KIND_MAP },
+    tagColors: {} as Record<string, import('./types/userPreferences').TagColorId>,
     timeFormat: '12h' as const,
     timezone: null as string | null,
 } as const;

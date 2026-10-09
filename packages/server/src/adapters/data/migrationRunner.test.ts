@@ -53,7 +53,19 @@ describe('runMigrations', () => {
             '006_holidays_table.sql',
             '007_day_notes.sql',
             '008_preferences_accent.sql',
+            '009_preferences_tag_colors.sql',
         ]);
+    });
+
+    test('fresh databases carry the tag colors column with the empty default', () => {
+        const db = new Database(':memory:');
+        runMigrations(db);
+        const cols = db.query("PRAGMA table_info('user_preferences')").all() as Array<{
+            name: string;
+            dflt_value: string | null;
+        }>;
+        const tagColors = cols.find(col => col.name === 'tag_colors');
+        expect(tagColors?.dflt_value).toBe("'{}'");
     });
 
     test('fresh databases carry the accent column with the blue default', () => {
