@@ -31,6 +31,7 @@ An ADR captures an important architectural decision: what was decided, why, and 
 | [ADR-019](ADR-019-privacy-under-saas.md) | Privacy Under SaaS: No Tracking, Anywhere | Accepted | 2026-10-07 |
 | [ADR-020](ADR-020-docs-by-role.md) | Documentation by Role: Use / Host / Build | Accepted | 2026-10-07 |
 | [ADR-021](ADR-021-cli-only-automation.md) | Automation Surface: CLI Only, No MCP Server (supersedes ADR-014's MCP clause) | Accepted | 2026-10-07 |
+| [ADR-022](ADR-022-wcag-2-1-aa.md) | WCAG 2.1 Level AA as the Accessibility Standard | Accepted | 2026-10-09 |
 
 ## Creating a New ADR
 

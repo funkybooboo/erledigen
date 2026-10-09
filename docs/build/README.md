@@ -12,6 +12,7 @@ For developers -- how to work on erledigen itself.
 
 - [Code Standards](./standards/code-standards.md) -- TypeScript, naming, Svelte and Bun gotchas
 - [Testing](./standards/testing.md) -- test layers, contract suites, tools, flake triage
+- [Accessibility](./standards/accessibility.md) -- the WCAG 2.1 AA standard, the CI gates, and the manual screen reader protocol
 - [Git Workflow](./standards/git-workflow.md) -- wt worktrees, commits, PRs
 - [Documentation Standards](./standards/documentation-standards.md) -- how these docs are written
 

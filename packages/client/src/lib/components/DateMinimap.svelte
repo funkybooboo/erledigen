@@ -105,7 +105,7 @@
                 // scrolling it to the middle of the rail.
                 tick().then(() => {
                     const btn = scrollEl?.querySelector(`[data-mk="${mk}"]`) as HTMLElement | null;
-                    btn?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+                    if (btn) scrollMonthIntoView(btn, 'center');
                 });
             }
         });
@@ -188,6 +188,29 @@
         dateViewStore.requestScroll(dateStr);
     }
 
+    /** Scroll a month row into view WITHOUT scrollIntoView: Chrome sets
+     *  the sequential focus-navigation starting point at the element you
+     *  scrollIntoView'd, which hijacked the first Tab after load -- a
+     *  keyboard or screen reader user landed mid-minimap instead of at
+     *  the top (skip link). scrollTop math scrolls identically with no
+     * focus side effect (USE-9). */
+    function scrollMonthIntoView(btn: HTMLElement, mode: 'nearest' | 'center'): void {
+        const container = scrollEl;
+        if (!container) return;
+        const top = btn.offsetTop;
+        const bottom = top + btn.offsetHeight;
+        if (mode === 'nearest') {
+            if (top < container.scrollTop) container.scrollTop = top;
+            else if (bottom > container.scrollTop + container.clientHeight)
+                container.scrollTop = bottom - container.clientHeight;
+        } else {
+            container.scrollTo({
+                top: top + btn.offsetHeight / 2 - container.clientHeight / 2,
+                behavior: 'smooth',
+            });
+        }
+    }
+
     function isToday(monthKey: string): boolean {
         return monthKey === todayMonth;
     }
@@ -212,7 +235,7 @@
         const sel = selectedMonth;
         if (!sel || !scrollEl) return;
         const btn = scrollEl.querySelector(`[data-mk="${sel}"]`) as HTMLElement | null;
-        if (btn) btn.scrollIntoView({ block: 'nearest' });
+        if (btn) scrollMonthIntoView(btn, 'nearest');
     });
 
     onMount(() => {
