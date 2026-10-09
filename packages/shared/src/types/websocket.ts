@@ -18,6 +18,7 @@ export type WsServerEventMap = {
     'task:restored': { task: Task };
     'tag:renamed': TagRenamedPayload;
     'tag:merged': TagMergedPayload;
+    'tag:deleted': TagDeletedPayload;
     'project:created': { project: Project };
     'project:updated': { project: Project };
     'project:deleted': { id: string };
@@ -80,6 +81,11 @@ export interface TagRenamedPayload {
 export interface TagMergedPayload {
     sources: string[];
     target: string;
+    updated: number;
+}
+
+export interface TagDeletedPayload {
+    name: string;
     updated: number;
 }
 

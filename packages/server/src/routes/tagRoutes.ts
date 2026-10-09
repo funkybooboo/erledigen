@@ -7,7 +7,7 @@
 import type { Logger } from '@erledigen/shared';
 import { API_ROUTES, type WsServerEventMap } from '@erledigen/shared';
 import type { HttpServer } from '../adapters/http/HttpServer';
-import { MergeTagsSchema, RenameTagSchema } from '../openapi/schemas/tag';
+import { DeleteTagSchema, MergeTagsSchema, RenameTagSchema } from '../openapi/schemas/tag';
 import { formatTagInfoAsText, formatTagsAsText } from '../presentation/formatters';
 import type { EventBus } from '../services/EventBus';
 import type { TagService } from '../services/TagService';
@@ -64,6 +64,21 @@ export function registerTagRoutes(
             const { sources, target } = parseBody(MergeTagsSchema, raw);
             const updated = await tagService.mergeTags(sources, target);
             eventBus.publish('tag:merged', { sources, target, updated }, originClientId);
+            return successResponse({ updated });
+        }, logger),
+    );
+
+    // POST /api/tags/delete -- strip a tag from every task (USE-5; tags
+    // derive from tasks, there is no entity to destroy).
+    server.route(
+        'POST',
+        API_ROUTES.TAG_DELETE,
+        withErrorHandling(async req => {
+            const originClientId = req.headers['x-client-id'];
+            const raw = await req.json<unknown>();
+            const { name } = parseBody(DeleteTagSchema, raw);
+            const updated = await tagService.deleteTag(name);
+            eventBus.publish('tag:deleted', { name, updated }, originClientId);
             return successResponse({ updated });
         }, logger),
     );

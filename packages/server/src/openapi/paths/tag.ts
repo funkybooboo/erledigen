@@ -7,7 +7,7 @@
 
 import { z } from 'zod';
 import { registry } from '../registry';
-import { MergeTagsSchema, RenameTagSchema } from '../schemas/tag';
+import { DeleteTagSchema, MergeTagsSchema, RenameTagSchema } from '../schemas/tag';
 import { validationErrorResponse } from './common';
 
 // -- Tags -----------------------------------------------------------------------
@@ -78,6 +78,21 @@ registry.registerPath({
     operationId: 'mergeTags',
     request: {
         body: { required: true, content: { 'application/json': { schema: MergeTagsSchema } } },
+    },
+    responses: {
+        200: updatedCountResponse,
+        400: validationErrorResponse,
+    },
+});
+
+registry.registerPath({
+    method: 'post',
+    path: '/api/tags/delete',
+    summary:
+        'Delete a tag: strip it from every task that carries it (there is no tag entity -- tags derive from tasks)',
+    operationId: 'deleteTag',
+    request: {
+        body: { required: true, content: { 'application/json': { schema: DeleteTagSchema } } },
     },
     responses: {
         200: updatedCountResponse,

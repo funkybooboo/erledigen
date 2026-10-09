@@ -1,12 +1,13 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
-    import { holidayStore, preferencesStore, refetchAllStores, uiStore } from '$lib/stores';
+    import { holidayStore, preferencesStore, refetchAllStores, tagStore, uiStore } from '$lib/stores';
     import { container } from '$lib/container';
     import { ExportService } from '$lib/services/exportService';
     import { HolidayService, type HolidayImportResult } from '$lib/services/holidayService';
     import { ImportService } from '$lib/services/importService';
+    import { tagColorVar } from '$lib/tagColors';
     import { Icon } from 'svelte-icons-pack';
-    import { LuTrash2 } from 'svelte-icons-pack/lu';
+    import { LuGitMerge, LuPencil, LuTrash2 } from 'svelte-icons-pack/lu';
     import {
         autoDetectCsvMapping,
         CsvImportAdapter,
@@ -15,11 +16,14 @@
         IMPORT_FORMAT_META,
         IMPORT_FORMATS,
         isValidTimeZone,
+        PRIORITY_TAGS,
+        TAG_COLORS,
         type CsvColumnMapping,
         type ExportFormat,
         type ImportFormat,
         type ImportResult,
         type RolloverTriggerTime,
+        type TagColorId,
     } from '@erledigen/shared';
     import { onMount } from 'svelte';
 
@@ -182,6 +186,125 @@
             // fall through to the generic message
         }
         return 'Holiday import failed -- the document could not be processed.';
+    }
+
+    // -- Tags management (USE-5) -------------------------------------------------
+
+    /** Fixed swatch colors: each picker dot shows its own palette entry
+     *  (light-mode values, readable on both themes) -- same idea as the
+     *  Theme modal's accent swatches. */
+    const TAG_SWATCH_COLORS: Record<TagColorId, string> = {
+        coral: 'oklch(56% 0.17 30)',
+        amber: 'oklch(52% 0.11 70)',
+        lime: 'oklch(50% 0.12 125)',
+        sage: 'oklch(46% 0.08 150)',
+        sky: 'oklch(52% 0.12 245)',
+        violet: 'oklch(48% 0.16 295)',
+        rose: 'oklch(55% 0.15 350)',
+        slate: 'oklch(45% 0.03 250)',
+    };
+
+    /** Which row's inline editor is open (one at a time). */
+    let tagEditor = $state<{ name: string; kind: 'rename' | 'merge' | 'color' } | null>(null);
+    let renameValue = $state('');
+    let mergeTarget = $state('');
+    let tagError = $state<string | null>(null);
+
+    /** All tags with counts, sorted by name (server order), plus the
+     *  resolved color for each row's dot. */
+    let tagRows = $derived(
+        tagStore.tagInfo.map(info => ({ ...info, color: tagColorVar(info.name) })),
+    );
+
+    $effect(() => {
+        // The list is live in the open modal: tag:* broadcasts (another
+        // tab's changes) and the local store ops both land here.
+        tagStore.tagInfo;
+        tagStore.tags;
+    });
+
+    onMount(() => {
+        void tagStore.fetchAll();
+        void tagStore.fetchInfo();
+    });
+
+    function openTagEditor(name: string, kind: 'rename' | 'merge' | 'color') {
+        tagError = null;
+        if (tagEditor?.name === name && tagEditor.kind === kind) {
+            tagEditor = null;
+            return;
+        }
+        if (kind === 'rename') {
+            renameValue = name;
+            mergeTarget = '';
+        } else if (kind === 'merge') {
+            mergeTarget = tagStore.tags.find(other => other !== name) ?? '';
+            renameValue = '';
+        }
+        tagEditor = { name, kind };
+    }
+
+    /** Commit a rename (Enter or blur). Empty or unchanged cancels. */
+    async function commitTagRename(from: string) {
+        const to = renameValue.trim().toLowerCase();
+        tagEditor = null;
+        if (to === '' || to === from) return;
+        const ok = await tagStore.rename(from, to);
+        if (!ok) tagError = `Could not rename #${from}.`;
+    }
+
+    function handleRenameKeydown(from: string, e: KeyboardEvent) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            void commitTagRename(from);
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            tagEditor = null;
+        }
+    }
+
+    /** Merge this tag into the chosen target (confirm: the source tag
+     *  disappears from every task that had it). */
+    async function commitTagMerge(source: string) {
+        const target = mergeTarget;
+        if (target === '' || target === source) {
+            tagEditor = null;
+            return;
+        }
+        const sourceCount = tagStore.tagInfo.find(info => info.name === source)?.count ?? 0;
+        tagEditor = null;
+        const ok = await uiStore.confirm(
+            `Merge #${source} into #${target}? The ${sourceCount} task${sourceCount !== 1 ? 's' : ''} carrying #${source} switch to #${target}.`,
+            'Merge',
+        );
+        if (!ok) return;
+        const merged = await tagStore.merge([source], target);
+        if (!merged) tagError = `Could not merge #${source} into #${target}.`;
+    }
+
+    /** Delete: strip the tag from every task (confirm first). */
+    async function deleteTag(name: string) {
+        const count = tagStore.tagInfo.find(info => info.name === name)?.count ?? 0;
+        const ok = await uiStore.confirm(
+            `Remove #${name} from ${count} task${count !== 1 ? 's' : ''}? The tasks stay; the tag goes.`,
+            'Remove',
+        );
+        if (!ok) return;
+        const deleted = await tagStore.delete(name);
+        if (!deleted) tagError = `Could not remove #${name}.`;
+    }
+
+    /** Set (or clear) a tag's color. 'none' returns the tag to its
+     *  semantic priority color, or the neutral chip. */
+    function setTagColor(name: string, color: TagColorId | 'none') {
+        tagEditor = null;
+        const next = { ...preferencesStore.tagColors };
+        if (color === 'none') {
+            delete next[name];
+        } else {
+            next[name] = color;
+        }
+        preferencesStore.setTagColors(next);
     }
 
     // -- Export (ADR-008) ---------------------------------------------------------
@@ -407,6 +530,124 @@
                     <option value="confirm">Ask before deleting</option>
                 </select>
             </label>
+        </fieldset>
+
+        <fieldset class="section">
+            <legend class="section-heading">Tags</legend>
+            <p class="hint">
+                Every tag with its task count. Rename and merge apply to every
+                task that carries the tag; recoloring changes chips and filters
+                everywhere; removing strips the tag from its tasks (the tasks
+                stay).
+            </p>
+            {#if tagRows.length === 0}
+                <p class="hint">No tags yet -- add a #tag to any task and it shows up here.</p>
+            {:else}
+                <ul class="tag-manage-list">
+                    {#each tagRows as row (row.name)}
+                        {@const editing = tagEditor?.name === row.name ? tagEditor : null}
+                        <li class="tag-manage-row">
+                            {#if editing?.kind === 'color'}
+                                <div class="tag-color-picker" role="radiogroup" aria-label="Color for #{row.name}">
+                                    {#each TAG_COLORS as color (color)}
+                                        <button
+                                            type="button"
+                                            class="color-dot"
+                                            class:selected={preferencesStore.tagColors[row.name] === color}
+                                            style="background: {TAG_SWATCH_COLORS[color]}"
+                                            onclick={() => setTagColor(row.name, color)}
+                                            aria-label="#{row.name} in {color}"
+                                        ></button>
+                                    {/each}
+                                    {#if preferencesStore.tagColors[row.name] !== undefined}
+                                        <button
+                                            type="button"
+                                            class="color-dot color-none"
+                                            onclick={() => setTagColor(row.name, 'none')}
+                                            aria-label="#{row.name} back to the default color"
+                                        >
+                                            <Icon src={LuTrash2} />
+                                        </button>
+                                    {/if}
+                                </div>
+                            {:else}
+                                <button
+                                    type="button"
+                                    class="color-dot current"
+                                    style="{row.color ? `background: ${row.color};` : ''}"
+                                    onclick={() => openTagEditor(row.name, 'color')}
+                                    aria-label="Recolor #{row.name}"
+                                ></button>
+                            {/if}
+
+                            {#if editing?.kind === 'rename'}
+                                <input
+                                    class="select tag-rename-input"
+                                    bind:value={renameValue}
+                                    onkeydown={e => handleRenameKeydown(row.name, e)}
+                                    onblur={() => void commitTagRename(row.name)}
+                                    aria-label="Rename #{row.name}"
+                                    maxlength={60}
+                                />
+                            {:else}
+                                <span class="tag-manage-name">#{row.name}</span>
+                                <span class="tag-count">{row.count} task{row.count !== 1 ? 's' : ''}</span>
+                            {/if}
+
+                            {#if editing?.kind === 'merge'}
+                                <select
+                                    class="select tag-merge-select"
+                                    bind:value={mergeTarget}
+                                    aria-label="Merge #{row.name} into"
+                                >
+                                    {#each tagRows as other (other.name)}
+                                        {#if other.name !== row.name}
+                                            <option value={other.name}>#{other.name}</option>
+                                        {/if}
+                                    {/each}
+                                </select>
+                                <button type="button" class="btn btn-secondary" onclick={() => void commitTagMerge(row.name)}>
+                                    Merge
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick={() => (tagEditor = null)}>
+                                    Cancel
+                                </button>
+                            {/if}
+
+                            <div class="tag-actions">
+                                <button
+                                    type="button"
+                                    class="icon-btn small"
+                                    onclick={() => openTagEditor(row.name, 'rename')}
+                                    aria-label="Rename #{row.name}"
+                                >
+                                    <Icon src={LuPencil} />
+                                </button>
+                                <button
+                                    type="button"
+                                    class="icon-btn small"
+                                    disabled={tagRows.length < 2}
+                                    onclick={() => openTagEditor(row.name, 'merge')}
+                                    aria-label="Merge #{row.name} into another tag"
+                                >
+                                    <Icon src={LuGitMerge} />
+                                </button>
+                                <button
+                                    type="button"
+                                    class="icon-btn small danger"
+                                    onclick={() => void deleteTag(row.name)}
+                                    aria-label="Remove #{row.name}"
+                                >
+                                    <Icon src={LuTrash2} />
+                                </button>
+                            </div>
+                        </li>
+                    {/each}
+                </ul>
+            {/if}
+            {#if tagError}
+                <span class="hint invalid" role="alert">{tagError}</span>
+            {/if}
         </fieldset>
 
         <fieldset class="section">
@@ -779,6 +1020,107 @@
     .holiday-row .icon-btn :global(svg) {
         width: 14px;
         height: 14px;
+    }
+
+    /* -- Tags management (USE-5) ------------------------------------------- */
+
+    .tag-manage-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        max-height: 240px;
+        overflow-y: auto;
+    }
+
+    .tag-manage-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 0;
+        border-bottom: 1px solid var(--color-border);
+        font-size: 13px;
+    }
+
+    .tag-manage-row:last-child {
+        border-bottom: none;
+    }
+
+    .tag-manage-name {
+        color: var(--color-text);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .tag-count {
+        font-size: 11px;
+        color: var(--color-text-muted);
+        white-space: nowrap;
+    }
+
+    .tag-actions {
+        display: flex;
+        gap: 2px;
+        margin-left: auto;
+        flex-shrink: 0;
+    }
+
+    .tag-actions .icon-btn :global(svg) {
+        width: 14px;
+        height: 14px;
+    }
+
+    .tag-rename-input {
+        flex: 1;
+        min-width: 120px;
+    }
+
+    .tag-merge-select {
+        flex: 1;
+        min-width: 120px;
+    }
+
+    .color-dot {
+        width: 16px;
+        height: 16px;
+        padding: 0;
+        border: 1px solid var(--color-border);
+        border-radius: 999px;
+        cursor: pointer;
+        flex-shrink: 0;
+        box-sizing: border-box;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .color-dot.current {
+        /* Uncolored tags show the neutral chip tone. */
+        background: var(--color-surface-hover);
+    }
+
+    .color-dot:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+    }
+
+    .tag-color-picker {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex: 1;
+        flex-wrap: wrap;
+    }
+
+    .tag-color-picker .color-dot.selected {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+    }
+
+    .color-dot.color-none :global(svg) {
+        width: 10px;
+        height: 10px;
+        color: var(--color-text-muted);
     }
 
     .csv-mapping {

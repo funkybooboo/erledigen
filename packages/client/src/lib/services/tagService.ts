@@ -34,4 +34,12 @@ export class TagService {
         );
         return response.data;
     }
+
+    async delete(name: string): Promise<{ updated: number }> {
+        const response = await this.http.post<ApiResponse<{ updated: number }>>(
+            API_ROUTES.TAG_DELETE,
+            { name },
+        );
+        return response.data;
+    }
 }

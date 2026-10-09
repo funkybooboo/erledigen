@@ -154,6 +154,7 @@ export type {
     ConnectionStatus,
     RecurringTaskGeneratedPayload,
     ServerShutdownPayload,
+    TagDeletedPayload,
     TagMergedPayload,
     TagRenamedPayload,
     WsClientEventType,

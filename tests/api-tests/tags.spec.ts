@@ -119,6 +119,45 @@ test.describe('tags -- merge (POST /api/tags/merge)', () => {
     });
 });
 
+test.describe('tags -- delete (POST /api/tags/delete)', () => {
+    test('strips the tag from every task that carries it', async ({ request }) => {
+        const a = await createTask(request, {
+            text: 'DelA',
+            date: '2026-05-01',
+            tags: ['#goner', '#keep'],
+        });
+        const b = await createTask(request, { text: 'DelB', date: '2026-05-01', tags: ['#goner'] });
+        const c = await createTask(request, { text: 'DelC', date: '2026-05-01', tags: ['#keep'] });
+        const res = await post(request, '/api/tags/delete', { name: '#goner' });
+        expect(res.status).toBe(200);
+        expect(res.body.data.updated).toBe(2);
+
+        // The tag is gone from the derived list and from the tasks.
+        const tags = await get(request, '/api/tags');
+        expect(tags.body.data).not.toContain('#goner');
+        expect(tags.body.data).toContain('#keep');
+        const aAfter = await get(request, `/api/tasks/${a.id}`);
+        expect(aAfter.body.data.tags).toEqual(['#keep']);
+        const bAfter = await get(request, `/api/tasks/${b.id}`);
+        expect(bAfter.body.data.tags).toEqual([]);
+        // Untouched task keeps both its tag and its identity.
+        const cAfter = await get(request, `/api/tasks/${c.id}`);
+        expect(cAfter.body.data.tags).toEqual(['#keep']);
+    });
+
+    test('deleting an unknown tag is a no-op, not an error', async ({ request }) => {
+        const res = await post(request, '/api/tags/delete', { name: '#never-existed' });
+        expect(res.status).toBe(200);
+        expect(res.body.data.updated).toBe(0);
+    });
+
+    test('rejects an empty name with 400', async ({ request }) => {
+        const res = await post(request, '/api/tags/delete', { name: '' });
+        expect(res.status).toBe(400);
+        expect(res.body.code).toBe('VALIDATION_ERROR');
+    });
+});
+
 test.describe('tags -- content negotiation', () => {
     test('GET /api/tags Accept: text/plain returns newline-joined tags', async ({ request }) => {
         await createTask(request, { text: 'A', date: '2026-05-01', tags: ['#alpha', '#beta'] });

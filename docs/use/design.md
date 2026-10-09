@@ -111,6 +111,12 @@ Tags are the primary organizational tool. A task can have any number of tags. Sp
 - `project:`-prefixed tags -- link a task to its project
 - Habit templates carry their own tags, stamped onto every generated instance
 
+Every tag carries a color (auto-assigned when first used; `#p1`/`#p2`/`#p3`
+use the logo's pill colors) so chips read at a glance on task rows, in the
+Filter modal, and in the bottom bar. Settings manages tags in one screen:
+rename, merge, recolor, and remove -- each applies to every task that
+carries the tag.
+
 ### Someday Panel
 The right-side Someday panel captures ideas and unscheduled work. Tasks are organized into user-created groups (tag-based). Works identically to the day list but without dates or automation. Global filtering applies.
 
