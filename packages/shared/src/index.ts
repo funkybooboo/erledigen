@@ -25,6 +25,14 @@ export { FetchHttpClient } from './adapters/http/FetchHttpClient';
 // Adapters - HTTP Client
 export type { HttpClient, RequestOptions } from './adapters/http/HttpClient';
 export { HttpClientError } from './adapters/http/HttpClient';
+// Adapters - I18n
+export type {
+    I18nAdapter,
+    I18nParams,
+    LocaleMessages,
+    PluralCategory,
+} from './adapters/i18n/I18nAdapter';
+export { JsonI18nAdapter } from './adapters/i18n/JsonI18nAdapter';
 export { autoDetectCsvMapping, CsvImportAdapter } from './adapters/import/CsvImportAdapter';
 export { IcalImportAdapter } from './adapters/import/IcalImportAdapter';
 export type { ImportAdapter } from './adapters/import/ImportAdapter';
@@ -198,6 +206,7 @@ export {
     resolveDatePhrase,
     slugify,
     splitKey,
+    textDirection,
     weekdayOf,
 } from './utils';
 export type { ParsedDatePhrase } from './utils/parseDatePhrase';

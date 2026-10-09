@@ -15,20 +15,22 @@
         LuList,
     } from 'svelte-icons-pack/lu';
     import { tooltip } from '$lib/tooltip';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import type { TranslationKey } from '$lib/i18n/locales';
     import type { ShortcutId } from '$lib/keybindings';
 
-    const icons: { id: ModalType; icon: typeof LuCalendar; label: string; shortcut: ShortcutId }[] = [
-        { id: 'summary', icon: LuList, label: 'Summary', shortcut: 'openSummary' },
-        { id: 'projects', icon: LuBarChart3, label: 'Projects', shortcut: 'openProjects' },
-        { id: 'habits', icon: LuRepeat, label: 'Habits', shortcut: 'openHabits' },
-        { id: 'calendar', icon: LuCalendar, label: 'Calendar', shortcut: 'openCalendar' },
-        { id: 'search', icon: LuSearch, label: 'Search', shortcut: 'search' },
-        { id: 'notes', icon: LuStickyNote, label: 'Notes', shortcut: 'openNotes' },
-        { id: 'filter', icon: LuTag, label: 'Filter', shortcut: 'openFilter' },
-        { id: 'trash', icon: LuTrash2, label: 'Trash', shortcut: 'openTrash' },
-        { id: 'theme', icon: LuPalette, label: 'Theme', shortcut: 'openTheme' },
-        { id: 'settings', icon: LuSettings, label: 'Settings', shortcut: 'openSettings' },
-        { id: 'help', icon: LuCircleHelp, label: 'Help', shortcut: 'help' },
+    const icons: { id: ModalType; icon: typeof LuCalendar; key: TranslationKey; shortcut: ShortcutId }[] = [
+        { id: 'summary', icon: LuList, key: 'rail.summary', shortcut: 'openSummary' },
+        { id: 'projects', icon: LuBarChart3, key: 'rail.projects', shortcut: 'openProjects' },
+        { id: 'habits', icon: LuRepeat, key: 'rail.habits', shortcut: 'openHabits' },
+        { id: 'calendar', icon: LuCalendar, key: 'rail.calendar', shortcut: 'openCalendar' },
+        { id: 'search', icon: LuSearch, key: 'rail.search', shortcut: 'search' },
+        { id: 'notes', icon: LuStickyNote, key: 'rail.notes', shortcut: 'openNotes' },
+        { id: 'filter', icon: LuTag, key: 'rail.filter', shortcut: 'openFilter' },
+        { id: 'trash', icon: LuTrash2, key: 'rail.trash', shortcut: 'openTrash' },
+        { id: 'theme', icon: LuPalette, key: 'rail.theme', shortcut: 'openTheme' },
+        { id: 'settings', icon: LuSettings, key: 'rail.settings', shortcut: 'openSettings' },
+        { id: 'help', icon: LuCircleHelp, key: 'rail.help', shortcut: 'help' },
     ];
 
     function handleIconClick(id: ModalType) {
@@ -40,17 +42,17 @@
     }
 </script>
 
-<nav class="icon-rail" aria-label="App navigation">
+<nav class="icon-rail" aria-label={i18nStore.t('app.navigation')}>
     {#each icons as item}
         <button
             class="icon-btn"
             class:active={uiStore.activeModal === item.id}
             onclick={() => handleIconClick(item.id)}
             use:tooltip={item.shortcut}
-            aria-label={item.label}
+            aria-label={i18nStore.t(item.key)}
         >
             <span class="icon"><Icon src={item.icon} /></span>
-            <span class="label">{item.label}</span>
+            <span class="label">{i18nStore.t(item.key)}</span>
         </button>
     {/each}
 </nav>
