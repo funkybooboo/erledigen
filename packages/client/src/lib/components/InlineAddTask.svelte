@@ -93,8 +93,8 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 6px 4px;
-        min-height: 36px;
+        padding: var(--row-pad-y) 4px;
+        min-height: var(--row-min-h);
         border-radius: 4px;
         transition: background-color 0.1s;
     }
@@ -117,7 +117,7 @@
 
     .add-input {
         flex: 1;
-        font-size: 14px;
+        font-size: var(--fs-body);
         padding: 2px 4px;
         border: 1px solid transparent;
         border-radius: 4px;

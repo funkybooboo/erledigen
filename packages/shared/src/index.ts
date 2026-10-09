@@ -138,8 +138,11 @@ export {
 export type {
     AccentSchemeId,
     ActiveFilters,
+    CompletionAnimation,
     DeleteConfirmationType,
+    FontSize,
     RolloverTriggerTime,
+    RowDensity,
     TagColorId,
     TagKind,
     TagKindBehavior,

@@ -198,6 +198,9 @@ export const USER_PREFERENCES_DEFAULTS = {
     tagColors: {} as Record<string, import('./types/userPreferences').TagColorId>,
     timeFormat: '12h' as const,
     timezone: null as string | null,
+    fontSize: 'medium' as const,
+    rowDensity: 'comfortable' as const,
+    completionAnimation: 'flash' as const,
 } as const;
 
 export const SOMEDAY_KEY = '__someday__';

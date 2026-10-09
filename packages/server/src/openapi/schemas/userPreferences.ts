@@ -51,6 +51,9 @@ export const UserPreferencesSchema = registry.register(
             tagKindMap: z.record(z.string(), z.string()),
             tagColors: z.record(z.string(), TagColorSchema),
             timeFormat: z.enum(['12h', '24h']),
+            fontSize: z.enum(['small', 'medium', 'large']),
+            rowDensity: z.enum(['compact', 'comfortable']),
+            completionAnimation: z.enum(['flash', 'none']),
             timezone: z.string().nullable(),
             updatedAt: z.string(),
         })
@@ -87,6 +90,9 @@ export const UpdateUserPreferencesSchema = registry.register(
             // format and timezone on every save (the client kept them in
             // memory for the session, which masked it until reload).
             timeFormat: z.enum(['12h', '24h']).optional(),
+            fontSize: z.enum(['small', 'medium', 'large']).optional(),
+            rowDensity: z.enum(['compact', 'comfortable']).optional(),
+            completionAnimation: z.enum(['flash', 'none']).optional(),
             timezone: z
                 .string()
                 // Reject at the door: a stored bad zone would throw in

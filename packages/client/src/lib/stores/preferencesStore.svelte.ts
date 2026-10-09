@@ -1,8 +1,11 @@
 import type {
     AccentSchemeId,
     ActiveFilters,
+    CompletionAnimation,
     DeleteConfirmationType,
+    FontSize,
     RolloverTriggerTime,
+    RowDensity,
     TagColorId,
     TagKind,
     ThemeType,
@@ -49,6 +52,9 @@ class PreferencesStore {
         ...USER_PREFERENCES_DEFAULTS.tagColors,
     });
     timeFormat = $state<TimeFormatType>('12h');
+    fontSize = $state<FontSize>('medium');
+    rowDensity = $state<RowDensity>('comfortable');
+    completionAnimation = $state<CompletionAnimation>('flash');
     timezone = $state<string | null>(null);
     updatedAt = $state(new Date().toISOString());
 
@@ -116,6 +122,9 @@ class PreferencesStore {
             this.tagKindMap = prefs.tagKindMap ?? { ...DEFAULT_TAG_KIND_MAP };
             this.tagColors = prefs.tagColors ?? {};
             this.timeFormat = prefs.timeFormat ?? '12h';
+            this.fontSize = prefs.fontSize ?? 'medium';
+            this.rowDensity = prefs.rowDensity ?? 'comfortable';
+            this.completionAnimation = prefs.completionAnimation ?? 'flash';
             this.timezone = prefs.timezone ?? null;
             this.updatedAt = prefs.updatedAt;
             container.setDateProviderTimeZone(this.timezone);
@@ -205,6 +214,18 @@ class PreferencesStore {
 
     setTimeFormat(format: TimeFormatType) {
         void this.save({ timeFormat: format });
+    }
+
+    setFontSize(fontSize: FontSize) {
+        void this.save({ fontSize });
+    }
+
+    setRowDensity(rowDensity: RowDensity) {
+        void this.save({ rowDensity });
+    }
+
+    setCompletionAnimation(completionAnimation: CompletionAnimation) {
+        void this.save({ completionAnimation });
     }
 
     /**

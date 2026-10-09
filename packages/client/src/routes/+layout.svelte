@@ -109,6 +109,16 @@
     $effect(() => {
         document.documentElement.setAttribute('data-accent', preferencesStore.accent);
     });
+
+    // Reading size and row spacing (USE-7) drive the --fs-*/--row-* token
+    // families in app.css through root attributes.
+    $effect(() => {
+        document.documentElement.setAttribute('data-font-size', preferencesStore.fontSize);
+    });
+
+    $effect(() => {
+        document.documentElement.setAttribute('data-row-density', preferencesStore.rowDensity);
+    });
 </script>
 
 <svelte:window onkeydown={handleGlobalKeydown} />

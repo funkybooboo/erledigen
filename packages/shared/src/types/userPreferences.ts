@@ -13,6 +13,18 @@ export type AccentSchemeId = 'blue' | 'coral' | 'amber';
  *  map on UserPreferences are exactly these ids. */
 export type TagColorId = 'coral' | 'amber' | 'lime' | 'sage' | 'sky' | 'violet' | 'rose' | 'slate';
 
+/** The app's reading sizes (USE-7): 'medium' is the shipped default.
+ *  Drives the --fs-* CSS tokens via [data-font-size] on the root. */
+export type FontSize = 'small' | 'medium' | 'large';
+
+/** Task row spacing (USE-7): 'comfortable' is the shipped default.
+ *  Drives the --row-* CSS tokens via [data-row-density] on the root. */
+export type RowDensity = 'compact' | 'comfortable';
+
+/** The completion pulse preference (USE-6/USE-7): 'flash' is the default
+ *  motion; 'none' turns the completion animation off entirely. */
+export type CompletionAnimation = 'flash' | 'none';
+
 /** When the daily rollover job runs (server timezone). 'manual' = no
  *  daily schedule; stale tasks are only caught up at server startup. */
 export type RolloverTriggerTime = 'midnight' | '9am' | 'manual';
@@ -87,6 +99,12 @@ export interface UserPreferences {
      *  plus the client's auto-assignments, both persisted here. */
     tagColors: Record<string, TagColorId>;
     timeFormat: TimeFormatType;
+    /** Reading size of the day-list surfaces ('medium' default). */
+    fontSize: FontSize;
+    /** Task-row spacing ('comfortable' default). */
+    rowDensity: RowDensity;
+    /** The completion pulse ('flash' default; 'none' disables). */
+    completionAnimation: CompletionAnimation;
     /** IANA timezone (e.g. 'America/Denver') or null to follow the device zone. */
     timezone: string | null;
     updatedAt: string;
