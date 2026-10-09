@@ -26,9 +26,13 @@ In practice:
 Everything syncs live across every open window over WebSocket, and a full
 JSON backup of all your data can be exported and restored anywhere.
 
+And the privacy rule needs no footnote: no analytics, no telemetry, no
+tracking -- in any deployment mode. [The full promise](./privacy.md).
+
 Read on:
 
 *   [Design](./design.md) -- the product, its data model, and how the
     pieces fit together
 *   [Notes](./notes.md) -- day notes, task notes, and markdown everywhere
 *   [Export](./export.md) / [Import](./import.md) -- your data, in and out
+*   [Privacy](./privacy.md) -- the no-tracking commitment, stated plainly
