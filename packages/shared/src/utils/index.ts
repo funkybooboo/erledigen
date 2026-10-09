@@ -32,4 +32,4 @@ export {
 } from './projectDistribution';
 export { generateOccurrences, nextOccurrenceIso } from './recurringTaskUtils';
 export { slugify } from './slugify';
-export { getTagsByKind, resolveTagKind } from './tagKinds';
+export { getTagsByKind, leastUsedTagColor, resolveTagKind } from './tagKinds';

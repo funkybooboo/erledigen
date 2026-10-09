@@ -1,6 +1,7 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
     import { preferencesStore, tagStore } from '$lib/stores';
+    import { tagChipStyle } from '$lib/tagColors';
     import type { ActiveFilters } from '@erledigen/shared';
     import { onMount } from 'svelte';
 
@@ -72,7 +73,7 @@
             {#if activeTags.length > 0}
                 <div class="active-tags">
                     {#each activeTags as tag (tag)}
-                        <button class="tag-pill" onclick={() => removeTag(tag)}>
+                        <button class="tag-pill" style={tagChipStyle(tag) || undefined} onclick={() => removeTag(tag)}>
                             #{tag}
                             <span class="tag-remove">&times;</span>
                         </button>
@@ -100,7 +101,7 @@
                 <ul class="suggestions">
                     {#each suggestions as tag (tag)}
                         <li>
-                            <button class="suggestion-item" onclick={() => addTag(tag)}>
+                            <button class="suggestion-item" style={tagChipStyle(tag) || undefined} onclick={() => addTag(tag)}>
                                 #{tag}
                             </button>
                         </li>
@@ -112,7 +113,7 @@
                 <div class="available-tags">
                     {#each tags as tag (tag)}
                         {#if !activeTags.includes(tag)}
-                            <button class="tag-option" onclick={() => addTag(tag)}>
+                            <button class="tag-option" style={tagChipStyle(tag) || undefined} onclick={() => addTag(tag)}>
                                 #{tag}
                             </button>
                         {/if}
@@ -220,6 +221,9 @@
         color: var(--color-accent);
         transition: all 0.15s;
     }
+
+    /* A colored tag keeps its own tint (tagChipStyle sets color,
+       background, and border-color) and only inherits the shape. */
 
     .tag-pill:hover {
         opacity: 0.8;

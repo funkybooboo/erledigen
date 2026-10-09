@@ -105,6 +105,21 @@ export function runUserPreferencesRepositoryContractTests(
             // Partial update does not clobber the other theme field.
             expect(prefs.theme).toBe('system');
         });
+
+        test('persists tag colors and merges the map as a whole', async () => {
+            const repo = makeRepo();
+            await repo.update({ tagColors: { work: 'sky', errands: 'amber' } });
+            let prefs = await repo.get();
+            expect(prefs.tagColors['work']).toBe('sky');
+            expect(prefs.tagColors['errands']).toBe('amber');
+
+            // A second update replaces the map wholesale (the client sends
+            // the full map); keys not present are dropped.
+            await repo.update({ tagColors: { work: 'violet' } });
+            prefs = await repo.get();
+            expect(prefs.tagColors['work']).toBe('violet');
+            expect(prefs.tagColors['errands']).toBeUndefined();
+        });
     });
 
     describe('reset', () => {
@@ -134,10 +149,12 @@ export function runUserPreferencesRepositoryContractTests(
                 const legacy = {
                     ...current,
                     accent: undefined,
+                    tagColors: undefined,
                 } as unknown as UserPreferences;
                 await repo.restore(legacy);
                 const prefs = await repo.get();
                 expect(prefs.accent).toBe('blue');
+                expect(prefs.tagColors).toEqual({});
             });
         });
 

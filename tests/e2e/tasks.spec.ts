@@ -126,6 +126,56 @@ test.describe('task CRUD through the UI', () => {
             page.locator('.task-row', { hasText: text }).locator('.tag-chip', { hasText: '#e2e' }),
         ).toBeVisible();
     });
+
+    test('tag chips carry colors: auto-assigned pastel, override, priority', async ({ page }) => {
+        test.setTimeout(30_000);
+        const tag = uniq('ChipColor').toLowerCase();
+        const text = uniq('UiChipColors');
+        const task = await createTask(
+            page.request,
+            { text, date: todayISO(), tags: [tag] },
+            SERVER_URL,
+        );
+        await hydrated(page);
+
+        // The new tag auto-assigns a palette color (tagStore fetchAll).
+        const chip = page.locator('.task-row', { hasText: text }).locator('.tag-chip');
+        await expect(chip).toHaveCount(1);
+        await expect
+            .poll(async () => chip.getAttribute('style'), { timeout: 10_000 })
+            .toContain('--tag-');
+
+        // An explicit override (PATCH through the API) re-colors the chip
+        // after a reload -- preference changes do not broadcast over WS,
+        // so the page must re-read them (the management UI lands with
+        // USE-5).
+        await page.request.patch(`${SERVER_URL}/api/preferences`, {
+            data: { tagColors: { [tag]: 'violet' } },
+        });
+        await hydrated(page);
+        const chip2 = page.locator('.task-row', { hasText: text }).locator('.tag-chip');
+        await expect(chip2).toHaveCount(1);
+        await expect
+            .poll(async () => chip2.getAttribute('style'), { timeout: 10_000 })
+            .toContain('--tag-violet');
+
+        // Priority tags use the logo's pill tokens.
+        await page.request.put(`${SERVER_URL}/api/tasks/${task.id}`, {
+            data: { tags: [tag, 'p1'] },
+        });
+        const p1Chip = page.locator('.task-row', { hasText: text }).locator('.tag-chip', {
+            hasText: '#p1',
+        });
+        await expect(p1Chip).toHaveCount(1);
+        await expect
+            .poll(async () => p1Chip.getAttribute('style'), { timeout: 10_000 })
+            .toContain('--color-p1');
+
+        // Restore the empty tag-color map for the shared singleton.
+        await page.request.patch(`${SERVER_URL}/api/preferences`, {
+            data: { tagColors: {} },
+        });
+    });
 });
 test.describe('delete confirmation preference', () => {
     test.afterEach(async ({ request }) => {

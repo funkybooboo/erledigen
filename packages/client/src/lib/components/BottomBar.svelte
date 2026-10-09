@@ -6,6 +6,7 @@
     import { LuX } from 'svelte-icons-pack/lu';
     import Logo from '$lib/components/Logo.svelte';
     import { tooltip } from '$lib/tooltip';
+    import { tagChipStyle } from '$lib/tagColors';
 
     let totalTasks = $derived(taskStore.tasks.length);
     let completedCount = $derived(taskStore.tasks.filter(t => t.completed).length);
@@ -54,8 +55,8 @@
     </button>
 
     <div class="filter-chips">
-        {#each preferencesStore.activeFilters.tags ?? [] as tag}
-            <span class="chip">
+        {#each preferencesStore.activeFilters.tags ?? [] as tag (tag)}
+            <span class="chip" style={tagChipStyle(tag) || undefined}>
                 #{tag}
                 <button class="chip-remove" onclick={() => preferencesStore.toggleTag(tag)} use:tooltip={{ label: `Remove filter #${tag}` }} aria-label="Remove filter #{tag}"><Icon src={LuX} /></button>
             </span>
@@ -127,7 +128,11 @@
         border-radius: 12px;
         font-size: 11px;
         white-space: nowrap;
+        border: 1px solid transparent;
     }
+
+    /* A colored filter chip (tagChipStyle inline) recolors
+       background/color/border-color wholesale. */
 
     .chip-remove {
         background: none;

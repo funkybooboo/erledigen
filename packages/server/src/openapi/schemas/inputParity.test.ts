@@ -229,6 +229,7 @@ describe('user preferences schema', () => {
             },
             tagKinds: [...DEFAULT_TAG_KINDS],
             tagKindMap: { p1: 'priority' },
+            tagColors: { work: 'sky' },
             timeFormat: '24h',
             timezone: 'America/Denver',
         };

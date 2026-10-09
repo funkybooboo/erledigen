@@ -107,6 +107,24 @@ test.describe('user preferences -- PATCH /api/preferences', () => {
         await patch(request, '/api/preferences', { accent: 'blue' });
     });
 
+    test('updates and validates tag colors', async ({ request }) => {
+        const res = await patch(request, '/api/preferences', {
+            tagColors: { work: 'sky', errands: 'amber' },
+        });
+        expect(res.status).toBe(200);
+        expect(res.body.data.tagColors).toEqual({ work: 'sky', errands: 'amber' });
+
+        // Unknown palette ids are rejected at the door.
+        const bad = await patch(request, '/api/preferences', {
+            tagColors: { work: 'sparkly' },
+        });
+        expect(bad.status).toBe(400);
+        expect(bad.body.code).toBe('VALIDATION_ERROR');
+
+        // Restore the empty map for the shared singleton.
+        await patch(request, '/api/preferences', { tagColors: {} });
+    });
+
     test('rejects someDayPanelWidth over 800 with 400', async ({ request }) => {
         const res = await patch(request, '/api/preferences', { someDayPanelWidth: 801 });
         expect(res.status).toBe(400);

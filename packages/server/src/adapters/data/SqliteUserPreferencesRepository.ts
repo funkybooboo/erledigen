@@ -30,6 +30,7 @@ interface PreferencesRow {
     active_filters: string;
     tag_kinds: string;
     tag_kind_map: string;
+    tag_colors: string;
     time_format: string;
     timezone: string | null;
     updated_at: string;
@@ -56,6 +57,7 @@ function mapPreferencesRow(row: PreferencesRow): UserPreferences {
         ),
         tagKinds: parseJsonColumn<UserPreferences['tagKinds']>(row.tag_kinds, []),
         tagKindMap: parseJsonColumn<UserPreferences['tagKindMap']>(row.tag_kind_map, {}),
+        tagColors: parseJsonColumn<UserPreferences['tagColors']>(row.tag_colors, {}),
         timeFormat: row.time_format as UserPreferences['timeFormat'],
         timezone: row.timezone,
         updatedAt: row.updated_at,
@@ -76,7 +78,7 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
                        some_day_panel_collapsed, some_day_panel_last_open_width,
                        rollover_enabled, rollover_trigger_time, show_empty_days,
                        delete_confirmation,
-                       active_filters, tag_kinds, tag_kind_map, time_format,
+                       active_filters, tag_kinds, tag_kind_map, tag_colors, time_format,
                        timezone, updated_at
                 FROM user_preferences
                 WHERE id = 'default'
@@ -97,6 +99,7 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
                 : { ...current.activeFilters },
             tagKinds: input.tagKinds ? [...input.tagKinds] : [...current.tagKinds],
             tagKindMap: input.tagKindMap ? { ...input.tagKindMap } : { ...current.tagKindMap },
+            tagColors: input.tagColors ? { ...input.tagColors } : { ...current.tagColors },
             updatedAt: this.dateProvider.timestamp(),
         };
         this.write(merged);
@@ -114,9 +117,9 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
                      some_day_panel_collapsed, some_day_panel_last_open_width,
                      rollover_enabled, rollover_trigger_time, show_empty_days,
                      delete_confirmation,
-                     active_filters, tag_kinds, tag_kind_map, time_format,
+                     active_filters, tag_kinds, tag_kind_map, tag_colors, time_format,
                      timezone, updated_at)
-                VALUES ('default', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES ('default', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     theme = excluded.theme,
                     accent = excluded.accent,
@@ -131,6 +134,7 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
                     active_filters = excluded.active_filters,
                     tag_kinds = excluded.tag_kinds,
                     tag_kind_map = excluded.tag_kind_map,
+                    tag_colors = excluded.tag_colors,
                     time_format = excluded.time_format,
                     timezone = excluded.timezone,
                     updated_at = excluded.updated_at
@@ -150,6 +154,7 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
                 JSON.stringify(prefs.activeFilters),
                 JSON.stringify(prefs.tagKinds),
                 JSON.stringify(prefs.tagKindMap),
+                JSON.stringify(prefs.tagColors),
                 prefs.timeFormat,
                 prefs.timezone,
                 prefs.updatedAt,
@@ -169,7 +174,7 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
         // normalization: a pre-v0.11.0 snapshot has no accent field, and
         // the column is NOT NULL -- fill the default instead of writing
         // an SQL NULL (same idea as the activeFilters shape fill).
-        this.write({ ...prefs, accent: prefs.accent ?? 'blue' });
+        this.write({ ...prefs, accent: prefs.accent ?? 'blue', tagColors: prefs.tagColors ?? {} });
     }
 
     async reset(): Promise<void> {

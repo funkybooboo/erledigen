@@ -16,6 +16,7 @@ export class InMemoryUserPreferencesRepository implements UserPreferencesReposit
             activeFilters: { ...this.preferences.activeFilters },
             tagKinds: [...this.preferences.tagKinds],
             tagKindMap: { ...this.preferences.tagKindMap },
+            tagColors: { ...this.preferences.tagColors },
         };
     }
 
@@ -30,6 +31,7 @@ export class InMemoryUserPreferencesRepository implements UserPreferencesReposit
             tagKindMap: input.tagKindMap
                 ? { ...input.tagKindMap }
                 : { ...this.preferences.tagKindMap },
+            tagColors: input.tagColors ? { ...input.tagColors } : { ...this.preferences.tagColors },
             updatedAt: this.dateProvider.timestamp(),
         };
         return this.get();
@@ -48,6 +50,7 @@ export class InMemoryUserPreferencesRepository implements UserPreferencesReposit
             activeFilters: normalizeActiveFilters(prefs.activeFilters),
             tagKinds: [...prefs.tagKinds],
             tagKindMap: { ...prefs.tagKindMap },
+            tagColors: prefs.tagColors ? { ...prefs.tagColors } : {},
         };
     }
 }
