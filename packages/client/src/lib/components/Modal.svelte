@@ -1,14 +1,26 @@
 <script lang="ts">
     import type { Snippet } from 'svelte';
     import { onMount, onDestroy } from 'svelte';
+    import { fade, fly, scale } from 'svelte/transition';
     import { Icon } from 'svelte-icons-pack';
     import { LuX } from 'svelte-icons-pack/lu';
     import { tooltip } from '$lib/tooltip';
+    import { motionMs } from '$lib/motion';
 
     let { title = '', onclose = () => {}, children }: { title?: string; onclose?: () => void; children?: Snippet } = $props();
 
     let modalEl: HTMLElement;
     let previousFocusEl: HTMLElement | null = null;
+
+    /** Mobile docks the dialog as a bottom sheet, where sliding up from
+     *  the edge is the platform idiom; desktop dialogs scale in (the
+     *  Fizzy dialog motion). Both share the params object -- fly ignores
+     *  `start`, scale ignores `y`. Modals only ever mount client-side
+     *  (ModalHost renders nothing under SSR), so the width probe is
+     *  safe; the window guard keeps the module SSR-importable. */
+    const dialogTransitionFn =
+        typeof window !== 'undefined' && window.innerWidth < 768 ? fly : scale;
+    const dialogMotion = { duration: motionMs(150), start: 0.97, y: 24 };
 
     onMount(() => {
         previousFocusEl = document.activeElement as HTMLElement;
@@ -63,7 +75,12 @@
      readers (and from Playwright's accessibility-based locators). The
      dialog's aria-modal="true" is what tells assistive tech the background
      is inert; the backdrop staying visible to AT is correct. -->
-<div class="modal-backdrop" onclick={handleBackdropClick} role="presentation">
+<div
+    class="modal-backdrop"
+    onclick={handleBackdropClick}
+    role="presentation"
+    transition:fade={{ duration: motionMs(120) }}
+>
     <div
         class="modal"
         bind:this={modalEl}
@@ -73,6 +90,7 @@
         aria-modal="true"
         aria-label={title}
         tabindex="-1"
+        transition:dialogTransitionFn={dialogMotion}
     >
         <div class="modal-header">
             <h2 class="modal-title" id="modal-title">{title}</h2>
@@ -106,19 +124,6 @@
         display: flex;
         flex-direction: column;
         outline: none;
-        animation: modal-in 150ms ease-out;
-    }
-
-    /* Fizzy dialog motion: subtle scale + fade on open. */
-    @keyframes modal-in {
-        from {
-            opacity: 0;
-            transform: scale(0.97);
-        }
-        to {
-            opacity: 1;
-            transform: scale(1);
-        }
     }
 
     .modal-header {
@@ -173,7 +178,10 @@
 
     /* Mobile (v0.6.0): the dialog docks as a bottom sheet -- full width,
        rounded top corners only, capped at 85vh with internal scroll.
-       Every modal inherits this from the one shared component. */
+       Every modal inherits this from the one shared component. The
+       sheet's rise-from-the-edge motion comes from the shared fly/scale
+       transition directive above (JS-driven), so no per-breakpoint
+       keyframes live here. */
     @media (max-width: 767px) {
         .modal-backdrop {
             align-items: flex-end;
@@ -185,23 +193,10 @@
             height: auto;
             max-height: 85vh;
             border-radius: 12px 12px 0 0;
-            animation: sheet-in 150ms ease-out;
         }
 
         .modal-body {
             padding: 16px;
-        }
-    }
-
-    /* Fizzy sheet motion: slides up from the bottom edge on open. */
-    @keyframes sheet-in {
-        from {
-            opacity: 0;
-            transform: translateY(24px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
         }
     }
 </style>
