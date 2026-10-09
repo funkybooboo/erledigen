@@ -12,9 +12,27 @@ test.describe('Settings modal', () => {
     }) => {
         const text = uniq('UiEmptyDays');
         await createTask(page.request, { text, date: todayISO() }, SERVER_URL);
+        // Other workers share the preferences singleton: clear any filter
+        // state first so the rail is unclamped when measured.
+        await patch(
+            page.request,
+            '/api/preferences',
+            {
+                activeFilters: {
+                    tags: [],
+                    showCompleted: true,
+                    sortMode: 'manual',
+                    dateFrom: null,
+                    dateTo: null,
+                },
+            },
+            SERVER_URL,
+        );
         await hydrated(page);
+        const rail = page.locator('.day-section');
+        await expect(rail.first()).toBeVisible();
         // Default: the window renders a contiguous rail incl. empty days.
-        const before = await page.locator('.day-section').count();
+        const before = await rail.count();
         expect(before).toBeGreaterThan(10);
 
         await page.getByRole('button', { name: 'Settings', exact: true }).click();

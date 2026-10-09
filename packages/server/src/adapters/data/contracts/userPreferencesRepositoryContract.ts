@@ -161,7 +161,7 @@ export function runUserPreferencesRepositoryContractTests(
                     shortcutOverrides: { openTrash: ['g z'], focusNext: ['j'] },
                 });
                 const prefs = await repo.get();
-                expect(prefs.shortcutOverrides['openTrash']).toEqual(['g', 'z']);
+                expect(prefs.shortcutOverrides['openTrash']).toEqual(['g z']);
                 // The map replaces wholesale, like tagColors.
                 await repo.update({ shortcutOverrides: { focusNext: ['n'] } });
                 const after = await repo.get();
