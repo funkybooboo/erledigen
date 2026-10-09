@@ -214,8 +214,18 @@ the PR yourself, then finish by hand:
 fi
 
 step "Fast-forwarding main to the release commit"
+# The merge loop above only confirms the PR merged SERVER-SIDE. This
+# checkout still sits on the release branch: gh pr merge --delete-branch
+# removes the local branch and leaves us on main only in the synchronous
+# path -- with --auto, the branch outlives the script's own call and the
+# merge happens server-side minutes later. Merging origin/main into the
+# release branch is a diverging no-op (the v0.11.0 release died exactly
+# here); switch back to main first (a no-op when already there), then
+# drop the now-merged local release branch (squash-merged, so -D).
+git switch main
 git fetch origin main
 git merge --ff-only origin/main
+git branch -D "$BRANCH_NAME" >/dev/null 2>&1 || true
 
 MERGE_SHA="$(git rev-parse main)"
 if ! git log -1 --format=%s main | grep -q "chore(release): $TAG"; then
