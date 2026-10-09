@@ -125,10 +125,15 @@ All of the following must pass before merging (CI enforces them; see
 4. Biome lint/format
 5. TypeScript strict type-check
 6. Secret scan + link check + spell check
-7. Build + client bundle-size budget (664 KiB, browser payload)
+7. Build + client bundle-size budget (712 KiB, browser payload)
+8. The accessibility gates (v0.12.0): the axe-core audit in the e2e
+   suite (zero WCAG 2.1 A/AA violations per run), the contrast token
+   unit test, and svelte-check's a11y rules -- see
+   [accessibility.md](accessibility.md) for the standard and the
+   manual protocol that automation cannot cover.
 
-Accessibility and performance suites are planned (axe-core integration is on
-the roadmap); the gates above are what is enforced today.
+Performance suites beyond the bundle budget are planned; the gates
+above are what is enforced today.
 
 ```bash
 mise run test          # unit tests (dockerized)
