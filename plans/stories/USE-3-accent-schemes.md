@@ -3,12 +3,12 @@
 As an app user, I want accent color schemes derived from the logo's
 colors, so that the brand reads through the whole interface.
 
-**Status**: planned
+**Status**: done
 **Version**: v0.11.0
 
 ## Acceptance criteria
-- [ ] Accent palette(s) drawn from the logo
-- [ ] Selectable in the Theme modal (USE-2)
+- [x] Accent palette(s) drawn from the logo
+- [x] Selectable in the Theme modal (USE-2)
 
 ## Notes
 

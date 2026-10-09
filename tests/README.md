@@ -81,18 +81,24 @@ Covers:
 - **tooltips** -- hover shows the action label plus keybinding chips from
   the shared registry (with and without modifier/shortcut).
 - **task CRUD** -- create via inline input, complete via checkbox, inline edit,
-  delete + Undo notification + restore, `Ctrl+Z` undo, detail-modal tag editing.
+  delete + Undo notification + restore, `Ctrl+Z` undo, detail-modal tag editing,
+  tag-chip colors (auto-assigned pastel, override, priority pills), and the
+  completion flash (arms on the flip, clears after the pulse).
 - **habits** -- natural-language habit creation from the inline input
   ("every other day", "every friday at 4:00pm", "every weekday", "every
   weekend"), idempotent `generate-all`, Habits modal create/edit/delete,
   streak stats, `/add <text> every day` from the command palette.
 - **modals** -- Theme modal (theme change, `g a` chord, accent scheme
-  applied + persisted), Settings time fields, JSON export download (blob
+  applied + persisted, size/motion sections driving the root tokens),
+  Settings time fields, JSON export download (blob
   filename), Search (filter + hint/empty + `/` command
   mode + `/add`), Trash (list deleted, restore), Calendar (month navigation,
-  Today reset, date selection scrolls the day list), and the Settings tags
+  Today reset, date selection scrolls the day list), the Settings tags
   management screen (counts, rename, recolor, merge and remove with
-  confirms).
+  confirms), the behavior toggles (empty-day rail collapse with today
+  staying, filter fresh-start clearing on load), and the shortcuts
+  remapping screen (chord capture, conflict warning, reset, help modal
+  showing the live binding).
 - **import** (ADR-009) -- additive Todoist CSV through the Settings file
   picker (summary + tasks live in the day list), generic CSV column-mapping
   UI with auto-detected defaults, JSON restore with the always-confirm

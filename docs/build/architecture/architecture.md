@@ -141,6 +141,17 @@ Facts that are easy to get wrong when working on the domain, API, or stores.
   (`packages/shared/src/utils/tagKinds.ts`, `DEFAULT_TAG_KIND_MAP`); projects
   own a `project:`-prefixed tag kind. Free-form tags organize tasks, groups,
   Someday, and filters alike.
+- **Tag colors live in `UserPreferences.tagColors`, not on tasks.** Tags
+  derive from tasks, so per-tag state rides the preference singleton: the
+  client auto-assigns the least-used palette entry on first sight of a tag
+  and persists it; `#p1`/`#p2`/`#p3` resolve to the logo pill tokens unless
+  explicitly recolored.
+- **Shortcut ids and binding grammar live in the client**
+  (`packages/client/src/lib/keybindings.ts`); `UserPreferences.shortcutOverrides`
+  is shape-validated server-side and replayed verbatim. One resolution --
+  `preferencesStore.shortcutRegistry` -- feeds the matcher, the help modal,
+  and every tooltip; a stale or hand-edited entry is dropped on sanitize,
+  so it can never brick the keyboard.
 - **Dates are local key strings.** A task's `date` is a `yyyy-MM-dd` string in
   local time; `date === null` means the task lives in Someday. Date math goes
   through the shared `dateProvider` key helpers -- never `Date` object
