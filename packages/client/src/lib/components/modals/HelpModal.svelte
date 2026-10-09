@@ -1,12 +1,14 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
     import { SHORTCUT_SECTIONS, formatBinding } from '$lib/keybindings';
-    import { currentShortcuts } from '$lib/keybindingActions';
+    import { preferencesStore } from '$lib/stores';
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
-    // The LIVE registry: remapped bindings show here (and only here --
-    // reading SHORTCUTS would always show the defaults).
-    const shortcuts = $derived(currentShortcuts());
+    // The LIVE registry, derived from the preferences store: remapped
+    // bindings show here (reading SHORTCUTS would always show the
+    // defaults, and a non-reactive read would stay stale if the modal
+    // opens before the preferences finish loading).
+    const shortcuts = $derived(preferencesStore.shortcutRegistry);
 </script>
 
 <Modal title="Keyboard Shortcuts" onclose={onclose}>
