@@ -234,6 +234,7 @@ describe('user preferences schema', () => {
             fontSize: 'large',
             rowDensity: 'compact',
             completionAnimation: 'none',
+            persistActiveFilters: false,
             timezone: 'America/Denver',
         };
         parsePreserving(UpdateUserPreferencesSchema, sample);

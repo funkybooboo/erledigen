@@ -55,7 +55,18 @@ describe('runMigrations', () => {
             '008_preferences_accent.sql',
             '009_preferences_tag_colors.sql',
             '010_preferences_appearance.sql',
+            '011_preferences_behavior.sql',
         ]);
+    });
+
+    test('fresh databases carry the behavior column with the keep-filters default', () => {
+        const db = new Database(':memory:');
+        runMigrations(db);
+        const cols = db.query("PRAGMA table_info('user_preferences')").all() as Array<{
+            name: string;
+            dflt_value: string | null;
+        }>;
+        expect(cols.find(col => col.name === 'persist_active_filters')?.dflt_value).toBe('1');
     });
 
     test('fresh databases carry the appearance columns with their defaults', () => {

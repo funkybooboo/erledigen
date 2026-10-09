@@ -98,6 +98,8 @@ export function formatPreferencesAsText(prefs: UserPreferences): string {
         `rolloverEnabled: ${prefs.rolloverEnabled}`,
         `rolloverTriggerTime: ${prefs.rolloverTriggerTime}`,
         `showEmptyDays: ${prefs.showEmptyDays}`,
+        `completionAnimation: ${prefs.completionAnimation}`,
+        `persistActiveFilters: ${prefs.persistActiveFilters}`,
         `deleteConfirmation: ${prefs.deleteConfirmation}`,
         `someDayPanelWidth: ${prefs.someDayPanelWidth}`,
         `someDayPanelLastOpenWidth: ${prefs.someDayPanelLastOpenWidth}`,

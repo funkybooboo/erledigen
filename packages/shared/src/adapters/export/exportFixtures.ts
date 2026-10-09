@@ -65,6 +65,7 @@ function makeUserPreferences(): UserPreferences {
         fontSize: 'medium',
         rowDensity: 'comfortable',
         completionAnimation: 'flash',
+        persistActiveFilters: true,
         timezone: null,
         updatedAt: '2026-01-10T09:00:00.000Z',
     };

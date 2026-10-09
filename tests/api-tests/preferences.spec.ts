@@ -141,6 +141,20 @@ test.describe('user preferences -- PATCH /api/preferences', () => {
         });
     });
 
+    test('toggles the filter fresh-start preference', async ({ request }) => {
+        const res = await patch(request, '/api/preferences', { persistActiveFilters: false });
+        expect(res.status).toBe(200);
+        expect(res.body.data.persistActiveFilters).toBe(false);
+        // The saved filters ride along untouched -- the client clears them
+        // on load when the toggle is off.
+        expect(res.body.data.activeFilters).toHaveProperty('tags');
+
+        const bad = await patch(request, '/api/preferences', { persistActiveFilters: 'maybe' });
+        expect(bad.status).toBe(400);
+
+        await patch(request, '/api/preferences', { persistActiveFilters: true });
+    });
+
     test('updates and validates tag colors', async ({ request }) => {
         const res = await patch(request, '/api/preferences', {
             tagColors: { work: 'sky', errands: 'amber' },

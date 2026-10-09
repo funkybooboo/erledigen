@@ -35,6 +35,7 @@ interface PreferencesRow {
     font_size: string;
     row_density: string;
     completion_animation: string;
+    persist_active_filters: number;
     timezone: string | null;
     updated_at: string;
 }
@@ -65,6 +66,7 @@ function mapPreferencesRow(row: PreferencesRow): UserPreferences {
         fontSize: row.font_size as UserPreferences['fontSize'],
         rowDensity: row.row_density as UserPreferences['rowDensity'],
         completionAnimation: row.completion_animation as UserPreferences['completionAnimation'],
+        persistActiveFilters: toBoolean(row.persist_active_filters),
         timezone: row.timezone,
         updatedAt: row.updated_at,
     };
@@ -86,7 +88,7 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
                        delete_confirmation,
                        active_filters, tag_kinds, tag_kind_map, tag_colors, time_format,
                        font_size, row_density, completion_animation,
-                       timezone, updated_at
+                       persist_active_filters, timezone, updated_at
                 FROM user_preferences
                 WHERE id = 'default'
                 `,
@@ -126,8 +128,8 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
                      delete_confirmation,
                      active_filters, tag_kinds, tag_kind_map, tag_colors, time_format,
                      font_size, row_density, completion_animation,
-                     timezone, updated_at)
-                VALUES ('default', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                     persist_active_filters, timezone, updated_at)
+                VALUES ('default', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     theme = excluded.theme,
                     accent = excluded.accent,
@@ -147,6 +149,7 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
                     font_size = excluded.font_size,
                     row_density = excluded.row_density,
                     completion_animation = excluded.completion_animation,
+                    persist_active_filters = excluded.persist_active_filters,
                     timezone = excluded.timezone,
                     updated_at = excluded.updated_at
                 `,
@@ -170,6 +173,7 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
                 prefs.fontSize,
                 prefs.rowDensity,
                 prefs.completionAnimation,
+                toInteger(prefs.persistActiveFilters),
                 prefs.timezone,
                 prefs.updatedAt,
             );
@@ -195,6 +199,7 @@ export class SqliteUserPreferencesRepository implements UserPreferencesRepositor
             fontSize: prefs.fontSize ?? 'medium',
             rowDensity: prefs.rowDensity ?? 'comfortable',
             completionAnimation: prefs.completionAnimation ?? 'flash',
+            persistActiveFilters: prefs.persistActiveFilters ?? true,
         });
     }
 

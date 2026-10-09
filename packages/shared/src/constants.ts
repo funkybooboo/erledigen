@@ -201,6 +201,7 @@ export const USER_PREFERENCES_DEFAULTS = {
     fontSize: 'medium' as const,
     rowDensity: 'comfortable' as const,
     completionAnimation: 'flash' as const,
+    persistActiveFilters: true,
 } as const;
 
 export const SOMEDAY_KEY = '__someday__';
