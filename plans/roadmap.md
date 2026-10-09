@@ -6,18 +6,18 @@ The queue. Versions are the release cadence; stories are the work
 [history.md](./history.md). Every change serves one of the three roles
 -- app user, operator, developer (ADR-017).
 
-## Where we stand (2026-10-07)
+## Where we stand (2026-10-09)
 
-- Package version tracks the LAST SHIPPED milestone: `0.10.1` since
-  the `v0.10.1` release. Releases go through PRs (main is
+- Package version tracks the LAST SHIPPED milestone: `0.11.0` since
+  the `v0.11.0` release. Releases go through PRs (main is
   branch-protected) via `tools/release.sh`, which also writes the
   CHANGELOG section and creates the GitHub Release.
-- Shipped complete: v0.1.0 through v0.10.1 (the full record, with the
+- Shipped complete: v0.1.0 through v0.11.0 (the full record, with the
   as-built notes, lives in [history.md](./history.md)).
-- **v0.11.0 (Theming and customization) is NEXT** -- the Theme modal
-  on the icon rail, accent schemes, tag colors and management,
-  animations, and the remaining preferences: the calendar gets its
-  own look (USE-2 through USE-8).
+- **v0.12.0 (Accessibility) is NEXT** -- full keyboard operability,
+  screen reader flows, contrast + reduced motion, labeled forms, and
+  the automated a11y audit: the app becomes usable by everyone
+  (USE-9 through USE-13).
 - Policy: numeric order -- always complete the lowest incomplete
   version before starting anything higher. The recorded exceptions
   stand: the v0.14.0 time grid is deferred (ADR-014) and the polish
@@ -25,17 +25,7 @@ The queue. Versions are the release cadence; stories are the work
 
 ---
 
-## v0.11.0: Theming and customization (NEXT)
-
-[USE-2 theme modal](./stories/USE-2-theme-modal.md),
-[USE-3 accent schemes](./stories/USE-3-accent-schemes.md),
-[USE-4 tag colors](./stories/USE-4-tag-colors.md),
-[USE-5 tag management](./stories/USE-5-tag-management.md),
-[USE-6 animations](./stories/USE-6-animations.md),
-[USE-7 remaining preferences](./stories/USE-7-preference-set.md),
-[USE-8 privacy documented](./stories/USE-8-privacy-documented.md).
-
-## v0.12.0: Accessibility
+## v0.12.0: Accessibility (NEXT)
 
 [USE-9 keyboard operability](./stories/USE-9-full-keyboard-operability.md),
 [USE-10 screen reader flows](./stories/USE-10-screen-reader-flows.md),

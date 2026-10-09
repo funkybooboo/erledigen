@@ -958,3 +958,103 @@ one day (PRs #44-#51).
 
 ---
 
+
+## v0.11.0: Theming and customization
+
+The calendar gets its own look: theming moves out of Settings into
+its dedicated Theme modal, accent schemes carry the brand through
+the interface, tags get colors and a management screen, motion
+becomes deliberate and reduced-motion-aware, and the remaining
+preferences (sizes, toggles, shortcut remapping) ship. Plus the
+privacy promise, in the user docs without a hedge.
+
+**Status:** COMPLETE (2026-10-09, released as tag `v0.11.0`). All
+seven stories shipped in one day (PRs #56-#64), closed out and
+released through the standard close-out -> release.sh flow (#65,
+#66).
+
+- [x] **Theming is its own modal (USE-2):** the Theme modal joins
+      the icon rail (palette icon, `g a`) ahead of Settings and
+      takes over light/dark/system switching; Settings keeps only
+      behavior -- time format and timezone stay there under a Time
+      heading.
+- [x] **Accent schemes drawn from the logo (USE-3):** blue (the
+      shipped default), coral, and amber -- the latter two take
+      their OKLCH hues from the logo's red and yellow pills --
+      re-skin the accent token family through `[data-accent]` with
+      light and dark variants; the choice is a new `accent` field on
+      UserPreferences (migration 008) selectable in the Theme
+      modal.
+- [x] **Tags carry colors (USE-4):** an 8-color pastel palette
+      (`--tag-*` tokens), auto-assignment of the least-used color
+      (a shared pure helper, so both sides agree on the policy),
+      per-tag overrides, and the `#p1`/`#p2`/`#p3` semantic pill
+      tokens -- on task rows, filter surfaces, and the bottom bar.
+      Colors ride `UserPreferences.tagColors` (migration 009).
+- [x] **Tag management in one screen (USE-5):** Settings lists
+      every tag with count and color; inline rename, merge into
+      another tag, recolor through the palette picker, and removal
+      via a new `POST /api/tags/delete` that strips the tag from
+      every task (broadcasting `tag:deleted`). Tag operations
+      rewrite tasks without per-task events, so the task store now
+      refetches on every `tag:*` broadcast.
+- [x] **Purposeful animations (USE-6):** a completion flash on the
+      row, Svelte built-in transitions on the shared Modal (open
+      AND close; scale on desktop, fly for the mobile sheet),
+      alongside the existing panel-collapse and drag-ghost motion
+      -- and `prefers-reduced-motion` respected everywhere through
+      one CSS kill switch plus a JS-side gate
+      (`lib/motion.ts`), including smooth scrolls downgraded to
+      instant.
+- [x] **The remaining preferences (USE-7):** text size and row
+      spacing scale the day-list reading surfaces through
+      `--fs-*`/`--row-*` tokens (Theme modal Size section); the
+      completion flash gets an On/Off choice (Motion section);
+      Settings gains empty-day visibility (DayList finally honors
+      the long-persisted `showEmptyDays`, keeping today and
+      navigation targets rendered), the filter fresh-start toggle,
+      and full keyboard-shortcut remapping with conflict warnings
+      (`shortcutOverrides`, migration 012; one live-registry
+      resolution feeds the matcher, the help modal, and every
+      tooltip).
+- [x] **The privacy commitment, stated plainly (USE-8):**
+      docs/use/privacy.md -- no analytics, no telemetry, no
+      tracking, any deployment mode (ADR-019) -- linked from the
+      docs index and the introduction.
+
+### Technical Notes & Considerations
+
+- The client bundle budget was raised twice, both times with
+  measured data: +12 KiB for the theming build, then a final
+  version-sized +36 KiB once the tag-management section (+13 KiB
+  compiled) showed the stories' real cost. The 712 KiB ceiling is
+  the v0.11.0 shape; it is re-evaluated at the v1.0.0 gate.
+- Five UserPreferences fields joined the entity (accent, tagColors,
+  fontSize, rowDensity, completionAnimation, persistActiveFilters,
+  shortcutOverrides -- migrations 008-012, all NOT NULL with
+  shipped-default values; pre-v0.11.0 snapshots restore to the
+  defaults). Preference changes still carry no WS broadcast: other
+  tabs learn them on reload (theme behaved this way before; the
+  e2e suite documents it).
+- The shortcut registry lives client-side (`keybindings.ts`); the
+  server persists `shortcutOverrides` shape-validated and replays
+  it verbatim. The live registry is derived in one place
+  (`preferencesStore.shortcutRegistry`) -- deriving from a module
+  variable was the build's recurring trap and shipped one real
+  stale-render fix (the help modal).
+- Known CI flake, unchanged: the responsive suite's Someday
+  collapse click occasionally times out under parallel load and
+  passes on rerun (seen in v0.10.1 and once here).
+
+### Definition of Done
+
+- [x] All seven v0.11.0 stories done: USE-2 through USE-8.
+- [x] Released as tag `v0.11.0` -- the second CHANGELOG section,
+      cut end to end by release.sh (one manual assist: the script's
+      final local fast-forward step ran from the release branch and
+      needed a checkout first).
+- [x] The app looks like itself: the brand reads through the whole
+      interface, the user controls the look and the keys, and the
+      no-tracking promise is in writing.
+
+---
