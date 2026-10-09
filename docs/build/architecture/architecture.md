@@ -65,6 +65,9 @@ A cornerstone of our architecture is the **adapter pattern**. This pattern allow
 *   **`MetricsAdapter`**: Abstracts metrics collection (see [ADR-005](decisions/ADR-005-prometheus-metrics.md)).
     *   `PrometheusMetricsAdapter` (shared): Prometheus text-exposition metrics for HTTP, jobs, and application gauges; served at `/api/metrics` (the endpoint is removed when `METRICS_ENABLED=false`).
     *   `NullMetricsAdapter` (shared): no-op for metrics-disabled deployments.
+*   **`I18nAdapter`**: Abstracts user-facing strings and number formatting for the active locale (v0.13.0, see [ADR-023](decisions/ADR-023-first-party-i18n.md)).
+    *   `JsonI18nAdapter` (shared): message lookup over nested JSON locale files, `{param}` interpolation, plural categories via `Intl.PluralRules`, counts via `Intl.NumberFormat`.
+    *   The client's `locales.ts` is the static import map of shipped files (only `en`; other languages arrive as contributions, completeness-gated in CI); the runes `i18nStore` mirrors the locale for template re-rendering. Date/time display stays with the `DateProvider`. See [the i18n standard](../standards/i18n.md).
 *   **`JobQueue`**: Abstracts background job scheduling and processing (see [ADR-002](decisions/ADR-002-sqlite-backed-job-queue.md)).
     *   `SqliteJobQueue` (server): jobs persist in the application database and survive restarts.
     *   `InMemoryJobQueue` (server): ephemeral queue for `STORAGE_ADAPTER=memory` runs.
@@ -75,7 +78,7 @@ A cornerstone of our architecture is the **adapter pattern**. This pattern allow
     *   Import adapters (shared): `JsonRestoreImportAdapter` (strict version-1 snapshot validation, cross-reference checks), `CsvImportAdapter` (generic CSV, column-mapping + header auto-detect), `IcalImportAdapter`, `TodoistCsvImportAdapter`, `ThingsJsonImportAdapter`. All parse-only; semantics live in the server's `ImportService`.
     *   The server's `ImportService` runs `POST /api/import`: format `json` is a DESTRUCTIVE restore (one transaction via the `SnapshotRestoreWriter` port -- the repos' async facade cannot compose a cross-table SQLite transaction, so the SQLite repos expose synchronous `replaceAllSync`/`restoreSync` cores); every other format is an additive import (new rows only). A pre-restore backup file is written before any wipe; connected clients learn about a restore through the `data:restored` broadcast (ADR-009).
 
-Future adapters (email, payments, i18n, notifications) are sketched in the
+Future adapters (email, payments, notifications) are sketched in the
 [roadmap](../../../plans/roadmap.md), not built.
 
 ### Persistence strategy

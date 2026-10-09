@@ -11,12 +11,15 @@ import {
     ConsoleLogger,
     type DateProvider,
     FetchHttpClient,
+    type I18nAdapter,
+    JsonI18nAdapter,
     type Logger,
     LogLevel,
     NativeDateProvider,
 } from '@erledigen/shared';
 import { ViteConfigProvider } from './adapters/config/ViteConfigProvider';
 import { resolveApiBaseUrl } from './apiBaseUrl';
+import { DEFAULT_LOCALE, LOCALE_FILES } from './i18n/locales';
 
 export class Container {
     private _config: ConfigProvider | null = null;
@@ -26,6 +29,7 @@ export class Container {
     private _httpClient: FetchHttpClient | null = null;
     private _logger: Logger | null = null;
     private _dateProvider: DateProvider | null = null;
+    private _i18n: I18nAdapter | null = null;
 
     get config(): ConfigProvider {
         if (!this._config) {
@@ -68,6 +72,16 @@ export class Container {
             this._dateProvider = new NativeDateProvider();
         }
         return this._dateProvider;
+    }
+
+    /** The message adapter over the shipped locale files (v0.13.0).
+     *  Locale switching goes through the i18n store's apply(); the
+     *  adapter itself is a lazy singleton like every other port. */
+    get i18n(): I18nAdapter {
+        if (!this._i18n) {
+            this._i18n = new JsonI18nAdapter(LOCALE_FILES, { defaultLocale: DEFAULT_LOCALE });
+        }
+        return this._i18n;
     }
 
     /**

@@ -13,6 +13,7 @@ export { describeRecurrence } from './formatFrequency';
 export { formatTags } from './formatTags';
 export { groupTasksByDate } from './groupTasksByDate';
 export { hasDeadlineTag } from './hasDeadlineTag';
+export { textDirection } from './localeDirection';
 export type { RenderMarkdownOptions } from './markdown';
 export { renderInlineMarkdown, renderMarkdown } from './markdown';
 export type { ParsedDatePhrase } from './parseDatePhrase';

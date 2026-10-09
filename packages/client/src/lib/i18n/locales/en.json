@@ -1,0 +1,19 @@
+{
+    "app": {
+        "navigation": "App navigation",
+        "skipToContent": "Skip to content"
+    },
+    "rail": {
+        "summary": "Summary",
+        "projects": "Projects",
+        "habits": "Habits",
+        "calendar": "Calendar",
+        "search": "Search",
+        "notes": "Notes",
+        "filter": "Filter",
+        "trash": "Trash",
+        "theme": "Theme",
+        "settings": "Settings",
+        "help": "Help"
+    }
+}

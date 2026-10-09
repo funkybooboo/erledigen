@@ -21,6 +21,7 @@
     import BottomBar from '$lib/components/BottomBar.svelte';
     import ModalHost from '$lib/components/ModalHost.svelte';
     import NotificationContainer from '$lib/components/NotificationContainer.svelte';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
 
     let { children } = $props();
 
@@ -137,7 +138,7 @@
          inputs, lists) that browse mode reads fine; single-key shortcuts
          still work for keyboard users because every control is a real
          focusable element (USE-9/USE-10). -->
-    <a href="#main-content" class="skip-link">Skip to content</a>
+    <a href="#main-content" class="skip-link">{i18nStore.t('app.skipToContent')}</a>
     <div class="main-area">
         <IconRail />
         <DateMinimap />

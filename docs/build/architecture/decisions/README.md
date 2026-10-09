@@ -32,6 +32,7 @@ An ADR captures an important architectural decision: what was decided, why, and 
 | [ADR-020](ADR-020-docs-by-role.md) | Documentation by Role: Use / Host / Build | Accepted | 2026-10-07 |
 | [ADR-021](ADR-021-cli-only-automation.md) | Automation Surface: CLI Only, No MCP Server (supersedes ADR-014's MCP clause) | Accepted | 2026-10-07 |
 | [ADR-022](ADR-022-wcag-2-1-aa.md) | WCAG 2.1 Level AA as the Accessibility Standard | Accepted | 2026-10-09 |
+| [ADR-023](ADR-023-first-party-i18n.md) | First-Party i18n Adapter with JSON Locale Files | Accepted | 2026-10-09 |
 
 ## Creating a New ADR
 
