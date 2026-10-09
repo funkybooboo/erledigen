@@ -1,5 +1,31 @@
 # Changelog
 
+## [v0.11.0](https://github.com/funkybooboo/erledigen/compare/v0.10.1...HEAD) - 2026-10-09
+
+### Features
+
+- **keyboard:** custom shortcut remapping with conflict warnings (#63)
+- **prefs:** empty-day visibility and the filter fresh start (#62)
+- **prefs:** font size, row density, and the completion flash (#61)
+- **client:** purposeful animations, reduced motion respected everywhere (#60)
+- **tags:** manage tags in one screen (#59)
+- **tags:** tags carry colors (#58)
+- **prefs:** accent schemes drawn from the logo (#57)
+- **client:** theming gets its own modal on the icon rail (#56)
+
+### Fixes
+
+- **tools:** changelog.sh stamps release sections in UTC (#54)
+- **tools:** release.sh waits for check verdicts before merging (#51)
+
+### Everything else
+
+- **plans:** v0.11.0 close-out -- stories done, docs catch up (#65)
+- **use:** the privacy commitment, stated plainly (#64)
+- refresh the app screenshots for the v0.10.1 era (#55)
+- **plans:** v0.10.1 moves to history -- v0.11.0 is next (#53)
+- **adr:** the CLI is the automation surface -- no MCP server (ADR-021) (#52)
+
 ## [v0.10.1](https://github.com/funkybooboo/erledigen/compare/v0.10.0...HEAD) - 2026-10-06
 
 ### Features
