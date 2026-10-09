@@ -5,6 +5,7 @@
     import { applyFilters, sortTasksForView } from '$lib/filters';
     import { prefersReducedMotion } from '$lib/motion';
     import { container } from '$lib/container';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
     import DaySection from './DaySection.svelte';
 
     // How many days to add each time the window extends.
@@ -318,7 +319,7 @@
     });
 </script>
 
-<div class="day-list" bind:this={containerEl} role="list" aria-label="Task list by day">
+<div class="day-list" bind:this={containerEl} role="list" aria-label={i18nStore.t('dayList.ariaLabel')}>
     <div bind:this={sentinelTopEl} class="infinite-scroll-sentinel" aria-hidden="true"></div>
     {#each displayDateKeys as dateStr (dateStr)}
         <DaySection

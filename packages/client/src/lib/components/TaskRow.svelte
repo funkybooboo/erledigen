@@ -23,6 +23,7 @@
     import { onDestroy, untrack } from 'svelte';
     import { tooltip } from '$lib/tooltip';
     import { tagChipStyle } from '$lib/tagColors';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
 
     let { task, isNew = false }: { task: Task; isNew?: boolean } = $props();
 
@@ -183,7 +184,7 @@
         }
         const date = resolveDatePhrase(value, container.dateProvider.today());
         if (!date) {
-            notificationStore.push(`Could not parse "${value}" as a date`, {
+            notificationStore.push(i18nStore.t('task.dateParseError', { value }), {
                 kind: 'error',
             });
             return;
@@ -275,7 +276,7 @@
     role="listitem"
     ondragstart={handleDragStart}
     ondragend={handleDragEnd}
-    aria-label="{task.text}{task.completed ? ', completed' : ''}"
+    aria-label={i18nStore.t(task.completed ? 'taskRow.ariaLabelCompleted' : 'taskRow.ariaLabel', { text: task.text })}
 >
     {#if task.parentId === null && !isEditing}
         <!-- Mouse-only by design: keyboard users move tasks with the
@@ -285,7 +286,7 @@
             aria-hidden="true"
             onpointerdown={() => (dragArmed = true)}
             onpointerup={() => (dragArmed = false)}
-            use:tooltip={{ label: 'Drag to move' }}
+            use:tooltip={{ label: i18nStore.t('common.dragToMove') }}
         >
             <Icon src={LuGripVertical} />
         </span>
@@ -294,8 +295,8 @@
         class="checkbox"
         class:checked={task.completed}
         onclick={handleCheckboxChange}
-        use:tooltip={{ label: task.completed ? 'Mark incomplete' : 'Mark complete', shortcut: 'toggleComplete' }}
-        aria-label="{task.completed ? 'Mark incomplete' : 'Mark complete'}"
+        use:tooltip={{ label: i18nStore.t(task.completed ? 'taskRow.markIncomplete' : 'taskRow.markComplete'), shortcut: 'toggleComplete' }}
+        aria-label={i18nStore.t(task.completed ? 'taskRow.markIncomplete' : 'taskRow.markComplete')}
         aria-pressed={task.completed}
     >
         {#if task.completed}
@@ -313,15 +314,15 @@
             onkeydown={handleEditKeydown}
             onblur={commitEdit}
             maxlength={TASK_CONSTRAINTS.MAX_TEXT_LENGTH}
-            aria-label="Edit task text"
+            aria-label={i18nStore.t('taskRow.editTextInput')}
         />
     {:else if isEditingDate}
         <input
             bind:this={dateInput}
             bind:value={dateValue}
             class="edit-input"
-            placeholder='Date -- "tomorrow", "next monday", "2026-10-15", or "someday"'
-            aria-label="Reschedule task"
+            placeholder={i18nStore.t('taskRow.datePlaceholder')}
+            aria-label={i18nStore.t('taskRow.dateInput')}
             onkeydown={handleDateKeydown}
             onblur={commitDateEdit}
         />
@@ -330,8 +331,8 @@
             bind:this={tagsInput}
             bind:value={tagsValue}
             class="edit-input"
-            placeholder="Tags, comma-separated"
-            aria-label="Edit task tags"
+            placeholder={i18nStore.t('taskRow.tagsPlaceholder')}
+            aria-label={i18nStore.t('taskRow.tagsInput')}
             onkeydown={handleTagsKeydown}
             onblur={commitTagsEdit}
         />
@@ -346,12 +347,12 @@
 
     <div class="task-meta">
         {#if hasNotes}
-            <span class="has-notes" use:tooltip={{ label: 'Has notes' }}>
+            <span class="has-notes" use:tooltip={{ label: i18nStore.t('taskRow.hasNotes') }}>
                 <Icon src={LuStickyNote} />
             </span>
         {/if}
         {#if task.recurringTaskId}
-            <span class="recurring-icon" use:tooltip={{ label: 'Recurring habit instance' }}>
+            <span class="recurring-icon" use:tooltip={{ label: i18nStore.t('taskRow.recurringInstance') }}>
                 <Icon src={LuRepeat} />
             </span>
         {/if}
@@ -362,10 +363,10 @@
     </div>
 
     <div class="task-actions">
-        <button class="action-btn" onclick={openDetail} use:tooltip={'taskDetail'} aria-label="Task details">
+        <button class="action-btn" onclick={openDetail} use:tooltip={'taskDetail'} aria-label={i18nStore.t('taskRow.details')}>
             <Icon src={LuFileText} />
         </button>
-        <button class="action-btn danger" onclick={handleDelete} use:tooltip={'deleteTask'} aria-label="Delete task">
+        <button class="action-btn danger" onclick={handleDelete} use:tooltip={'deleteTask'} aria-label={i18nStore.t('taskRow.delete')}>
             <Icon src={LuX} />
         </button>
     </div>

@@ -18,6 +18,8 @@ import {
     parseRecurrence,
 } from '@erledigen/shared';
 import { container } from '$lib/container';
+import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+import { recurrencePhrases } from '$lib/i18n/recurrencePhrases';
 import { GENERATE_HORIZON_DAYS, recurringTaskStore, taskStore } from '$lib/stores';
 
 interface CreateFromTextOptions {
@@ -41,7 +43,9 @@ function horizonEnd(from: string): string {
 /** Toast copy for a created habit, shared by both entry points so the
  *  wording (and its e2e assertions) can never drift apart. */
 export function habitCreatedText(schedule: RecurrenceSchedule): string {
-    return `Habit created -- ${describeRecurrence(schedule)}`;
+    return i18nStore.t('inlineAddTask.habitCreated', {
+        schedule: describeRecurrence(schedule, recurrencePhrases()),
+    });
 }
 
 /**

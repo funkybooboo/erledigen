@@ -2,13 +2,15 @@
     import { describeRecurrence, type ParsedRecurrence } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
     import { LuRepeat } from 'svelte-icons-pack/lu';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import { recurrencePhrases } from '$lib/i18n/recurrencePhrases';
 
     let { parsed }: { parsed: ParsedRecurrence } = $props();
 </script>
 
-<span class="recur-hint" title="This will repeat: {parsed.phrase}">
+<span class="recur-hint" title={i18nStore.t('recurrenceHint.title', { phrase: parsed.phrase })}>
     <Icon src={LuRepeat} />
-    <span>{describeRecurrence(parsed.schedule)}</span>
+    <span>{describeRecurrence(parsed.schedule, recurrencePhrases())}</span>
 </span>
 
 <style>

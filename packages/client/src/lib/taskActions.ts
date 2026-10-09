@@ -9,6 +9,7 @@
  */
 
 import type { Task } from '@erledigen/shared';
+import { i18nStore } from '$lib/i18n/i18nStore.svelte';
 import { notificationStore, preferencesStore, taskStore, uiStore } from '$lib/stores';
 
 /** How a requested deletion settled. */
@@ -26,7 +27,7 @@ type DeleteOutcome =
  */
 export async function deleteTaskWithUndo(task: Task): Promise<DeleteOutcome> {
     if (preferencesStore.deleteConfirmation === 'confirm') {
-        const ok = await uiStore.confirm(`Delete "${task.text}"?`);
+        const ok = await uiStore.confirm(i18nStore.t('task.deleteConfirm', { text: task.text }));
         if (!ok) return 'declined';
     }
 
@@ -38,10 +39,10 @@ export async function deleteTaskWithUndo(task: Task): Promise<DeleteOutcome> {
     const success = await taskStore.remove(task.id);
     if (!success) return 'failed';
 
-    notificationStore.push('Task deleted', {
+    notificationStore.push(i18nStore.t('task.deleted'), {
         kind: 'info',
         action: {
-            label: 'Undo',
+            label: i18nStore.t('common.undo'),
             fn: () => taskStore.restore(taskCopy),
             redo: () => void taskStore.remove(task.id),
         },

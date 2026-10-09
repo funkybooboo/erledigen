@@ -6,6 +6,7 @@
     import { LuX } from 'svelte-icons-pack/lu';
     import { tooltip } from '$lib/tooltip';
     import { motionMs } from '$lib/motion';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
 
     let { title = '', onclose = () => {}, children }: { title?: string; onclose?: () => void; children?: Snippet } = $props();
 
@@ -99,7 +100,7 @@
     >
         <div class="modal-header">
             <h2 class="modal-title" id={titleId}>{title}</h2>
-            <button class="close-btn" onclick={() => onclose()} use:tooltip={'closeModal'} aria-label="Close modal"><Icon src={LuX} /></button>
+            <button class="close-btn" onclick={() => onclose()} use:tooltip={'closeModal'} aria-label={i18nStore.t('common.closeModal')}><Icon src={LuX} /></button>
         </div>
         <!-- The body is a scrollable region: axe's scrollable-region-
              focusable REQUIRES tabindex="0" so keyboard users can scroll it

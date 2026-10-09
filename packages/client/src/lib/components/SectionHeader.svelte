@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+
     let {
         sectionId,
         title,
@@ -43,8 +45,7 @@
         <span class="section-title">{title}</span>
     {/if}
     <span class="section-stats">
-        {taskCount} task{taskCount !== 1 ? 's' : ''}
-        {completedCount} done
+        {i18nStore.t('section.stats', { count: taskCount, done: completedCount })}
     </span>
 </div>
 

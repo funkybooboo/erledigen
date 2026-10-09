@@ -187,6 +187,7 @@ export {
     daysBetween,
     describeRecurrence,
     distributionWindowStart,
+    ENGLISH_RECURRENCE_PHRASES,
     extractDatePhrase,
     extractInlineTags,
     formatTags,
@@ -209,6 +210,7 @@ export {
     textDirection,
     weekdayOf,
 } from './utils';
+export type { RecurrencePhrases } from './utils/formatFrequency';
 export type { ParsedDatePhrase } from './utils/parseDatePhrase';
 export type { ParsedRecurrence, RecurrenceSchedule } from './utils/parseRecurrence';
 export type { ExtractedInlineTags } from './utils/parseTags';

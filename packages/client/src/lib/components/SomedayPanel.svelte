@@ -11,6 +11,7 @@
     import { LuChevronRight, LuPencil, LuTrash2, LuCheck } from 'svelte-icons-pack/lu';
     import { slugify, type SomeDayGroup, type Task, type UpdateTaskInput } from '@erledigen/shared';
     import { tooltip } from '$lib/tooltip';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
 
     let showAddGroupForm = $state(false);
     let newGroupName = $state('');
@@ -150,7 +151,7 @@
         const created = await someDayGroupStore.create({ name, tag, position: groups.length });
         if (!created) {
             // The form stays open; say why (USE-12: errors are announced).
-            notificationStore.push('Could not create the group', { kind: 'error' });
+            notificationStore.push(i18nStore.t('someday.createFailed'), { kind: 'error' });
             return;
         }
         newGroupName = '';
@@ -186,7 +187,7 @@
         const tag = slugify(name);
         const updated = await someDayGroupStore.update(id, { name, tag });
         if (!updated) {
-            notificationStore.push('Could not rename the group', { kind: 'error' });
+            notificationStore.push(i18nStore.t('someday.renameFailed'), { kind: 'error' });
             return; // keep the editor open with the text
         }
         if (editingGroupId === id) {
@@ -225,9 +226,10 @@
         if (!group) return;
         const tasks = groupTasks(group);
         const taskCount = tasks.length;
-        const msg = taskCount > 0
-            ? `Delete "${group.name}" and its ${taskCount} task${taskCount !== 1 ? 's' : ''}? This cannot be undone.`
-            : `Delete "${group.name}"? This cannot be undone.`;
+        const msg =
+            taskCount > 0
+                ? i18nStore.t('someday.deleteConfirmTasks', { name: group.name, count: taskCount })
+                : i18nStore.t('someday.deleteConfirmEmpty', { name: group.name });
         if (!(await uiStore.confirm(msg))) return;
 
         // KNOWN ROUGH EDGE (design debt, deliberate for now): the tasks go
@@ -250,30 +252,30 @@
          own accessible name, so the wrapper needs no role (a separator
          would wrongly mark a focusable-control container). -->
     <div class="collapsed-strip">
-        <button class="expand-btn" onclick={() => preferencesStore.toggleSomeDayPanel()} use:tooltip={{ label: 'Open Someday panel', shortcut: 'toggleSomedayPanel' }} aria-label="Open Someday panel">
+        <button class="expand-btn" onclick={() => preferencesStore.toggleSomeDayPanel()} use:tooltip={{ label: i18nStore.t('someday.openPanel'), shortcut: 'toggleSomedayPanel' }} aria-label={i18nStore.t('someday.openPanel')}>
             <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="8,2 2,9 8,16" />
             </svg>
         </button>
     </div>
 {:else}
-    <aside class="someday-panel" class:resizing={isResizing} style="--someday-width: {preferencesStore.someDayPanelWidth}px" aria-label="Someday panel">
+    <aside class="someday-panel" class:resizing={isResizing} style="--someday-width: {preferencesStore.someDayPanelWidth}px" aria-label={i18nStore.t('someday.panelAria')}>
         <!-- Mouse-only by design: the panel itself is fully keyboard-
              operable via the Cmd/Ctrl+\ toggle (width restore), so a
              pointer-only drag handle leaves no keyboard user stranded;
              a dedicated keyboard-resize interaction is future work. -->
         <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-        <div class="resize-handle" role="separator" aria-orientation="vertical" aria-label="Resize Someday panel" use:tooltip={{ label: 'Drag to resize' }} onmousedown={startResize}></div>
+        <div class="resize-handle" role="separator" aria-orientation="vertical" aria-label={i18nStore.t('someday.resizePanel')} use:tooltip={{ label: i18nStore.t('common.dragToResize') }} onmousedown={startResize}></div>
         <div
             class="panel-content"
             role="region"
-            aria-label="Someday groups"
+            aria-label={i18nStore.t('someday.groupsRegion')}
             ondragover={(e) => zoneDragOver(UNGROUPED_ZONE, e, listEls[UNGROUPED_ZONE])}
             ondragleave={(e) => zoneDragLeave(UNGROUPED_ZONE, e, e.currentTarget)}
             ondrop={(e) => zoneDrop(ungroupedTasks, null, e)}
         >
             <div class="panel-header">
-                <h2 class="panel-title">Someday</h2>
+                <h2 class="panel-title">{i18nStore.t('someday.title')}</h2>
                 <div class="panel-actions">
                     {#if showAddGroupForm}
                         <div class="new-group-form">
@@ -281,31 +283,31 @@
                                 bind:this={newGroupInput}
                                 bind:value={newGroupName}
                                 class="new-group-input"
-                                placeholder="Group name..."
-                                aria-label="New group name"
+                                placeholder={i18nStore.t('someday.groupNamePlaceholder')}
+                                aria-label={i18nStore.t('someday.newGroupName')}
                                 onkeydown={handleNewGroupKeydown}
                                 onblur={() => { if (!newGroupName.trim()) cancelNewGroup(); }}
                             />
-                            <button class="icon-btn" onclick={submitNewGroup} use:tooltip={{ label: 'Create group' }} aria-label="Create group">
+                            <button class="icon-btn" onclick={submitNewGroup} use:tooltip={{ label: i18nStore.t('someday.createGroup') }} aria-label={i18nStore.t('someday.createGroup')}>
                                 <Icon src={LuCheck} size={14} />
                             </button>
                         </div>
                     {:else}
-                        <button class="add-group-btn" onclick={() => (showAddGroupForm = true)} use:tooltip={{ label: 'Add group' }} aria-label="Add group">
-                            + add group
+                        <button class="add-group-btn" onclick={() => (showAddGroupForm = true)} use:tooltip={{ label: i18nStore.t('someday.addGroup') }} aria-label={i18nStore.t('someday.addGroup')}>
+                            {i18nStore.t('someday.addGroupVisible')}
                         </button>
                     {/if}
                     <!-- The v0.4.0 spec's collapse button: the only close
                          affordance that works on touch (the resize handle's
                          snap-shut is pointer-fine only, and Cmd/Ctrl+\ needs
                          a keyboard). -->
-                    <button class="icon-btn" onclick={() => preferencesStore.toggleSomeDayPanel()} use:tooltip={{ label: 'Collapse Someday panel', shortcut: 'toggleSomedayPanel' }} aria-label="Collapse Someday panel">
+                    <button class="icon-btn" onclick={() => preferencesStore.toggleSomeDayPanel()} use:tooltip={{ label: i18nStore.t('someday.collapsePanel'), shortcut: 'toggleSomedayPanel' }} aria-label={i18nStore.t('someday.collapsePanel')}>
                         <Icon src={LuChevronRight} size={14} />
                     </button>
                 </div>
             </div>
 
-            <div class="groups-container" role="list" aria-label="Someday groups">
+            <div class="groups-container" role="list" aria-label={i18nStore.t('someday.groupsRegion')}>
                 {#each groups as group (group.id)}
                     {@const tasks = groupTasks(group)}
                     {@const taskCount = tasks.length}
@@ -328,14 +330,14 @@
                                     bind:this={editGroupInput}
                                     bind:value={editGroupName}
                                     class="rename-input"
-                                    aria-label="Rename group"
+                                    aria-label={i18nStore.t('someday.renameGroup')}
                                     onkeydown={handleRenameKeydown}
                                     onblur={commitRenameGroup}
                                 />
-                                <button class="icon-btn" onclick={commitRenameGroup} use:tooltip={{ label: 'Save (Enter)' }} aria-label="Save rename">
+                                <button class="icon-btn" onclick={commitRenameGroup} use:tooltip={{ label: i18nStore.t('someday.saveRenameHint') }} aria-label={i18nStore.t('someday.saveRename')}>
                                     <Icon src={LuCheck} size={13} />
                                 </button>
-                                <button class="icon-btn" onclick={cancelRenameGroup} use:tooltip={{ label: 'Cancel (Esc)' }} aria-label="Cancel rename">
+                                <button class="icon-btn" onclick={cancelRenameGroup} use:tooltip={{ label: i18nStore.t('someday.cancelRenameHint') }} aria-label={i18nStore.t('someday.cancelRename')}>
                                     &#x2715;
                                 </button>
                             </div>
@@ -348,10 +350,10 @@
                                     {completedCount}
                                 />
                                 <div class="group-actions">
-                                    <button class="icon-btn" onclick={() => startRenameGroup(group)} use:tooltip={{ label: 'Rename group' }} aria-label="Rename group">
+                                    <button class="icon-btn" onclick={() => startRenameGroup(group)} use:tooltip={{ label: i18nStore.t('someday.renameGroup') }} aria-label={i18nStore.t('someday.renameGroup')}>
                                         <Icon src={LuPencil} size={13} />
                                     </button>
-                                    <button class="icon-btn icon-btn-danger" onclick={() => handleDeleteGroup(group.id)} use:tooltip={{ label: 'Delete group' }} aria-label="Delete group">
+                                    <button class="icon-btn icon-btn-danger" onclick={() => handleDeleteGroup(group.id)} use:tooltip={{ label: i18nStore.t('someday.deleteGroup') }} aria-label={i18nStore.t('someday.deleteGroup')}>
                                         <Icon src={LuTrash2} size={13} />
                                     </button>
                                 </div>
@@ -371,7 +373,7 @@
                         <InlineAddTask date="" someDayGroupId={group.id} oncreated={handleTaskCreated} />
                     </div>
                 {:else}
-                    <p class="empty-state">No groups yet. Create one above.</p>
+                    <p class="empty-state">{i18nStore.t('someday.emptyState')}</p>
                 {/each}
 
                 {#if ungroupedTasks.length > 0}
@@ -388,7 +390,7 @@
                         <div class="group-header-row">
                             <SectionHeader
                                 sectionId="someday-ungrouped"
-                                title="Ungrouped"
+                                title={i18nStore.t('someday.ungrouped')}
                                 taskCount={ungroupedTasks.length}
                                 completedCount={ungroupedTasks.filter(t => t.completed).length}
                             />

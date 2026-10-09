@@ -15,5 +15,134 @@
         "theme": "Theme",
         "settings": "Settings",
         "help": "Help"
+    },
+    "common": {
+        "cancel": "Cancel",
+        "closeModal": "Close modal",
+        "confirm": "Confirm",
+        "confirmMessage": "Are you sure?",
+        "delete": "Delete",
+        "dragToMove": "Drag to move",
+        "dragToResize": "Drag to resize",
+        "undo": "Undo"
+    },
+    "dayList": {
+        "ariaLabel": "Task list by day"
+    },
+    "daySection": {
+        "holidayBanner": "Holiday: {names}"
+    },
+    "dayNote": {
+        "placeholder": "Write in the margin...",
+        "ariaLabel": "Day note for {label}",
+        "addNote": "Add a note to {label}",
+        "affordance": "note"
+    },
+    "task": {
+        "deleteConfirm": "Delete \"{text}\"?",
+        "deleted": "Task deleted",
+        "dateParseError": "Could not parse \"{value}\" as a date"
+    },
+    "taskRow": {
+        "ariaLabel": "{text}",
+        "ariaLabelCompleted": "{text}, completed",
+        "markComplete": "Mark complete",
+        "markIncomplete": "Mark incomplete",
+        "editTextInput": "Edit task text",
+        "datePlaceholder": "Date -- \"tomorrow\", \"next monday\", \"2026-10-15\", or \"someday\"",
+        "dateInput": "Reschedule task",
+        "tagsPlaceholder": "Tags, comma-separated",
+        "tagsInput": "Edit task tags",
+        "hasNotes": "Has notes",
+        "recurringInstance": "Recurring habit instance",
+        "details": "Task details",
+        "delete": "Delete task"
+    },
+    "section": {
+        "stats": {
+            "one": "{count} task {done} done",
+            "other": "{count} tasks {done} done"
+        }
+    },
+    "bottomBar": {
+        "homeAria": "Home -- clear filters and go to today",
+        "homeTooltip": "Clear filters and go to today",
+        "removeFilter": "Remove filter #{tag}",
+        "clearAllTooltip": "Clear all filters",
+        "clearAll": "clear all",
+        "scrollToToday": "Scroll to today",
+        "stats": {
+            "one": "{count} task {done} done",
+            "other": "{count} tasks {done} done"
+        }
+    },
+    "minimap": {
+        "monthAria": "{month} {year}",
+        "jumpToMonth": "{month} {year} -- jump to month"
+    },
+    "inlineAddTask": {
+        "placeholder": "Add a task...",
+        "tooltip": "New task -- Enter to add, Esc to cancel",
+        "ariaLabel": "New task text",
+        "createFailed": "Could not create -- the text is kept",
+        "habitCreated": "Habit created -- {schedule}"
+    },
+    "someday": {
+        "panelAria": "Someday panel",
+        "groupsRegion": "Someday groups",
+        "title": "Someday",
+        "openPanel": "Open Someday panel",
+        "collapsePanel": "Collapse Someday panel",
+        "resizePanel": "Resize Someday panel",
+        "addGroup": "Add group",
+        "addGroupVisible": "+ add group",
+        "groupNamePlaceholder": "Group name...",
+        "newGroupName": "New group name",
+        "createGroup": "Create group",
+        "renameGroup": "Rename group",
+        "saveRename": "Save rename",
+        "saveRenameHint": "Save (Enter)",
+        "cancelRename": "Cancel rename",
+        "cancelRenameHint": "Cancel (Esc)",
+        "deleteGroup": "Delete group",
+        "ungrouped": "Ungrouped",
+        "emptyState": "No groups yet. Create one above.",
+        "createFailed": "Could not create the group",
+        "renameFailed": "Could not rename the group",
+        "deleteConfirmEmpty": "Delete \"{name}\"? This cannot be undone.",
+        "deleteConfirmTasks": {
+            "one": "Delete \"{name}\" and its {count} task? This cannot be undone.",
+            "other": "Delete \"{name}\" and its {count} tasks? This cannot be undone."
+        }
+    },
+    "connection": {
+        "connected": "Connected",
+        "reconnecting": "Connection lost -- reconnecting...",
+        "disconnected": "Disconnected"
+    },
+    "recurrenceHint": {
+        "title": "This will repeat: {phrase}"
+    },
+    "recurrence": {
+        "weekdays": "Weekdays",
+        "weekends": "Weekends",
+        "everyDay": "Every day",
+        "everyOtherDay": "Every other day",
+        "everyNDays": "Every {interval} days",
+        "everyDayName": "Every {day}",
+        "everyNDaysOnDayName": "Every {interval} days on {day}",
+        "everyNDaysOnDays": "Every {interval} days on {days}",
+        "everyWeek": "Every week",
+        "everyNWeeks": "Every {interval} weeks",
+        "everyWeekOnDays": "Every week on {days}",
+        "everyNWeeksOnDays": "Every {interval} weeks on {days}",
+        "everyNWeeksOnDayName": "Every {interval} weeks on {day}",
+        "monthly": "Monthly",
+        "monthlyOnDay": "Monthly on day {day}",
+        "everyNMonths": "Every {interval} months",
+        "everyNMonthsOnDay": "Every {interval} months on day {day}",
+        "everyYear": "Every year",
+        "everyNYears": "Every {interval} years",
+        "atTime": " at {time}"
     }
 }

@@ -17,6 +17,7 @@
     import type { DayNote } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
     import { LuStickyNote } from 'svelte-icons-pack/lu';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
 
     let { dateStr, label }: { dateStr: string; label: string } = $props();
 
@@ -99,18 +100,18 @@
             bind:this={editor}
             value={text}
             onchange={handleChange}
-            placeholder="Write in the margin..."
-            ariaLabel="Day note for {label}"
+            placeholder={i18nStore.t('dayNote.placeholder')}
+            ariaLabel={i18nStore.t('dayNote.ariaLabel', { label })}
         />
     {:else}
         <!-- Collapsed when empty: a quiet affordance, not a task. -->
         <button
             class="day-note-affordance"
             onclick={startCreating}
-            aria-label="Add a note to {label}"
+            aria-label={i18nStore.t('dayNote.addNote', { label })}
         >
             <Icon src={LuStickyNote} />
-            note
+            {i18nStore.t('dayNote.affordance')}
         </button>
     {/if}
 </div>
