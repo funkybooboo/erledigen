@@ -3,6 +3,7 @@
     import { taskStore, preferencesStore, dateViewStore, recurringTaskStore, uiStore, type TaskSection } from '$lib/stores';
     import { addDays, dateRangeKeys, groupTasksByDate, SOMEDAY_KEY } from '@erledigen/shared';
     import { applyFilters, sortTasksForView } from '$lib/filters';
+    import { prefersReducedMotion } from '$lib/motion';
     import { container } from '$lib/container';
     import DaySection from './DaySection.svelte';
 
@@ -199,15 +200,20 @@
     function scrollToDate(dateStr: string, smooth = true) {
         const el = document.getElementById(`day-${dateStr}`);
         if (!el) return;
+        // Smooth scrolling is motion too: a reduced-motion OS setting
+        // downgrades every requested smooth scroll to an instant one
+        // (USE-6). The global CSS switch cannot reach the JS scrollTo API.
+        const behavior: ScrollBehavior =
+            smooth && !prefersReducedMotion() ? 'smooth' : 'instant';
         const scrollEl = scrollContainer ?? (document.querySelector('.day-list-area') as HTMLElement | null);
         if (scrollEl) {
             const elRect = el.getBoundingClientRect();
             const containerRect = scrollEl.getBoundingClientRect();
             const elCenter = elRect.top - containerRect.top + elRect.height / 2;
             const scrollTarget = Math.max(0, scrollEl.scrollTop + elCenter - containerRect.height / 2);
-            scrollEl.scrollTo({ top: scrollTarget, behavior: smooth ? 'smooth' : 'instant' });
+            scrollEl.scrollTo({ top: scrollTarget, behavior });
         } else {
-            el.scrollIntoView({ behavior: smooth ? 'smooth' : 'instant', block: 'center' });
+            el.scrollIntoView({ behavior, block: 'center' });
         }
     }
 

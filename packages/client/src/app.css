@@ -706,4 +706,26 @@
         outline-offset: 2px;
         border-radius: 2px;
     }
+
+    /* ------------------------------------------------------------------
+     * Reduced motion (USE-6): one global kill switch for every CSS-side
+     * animation and transition in the app -- panel collapse, chip and
+     * button transitions, the task flashes, tooltips. JS-side motion
+     * (Svelte transition directives) is gated separately through
+     * lib/motion.ts, which reads the same media query and hands 0ms
+     * durations to the directives. Both are required: a CSS rule
+     * cannot stop a Svelte transition, and a transition directive
+     * cannot stop a CSS keyframe.
+     * ------------------------------------------------------------------ */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            transition-delay: 0 !important;
+            scroll-behavior: auto !important;
+        }
+    }
 }

@@ -127,6 +127,18 @@ test.describe('task CRUD through the UI', () => {
         ).toBeVisible();
     });
 
+    test('completing a task flashes a success pulse', async ({ page }) => {
+        const text = uniq('UiFlash');
+        await createTask(page.request, { text, date: todayISO() }, SERVER_URL);
+        await hydrated(page);
+        const row = page.locator('.task-row', { hasText: text }).first();
+        const checkbox = row.getByRole('button', { name: /Mark complete/ });
+        await checkbox.click();
+        // The pulse class arms on the completed flip and clears after 600ms.
+        await expect(row).toHaveClass(/just-completed/);
+        await expect(row).not.toHaveClass(/just-completed/, { timeout: 3000 });
+    });
+
     test('tag chips carry colors: auto-assigned pastel, override, priority', async ({ page }) => {
         test.setTimeout(30_000);
         const tag = uniq('ChipColor').toLowerCase();

@@ -20,7 +20,7 @@
         LuStickyNote,
         LuX,
     } from 'svelte-icons-pack/lu';
-    import { untrack } from 'svelte';
+    import { onDestroy, untrack } from 'svelte';
     import { tooltip } from '$lib/tooltip';
     import { tagChipStyle } from '$lib/tagColors';
 
@@ -56,6 +56,34 @@
     let dateInput = $state<HTMLInputElement | undefined>(undefined);
     let tagsValue = $state('');
     let tagsInput = $state<HTMLInputElement | undefined>(undefined);
+
+    // --- completion flash (USE-6) ----------------------------------------
+    // A brief success-tinted pulse when this row's completed flag flips
+    // false -> true: the visual acknowledgment of finishing something.
+    // Plain (non-$state) previous value: the effect tracks task.completed,
+    // compares against what it saw last run, and re-arms per flip.
+    // Seeding with the INITIAL prop value is the point.
+    // svelte-ignore state_referenced_locally
+    let previousCompleted = task.completed;
+    let justCompleted = $state(false);
+    let completedTimer: ReturnType<typeof setTimeout> | null = null;
+    $effect(() => {
+        const now = task.completed;
+        const before = previousCompleted;
+        previousCompleted = now;
+        if (now && !before) {
+            justCompleted = true;
+            if (completedTimer) clearTimeout(completedTimer);
+            completedTimer = setTimeout(() => {
+                justCompleted = false;
+                completedTimer = null;
+            }, 600);
+        }
+    });
+
+    onDestroy(() => {
+        if (completedTimer) clearTimeout(completedTimer);
+    });
 
     $effect(() => {
         if (isEditing) {
@@ -230,6 +258,7 @@
 <div
     class="task-row"
     class:completed={task.completed}
+    class:just-completed={justCompleted}
     class:task-new={isNew}
     class:focused={isFocused}
     class:is-recurring={Boolean(task.recurringTaskId)}
@@ -431,6 +460,18 @@
 
     @keyframes task-flash {
         from { background: var(--color-accent-light); }
+        to { background: transparent; }
+    }
+
+    /* Completion flash (USE-6): a success-tinted pulse when the task's
+       completed flag flips on. The prefers-reduced-motion block in
+       app.css collapses it to a no-op when the OS asks for stillness. */
+    .task-row.just-completed {
+        animation: complete-flash 600ms ease-out;
+    }
+
+    @keyframes complete-flash {
+        from { background: var(--color-success-light); }
         to { background: transparent; }
     }
 
