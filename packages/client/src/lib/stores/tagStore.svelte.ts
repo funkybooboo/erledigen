@@ -25,6 +25,7 @@ class TagStore {
                 switch (message.type) {
                     case 'tag:renamed':
                     case 'tag:merged':
+                    case 'tag:deleted':
                         this.fetchAll();
                         this.fetchInfo();
                         break;
@@ -96,6 +97,7 @@ class TagStore {
             await tagService.rename(from, to);
             this.rekeyTagColor(from, to);
             await this.fetchAll();
+            await this.fetchInfo();
             return true;
         } catch (error) {
             this.#logger.warn('Failed to rename tag', {
@@ -118,9 +120,31 @@ class TagStore {
                 preferencesStore.setTagColors(next);
             }
             await this.fetchAll();
+            await this.fetchInfo();
             return true;
         } catch (error) {
             this.#logger.warn('Failed to merge tags', {
+                error: error instanceof Error ? error.message : String(error),
+            });
+            return false;
+        }
+    }
+
+    async delete(name: string) {
+        try {
+            await tagService.delete(name);
+            // The tag is gone; its color assignment goes with it.
+            const colors = preferencesStore.tagColors;
+            if (colors[name] !== undefined) {
+                const next = { ...colors };
+                delete next[name];
+                preferencesStore.setTagColors(next);
+            }
+            await this.fetchAll();
+            await this.fetchInfo();
+            return true;
+        } catch (error) {
+            this.#logger.warn('Failed to delete tag', {
                 error: error instanceof Error ? error.message : String(error),
             });
             return false;

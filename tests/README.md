@@ -37,7 +37,8 @@ Covers, per resource:
 - **holidays** -- CRUD, validation (name/date bounds), `.ics` import (raw text + URL modes, duplicate skipping, non-iCal 400, failing-fetch 400), plain-text content negotiation, export snapshot coverage, and the pre-v0.9.0 snapshot-without-holidays restore path. Bruno mirrors these in `tests/api/*Holiday*.bru`.
 - **day notes** (v0.10.0) -- upsert create/replace by date, list/get/delete, validation (empty notes, malformed date), plain-text content negotiation, export snapshot coverage, the pre-v0.10.0 snapshot-without-dayNotes restore path, and duplicate-date rejection. Bruno mirrors these in `tests/api/*Day Note*.bru`.
 - **tags** -- list (sorted, de-duped), info (counts), rename, merge (incl.
-  no-duplicate target), validation, content negotiation.
+  no-duplicate target), delete (strip from every task; unknown tag is a
+  no-op), validation, content negotiation.
 - **user preferences** -- GET defaults, PATCH single-field/nested, validation
   (theme/accent/width enums/bounds), content negotiation.
 - **export** -- `GET /api/export` (ADR-008): canonical JSON snapshot (raw
@@ -85,10 +86,13 @@ Covers:
   ("every other day", "every friday at 4:00pm", "every weekday", "every
   weekend"), idempotent `generate-all`, Habits modal create/edit/delete,
   streak stats, `/add <text> every day` from the command palette.
-- **modals** -- Settings theme change (document `data-theme` + server
-  persistence), timezone reset, JSON export download (blob filename), Search (filter + hint/empty + `/` command
+- **modals** -- Theme modal (theme change, `g a` chord, accent scheme
+  applied + persisted), Settings time fields, JSON export download (blob
+  filename), Search (filter + hint/empty + `/` command
   mode + `/add`), Trash (list deleted, restore), Calendar (month navigation,
-  Today reset, date selection scrolls the day list).
+  Today reset, date selection scrolls the day list), and the Settings tags
+  management screen (counts, rename, recolor, merge and remove with
+  confirms).
 - **import** (ADR-009) -- additive Todoist CSV through the Settings file
   picker (summary + tasks live in the day list), generic CSV column-mapping
   UI with auto-detected defaults, JSON restore with the always-confirm

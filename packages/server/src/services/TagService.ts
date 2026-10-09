@@ -53,4 +53,19 @@ export class TagService {
         }
         return updated;
     }
+
+    /** Remove a tag from every task that carries it (USE-5's delete:
+     *  tags are derived from tasks, so deleting one means stripping it
+     *  from all tasks -- there is no tag entity to destroy). */
+    async deleteTag(name: string): Promise<number> {
+        const tasks = await this.taskRepo.findByTags([name]);
+        let updated = 0;
+        for (const task of tasks) {
+            const newTags = task.tags.filter(t => t !== name);
+            if (newTags.length === task.tags.length) continue;
+            await this.taskRepo.update(task.id, { tags: newTags });
+            updated++;
+        }
+        return updated;
+    }
 }

@@ -76,6 +76,15 @@ class TaskStore {
                         // the originator does from the HTTP response.
                         this.ingest(message.payload.tasks);
                         break;
+                    case 'tag:renamed':
+                    case 'tag:merged':
+                    case 'tag:deleted':
+                        // Tag operations rewrite the tasks' tag arrays in one
+                        // server-side pass WITHOUT per-task events (the
+                        // single tag:* event IS the notification), so rows in
+                        // other tabs would keep stale tags until a refetch.
+                        this.fetchAll();
+                        break;
                 }
             },
         );

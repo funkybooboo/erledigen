@@ -24,3 +24,12 @@ export const MergeTagsSchema = registry.register(
         })
         .openapi('MergeTagsInput'),
 );
+
+export const DeleteTagSchema = registry.register(
+    'DeleteTagInput',
+    z
+        .object({
+            name: z.string().min(1),
+        })
+        .openapi('DeleteTagInput'),
+);

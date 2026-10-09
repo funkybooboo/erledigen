@@ -95,6 +95,140 @@ test.describe('Theme modal', () => {
     });
 });
 
+test.describe('Settings tags management', () => {
+    test.afterEach(async ({ request }) => {
+        // Tag-color preferences persist on the shared server; reset so later
+        // specs are not affected.
+        await request.patch(`${SERVER_URL}/api/preferences`, { data: { tagColors: {} } });
+    });
+
+    test('lists tags with counts and renames one across its tasks', async ({ page }) => {
+        const tag = uniq('ManageTag').toLowerCase();
+        const renamed = `${tag}-renamed`;
+        await createTask(
+            page.request,
+            { text: uniq('TagA'), date: todayISO(), tags: [tag] },
+            SERVER_URL,
+        );
+        const taskB = await createTask(
+            page.request,
+            { text: uniq('TagB'), date: todayISO(), tags: [tag] },
+            SERVER_URL,
+        );
+        await hydrated(page);
+        await page.getByRole('button', { name: 'Settings', exact: true }).click();
+        const settings = modal(page, 'Settings');
+        await expect(settings).toBeVisible();
+
+        // The row lists the tag with its task count.
+        const row = settings.locator('.tag-manage-row', { hasText: `#${tag}` });
+        await expect(row).toBeVisible();
+        await expect(row).toContainText('2 tasks');
+
+        // Rename inline: pencil -> input prefilled -> Enter. The input
+        // replaces the name span, so locate it by role, not through the
+        // (the row has no text now) row filter.
+        await row.getByRole('button', { name: `Rename #${tag}` }).click();
+        const renameInput = settings.getByRole('textbox', { name: `Rename #${tag}` });
+        await renameInput.fill(renamed);
+        await renameInput.press('Enter');
+        await expect(settings.locator('.tag-manage-row', { hasText: `#${renamed}` })).toBeVisible();
+        // Both tasks now carry the renamed tag.
+        const r = await page.request.get(`${SERVER_URL}/api/tasks/${taskB.id}`);
+        expect((await r.json()).data.tags).toEqual([renamed]);
+    });
+
+    test('recolors a tag through the palette picker', async ({ page }) => {
+        const tag = uniq('ManageColor').toLowerCase();
+        await createTask(
+            page.request,
+            { text: uniq('ColorA'), date: todayISO(), tags: [tag] },
+            SERVER_URL,
+        );
+        await hydrated(page);
+        await page.getByRole('button', { name: 'Settings', exact: true }).click();
+        const settings = modal(page, 'Settings');
+        const row = settings.locator('.tag-manage-row', { hasText: `#${tag}` });
+        await expect(row).toBeVisible();
+
+        await row.getByRole('button', { name: `Recolor #${tag}` }).click();
+        await row.getByRole('button', { name: `#${tag} in sky` }).click();
+        // The row's dot now resolves to the sky token...
+        const dot = row.locator('.color-dot.current');
+        await expect
+            .poll(async () => dot.getAttribute('style'), { timeout: 10_000 })
+            .toContain('--tag-sky');
+        // ...and the preference persisted.
+        await expect
+            .poll(
+                async () => {
+                    const r = await page.request.get(`${SERVER_URL}/api/preferences`);
+                    return (await r.json()).data.tagColors[tag];
+                },
+                { timeout: 10_000 },
+            )
+            .toBe('sky');
+    });
+
+    test('merges a tag into another and removes one cleanly', async ({ page }) => {
+        const source = uniq('ManageSrc').toLowerCase();
+        const target = uniq('ManageTgt').toLowerCase();
+        const victim = uniq('ManageVictim').toLowerCase();
+        const t = await createTask(
+            page.request,
+            { text: uniq('MergeA'), date: todayISO(), tags: [source, target] },
+            SERVER_URL,
+        );
+        await createTask(
+            page.request,
+            { text: uniq('DelA'), date: todayISO(), tags: [victim] },
+            SERVER_URL,
+        );
+        await hydrated(page);
+        await page.getByRole('button', { name: 'Settings', exact: true }).click();
+        const settings = modal(page, 'Settings');
+        const sourceRow = settings.locator('.tag-manage-row', { hasText: `#${source}` });
+        await expect(sourceRow).toBeVisible();
+
+        // Merge source -> target, through the confirm dialog.
+        await sourceRow.getByRole('button', { name: `Merge #${source} into another tag` }).click();
+        await sourceRow
+            .getByRole('combobox', { name: `Merge #${source} into` })
+            .selectOption(target);
+        await sourceRow.getByRole('button', { name: 'Merge', exact: true }).click();
+        const confirmDialog = modal(page, 'Confirm');
+        await confirmDialog.getByRole('button', { name: 'Merge', exact: true }).click();
+        await expect(settings.locator('.tag-manage-row', { hasText: `#${source}` })).toHaveCount(0);
+        // The task now carries target exactly once (source was also on it).
+        const r = await page.request.get(`${SERVER_URL}/api/tasks/${t.id}`);
+        const tags = (await r.json()).data.tags as string[];
+        expect(tags).toContain(target);
+        expect(tags).not.toContain(source);
+        expect(tags.filter(x => x === target)).toHaveLength(1);
+
+        // Remove the victim tag: confirm, then the row is gone and the task
+        // stays without it.
+        const victimRow = settings.locator('.tag-manage-row', { hasText: `#${victim}` });
+        await victimRow.getByRole('button', { name: `Remove #${victim}` }).click();
+        const confirmDialog2 = modal(page, 'Confirm');
+        await confirmDialog2.getByRole('button', { name: 'Remove', exact: true }).click();
+        await expect(settings.locator('.tag-manage-row', { hasText: `#${victim}` })).toHaveCount(0);
+        await expect
+            .poll(
+                async () => {
+                    const tasks = await page.request.get(`${SERVER_URL}/api/tasks`);
+                    const list = (await tasks.json()).data as Array<{
+                        text: string;
+                        tags: string[];
+                    }>;
+                    return list.find(task => task.tags.includes(victim)) !== undefined;
+                },
+                { timeout: 10_000 },
+            )
+            .toBe(false);
+    });
+});
+
 test.describe('Search modal', () => {
     // Commands that persist preference state must never leak it into other
     // spec files -- a stale tag filter hides tasks in every later test.

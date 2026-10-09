@@ -62,6 +62,7 @@ export const API_ROUTES = {
     TAG_INFO: '/api/tags/info',
     TAG_RENAME: '/api/tags/rename',
     TAG_MERGE: '/api/tags/merge',
+    TAG_DELETE: '/api/tags/delete',
 
     // User preferences
     USER_PREFERENCES: '/api/preferences',
