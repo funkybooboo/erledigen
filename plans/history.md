@@ -1058,3 +1058,101 @@ released through the standard close-out -> release.sh flow (#65,
       no-tracking promise is in writing.
 
 ---
+
+## v0.12.0: Accessibility
+
+The app becomes usable by everyone: every action reachable without
+a mouse, the screen reader behaviors named and tested, contrast and
+reduced motion held to a standard instead of a vibe, every form
+labeled and every failure heard, and the whole thing guarded by an
+automated audit in CI.
+
+**Status:** COMPLETE (2026-10-09, released as tag `v0.12.0`). All
+five stories shipped in one day (PRs #69-#73), closed out (#74) and
+released through the standard close-out -> release.sh flow (#76 --
+the #68 fast-forward fix worked end to end; no manual assist).
+
+- [x] **Every action reachable without a mouse (USE-9):** the
+      keyboard audit closed out -- hover-only actions (row actions,
+      Someday group actions, sub-task delete) reveal on keyboard
+      focus, project cards are real buttons instead of
+      role="button" divs with buttons nested inside, Calendar day
+      cells announce their full date with aria-current, the Someday
+      groups container is the role="list" its list items required,
+      modal bodies are keyboard focus stops, and stacked dialogs
+      get unique title ids. The drag grips and panel resize stay
+      pointer conveniences with keyboard equivalents (r/m editors,
+      Ctrl+\ toggle, detail-modal date fields) -- the flows are
+      documented for users in docs/use/keyboard.md.
+- [x] **The app works through a screen reader (USE-10):** ADR-022
+      names WCAG 2.1 Level AA the standard, with the layered CI
+      enforcement and the manual NVDA/VoiceOver half recorded as
+      required. role="application" leaves the app shell (browse
+      mode reads the ordinary widgets fine). The protocol is
+      docs/build/standards/accessibility.md; the machine-checkable
+      behaviors are e2e-verified (tests/e2e/accessibility.spec.ts):
+      the skip link is the first Tab stop, Tab never escapes a
+      dialog, Esc returns focus to the trigger, completion and
+      delete announce through the live regions. A real find along
+      the way: the minimap's on-load scrollIntoView set Chrome's
+      sequential focus-navigation starting point, hijacking the
+      first Tab into mid-page -- fixed with scrollTop math.
+- [x] **Contrast and reduced motion respected (USE-11):** the light
+      theme regraded -- secondary ink 66% -> 50.8% OKLCH (holds
+      4.5:1 on all five reading surfaces), accent and the status
+      hues darkened against their own pastel tints and the today
+      wash, muted ink retired from readable text (hints, meta,
+      empty states, completed rows, markers), and tag/#p1-#p3 chip
+      text derived from the hue mixed 55% into the ink token (one
+      formula, both themes; the raw hues were 1.6-3.8:1 in light
+      mode). contrast.test.ts parses app.css and enforces every
+      text-bearing pair, both themes, all accent schemes. Reduced
+      motion shipped with USE-6 and was verified, not rebuilt.
+- [x] **Labeled forms, announced errors (USE-12):** the last
+      placeholder-only inputs got accessible names (filter tag
+      input, Projects create/edit, Someday group create/rename,
+      task-text inline editor); the silent failure paths now
+      announce (project create, group create/rename, habit save,
+      all through the role=status notifications); the Settings
+      timezone error mounts as its own role=alert while the
+      valid-preview sibling stays unannounced.
+- [x] **Accessibility regressions caught by CI (USE-13):**
+      @axe-core/playwright (a dev dependency, never in the browser
+      bundle) runs WCAG 2.1 A/AA tags over the page in BOTH themes,
+      all 11 rail modals, the task detail, the Habits create form,
+      the project detail board, the Someday add-group form, and
+      stacked Settings + Confirm dialogs -- zero violations per
+      run, enforced on every e2e execution.
+
+### Technical Notes & Considerations
+
+- Two audit-time traps cost real debugging time and are documented
+  in the spec header: sampling mid-animation fabricates contrast
+  failures (the 150ms modal transition at ~50% opacity -- every
+  audit waits for all running animations via document.getAnimations()),
+  and the rail buttons toggle their modals.
+- The light theme darkening is visible: secondary ink and accent
+  are a grade deeper than Fizzy's originals, set by the 4.5:1 line
+  rather than taste. Chip hues keep their identity through the
+  55%-into-ink mix.
+- Two engine facts for test fixtures: Chromium's Intl accepts 'PST'
+  where Bun rejects it (never use it as an invalid-timezone
+  fixture), and the Settings form must wait for preferences to
+  land or the sync effect clobbers a too-early fill.
+- The .gitignore build/ rule was anchoring the docs/build/ directory
+  by accident; the v0.12.0 fix anchored it to the repo root -- and
+  had to re-ignore packages/client/build/ (the vite output) in a
+  same-day follow-up (#75) after it tripped the release clean-tree
+  rule.
+
+### Definition of Done
+
+- [x] All five v0.12.0 stories done: USE-9 through USE-13.
+- [x] Released as tag `v0.12.0` -- the third CHANGELOG section, cut
+      end to end by release.sh with the #68 fast-forward fix in
+      place (no manual assist this time).
+- [x] The gates hold the line: axe zero-violations, the contrast
+      token test, svelte-check a11y warnings, and the documented
+      manual protocol for the human half.
+
+---
