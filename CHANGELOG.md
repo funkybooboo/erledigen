@@ -1,5 +1,25 @@
 # Changelog
 
+## [v0.12.0](https://github.com/funkybooboo/erledigen/compare/v0.11.0...HEAD) - 2026-10-09
+
+### Features
+
+- **client:** no mouse-only interactions remain (#71)
+- **client:** every input labeled, every failure announced (#70)
+- **client:** AA contrast for the light theme and tag chips (#69)
+
+### Fixes
+
+- **build:** keep ignoring the vite build output (#75)
+- **tools:** release.sh returns to main before fast-forwarding (#68)
+
+### Everything else
+
+- **plans:** v0.12.0 close-out -- stories done, docs catch up (#74)
+- **a11y:** axe-core in CI, zero violations per run (#73)
+- **a11y:** WCAG 2.1 AA is the standard, with the manual protocol (#72)
+- **plans:** v0.11.0 moves to history -- v0.12.0 is next (#67)
+
 ## [v0.11.0](https://github.com/funkybooboo/erledigen/compare/v0.10.1...HEAD) - 2026-10-09
 
 ### Features
