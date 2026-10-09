@@ -604,7 +604,11 @@
         flex-shrink: 0;
     }
 
-    .task-row:hover .task-actions {
+    /* Keyboard focus reveals the row actions too -- opacity alone must
+       never hide the focused control (USE-9: every action reachable,
+       and visible, without a mouse). */
+    .task-row:hover .task-actions,
+    .task-actions:focus-within {
         opacity: 1;
     }
 

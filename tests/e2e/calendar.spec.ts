@@ -57,10 +57,15 @@ test.describe('Calendar modal', () => {
         await expect(cal).toBeVisible();
 
         // Pick the 15th of next month -- far enough out that the day list
-        // must extend its render window to reach it.
+        // must extend its render window to reach it. Day cells carry their
+        // full date as the accessible name (USE-9), so target it by date.
         await cal.getByRole('button', { name: 'Next month' }).click();
         const target = nextMonthDayISO(15);
-        await cal.getByRole('button', { name: '15', exact: true }).click();
+        await cal
+            .getByRole('button', {
+                name: new RegExp(`^\\w+ 15, ${new Date(target).getFullYear()}$`),
+            })
+            .click();
 
         // The modal closes and the chosen day section is on screen. Pin the
         // section element (the header uses day-<date>-header).

@@ -822,7 +822,7 @@ test.describe('Projects modal', () => {
         await expect(card).toBeVisible();
 
         // Decline: the project survives.
-        await card.getByRole('button', { name: 'Delete project' }).click();
+        await card.getByRole('button', { name: 'Delete project', exact: true }).click();
         const dialog = modal(page, 'Confirm');
         await expect(dialog).toBeVisible();
         await expect(dialog).toContainText(`Delete "${name}"?`);
@@ -831,7 +831,7 @@ test.describe('Projects modal', () => {
         expect(res.status()).toBe(200);
 
         // Confirm: the project is gone server-side.
-        await card.getByRole('button', { name: 'Delete project' }).click();
+        await card.getByRole('button', { name: 'Delete project', exact: true }).click();
         await dialog.getByRole('button', { name: 'Delete', exact: true }).click();
         await expect(card).toHaveCount(0);
         res = await page.request.get(`${SERVER_URL}/api/projects/${project.id}`);

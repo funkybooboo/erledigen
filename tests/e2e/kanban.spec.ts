@@ -41,7 +41,9 @@ async function openBoard(
     await page.getByRole('button', { name: 'Projects', exact: true }).click();
     await expect(modal(page, 'Projects')).toBeVisible();
     // Readiness: the store fetch must land before the card renders.
-    await page.getByRole('button', { name: `${projectName}, ${status}` }).click();
+    // The card's open affordance is a real button (USE-9), so its
+    // accessible name is the full "Open project ..." label.
+    await page.getByRole('button', { name: `Open project ${projectName} (${status})` }).click();
     const board = page.locator('.kanban');
     await expect(board).toBeVisible();
     return board;

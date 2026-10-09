@@ -7,11 +7,15 @@ test.afterEach(async ({ request }) => {
 });
 
 test.describe('app shell & navigation', () => {
-    test('loads with the Erledigen title and the app-shell landmark', async ({ page }) => {
+    test('loads with the Erledigen title and the shell landmarks', async ({ page }) => {
         await hydrated(page);
         await expect(page).toHaveTitle(/Erledigen/);
         await expect(page.locator('.app-shell')).toBeVisible();
-        await expect(page.locator('[role="application"]')).toBeVisible();
+        // Landmarks, not role="application" (removed in v0.12.0: it
+        // pushed screen readers out of browse mode app-wide). The shell
+        // exposes ordinary nav/main landmarks instead.
+        await expect(page.locator('nav[aria-label="App navigation"]')).toBeVisible();
+        await expect(page.locator('main#main-content')).toBeVisible();
     });
 
     test('renders the icon rail with all 11 navigation items', async ({ page }) => {

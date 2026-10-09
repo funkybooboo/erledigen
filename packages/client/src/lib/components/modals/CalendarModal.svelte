@@ -61,6 +61,14 @@
     function dateStr(day: number): string {
         return `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     }
+
+    /** Accessible name for a day cell: the full date, not the bare day
+     *  number (a screen reader hears "October 15, 2026" without needing
+     *  the month header's context, USE-9). */
+    function dayLabel(day: number): string {
+        const month = new Date(viewYear, viewMonth).toLocaleString('en-US', { month: 'long' });
+        return `${month} ${day}, ${viewYear}`;
+    }
 </script>
 
 <Modal title="Calendar" onclose={onclose}>
@@ -89,6 +97,8 @@
                         class:selected={selectedDate === dateStr(day)}
                         class:today={dateStr(day) === container.dateProvider.today()}
                         onclick={() => { selectedDate = dateStr(day); handleDateSelect(); }}
+                        aria-label="{dayLabel(day)}{dateStr(day) === container.dateProvider.today() ? ' (today)' : ''}"
+                        aria-current={dateStr(day) === container.dateProvider.today() ? 'date' : undefined}
                     >
                         {day}
                     </button>
