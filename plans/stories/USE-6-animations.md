@@ -5,13 +5,13 @@ fade, modal open/close, panel collapse, drag ghost), so that the app
 feels alive without being noisy -- and no motion at all when my OS
 asks for it.
 
-**Status**: planned
+**Status**: done
 **Version**: v0.11.0
 
 ## Acceptance criteria
-- [ ] Completion fade, modal open/close, panel collapse, drag ghost
-- [ ] `prefers-reduced-motion` respected everywhere (ties to USE-11)
-- [ ] Svelte built-in transitions, no animation dependencies
+- [x] Completion fade, modal open/close, panel collapse, drag ghost
+- [x] `prefers-reduced-motion` respected everywhere (ties to USE-11)
+- [x] Svelte built-in transitions, no animation dependencies
 
 ## Notes
 

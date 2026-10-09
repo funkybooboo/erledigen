@@ -145,4 +145,12 @@ Incomplete tasks roll over to the next day by default, on a schedule configurabl
 ### Calendar Modal
 The Calendar rail icon opens a month-grid date picker: picking a date scrolls (and centers) the day list on it; **Today** is a full view reset (day list + month minimap). A time-grid view for tasks with `startTime`/`endTime` is deferred -- see the [roadmap](../../plans/roadmap.md).
 
+### Theming & customization
+The Theme rail icon owns the look: light/dark/system, accent schemes drawn
+from the logo's colors, text size, row spacing, and the completion flash.
+Settings owns the behavior: empty-day visibility, whether filters survive a
+restart, tag management, and full keyboard-shortcut remapping (click a
+binding, press keys; clashes are warned). Your OS's reduced-motion setting
+stills every animation, whatever the app preferences say.
+
 ---

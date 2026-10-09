@@ -4,12 +4,12 @@ As an app user, I want the no-tracking commitment stated in the user
 docs, so that I know what the app knows about me: nothing beyond what
 I store in my own database.
 
-**Status**: planned
+**Status**: done
 **Version**: v0.11.0
 
 ## Acceptance criteria
-- [ ] docs/use/ states the promise (ADR-019) without hedging
-- [ ] No analytics, no telemetry, no tracking -- any deployment mode
+- [x] docs/use/ states the promise (ADR-019) without hedging
+- [x] No analytics, no telemetry, no tracking -- any deployment mode
 
 ## Notes
 
