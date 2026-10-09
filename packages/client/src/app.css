@@ -143,6 +143,40 @@
 }
 
 /* ------------------------------------------------------------------
+ * Reading size and row density tokens (v0.11.0, USE-7). 'medium' and
+ * 'comfortable' ARE the :root values -- the shipped sizes. The
+ * attribute variants below override the families the day-list reading
+ * surfaces consume (task rows, add inputs, chips); everything else
+ * (modal chrome, tooltips, help tables) stays fixed so dialogs don't
+ * reflow under every size change.
+ * ------------------------------------------------------------------ */
+
+:root {
+    --fs-body: 14px;
+    --fs-chip: 11px;
+    --fs-micro: 12px;
+    --row-pad-y: 6px;
+    --row-min-h: 36px;
+}
+
+[data-font-size="small"] {
+    --fs-body: 13px;
+    --fs-chip: 10px;
+    --fs-micro: 11px;
+}
+
+[data-font-size="large"] {
+    --fs-body: 15px;
+    --fs-chip: 12px;
+    --fs-micro: 13px;
+}
+
+[data-row-density="compact"] {
+    --row-pad-y: 2px;
+    --row-min-h: 30px;
+}
+
+/* ------------------------------------------------------------------
  * Shared component classes
  *
  * Used across modals (Habits, Projects, etc.). These are GLOBAL rules;

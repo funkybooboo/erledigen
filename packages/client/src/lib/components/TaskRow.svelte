@@ -68,10 +68,14 @@
     let justCompleted = $state(false);
     let completedTimer: ReturnType<typeof setTimeout> | null = null;
     $effect(() => {
+        // The user's motion preference gates the pulse (USE-7): reading it
+        // here makes the effect re-run on preference changes, which is a
+        // no-op for the flip tracking (now === before then).
+        void preferencesStore.completionAnimation;
         const now = task.completed;
         const before = previousCompleted;
         previousCompleted = now;
-        if (now && !before) {
+        if (now && !before && preferencesStore.completionAnimation === 'flash') {
             justCompleted = true;
             if (completedTimer) clearTimeout(completedTimer);
             completedTimer = setTimeout(() => {
@@ -371,10 +375,10 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 6px 4px;
+        padding: var(--row-pad-y) 4px;
         border-radius: 6px;
         transition: background-color 0.1s;
-        min-height: 36px;
+        min-height: var(--row-min-h);
     }
 
     .task-row:hover {
@@ -507,7 +511,7 @@
 
     .task-text {
         flex: 1;
-        font-size: 14px;
+        font-size: var(--fs-body);
         color: var(--color-text);
         cursor: text;
         min-width: 0;
@@ -518,7 +522,7 @@
        shared inline styles; headings read as bold section titles --
        the groundwork for the v0.17.0 "# Morning" section tasks. */
     .title-markdown {
-        font-size: 14px;
+        font-size: var(--fs-body);
         line-height: inherit;
     }
 
@@ -529,14 +533,14 @@
     .title-markdown :global(h5),
     .title-markdown :global(h6) {
         display: inline;
-        font-size: 14.5px;
+        font-size: calc(var(--fs-body) + 0.5px);
         font-weight: 650;
         margin: 0;
     }
 
     .edit-input {
         flex: 1;
-        font-size: 14px;
+        font-size: var(--fs-body);
         padding: 2px 4px;
         border: 1px solid var(--color-accent);
         border-radius: 6px;
@@ -546,7 +550,7 @@
     }
 
     .time-badge {
-        font-size: 12px;
+        font-size: var(--fs-micro);
         font-family: monospace;
         color: var(--color-text-secondary);
         margin-right: 6px;
@@ -580,7 +584,7 @@
     }
 
     .tag-chip {
-        font-size: 11px;
+        font-size: var(--fs-chip);
         padding: 1px 6px;
         border-radius: 10px;
         background: var(--color-surface-hover);

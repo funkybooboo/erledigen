@@ -142,6 +142,19 @@ export function runUserPreferencesRepositoryContractTests(
                 expect(restored.updatedAt).toBe('2026-01-15T09:00:00.000Z');
             });
 
+            test('persists the appearance preferences', async () => {
+                const repo = makeRepo();
+                await repo.update({
+                    fontSize: 'large',
+                    rowDensity: 'compact',
+                    completionAnimation: 'none',
+                });
+                const prefs = await repo.get();
+                expect(prefs.fontSize).toBe('large');
+                expect(prefs.rowDensity).toBe('compact');
+                expect(prefs.completionAnimation).toBe('none');
+            });
+
             test('fills the accent default when a pre-v0.11.0 snapshot has none', async () => {
                 const repo = makeRepo();
                 const current = await repo.get();
@@ -150,11 +163,17 @@ export function runUserPreferencesRepositoryContractTests(
                     ...current,
                     accent: undefined,
                     tagColors: undefined,
+                    fontSize: undefined,
+                    rowDensity: undefined,
+                    completionAnimation: undefined,
                 } as unknown as UserPreferences;
                 await repo.restore(legacy);
                 const prefs = await repo.get();
                 expect(prefs.accent).toBe('blue');
                 expect(prefs.tagColors).toEqual({});
+                expect(prefs.fontSize).toBe('medium');
+                expect(prefs.rowDensity).toBe('comfortable');
+                expect(prefs.completionAnimation).toBe('flash');
             });
         });
 

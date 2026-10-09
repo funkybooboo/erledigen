@@ -51,6 +51,9 @@ export class InMemoryUserPreferencesRepository implements UserPreferencesReposit
             tagKinds: [...prefs.tagKinds],
             tagKindMap: { ...prefs.tagKindMap },
             tagColors: prefs.tagColors ? { ...prefs.tagColors } : {},
+            fontSize: prefs.fontSize ?? 'medium',
+            rowDensity: prefs.rowDensity ?? 'comfortable',
+            completionAnimation: prefs.completionAnimation ?? 'flash',
         };
     }
 }

@@ -93,6 +93,56 @@ test.describe('Theme modal', () => {
         // Restore the default accent for the shared server.
         await page.request.patch(`${SERVER_URL}/api/preferences`, { data: { accent: 'blue' } });
     });
+
+    test('font size, row density, and the completion flash persist', async ({ page }) => {
+        const text = uniq('UiSize');
+        await createTask(page.request, { text, date: todayISO() }, SERVER_URL);
+        await hydrated(page);
+        await page.getByRole('button', { name: 'Theme', exact: true }).click();
+        const theme = modal(page, 'Theme');
+
+        // Font size drives a root attribute + the reading tokens.
+        await theme.getByRole('radio', { name: 'large' }).check();
+        await expect
+            .poll(async () =>
+                page.evaluate(() => document.documentElement.getAttribute('data-font-size')),
+            )
+            .toBe('large');
+
+        // Row density likewise.
+        await theme.getByRole('radio', { name: 'compact' }).check();
+        await expect
+            .poll(async () =>
+                page.evaluate(() => document.documentElement.getAttribute('data-row-density')),
+            )
+            .toBe('compact');
+
+        // All three persist on the server (one representative poll).
+        await expect
+            .poll(async () => {
+                const r = await page.request.get(`${SERVER_URL}/api/preferences`);
+                const prefs = (await r.json()).data;
+                return `${prefs.fontSize}/${prefs.rowDensity}/${prefs.completionAnimation}`;
+            })
+            .toBe('large/compact/flash');
+
+        // Turning the completion flash off stops the pulse class.
+        await theme.getByRole('radio', { name: 'Off' }).check();
+        await theme.getByRole('button', { name: 'Close modal' }).click();
+        const row = page.locator('.task-row', { hasText: text }).first();
+        await row.getByRole('button', { name: /Mark complete/ }).click();
+        await expect(row).toHaveClass(/completed/);
+        await expect(row).not.toHaveClass(/just-completed/);
+
+        // Restore the defaults for the shared server.
+        await page.request.patch(`${SERVER_URL}/api/preferences`, {
+            data: {
+                fontSize: 'medium',
+                rowDensity: 'comfortable',
+                completionAnimation: 'flash',
+            },
+        });
+    });
 });
 
 test.describe('Settings tags management', () => {

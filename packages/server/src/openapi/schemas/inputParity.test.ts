@@ -231,6 +231,9 @@ describe('user preferences schema', () => {
             tagKindMap: { p1: 'priority' },
             tagColors: { work: 'sky' },
             timeFormat: '24h',
+            fontSize: 'large',
+            rowDensity: 'compact',
+            completionAnimation: 'none',
             timezone: 'America/Denver',
         };
         parsePreserving(UpdateUserPreferencesSchema, sample);

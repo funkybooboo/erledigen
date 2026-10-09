@@ -54,7 +54,20 @@ describe('runMigrations', () => {
             '007_day_notes.sql',
             '008_preferences_accent.sql',
             '009_preferences_tag_colors.sql',
+            '010_preferences_appearance.sql',
         ]);
+    });
+
+    test('fresh databases carry the appearance columns with their defaults', () => {
+        const db = new Database(':memory:');
+        runMigrations(db);
+        const cols = db.query("PRAGMA table_info('user_preferences')").all() as Array<{
+            name: string;
+            dflt_value: string | null;
+        }>;
+        expect(cols.find(col => col.name === 'font_size')?.dflt_value).toBe("'medium'");
+        expect(cols.find(col => col.name === 'row_density')?.dflt_value).toBe("'comfortable'");
+        expect(cols.find(col => col.name === 'completion_animation')?.dflt_value).toBe("'flash'");
     });
 
     test('fresh databases carry the tag colors column with the empty default', () => {

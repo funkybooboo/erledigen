@@ -11,6 +11,9 @@ test.describe('user preferences -- GET /api/preferences', () => {
         expect(['blue', 'coral', 'amber']).toContain(prefs.accent);
         expect(['instant', 'confirm']).toContain(prefs.deleteConfirmation);
         expect(['12h', '24h']).toContain(prefs.timeFormat);
+        expect(['small', 'medium', 'large']).toContain(prefs.fontSize);
+        expect(['compact', 'comfortable']).toContain(prefs.rowDensity);
+        expect(['flash', 'none']).toContain(prefs.completionAnimation);
         expect(['midnight', '9am', 'manual']).toContain(prefs.rolloverTriggerTime);
         expect(prefs.activeFilters).toHaveProperty('tags');
         expect(prefs.activeFilters).toHaveProperty('showCompleted');
@@ -105,6 +108,37 @@ test.describe('user preferences -- PATCH /api/preferences', () => {
 
         // Restore the default for the shared singleton.
         await patch(request, '/api/preferences', { accent: 'blue' });
+    });
+
+    test('updates and validates the appearance preferences', async ({ request }) => {
+        const res = await patch(request, '/api/preferences', {
+            fontSize: 'large',
+            rowDensity: 'compact',
+        });
+        expect(res.status).toBe(200);
+        expect(res.body.data.fontSize).toBe('large');
+        expect(res.body.data.rowDensity).toBe('compact');
+
+        const bad = await patch(request, '/api/preferences', { fontSize: 'gigantic' });
+        expect(bad.status).toBe(400);
+        expect(bad.body.code).toBe('VALIDATION_ERROR');
+
+        const motion = await patch(request, '/api/preferences', {
+            completionAnimation: 'none',
+        });
+        expect(motion.status).toBe(200);
+        expect(motion.body.data.completionAnimation).toBe('none');
+        const badMotion = await patch(request, '/api/preferences', {
+            completionAnimation: 'sparkle',
+        });
+        expect(badMotion.status).toBe(400);
+
+        // Restore the defaults for the shared singleton.
+        await patch(request, '/api/preferences', {
+            fontSize: 'medium',
+            rowDensity: 'comfortable',
+            completionAnimation: 'flash',
+        });
     });
 
     test('updates and validates tag colors', async ({ request }) => {
