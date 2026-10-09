@@ -153,4 +153,16 @@ restart, tag management, and full keyboard-shortcut remapping (click a
 binding, press keys; clashes are warned). Your OS's reduced-motion setting
 stills every animation, whatever the app preferences say.
 
+### Accessibility
+The app is built to WCAG 2.1 Level AA (ADR-022) and every surface is
+keyboard-operable -- the flows are documented in
+[keyboard.md](./keyboard.md). The single-key shortcuts (j/k, Space, r, t,
+chords) never replace real controls: every action is also a button, input,
+or link, so screen readers and switch access work too. Contrast meets AA in
+both themes and every accent scheme, dialogs trap focus and return it on
+Esc, errors and toasts announce through live regions, and the OS
+reduced-motion setting stills every animation. CI runs an axe-core audit
+over the page and every modal in both themes on every change, and the
+manual NVDA/VoiceOver passes are part of the standard as well.
+
 ---

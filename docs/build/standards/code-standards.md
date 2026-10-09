@@ -122,6 +122,11 @@ Each of these has shipped a real bug in this repo.
   nothing.
 - `bind:value` inputs expose a value, not text content, so a `toContainText`
   assertion on one can never pass; use `toHaveValue`.
+- **`scrollIntoView` sets Chromium's sequential focus-navigation starting
+  point.** An on-load `scrollIntoView` (the minimap once did this) makes the
+  first Tab land mid-page instead of at the top -- a silent screen reader
+  failure. Scroll containers with `scrollTop` math or
+  `element.scrollTo({...})` instead.
 
 ### Theming and Shared UI Conventions
 
