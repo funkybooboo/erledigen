@@ -202,6 +202,7 @@ export const USER_PREFERENCES_DEFAULTS = {
     rowDensity: 'comfortable' as const,
     completionAnimation: 'flash' as const,
     persistActiveFilters: true,
+    shortcutOverrides: {} as Record<string, string[]>,
 } as const;
 
 export const SOMEDAY_KEY = '__someday__';

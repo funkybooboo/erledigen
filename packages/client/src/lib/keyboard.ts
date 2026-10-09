@@ -105,6 +105,22 @@ export class KeybindingMatcher {
     ) {
         this.#schedule = timer.setTimeout ?? defaultSchedule;
         this.#cancelTimer = timer.clearTimeout ?? defaultCancel;
+        this.#rebuild(shortcuts);
+    }
+
+    /** Swap the active binding set (shortcut remapping, USE-7): the
+     *  parsed maps are rebuilt and any pending chord is dropped -- a
+     *  keypress mid-swap must not fire against the new registry. */
+    update(shortcuts: typeof SHORTCUTS): void {
+        this.cancel();
+        this.#plain.clear();
+        this.#modifiers.clear();
+        this.#sequences.clear();
+        this.#sequencePrefixes.clear();
+        this.#rebuild(shortcuts);
+    }
+
+    #rebuild(shortcuts: typeof SHORTCUTS): void {
         for (const binding of parseBindings(shortcuts)) {
             const [first] = binding.tokens;
             if (first === undefined) continue;

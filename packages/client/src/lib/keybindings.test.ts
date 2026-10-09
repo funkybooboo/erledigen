@@ -1,5 +1,14 @@
 import { describe, expect, test } from 'bun:test';
-import { formatBinding, modifierLabel, SHORTCUT_SECTIONS, SHORTCUTS } from './keybindings';
+import {
+    applyShortcutOverrides,
+    bindingConflicts,
+    formatBinding,
+    isValidBinding,
+    modifierLabel,
+    SHORTCUT_SECTIONS,
+    SHORTCUTS,
+    sanitizeShortcutOverrides,
+} from './keybindings';
 
 /**
  * Invariants of the shortcut registry. The registry is the single source of
@@ -80,5 +89,73 @@ describe('formatBinding', () => {
     test('leaves bindings without {mod} untouched', () => {
         expect(formatBinding('g t')).toBe('g t');
         expect(formatBinding('j')).toBe('j');
+    });
+});
+
+describe('shortcut remapping helpers (USE-7)', () => {
+    test('isValidBinding accepts the documented grammar', () => {
+        expect(isValidBinding('j')).toBe(true);
+        expect(isValidBinding('J')).toBe(true);
+        expect(isValidBinding('g t')).toBe(true);
+        expect(isValidBinding('{mod}+K')).toBe(true);
+        expect(isValidBinding('{mod}+Shift+Z')).toBe(true);
+        expect(isValidBinding('Space')).toBe(true);
+        expect(isValidBinding('ArrowDown')).toBe(true);
+
+        expect(isValidBinding('')).toBe(false);
+        expect(isValidBinding('g t x')).toBe(false); // 3-token sequence
+        expect(isValidBinding('{mod} g')).toBe(false); // modifier inside a sequence
+        expect(isValidBinding('Ctrl+K')).toBe(false); // literal Ctrl, not {mod}
+        expect(isValidBinding('g  t')).toBe(false); // empty token from double space
+    });
+
+    test('sanitizeShortcutOverrides drops unknown ids and invalid bindings', () => {
+        const clean = sanitizeShortcutOverrides({
+            openTrash: ['g z'],
+            notARealId: ['j'],
+            focusNext: [''],
+            focusPrev: [],
+            openSettings: ['g o'],
+        });
+        expect(Object.keys(clean).sort()).toEqual(['openSettings', 'openTrash']);
+        expect(clean.openTrash?.bindings).toEqual(['g z']);
+        expect(clean.openSettings?.bindings).toEqual(['g o']);
+        // null/undefined maps sanitize to nothing.
+        expect(sanitizeShortcutOverrides(null)).toEqual({});
+        expect(sanitizeShortcutOverrides(undefined)).toEqual({});
+    });
+
+    test('applyShortcutOverrides overlays sanitized overrides on the defaults', () => {
+        const resolved = applyShortcutOverrides(SHORTCUTS, {
+            openTrash: { label: 'Trash', bindings: ['g', 'z'] },
+        });
+        expect(resolved.openTrash.bindings).toEqual(['g', 'z']);
+        // Untouched entries keep the defaults (identity for the rest).
+        expect(resolved.openSettings.bindings).toEqual(SHORTCUTS.openSettings.bindings);
+    });
+
+    test('bindingConflicts reports exact and sequence-prefix clashes', () => {
+        const resolved = applyShortcutOverrides(SHORTCUTS, {
+            openTrash: { label: 'Trash', bindings: ['j'] }, // same as focusNext
+        });
+        expect(bindingConflicts(resolved, 'openTrash')).toContain('focusNext');
+
+        // A plain 'g' would swallow every chord's first key.
+        const withPlainG = applyShortcutOverrides(SHORTCUTS, {
+            openTrash: { label: 'Trash', bindings: ['g'] },
+        });
+        expect(bindingConflicts(withPlainG, 'openTrash')).toContain('goToday');
+
+        // {mod} chords are scoped by modifier: {mod}+P clashes with nothing
+        // (undo owns {mod}+Z; a plain p is not the same key).
+        const withChord = applyShortcutOverrides(SHORTCUTS, {
+            openTrash: { label: 'Trash', bindings: ['{mod}+P'] },
+        });
+        expect(bindingConflicts(withChord, 'openTrash')).toEqual([]);
+
+        // Default registry has no conflicts (the no-shadowing invariant).
+        for (const id of Object.keys(SHORTCUTS)) {
+            expect(bindingConflicts(SHORTCUTS, id as keyof typeof SHORTCUTS)).toEqual([]);
+        }
     });
 });

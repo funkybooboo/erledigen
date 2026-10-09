@@ -1,5 +1,6 @@
 import type { Action } from 'svelte/action';
-import { formatBinding, SHORTCUTS, type ShortcutId } from '$lib/keybindings';
+import { currentShortcuts } from '$lib/keybindingActions';
+import { formatBinding, type ShortcutId } from '$lib/keybindings';
 
 /**
  * Hover tooltip action. Shows the action's label plus its keyboard
@@ -36,11 +37,14 @@ interface TooltipContent {
 const SHOW_DELAY_MS = 300;
 
 function resolveParam(param: TooltipParam): TooltipContent | null {
+    // The LIVE registry (defaults + the user's remaps) -- a tooltip must
+    // never show a binding the keyboard no longer honors.
+    const shortcuts = currentShortcuts();
     if (typeof param === 'string') {
-        const shortcut = SHORTCUTS[param];
+        const shortcut = shortcuts[param];
         return shortcut ? { label: shortcut.label, bindings: shortcut.bindings } : null;
     }
-    const shortcut = param.shortcut ? SHORTCUTS[param.shortcut] : undefined;
+    const shortcut = param.shortcut ? shortcuts[param.shortcut] : undefined;
     return { label: param.label, bindings: shortcut?.bindings ?? [] };
 }
 

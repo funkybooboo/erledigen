@@ -335,6 +335,90 @@ test.describe('Settings tags management', () => {
     });
 });
 
+test.describe('Shortcuts remapping', () => {
+    test.afterEach(async ({ request }) => {
+        await request.patch(`${SERVER_URL}/api/preferences`, {
+            data: { shortcutOverrides: {} },
+        });
+    });
+
+    test('remap a chord, warn on conflict, reset to default', async ({ page }) => {
+        await hydrated(page);
+        await page.getByRole('button', { name: 'Settings', exact: true }).click();
+        const settings = modal(page, 'Settings');
+        // Anchored regex: the row's first text is its label ('Trash'), so a
+        // conflict warning elsewhere ('also Trash') can not match.
+        const trashRow = settings.locator('.shortcut-row', { hasText: /^Trash/ });
+        await expect(trashRow).toBeVisible();
+        const bindingChips = trashRow.getByRole('button', { name: 'Rebind Trash' }).locator('kbd');
+        await expect(bindingChips.nth(0)).toHaveText('g');
+        await expect(bindingChips.nth(1)).toHaveText('x');
+
+        // Capture a two-key chord: 'g' arms, 'z' completes.
+        await trashRow.getByRole('button', { name: 'Rebind Trash' }).click();
+        await page.keyboard.press('g');
+        await page.keyboard.press('z');
+        await expect(bindingChips.nth(1)).toHaveText('z');
+
+        // The remapped chord opens the Trash modal. Restore the default
+        // binding IMMEDIATELY after: preferences are global on the shared
+        // test server, and keyboard.spec exercises 'g x' in parallel
+        // workers -- keep the race window as small as possible. The
+        // restore is server-side; the client learns it on the reload
+        // below (preferences carry no WS broadcast).
+        await settings.getByRole('button', { name: 'Close modal' }).click();
+        await page.keyboard.press('g');
+        await page.keyboard.press('z');
+        await expect(modal(page, 'Trash')).toBeVisible();
+        await page.keyboard.press('Escape');
+        await patch(page.request, '/api/preferences', { shortcutOverrides: {} }, SERVER_URL);
+        await hydrated(page);
+
+        // Rebind to an occupied key -> warning naming the other action.
+        await page.getByRole('button', { name: 'Settings', exact: true }).click();
+        const settings2 = modal(page, 'Settings');
+        const trashRow2 = settings2.locator('.shortcut-row', { hasText: /^Trash/ });
+        // The reload confirms the restore persisted and re-rendered.
+        await expect(
+            trashRow2.getByRole('button', { name: 'Rebind Trash' }).locator('kbd').nth(1),
+        ).toHaveText('x');
+        await trashRow2.getByRole('button', { name: 'Rebind Trash' }).click();
+        await page.keyboard.press('j');
+        await expect(trashRow2.locator('.shortcut-warning')).toContainText('Focus next task');
+
+        // Reset restores the default binding and clears the override.
+        await trashRow2.getByRole('button', { name: 'Reset Trash to default' }).click();
+        await expect(
+            trashRow2.getByRole('button', { name: 'Rebind Trash' }).locator('kbd').nth(1),
+        ).toHaveText('x');
+        await expect(trashRow2.locator('.shortcut-warning')).toHaveCount(0);
+        await expect
+            .poll(async () => {
+                const r = await page.request.get(`${SERVER_URL}/api/preferences`);
+                return (await r.json()).data.shortcutOverrides;
+            })
+            .toEqual({});
+    });
+
+    test('the help modal shows the live remapped bindings', async ({ page }) => {
+        // Seed a remap directly, reload, and read the help table.
+        await patch(
+            page.request,
+            '/api/preferences',
+            { shortcutOverrides: { openTrash: ['g z'] } },
+            SERVER_URL,
+        );
+        await hydrated(page);
+        await page.keyboard.press('?');
+        const help = modal(page, 'Keyboard Shortcuts');
+        await expect(
+            help.locator('tr', { hasText: 'Trash' }).locator('kbd', { hasText: 'z' }),
+        ).toBeVisible();
+        // The default chord is gone from the Trash row.
+        await expect(help.locator('tr', { hasText: 'Trash' })).not.toContainText('x');
+    });
+});
+
 test.describe('Search modal', () => {
     // Commands that persist preference state must never leak it into other
     // spec files -- a stale tag filter hides tasks in every later test.

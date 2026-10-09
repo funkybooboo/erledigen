@@ -14,6 +14,7 @@
     } from '$lib/stores';
     import { container } from '$lib/container';
     import { handleGlobalKeydown } from '$lib/keybindingActions';
+    import { refreshKeybindings } from '$lib/keybindingActions';
     import IconRail from '$lib/components/IconRail.svelte';
     import DateMinimap from '$lib/components/DateMinimap.svelte';
     import SomedayPanel from '$lib/components/SomedayPanel.svelte';
@@ -118,6 +119,13 @@
 
     $effect(() => {
         document.documentElement.setAttribute('data-row-density', preferencesStore.rowDensity);
+    });
+
+    // Shortcut remapping (USE-7): the matcher, help modal, and tooltips
+    // all read the live registry; this is the single refresh point for
+    // load and every change.
+    $effect(() => {
+        refreshKeybindings();
     });
 </script>
 

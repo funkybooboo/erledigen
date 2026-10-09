@@ -6,8 +6,18 @@
     import { HolidayService, type HolidayImportResult } from '$lib/services/holidayService';
     import { ImportService } from '$lib/services/importService';
     import { tagColorVar } from '$lib/tagColors';
+    import { currentShortcuts } from '$lib/keybindingActions';
+    import {
+        bindingConflicts,
+        formatBinding,
+        isValidBinding,
+        SHORTCUTS,
+        SHORTCUT_SECTIONS,
+        type ShortcutId,
+    } from '$lib/keybindings';
+    import { canonicalKey } from '$lib/keyboard';
     import { Icon } from 'svelte-icons-pack';
-    import { LuGitMerge, LuPencil, LuTrash2 } from 'svelte-icons-pack/lu';
+    import { LuGitMerge, LuPencil, LuRotateCcw, LuTrash2 } from 'svelte-icons-pack/lu';
     import {
         autoDetectCsvMapping,
         CsvImportAdapter,
@@ -319,6 +329,109 @@
             next[name] = color;
         }
         preferencesStore.setTagColors(next);
+    }
+
+    // -- Shortcuts remapping (USE-7) -------------------------------------------
+
+    /** The live registry (defaults + the user's remaps), derived from the
+     *  preferences store so remaps re-render the rows immediately. */
+    const resolvedShortcuts = $derived(preferencesStore.shortcutRegistry);
+
+    /** Flattened id list in help-table order, with each id's section. */
+    const shortcutRows = $derived(
+        SHORTCUT_SECTIONS.flatMap(section =>
+            section.ids.map(id => ({ id, label: SHORTCUTS[id].label, section: section.title })),
+        ),
+    );
+
+    /** id -> labels of actions whose bindings clash with id's right now
+     *  (non-blocking warning: the user may deliberately swap two). */
+    const shortcutConflicts = $derived.by(() => {
+        const map = {} as Record<string, string[]>;
+        for (const id of Object.keys(resolvedShortcuts) as ShortcutId[]) {
+            map[id] = bindingConflicts(resolvedShortcuts, id).map(other => resolvedShortcuts[other].label);
+        }
+        return map;
+    });
+
+    /** Which row is listening for a new keystroke. */
+    let capturingId = $state<ShortcutId | null>(null);
+    /** The pending first token of a two-key chord ('g' while the second
+     *  key is awaited); the template reads it for the capture hint. */
+    let capturePrefix = $state<string | null>(null);
+
+    $effect(() => {
+        if (capturingId === null) return;
+        const id = capturingId;
+        const handler = (e: KeyboardEvent) => handleCaptureKeydown(id, e);
+        // Capture phase at window level: the keystroke never reaches the
+        // modal (its own Escape close) or the app's global bindings.
+        window.addEventListener('keydown', handler, { capture: true });
+        return () => window.removeEventListener('keydown', handler, { capture: true });
+    });
+
+    function startCapture(id: ShortcutId) {
+        capturePrefix = null;
+        capturingId = id;
+    }
+
+    /** Canonical registry token for a keystroke, or null for combos the
+     *  grammar does not express (Ctrl+Alt, Alt). Shifted printable keys
+     *  arrive already uppercase (Shift+j -> 'J'). */
+    function captureToken(e: KeyboardEvent): string | null {
+        if (e.ctrlKey || e.metaKey) {
+            if (e.altKey) return null;
+            const key = e.key.length === 1 ? e.key.toUpperCase() : e.key;
+            return e.shiftKey ? `{mod}+Shift+${key}` : `{mod}+${key}`;
+        }
+        if (e.altKey) return null;
+        return canonicalKey(e.key);
+    }
+
+    function handleCaptureKeydown(id: ShortcutId, e: KeyboardEvent) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.key === 'Escape') {
+            capturingId = null;
+            capturePrefix = null;
+            return;
+        }
+        const token = captureToken(e);
+        if (token === null) return;
+        if (capturePrefix !== null) {
+            commitBinding(id, `${capturePrefix} ${token}`);
+            return;
+        }
+        if (token === 'g') {
+            // The registry's chord prefix: one more key completes 'g <k>'.
+            capturePrefix = 'g';
+            return;
+        }
+        commitBinding(id, token);
+    }
+
+    /** Store the captured binding for `id` (replacing its set) and persist.
+     *  Conflicts are allowed -- deliberate swaps are a real use case --
+     *  but the row warns about them. */
+    function commitBinding(id: ShortcutId, binding: string) {
+        capturingId = null;
+        capturePrefix = null;
+        if (!isValidBinding(binding)) return;
+        const overrides = { ...preferencesStore.shortcutOverrides };
+        overrides[id] = [binding];
+        preferencesStore.setShortcutOverrides(overrides);
+    }
+
+    /** Restore one shortcut's default bindings. */
+    function resetShortcut(id: ShortcutId) {
+        const overrides = { ...preferencesStore.shortcutOverrides };
+        delete overrides[id];
+        preferencesStore.setShortcutOverrides(overrides);
+    }
+
+    /** Restore every default binding at once. */
+    function resetAllShortcuts() {
+        preferencesStore.setShortcutOverrides({});
     }
 
     // -- Export (ADR-008) ---------------------------------------------------------
@@ -912,6 +1025,64 @@
             <h3 class="section-heading">Panel</h3>
             <p class="hint">Toggle the Someday panel with <kbd>Ctrl</kbd>+<kbd>\</kbd></p>
         </section>
+
+        <fieldset class="section">
+            <legend class="section-heading">Shortcuts</legend>
+            <p class="hint">
+                Click a binding, then press the keys you want. Two-key chords
+                start with <kbd>g</kbd> (press <kbd>g</kbd>, then the second
+                key). <kbd>Esc</kbd> cancels a capture. A clash is warned,
+                not blocked -- swapping two actions is a legitimate remap.
+            </p>
+            <ul class="shortcut-list">
+                {#each shortcutRows as row (row.id)}
+                    <li class="shortcut-row">
+                        <span class="shortcut-label">{row.label}</span>
+                        {#if capturingId === row.id}
+                            <button type="button" class="btn btn-secondary capture-hint">
+                                {capturePrefix === null ? 'Press keys...' : 'Press the second key...'}
+                            </button>
+                        {:else}
+                            <button
+                                type="button"
+                                class="shortcut-binding"
+                                onclick={() => startCapture(row.id)}
+                                aria-label="Rebind {row.label}"
+                            >
+                                {#each resolvedShortcuts[row.id].bindings as binding (binding)}
+                                    {#each formatBinding(binding).split(' ') as key (key)}
+                                        <kbd>{key}</kbd>
+                                    {/each}
+                                    <span class="alt" aria-hidden="true">/</span>
+                                {/each}
+                            </button>
+                        {/if}
+                        {#if shortcutConflicts[row.id] && shortcutConflicts[row.id].length > 0}
+                            <span class="shortcut-warning" role="note">
+                                also {shortcutConflicts[row.id].join(', ')}
+                            </span>
+                        {/if}
+                        {#if preferencesStore.shortcutOverrides[row.id] !== undefined}
+                            <button
+                                type="button"
+                                class="icon-btn small"
+                                onclick={() => resetShortcut(row.id)}
+                                aria-label="Reset {row.label} to default"
+                            >
+                                <Icon src={LuRotateCcw} />
+                            </button>
+                        {/if}
+                    </li>
+                {/each}
+            </ul>
+            {#if Object.keys(preferencesStore.shortcutOverrides).length > 0}
+                <div>
+                    <button type="button" class="btn btn-secondary" onclick={resetAllShortcuts}>
+                        Reset all shortcuts
+                    </button>
+                </div>
+            {/if}
+        </fieldset>
     </div>
 </Modal>
 
@@ -1153,6 +1324,80 @@
         width: 10px;
         height: 10px;
         color: var(--color-text-muted);
+    }
+
+    /* -- Shortcuts remapping (USE-7) ---------------------------------------- */
+
+    .shortcut-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .shortcut-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 0;
+        border-bottom: 1px solid var(--color-border);
+        font-size: 13px;
+    }
+
+    .shortcut-row:last-child {
+        border-bottom: none;
+    }
+
+    .shortcut-label {
+        flex: 1;
+        min-width: 120px;
+        color: var(--color-text);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .shortcut-binding {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: var(--color-surface-dim);
+        border: 1px solid var(--color-border);
+        border-radius: 6px;
+        padding: 3px 8px;
+        cursor: pointer;
+        color: var(--color-text-secondary);
+        transition: border-color 0.15s;
+    }
+
+    .shortcut-binding:hover {
+        border-color: var(--color-accent);
+        color: var(--color-text);
+    }
+
+    .shortcut-binding:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+    }
+
+    .shortcut-binding .alt:last-child {
+        display: none;
+    }
+
+    .shortcut-warning {
+        font-size: 11px;
+        color: var(--color-warning);
+        max-width: 180px;
+    }
+
+    .capture-hint {
+        font-size: 12px;
+        animation: capture-pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes capture-pulse {
+        50% { opacity: 0.55; }
     }
 
     .csv-mapping {

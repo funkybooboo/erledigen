@@ -235,6 +235,7 @@ describe('user preferences schema', () => {
             rowDensity: 'compact',
             completionAnimation: 'none',
             persistActiveFilters: false,
+            shortcutOverrides: { openTrash: ['g z'] },
             timezone: 'America/Denver',
         };
         parsePreserving(UpdateUserPreferencesSchema, sample);

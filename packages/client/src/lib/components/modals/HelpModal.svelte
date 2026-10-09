@@ -1,7 +1,12 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
-    import { SHORTCUTS, SHORTCUT_SECTIONS, formatBinding } from '$lib/keybindings';
+    import { SHORTCUT_SECTIONS, formatBinding } from '$lib/keybindings';
+    import { currentShortcuts } from '$lib/keybindingActions';
     let { onclose = () => {} }: { onclose?: () => void } = $props();
+
+    // The LIVE registry: remapped bindings show here (and only here --
+    // reading SHORTCUTS would always show the defaults).
+    const shortcuts = $derived(currentShortcuts());
 </script>
 
 <Modal title="Keyboard Shortcuts" onclose={onclose}>
@@ -15,7 +20,7 @@
                             <tr>
                                 <td>
                                     <span class="keys">
-                                        {#each SHORTCUTS[id].bindings as binding, i (binding)}
+                                        {#each shortcuts[id].bindings as binding, i (binding)}
                                             {#if i > 0}<span class="alt">/</span>{/if}
                                             {#each formatBinding(binding).split(' ') as key (key)}
                                                 <kbd>{key}</kbd>
@@ -23,7 +28,7 @@
                                         {/each}
                                     </span>
                                 </td>
-                                <td>{SHORTCUTS[id].label}</td>
+                                <td>{shortcuts[id].label}</td>
                             </tr>
                         {/each}
                     </tbody>

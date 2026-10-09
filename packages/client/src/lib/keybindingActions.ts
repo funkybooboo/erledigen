@@ -15,7 +15,7 @@
 
 import { PRIORITY_TAGS, type Task } from '@erledigen/shared';
 import { container } from '$lib/container';
-import type { ShortcutId } from '$lib/keybindings';
+import { SHORTCUTS, type ShortcutId, type ShortcutRegistry } from '$lib/keybindings';
 import { type KeybindingEvent, KeybindingMatcher } from '$lib/keyboard';
 import {
     dateViewStore,
@@ -239,6 +239,33 @@ const keyboardActions: Record<ShortcutId, KeyboardAction> = {
 };
 
 const matcher = new KeybindingMatcher();
+
+// --- Shortcut remapping (USE-7) ------------------------------------------
+//
+// SHORTCUTS is the immutable DEFAULT registry; the LIVE registry overlays
+// the user's persisted overrides (UserPreferences.shortcutOverrides).
+// refreshKeybindings() is the single write path -- the layout's $effect
+// calls it whenever the preference loads or changes, so the matcher, the
+// help modal, and every tooltip always agree on what is bound right now.
+
+let resolvedShortcuts: ShortcutRegistry = SHORTCUTS;
+
+/** Rebuild the live registry + matcher from the preferences store's
+ *  resolved registry (defaults + sanitized overrides). Invalid or
+ *  unknown entries were dropped at the getter, so a stale or hand-edited
+ *  preference can never brick the keyboard. The layout's $effect calls
+ *  this whenever the overrides load or change. */
+export function refreshKeybindings(): void {
+    resolvedShortcuts = preferencesStore.shortcutRegistry;
+    matcher.update(resolvedShortcuts);
+}
+
+/** The live registry: defaults overlaid with the user's remaps. The Help
+ *  modal and the tooltip action resolve through this -- never SHORTCUTS
+ *  directly, or remapped keys would keep showing their defaults. */
+export function currentShortcuts(): ShortcutRegistry {
+    return resolvedShortcuts;
+}
 
 function toKeybindingEvent(e: KeyboardEvent): KeybindingEvent {
     return {

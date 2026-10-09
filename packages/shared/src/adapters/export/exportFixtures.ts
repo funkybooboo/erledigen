@@ -66,6 +66,7 @@ function makeUserPreferences(): UserPreferences {
         rowDensity: 'comfortable',
         completionAnimation: 'flash',
         persistActiveFilters: true,
+        shortcutOverrides: {},
         timezone: null,
         updatedAt: '2026-01-10T09:00:00.000Z',
     };

@@ -108,6 +108,12 @@ export interface UserPreferences {
     /** False = every session starts with no filters (the saved set is
      *  cleared on load); true keeps the last session's filters (default). */
     persistActiveFilters: boolean;
+    /** Shortcut remaps (USE-7): ShortcutId -> binding strings, stored
+     *  verbatim. Only entries that DIFFER from the defaults belong here;
+     *  the client sanitizes on load (unknown ids and invalid grammar are
+     *  dropped -- the registry lives client-side, so the server can only
+     *  validate the shape). */
+    shortcutOverrides: Record<string, string[]>;
     /** IANA timezone (e.g. 'America/Denver') or null to follow the device zone. */
     timezone: string | null;
     updatedAt: string;
