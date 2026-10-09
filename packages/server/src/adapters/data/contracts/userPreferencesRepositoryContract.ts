@@ -155,6 +155,20 @@ export function runUserPreferencesRepositoryContractTests(
                 expect(prefs.completionAnimation).toBe('none');
             });
 
+            test('persists shortcut overrides, shape-validated only', async () => {
+                const repo = makeRepo();
+                await repo.update({
+                    shortcutOverrides: { openTrash: ['g z'], focusNext: ['j'] },
+                });
+                const prefs = await repo.get();
+                expect(prefs.shortcutOverrides['openTrash']).toEqual(['g z']);
+                // The map replaces wholesale, like tagColors.
+                await repo.update({ shortcutOverrides: { focusNext: ['n'] } });
+                const after = await repo.get();
+                expect(after.shortcutOverrides['focusNext']).toEqual(['n']);
+                expect(after.shortcutOverrides['openTrash']).toBeUndefined();
+            });
+
             test('persists the fresh-start toggle without touching the filters', async () => {
                 const repo = makeRepo();
                 await repo.update({
@@ -186,6 +200,7 @@ export function runUserPreferencesRepositoryContractTests(
                     rowDensity: undefined,
                     completionAnimation: undefined,
                     persistActiveFilters: undefined,
+                    shortcutOverrides: undefined,
                 } as unknown as UserPreferences;
                 await repo.restore(legacy);
                 const prefs = await repo.get();
@@ -195,6 +210,7 @@ export function runUserPreferencesRepositoryContractTests(
                 expect(prefs.rowDensity).toBe('comfortable');
                 expect(prefs.completionAnimation).toBe('flash');
                 expect(prefs.persistActiveFilters).toBe(true);
+                expect(prefs.shortcutOverrides).toEqual({});
             });
         });
 

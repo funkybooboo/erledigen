@@ -141,6 +141,22 @@ test.describe('user preferences -- PATCH /api/preferences', () => {
         });
     });
 
+    test('stores shortcut overrides as a shape-validated map', async ({ request }) => {
+        const res = await patch(request, '/api/preferences', {
+            shortcutOverrides: { openTrash: ['g z'], focusNext: ['j'] },
+        });
+        expect(res.status).toBe(200);
+        expect(res.body.data.shortcutOverrides['openTrash']).toEqual(['g z']);
+
+        // Empty binding strings are rejected at the door.
+        const bad = await patch(request, '/api/preferences', {
+            shortcutOverrides: { openTrash: [''] },
+        });
+        expect(bad.status).toBe(400);
+
+        await patch(request, '/api/preferences', { shortcutOverrides: {} });
+    });
+
     test('toggles the filter fresh-start preference', async ({ request }) => {
         const res = await patch(request, '/api/preferences', { persistActiveFilters: false });
         expect(res.status).toBe(200);

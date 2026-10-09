@@ -55,6 +55,7 @@ export const UserPreferencesSchema = registry.register(
             rowDensity: z.enum(['compact', 'comfortable']),
             completionAnimation: z.enum(['flash', 'none']),
             persistActiveFilters: z.boolean(),
+            shortcutOverrides: z.record(z.string(), z.array(z.string().min(1))),
             timezone: z.string().nullable(),
             updatedAt: z.string(),
         })
@@ -95,6 +96,10 @@ export const UpdateUserPreferencesSchema = registry.register(
             rowDensity: z.enum(['compact', 'comfortable']).optional(),
             completionAnimation: z.enum(['flash', 'none']).optional(),
             persistActiveFilters: z.boolean().optional(),
+            // The ids and binding grammar live in the CLIENT's registry;
+            // the server persists the shape and replays it verbatim
+            // (structure-validated: id -> non-empty binding strings).
+            shortcutOverrides: z.record(z.string(), z.array(z.string().min(1))).optional(),
             timezone: z
                 .string()
                 // Reject at the door: a stored bad zone would throw in

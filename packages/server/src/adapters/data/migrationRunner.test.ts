@@ -56,7 +56,18 @@ describe('runMigrations', () => {
             '009_preferences_tag_colors.sql',
             '010_preferences_appearance.sql',
             '011_preferences_behavior.sql',
+            '012_preferences_shortcut_overrides.sql',
         ]);
+    });
+
+    test('fresh databases carry the shortcut overrides column empty', () => {
+        const db = new Database(':memory:');
+        runMigrations(db);
+        const cols = db.query("PRAGMA table_info('user_preferences')").all() as Array<{
+            name: string;
+            dflt_value: string | null;
+        }>;
+        expect(cols.find(col => col.name === 'shortcut_overrides')?.dflt_value).toBe("'{}'");
     });
 
     test('fresh databases carry the behavior column with the keep-filters default', () => {

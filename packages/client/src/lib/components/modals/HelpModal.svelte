@@ -1,7 +1,14 @@
 <script lang="ts">
     import Modal from '$lib/components/Modal.svelte';
-    import { SHORTCUTS, SHORTCUT_SECTIONS, formatBinding } from '$lib/keybindings';
+    import { SHORTCUT_SECTIONS, formatBinding } from '$lib/keybindings';
+    import { preferencesStore } from '$lib/stores';
     let { onclose = () => {} }: { onclose?: () => void } = $props();
+
+    // The LIVE registry, derived from the preferences store: remapped
+    // bindings show here (reading SHORTCUTS would always show the
+    // defaults, and a non-reactive read would stay stale if the modal
+    // opens before the preferences finish loading).
+    const shortcuts = $derived(preferencesStore.shortcutRegistry);
 </script>
 
 <Modal title="Keyboard Shortcuts" onclose={onclose}>
@@ -15,7 +22,7 @@
                             <tr>
                                 <td>
                                     <span class="keys">
-                                        {#each SHORTCUTS[id].bindings as binding, i (binding)}
+                                        {#each shortcuts[id].bindings as binding, i (binding)}
                                             {#if i > 0}<span class="alt">/</span>{/if}
                                             {#each formatBinding(binding).split(' ') as key (key)}
                                                 <kbd>{key}</kbd>
@@ -23,7 +30,7 @@
                                         {/each}
                                     </span>
                                 </td>
-                                <td>{SHORTCUTS[id].label}</td>
+                                <td>{shortcuts[id].label}</td>
                             </tr>
                         {/each}
                     </tbody>

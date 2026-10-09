@@ -20,6 +20,12 @@ import {
     USER_PREFERENCES_DEFAULTS,
 } from '@erledigen/shared';
 import { container } from '$lib/container';
+import {
+    applyShortcutOverrides,
+    SHORTCUTS,
+    type ShortcutRegistry,
+    sanitizeShortcutOverrides,
+} from '$lib/keybindings';
 import { PreferencesService } from '$lib/services/preferencesService';
 
 const preferencesService = new PreferencesService(container.httpClient);
@@ -56,6 +62,7 @@ class PreferencesStore {
     rowDensity = $state<RowDensity>('comfortable');
     completionAnimation = $state<CompletionAnimation>('flash');
     persistActiveFilters = $state(true);
+    shortcutOverrides = $state<Record<string, string[]>>({});
     timezone = $state<string | null>(null);
     updatedAt = $state(new Date().toISOString());
 
@@ -69,6 +76,15 @@ class PreferencesStore {
      *  reactive dependency, so callers' $derived re-run when the user's
      *  zone preference changes and re-resolve today through the date
      *  provider's live zone. */
+    /** The LIVE shortcut registry (USE-7): the defaults overlaid with
+     *  this store's overrides. A getter reading this.shortcutOverrides,
+     *  so the matcher refresh (layout $effect), the Settings remap UI,
+     *  the help modal, and tooltips all derive from ONE resolution in
+     *  registry order -- nothing can show a stale binding. */
+    get shortcutRegistry(): ShortcutRegistry {
+        return applyShortcutOverrides(SHORTCUTS, sanitizeShortcutOverrides(this.shortcutOverrides));
+    }
+
     get today(): string {
         void this.timezone;
         return container.dateProvider.today();
@@ -127,6 +143,7 @@ class PreferencesStore {
             this.rowDensity = prefs.rowDensity ?? 'comfortable';
             this.completionAnimation = prefs.completionAnimation ?? 'flash';
             this.persistActiveFilters = prefs.persistActiveFilters ?? true;
+            this.shortcutOverrides = prefs.shortcutOverrides ?? {};
             this.timezone = prefs.timezone ?? null;
             this.updatedAt = prefs.updatedAt;
             container.setDateProviderTimeZone(this.timezone);
@@ -239,6 +256,13 @@ class PreferencesStore {
 
     setPersistActiveFilters(persistActiveFilters: boolean) {
         void this.save({ persistActiveFilters });
+    }
+
+    /** Replace the whole overrides map. Entries whose bindings equal the
+     *  DEFAULT binding set should never enter the map (the UI deletes
+     *  them instead of writing duplicates). */
+    setShortcutOverrides(shortcutOverrides: Record<string, string[]>) {
+        void this.save({ shortcutOverrides });
     }
 
     /**

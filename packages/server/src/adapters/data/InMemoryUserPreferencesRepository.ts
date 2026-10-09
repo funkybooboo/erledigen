@@ -55,6 +55,7 @@ export class InMemoryUserPreferencesRepository implements UserPreferencesReposit
             rowDensity: prefs.rowDensity ?? 'comfortable',
             completionAnimation: prefs.completionAnimation ?? 'flash',
             persistActiveFilters: prefs.persistActiveFilters ?? true,
+            shortcutOverrides: prefs.shortcutOverrides ? { ...prefs.shortcutOverrides } : {},
         };
     }
 }

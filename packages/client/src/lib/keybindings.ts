@@ -149,6 +149,111 @@ export const SHORTCUT_SECTIONS: { title: string; ids: ShortcutId[] }[] = [
 const IS_APPLE =
     typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.userAgent);
 
+// ------------------------------------------------------------------
+// Shortcut remapping (USE-7). Pure helpers -- no store imports: the
+// keyboard unit tests run against this module bare.
+// ------------------------------------------------------------------
+
+/** The full registry shape (defaults and overrides both). */
+export type ShortcutRegistry = Record<ShortcutId, Shortcut>;
+
+/** Keycap names that are not single printable characters. This is the
+ *  VALID set for remapping (slightly wider than the registry's current
+ *  contents so users can bind keys the defaults do not use). */
+const NAMED_KEYS = new Set([
+    'Space',
+    'Enter',
+    'Escape',
+    'Esc',
+    'ArrowDown',
+    '\u2193',
+    'ArrowUp',
+    '\u2191',
+    'ArrowLeft',
+    'ArrowRight',
+    'Tab',
+    'Delete',
+    'Backspace',
+    'Home',
+    'End',
+]);
+
+/** One binding string in the documented grammar: 1-2 keystroke tokens,
+ *  each a printable character, a named key, or a {mod} chord
+ *  ('{mod}+K', '{mod}+Shift+Z'). */
+export function isValidBinding(binding: string): boolean {
+    if (binding.length === 0) return false;
+    const tokens = binding.split(' ');
+    if (tokens.length > 2) return false;
+    for (const token of tokens) {
+        const ok =
+            token === '{mod}' ||
+            /^\{mod\}\+.$/.test(token) ||
+            token === '{mod}+Shift+Z' ||
+            NAMED_KEYS.has(token) ||
+            /^\S$/.test(token);
+        if (!ok) return false;
+    }
+    return tokens.length !== 2 || tokens.every(t => !t.includes('{mod}'));
+}
+
+/** The overrides a persisted map can safely contribute: unknown ids and
+ *  invalid/empty binding lists are dropped (they can only come from a
+ *  hand-edited database or a future registry change -- never from the
+ *  UI, which validates before saving). */
+export function sanitizeShortcutOverrides(
+    overrides: Record<string, string[]> | null | undefined,
+): Partial<ShortcutRegistry> {
+    const clean: Partial<ShortcutRegistry> = {};
+    if (overrides === null || overrides === undefined) return clean;
+    for (const [id, bindings] of Object.entries(overrides)) {
+        if (!(id in SHORTCUTS)) continue;
+        if (!Array.isArray(bindings) || bindings.length === 0) continue;
+        if (!bindings.every(binding => isValidBinding(binding))) continue;
+        clean[id as ShortcutId] = { label: SHORTCUTS[id as ShortcutId].label, bindings };
+    }
+    return clean;
+}
+
+/** Merge sanitized overrides over the defaults (later keys win).
+ *  applyShortcutOverrides(SHORTCUTS, overrides) is the live registry. */
+export function applyShortcutOverrides(
+    base: ShortcutRegistry,
+    overrides: Partial<ShortcutRegistry>,
+): ShortcutRegistry {
+    return { ...base, ...overrides };
+}
+
+/** Actions whose bindings share a keystroke with `id` (excluding id
+ *  itself). Bare keys are global; {mod} chords are scoped by modifier;
+ *  sequence tokens are compared pairwise, and a single key that equals
+ *  another binding's sequence PREFIX also clashes (the plain key would
+ *  swallow the chord's first press, killing the sequence). Sorted by
+ *  registry order. */
+export function bindingConflicts(registry: ShortcutRegistry, id: ShortcutId): ShortcutId[] {
+    const mine = registry[id].bindings;
+    const conflicts: ShortcutId[] = [];
+    for (const [otherId, shortcut] of Object.entries(registry)) {
+        if (otherId === id) continue;
+        const other = shortcut.bindings;
+        const clash = mine.some(binding =>
+            other.some(candidate => {
+                if (binding.includes('{mod}') !== candidate.includes('{mod}')) return false;
+                if (binding === candidate) return true;
+                // Sequence-prefix capture: 'g' clashes with 'g x'.
+                const bTokens = binding.split(' ');
+                const cTokens = candidate.split(' ');
+                if (bTokens.length === 1 && cTokens.length === 2 && bTokens[0] === cTokens[0]) {
+                    return true;
+                }
+                return cTokens.length === 1 && bTokens.length === 2 && cTokens[0] === bTokens[0];
+            }),
+        );
+        if (clash) conflicts.push(otherId as ShortcutId);
+    }
+    return conflicts;
+}
+
 /** Platform modifier label: the Command symbol on Apple, "Ctrl" elsewhere. */
 export function modifierLabel(): string {
     return IS_APPLE ? '\u2318' : 'Ctrl';
