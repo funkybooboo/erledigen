@@ -246,7 +246,10 @@
 </script>
 
 {#if isCollapsed}
-    <div class="collapsed-strip" role="separator" aria-label="Expand Someday panel">
+    <!-- The strip is a visual sliver; the expand button inside carries its
+         own accessible name, so the wrapper needs no role (a separator
+         would wrongly mark a focusable-control container). -->
+    <div class="collapsed-strip">
         <button class="expand-btn" onclick={() => preferencesStore.toggleSomeDayPanel()} use:tooltip={{ label: 'Open Someday panel', shortcut: 'toggleSomedayPanel' }} aria-label="Open Someday panel">
             <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="8,2 2,9 8,16" />
@@ -302,7 +305,7 @@
                 </div>
             </div>
 
-            <div class="groups-container">
+            <div class="groups-container" role="list" aria-label="Someday groups">
                 {#each groups as group (group.id)}
                     {@const tasks = groupTasks(group)}
                     {@const taskCount = tasks.length}
@@ -614,7 +617,9 @@
         transition: opacity 0.15s;
     }
 
-    .someday-group:hover .group-actions {
+    /* Keyboard focus reveals the group actions too (USE-9). */
+    .someday-group:hover .group-actions,
+    .group-actions:focus-within {
         opacity: 1;
     }
 

@@ -116,16 +116,6 @@
         selectedProjectId = id;
     }
 
-    /** role="button" promises Enter/Space activation. The card is a div
-     *  because real buttons nest inside it (edit/delete actions), so the
-     *  promised keys are delivered by hand. */
-    function handleCardKeydown(e: KeyboardEvent, id: string) {
-        if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            selectProject(id);
-        }
-    }
-
     function backToList() {
         selectedProjectId = null;
     }
@@ -218,29 +208,40 @@
                                 </div>
                             </div>
                         {:else}
-                            <div class="project-card" onclick={() => selectProject(project.id)} onkeydown={(e) => handleCardKeydown(e, project.id)} role="button" tabindex="0" aria-label="{project.name}, active">
+                            <!-- The card is a plain container; the OPEN affordance is a
+                                 real button wrapping name/description/meta, so the edit
+                                 and delete actions nest as SIBLINGS, not inside another
+                                 interactive control (axe nested-interactive, USE-9).
+                                 Enter/Space come from the button itself. -->
+                            <div class="project-card">
                                 <div class="card-top">
-                                    <div class="project-name">{project.name}</div>
+                                    <button
+                                        class="card-open"
+                                        onclick={() => selectProject(project.id)}
+                                        aria-label="Open project {project.name} (active)"
+                                    >
+                                        <div class="project-name">{project.name}</div>
+                                        {#if project.description}
+                                            <div class="project-desc">{project.description}</div>
+                                        {/if}
+                                        <div class="project-meta">
+                                            {#if project.startDate}
+                                                <span>Start: {project.startDate}</span>
+                                            {/if}
+                                            {#if project.dueDate}
+                                                <span>Due: {project.dueDate}</span>
+                                            {/if}
+                                            <span class="task-count">{getTaskCount(project.tag)} task{getTaskCount(project.tag) !== 1 ? 's' : ''}</span>
+                                        </div>
+                                    </button>
                                     <div class="card-actions">
-                                        <button class="icon-btn small" onclick={(e) => { e.stopPropagation(); startEdit(project.id, project.name, project.description); }} aria-label="Edit project">
+                                        <button class="icon-btn small" onclick={() => startEdit(project.id, project.name, project.description)} aria-label="Edit project">
                                             <Icon src={LuPencil} />
                                         </button>
-<button class="icon-btn small danger" onclick={(e) => { e.stopPropagation(); deleteProject(project.id); }} aria-label="Delete project">
+<button class="icon-btn small danger" onclick={() => deleteProject(project.id)} aria-label="Delete project">
                                             <Icon src={LuTrash2} />
                                         </button>
                                     </div>
-                                </div>
-                                {#if project.description}
-                                    <div class="project-desc">{project.description}</div>
-                                {/if}
-                                <div class="project-meta">
-                                    {#if project.startDate}
-                                        <span>Start: {project.startDate}</span>
-                                    {/if}
-                                    {#if project.dueDate}
-                                        <span>Due: {project.dueDate}</span>
-                                    {/if}
-<span class="task-count">{getTaskCount(project.tag)} task{getTaskCount(project.tag) !== 1 ? 's' : ''}</span>
                                 </div>
                             </div>
                         {/if}
@@ -252,20 +253,26 @@
                 <section class="section" aria-label="Inactive projects">
                     <h4 id="projects-inactive-heading" class="modal-section-heading">Inactive</h4>
                     {#each inactiveProjects as project (project.id)}
-                        <div class="project-card inactive" onclick={() => selectProject(project.id)} onkeydown={(e) => handleCardKeydown(e, project.id)} role="button" tabindex="0" aria-label="{project.name}, inactive">
+                        <div class="project-card inactive">
                             <div class="card-top">
-                                <div class="project-name">{project.name}</div>
+                                <button
+                                    class="card-open"
+                                    onclick={() => selectProject(project.id)}
+                                    aria-label="Open project {project.name} (inactive)"
+                                >
+                                    <div class="project-name">{project.name}</div>
+                                    {#if project.description}
+                                        <div class="project-desc">{project.description}</div>
+                                    {/if}
+                                    <div class="project-meta">
+                                        <span class="task-count">{getTaskCount(project.tag)} task{getTaskCount(project.tag) !== 1 ? 's' : ''}</span>
+                                    </div>
+                                </button>
                                 <div class="card-actions">
-                                    <button class="icon-btn small danger" onclick={(e) => { e.stopPropagation(); deleteProject(project.id); }} aria-label="Delete project">
+                                    <button class="icon-btn small danger" onclick={() => deleteProject(project.id)} aria-label="Delete project">
                                         <Icon src={LuTrash2} />
                                     </button>
                                 </div>
-                            </div>
-                            {#if project.description}
-                                <div class="project-desc">{project.description}</div>
-                            {/if}
-                            <div class="project-meta">
-                                <span class="task-count">{getTaskCount(project.tag)} task{getTaskCount(project.tag) !== 1 ? 's' : ''}</span>
                             </div>
                         </div>
                     {/each}
@@ -298,6 +305,26 @@
 
     .project-card:hover {
         border-color: var(--color-accent);
+    }
+
+    /* The open affordance: a real button covering name/desc/meta, so the
+       card body stays a plain (non-interactive) container. */
+    .card-open {
+        flex: 1;
+        min-width: 0;
+        background: none;
+        border: none;
+        padding: 0;
+        text-align: left;
+        cursor: pointer;
+        color: var(--color-text);
+        font: inherit;
+    }
+
+    .card-open:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+        border-radius: 4px;
     }
 
     .project-card.inactive {

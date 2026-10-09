@@ -131,7 +131,12 @@
 
 <svelte:window onkeydown={handleGlobalKeydown} />
 
-<div class="app-shell" role="application" aria-label="Erledigen Task App">
+<div class="app-shell">
+    <!-- No role="application": it would push screen readers out of browse
+         mode for the whole page. The app is ordinary widgets (buttons,
+         inputs, lists) that browse mode reads fine; single-key shortcuts
+         still work for keyboard users because every control is a real
+         focusable element (USE-9/USE-10). -->
     <a href="#main-content" class="skip-link">Skip to content</a>
     <div class="main-area">
         <IconRail />

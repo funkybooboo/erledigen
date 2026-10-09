@@ -206,6 +206,21 @@ test.describe('keyboard task actions on the day list', () => {
         await expect(page.locator(`section#day-${todayISO()}`).getByText(text)).toBeVisible();
     });
 
+    test('keyboard focus reveals the hover-only row actions', async ({ page }) => {
+        const text = uniq('KbFocusReveal');
+        await createTask(page.request, { text, date: todayISO() }, SERVER_URL);
+        await hydrated(page);
+        const target = row(page, text);
+        await expect(target).toBeVisible();
+
+        // The row actions are hidden until hover -- and, now, until
+        // keyboard focus lands inside them (USE-9: nothing may be
+        // operable-but-invisible to a keyboard user).
+        await expect(target.locator('.task-actions')).toHaveCSS('opacity', '0');
+        await target.getByRole('button', { name: 'Task details' }).focus();
+        await expect(target.locator('.task-actions')).toHaveCSS('opacity', '1');
+    });
+
     test('t opens the inline tags editor on the focused task', async ({ page }) => {
         const text = uniq('KbTags');
         await createTask(page.request, { text, date: todayISO() }, SERVER_URL);

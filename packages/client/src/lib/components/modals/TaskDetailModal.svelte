@@ -629,6 +629,12 @@
         color: var(--color-danger);
     }
 
+    /* Keyboard focus reveals the delete button too (USE-9). */
+    .subtask-item:hover .subtask-delete-btn,
+    .subtask-delete-btn:focus-within {
+        opacity: 1;
+    }
+
     .add-subtask-btn {
         display: flex;
         align-items: center;

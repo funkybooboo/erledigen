@@ -12,6 +12,11 @@
     let modalEl: HTMLElement;
     let previousFocusEl: HTMLElement | null = null;
 
+    /** Unique per-instance title id: dialogs stack (Settings opens a
+     *  Confirm on top), so a static id would duplicate across the DOM
+     *  and break aria-labelledby + getElementById. */
+    const titleId = `modal-title-${Math.random().toString(36).slice(2, 8)}`;
+
     /** Mobile docks the dialog as a bottom sheet, where sliding up from
      *  the edge is the platform idiom; desktop dialogs scale in (the
      *  Fizzy dialog motion). Both share the params object -- fly ignores
@@ -88,15 +93,20 @@
         onkeydown={(e) => { if (e.key === 'Tab') e.stopPropagation(); handleTabTrap(e); }}
         role="dialog"
         aria-modal="true"
-        aria-label={title}
+        aria-labelledby={titleId}
         tabindex="-1"
         transition:dialogTransitionFn={dialogMotion}
     >
         <div class="modal-header">
-            <h2 class="modal-title" id="modal-title">{title}</h2>
+            <h2 class="modal-title" id={titleId}>{title}</h2>
             <button class="close-btn" onclick={() => onclose()} use:tooltip={'closeModal'} aria-label="Close modal"><Icon src={LuX} /></button>
         </div>
-        <div class="modal-body" role="document">
+        <!-- The body is a scrollable region: axe's scrollable-region-
+             focusable REQUIRES tabindex="0" so keyboard users can scroll it
+             (svelte's static rule cannot see the overflow, hence the
+             targeted ignore). -->
+        <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+        <div class="modal-body" role="document" tabindex="0">
             {@render children?.()}
         </div>
     </div>
