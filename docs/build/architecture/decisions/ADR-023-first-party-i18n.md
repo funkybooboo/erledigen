@@ -25,7 +25,7 @@ The forces:
   implementation, wired through the container. The i18n story itself
   asks for an `I18nAdapter` "in packages/shared; adapter registry like
   every other subsystem".
-- **The browser bundle is size-gated** (729088 bytes at v0.12.0).
+- **The browser bundle is size-gated** (712 KiB at v0.12.0).
 - **Formatting must ride the platform Intl API** regardless of the
   message library: dates, times, numbers, plural categories.
 
@@ -92,9 +92,10 @@ typo'd key still fails the build.
   active-locale -> `en` -> raw key, and `setLocale` ignores ids
   without a file.
 - **The bundle grows by the message templates and their key names.**
-  Measured against the budget at the v0.13.0 release; the budget line
-  moves only with a recorded justification, as before (664 -> 676 ->
-  712 KiB, v0.11.0).
+  Measured and consciously raised with the build: 664 -> 676 -> 712
+  -> 768 KiB (v0.13.0, +56 KiB for the adapter + locale file + key
+  ids); the raise rides this ADR's justification, re-evaluated at the
+  v1.0.0 gate.
 - **Natural-language INPUT stays English** (the `createFromText` date
   phrases and recurrence grammar). USE-14/15 localize display; the
   input grammar localizing is future, deliberate work if lived

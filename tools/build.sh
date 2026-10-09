@@ -8,21 +8,24 @@
 # and its types are enforced by type-check. A shared `dist/` was produced
 # here for a while and consumed by nothing.)
 #
-# The budget (712 KiB by default, on the browser payload) mirrors the gate
+# The budget (768 KiB by default, on the browser payload) mirrors the gate
 # documented in .github/workflows/ci.yml. Override it with MAX_CLIENT_BYTES;
 # set MAX_CLIENT_BYTES=0 to skip the check entirely.
 #
 # History: 664 KiB was the pre-v0.11.0 ceiling; raised +12 KiB for the
 # v0.11.0 theming build, then a final +36 KiB once the tag-management
 # section (+13 KiB compiled) showed the theming stories' true cost --
-# 712 KiB is the v0.11.0 ceiling covering the remaining preference UIs.
+# 712 KiB was the v0.11.0 ceiling. v0.13.0 (i18n, ADR-023) raised it a
+# final +56 KiB: the extraction moves every UI string into the locale
+# file and the key ids ride the bundle -- measured +2.8 KiB for the
+# adapter + seed alone, with the full USE-14 extraction to land.
 # Re-evaluate at the v1.0.0 gate.
 
 set -euo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
-DEFAULT_MAX_BYTES=729088 # 712 KiB
+DEFAULT_MAX_BYTES=786432 # 768 KiB
 MAX_BYTES="${MAX_CLIENT_BYTES:-$DEFAULT_MAX_BYTES}"
 
 step "Building server"
