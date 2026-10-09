@@ -109,7 +109,7 @@
 
     .task-date {
         font-size: 11px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
     }
 
     .task-info {
@@ -122,7 +122,7 @@
 
     .days-left {
         font-size: 11px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
     }
 
     .restore-btn {
@@ -142,13 +142,13 @@
 
     .empty {
         font-size: 14px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         text-align: center;
     }
 
     .hint {
         font-size: 12px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         text-align: center;
     }
 </style>

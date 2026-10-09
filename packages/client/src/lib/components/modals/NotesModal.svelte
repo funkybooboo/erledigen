@@ -203,7 +203,7 @@
     }
 
     .empty {
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         font-size: 14px;
         text-align: center;
         padding: 16px 0;
@@ -277,7 +277,7 @@
 
     .owner-text.completed {
         text-decoration: line-through;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
     }
 
     .hop-btn {
@@ -289,7 +289,7 @@
         border-radius: 999px;
         padding: 2px 8px;
         background: none;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         font-size: 11px;
         cursor: pointer;
         transition: color 0.15s, background-color 0.15s;

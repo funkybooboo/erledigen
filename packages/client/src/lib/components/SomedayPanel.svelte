@@ -405,7 +405,7 @@
     .expand-btn {
         background: none;
         border: none;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         cursor: pointer;
         padding: 4px 2px;
         border-radius: 4px;
@@ -515,7 +515,7 @@
         background: none;
         border: none;
         font-size: 12px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         cursor: pointer;
         padding: 2px 6px;
         border-radius: 4px;
@@ -643,7 +643,7 @@
 
     .empty-state {
         font-size: 13px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         text-align: center;
         padding: 20px 12px;
     }

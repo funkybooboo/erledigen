@@ -321,7 +321,7 @@
 
     .project-meta {
         font-size: 12px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         margin-top: 6px;
         display: flex;
         gap: 12px;
@@ -374,7 +374,7 @@
 
     .detail-meta {
         font-size: 13px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         display: flex;
         gap: 16px;
     }

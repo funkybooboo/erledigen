@@ -476,7 +476,7 @@
 
     .habit-meta {
         font-size: 12px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         margin-top: 6px;
         display: flex;
         gap: 12px;
@@ -493,7 +493,7 @@
 
     .meta-stat {
         font-size: 11px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
     }
 
     .streak-badge {
@@ -515,7 +515,7 @@
 
     .streak-badge.empty {
         background: var(--color-surface-hover);
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
     }
 
     .form-row {

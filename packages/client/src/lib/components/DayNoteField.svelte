@@ -152,11 +152,10 @@
         border: none;
         border-radius: 6px;
         background: none;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         font-size: 12px;
         cursor: pointer;
-        opacity: 0.55;
-        transition: opacity 0.15s, color 0.15s;
+        transition: color 0.15s;
     }
 
     .day-note-affordance :global(svg) {
@@ -164,10 +163,11 @@
         height: 12px;
     }
 
+    /* Quiet by ink grade alone -- the old 55% opacity trick put the
+       label below AA contrast in both themes (USE-11). */
     .day-note-affordance:hover,
     .day-note-affordance:focus-visible {
-        opacity: 1;
-        color: var(--color-text-secondary);
+        color: var(--color-text);
     }
 
     .day-note-affordance:focus-visible {

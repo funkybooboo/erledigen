@@ -348,7 +348,7 @@
 
     .kanban-hint {
         font-size: 12px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
     }
 
     .kanban-actions {
@@ -470,7 +470,7 @@
 
     .kanban-card.done .card-text {
         text-decoration: line-through;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
     }
 
     .kanban-card.done {
@@ -523,14 +523,14 @@
 
     .blocked-by-hint {
         font-size: 11px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 
     .empty-small {
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         font-size: 13px;
         margin: 0;
     }

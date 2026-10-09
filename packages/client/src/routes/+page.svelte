@@ -29,7 +29,7 @@
         align-items: center;
         justify-content: center;
         min-height: 200px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
     }
 
     .error button {

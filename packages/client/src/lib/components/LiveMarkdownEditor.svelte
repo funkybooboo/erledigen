@@ -358,6 +358,6 @@
     }
 
     .md-placeholder {
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
     }
 </style>

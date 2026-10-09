@@ -30,10 +30,20 @@ export function tagColorVar(tag: string): string | null {
 }
 
 /** Inline style that tints a chip with the tag's color: a pastel
- *  background (the color mixed into the surface) with the color itself
- *  as the text. Null color -> empty string (the neutral chip style). */
+ *  background (the color mixed into the surface) with a text color
+ *  derived from the same hue. Null color -> empty string (the neutral
+ *  chip style).
+ *
+ *  The text mixes the hue 55% into --color-text (USE-11): in the light
+ *  theme that darkens the hue toward the ink, in the dark theme it
+ *  brightens it toward the paper -- one formula keeps every palette
+ *  entry (and the #p1/#p2/#p3 pills, whose logo hues are the worst
+ *  offenders on pastel) above the 4.5:1 AA line on the 14% pastel
+ *  background in both themes. The mix mirrors CSS color-mix(in oklab)
+ *  and is asserted in src/lib/contrast.test.ts. */
 export function tagChipStyle(tag: string): string {
     const color = tagColorVar(tag);
     if (color === null) return '';
-    return `color: ${color}; background: color-mix(in oklab, ${color} 14%, var(--color-surface)); border-color: color-mix(in oklab, ${color} 30%, var(--color-border));`;
+    const fg = `color-mix(in oklab, ${color} 55%, var(--color-text))`;
+    return `color: ${fg}; background: color-mix(in oklab, ${color} 14%, var(--color-surface)); border-color: color-mix(in oklab, ${color} 30%, var(--color-border));`;
 }

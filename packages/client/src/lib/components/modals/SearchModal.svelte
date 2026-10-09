@@ -493,7 +493,7 @@
     }
 
     .result-checkbox {
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         flex-shrink: 0;
     }
 
@@ -504,12 +504,12 @@
 
     .result-text.completed {
         text-decoration: line-through;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
     }
 
     .result-date {
         font-size: 12px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         font-family: monospace;
     }
 
@@ -530,7 +530,7 @@
 
     .command-description {
         font-size: 12px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
     }
 
     .command-hint {
@@ -554,7 +554,7 @@
     }
 
     .empty, .hint {
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         text-align: center;
         padding: 20px 0;
         font-size: 14px;

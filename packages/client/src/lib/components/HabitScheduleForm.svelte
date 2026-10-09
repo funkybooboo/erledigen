@@ -158,7 +158,7 @@
         border-radius: 999px;
         border: 1px solid var(--color-border);
         background: var(--color-surface);
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         cursor: pointer;
         transition: background-color 0.1s, color 0.1s, border-color 0.1s;
     }
@@ -182,6 +182,6 @@
 
     .chip-hint {
         font-size: 11px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
     }
 </style>

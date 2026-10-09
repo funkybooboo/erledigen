@@ -394,7 +394,7 @@
         align-items: center;
         padding: 2px;
         flex-shrink: 0;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         cursor: grab;
         opacity: 0;
         transition: opacity 0.15s, color 0.15s;
@@ -455,7 +455,7 @@
 
     .task-row.completed .task-text {
         text-decoration: line-through;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
     }
 
     .task-new {
@@ -485,7 +485,7 @@
         cursor: pointer;
         padding: 2px;
         line-height: 1;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         transition: color 0.15s;
         flex-shrink: 0;
     }
@@ -575,7 +575,7 @@
        so a task's notes are discoverable without opening the detail. */
     .has-notes {
         display: flex;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
     }
 
     .has-notes :global(svg) {

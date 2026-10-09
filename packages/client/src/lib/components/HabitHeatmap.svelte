@@ -199,7 +199,7 @@
 
     .month-label {
         font-size: 10px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         white-space: nowrap;
     }
 
@@ -219,7 +219,7 @@
 
     .weekday-labels span {
         font-size: 10px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
         height: 12px;
         line-height: 12px;
         text-align: right;
@@ -271,7 +271,7 @@
         gap: 3px;
         justify-content: flex-end;
         font-size: 10px;
-        color: var(--color-text-muted);
+        color: var(--color-text-secondary);
     }
 
     .legend .cell {
