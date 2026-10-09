@@ -164,7 +164,12 @@
             : await recurringTaskStore.create(input);
 
         saving = false;
-        if (!result) return;
+        if (!result) {
+            // The form stays open with its contents; say why (USE-12:
+            // errors are announced, not just silently dropped).
+            notificationStore.push('Could not save the habit', { kind: 'error' });
+            return;
+        }
 
         // Materialize instances for the new/changed schedule right away.
         // Generation is idempotent, so existing instances are untouched.

@@ -186,6 +186,26 @@ test.describe('keyboard task actions on the day list', () => {
         await expect(page.locator(`section#day-${todayISO()}`).getByText(text)).toHaveCount(0);
     });
 
+    test('an unparseable reschedule date announces the failure through the live region', async ({
+        page,
+    }) => {
+        const text = uniq('KbRescheduleFail');
+        await createTask(page.request, { text, date: todayISO() }, SERVER_URL);
+        await hydrated(page);
+
+        await focusRow(page, text);
+        await page.keyboard.press('r');
+        const dateInput = page.getByLabel('Reschedule task');
+        await dateInput.fill('not a date');
+        await dateInput.press('Enter');
+
+        // The failure lands in the aria-live notification region
+        // (role=status), so assistive tech hears it (USE-12) -- and the
+        // task stays on today.
+        await expect(page.getByRole('status').filter({ hasText: 'Could not parse' })).toBeVisible();
+        await expect(page.locator(`section#day-${todayISO()}`).getByText(text)).toBeVisible();
+    });
+
     test('t opens the inline tags editor on the focused task', async ({ page }) => {
         const text = uniq('KbTags');
         await createTask(page.request, { text, date: todayISO() }, SERVER_URL);

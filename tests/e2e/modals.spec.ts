@@ -89,6 +89,37 @@ test.describe('Settings modal', () => {
         await expect(settings.locator('#time-format-select')).toBeVisible();
     });
 
+    test('an unknown timezone announces the error through a live region', async ({ page }) => {
+        // Seed a known zone server-side so the form has a positive load
+        // signal: preferences land AFTER hydration, and the modal's sync
+        // effect would clobber a fill that lands before them.
+        await patch(page.request, '/api/preferences', { timezone: 'America/Denver' }, SERVER_URL);
+        await hydrated(page);
+        await page.getByRole('button', { name: 'Settings', exact: true }).click();
+        const settings = modal(page, 'Settings');
+        const tz = settings.getByLabel('Timezone');
+        await expect(tz).toHaveValue('America/Denver');
+
+        // Typing a non-IANA zone keeps the previous setting and mounts an
+        // error span with role=alert (USE-12): announced when it appears,
+        // while the valid-value preview span stays a silent sibling.
+        // ('Invalid/Zone' parses nowhere; legacy abbreviations like PST
+        // are accepted by Chromium's Intl and must not be used here.)
+        await tz.fill('Invalid/Zone');
+        const alert = settings.getByRole('alert');
+        await expect(alert).toContainText('Unknown timezone');
+        await expect(tz).toHaveAttribute('aria-invalid', 'true');
+
+        // A valid identifier clears the error and shows the preview again.
+        await tz.fill('Europe/Berlin');
+        await expect(alert).toHaveCount(0);
+        await expect(tz).toHaveAttribute('aria-invalid', 'false');
+
+        // Restore the default (system timezone) for the shared singleton.
+        await settings.getByRole('button', { name: 'Close modal' }).click();
+        await page.request.patch(`${SERVER_URL}/api/preferences`, { data: { timezone: null } });
+    });
+
     test('exporting downloads the JSON backup with a dated filename', async ({ page }) => {
         await hydrated(page);
         await page.getByRole('button', { name: 'Settings', exact: true }).click();

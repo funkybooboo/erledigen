@@ -313,6 +313,7 @@
             onkeydown={handleEditKeydown}
             onblur={commitEdit}
             maxlength={TASK_CONSTRAINTS.MAX_TEXT_LENGTH}
+            aria-label="Edit task text"
         />
     {:else if isEditingDate}
         <input

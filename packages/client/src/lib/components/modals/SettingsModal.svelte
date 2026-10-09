@@ -610,9 +610,15 @@
                     {/each}
                 </datalist>
             </label>
-            <span class="hint" class:invalid={tzInvalid}>
-                {tzInvalid ? 'Unknown timezone' : tzPreview}
-            </span>
+            {#if tzInvalid}
+                <!-- A dedicated role="alert" span that MOUNTS with the error:
+                     screen readers announce it the moment it appears. The
+                     preview span below is NOT live, so its every-keystroke
+                     updates stay unannounced (USE-12). -->
+                <span class="hint invalid" role="alert">Unknown timezone -- expected an IANA identifier</span>
+            {:else}
+                <span class="hint">{tzPreview}</span>
+            {/if}
             <details class="tz-help">
                 <summary>Examples & format</summary>
                 <p class="tz-help-text">
