@@ -36,6 +36,17 @@ type MatchResult =
  *  swallow a later, unrelated keypress. */
 const SEQUENCE_TIMEOUT_MS = 800;
 
+/** True when every action's bindings are identical between two
+ *  registries (same reference is the fast path; label-only changes are
+ *  ignored -- only the BINDINGS feed the parsed maps). */
+function bindingsUnchanged(previous: typeof SHORTCUTS | null, next: typeof SHORTCUTS): boolean {
+    if (previous === null || previous === next) return previous === next;
+    for (const id of Object.keys(next) as ShortcutId[]) {
+        if (previous[id].bindings.join(' ') !== next[id].bindings.join(' ')) return false;
+    }
+    return true;
+}
+
 /** Map both sides to canonical KeyboardEvent.key names: registry display
  *  tokens ('Space', 'Esc', the arrow glyphs) and raw event keys (' ').
  *  Everything else passes through unchanged. */
@@ -98,6 +109,9 @@ export class KeybindingMatcher {
     #expiryTimer: unknown = null;
     readonly #schedule: ScheduleFn;
     readonly #cancelTimer: CancelFn;
+    /** The registry the current maps were parsed from (for update()'s
+     *  unchanged-bindings short-circuit). */
+    #parsed: typeof SHORTCUTS | null = null;
 
     constructor(
         shortcuts: typeof SHORTCUTS = SHORTCUTS,
@@ -105,13 +119,21 @@ export class KeybindingMatcher {
     ) {
         this.#schedule = timer.setTimeout ?? defaultSchedule;
         this.#cancelTimer = timer.clearTimeout ?? defaultCancel;
+        this.#parsed = shortcuts;
         this.#rebuild(shortcuts);
     }
 
     /** Swap the active binding set (shortcut remapping, USE-7): the
      *  parsed maps are rebuilt and any pending chord is dropped -- a
-     *  keypress mid-swap must not fire against the new registry. */
+     *  keypress mid-swap must not fire against the new registry.
+     *  A registry whose BINDINGS are unchanged is a no-op: the refresh
+     *  that follows a preferences load (a fresh shortcutOverrides
+     *  object even when empty) must not cancel a chord the user is
+     *  mid-way through (CI caught the race: preferences land between
+     *  the two keystrokes of "g n" and the chord dies). */
     update(shortcuts: typeof SHORTCUTS): void {
+        if (bindingsUnchanged(this.#parsed, shortcuts)) return;
+        this.#parsed = shortcuts;
         this.cancel();
         this.#plain.clear();
         this.#modifiers.clear();

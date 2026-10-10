@@ -128,4 +128,28 @@ describe('KeybindingMatcher', () => {
         // The next key must not be treated as a chord suffix.
         expect(matcher.feed(key('c'))).toEqual({ status: 'none' });
     });
+
+    it('update() with unchanged bindings keeps a pending chord armed', () => {
+        // The preferences-load refresh hands the matcher a FRESH registry
+        // object (shortcutOverrides is reassigned even when empty) with
+        // identical bindings -- that must not cancel a chord mid-way.
+        // CI caught the race: preferences land between the two keystrokes
+        // of a chord and the second key went to the add input instead.
+        const matcher = new KeybindingMatcher();
+        expect(matcher.feed(key('g'))).toEqual({ status: 'sequence-start' });
+        matcher.update({ ...SHORTCUTS });
+        expect(matcher.feed(key('c'))).toEqual({ status: 'action', id: 'openCalendar' });
+    });
+
+    it('update() with changed bindings drops a pending chord', () => {
+        const matcher = new KeybindingMatcher();
+        expect(matcher.feed(key('g'))).toEqual({ status: 'sequence-start' });
+        matcher.update({
+            ...SHORTCUTS,
+            openCalendar: { labelKey: 'shortcut.openCalendar', bindings: ['x'] },
+        });
+        // The swap is real: the chord prefix is dropped and the old
+        // suffix resolves nothing against the new registry.
+        expect(matcher.feed(key('c'))).toEqual({ status: 'none' });
+    });
 });
