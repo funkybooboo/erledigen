@@ -142,7 +142,7 @@
     <div class="main-area">
         <IconRail />
         <DateMinimap />
-        <main id="main-content" class="day-list-area">
+        <main id="main-content" class="day-list-area" tabindex="-1">
             {@render children()}
         </main>
         <SomedayPanel />
