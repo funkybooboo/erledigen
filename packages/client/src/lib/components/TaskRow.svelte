@@ -517,7 +517,7 @@
         color: var(--color-text);
         cursor: text;
         min-width: 0;
-        text-align: left;
+        text-align: start;
     }
 
     /* Live-markdown titles (v0.10.0): the md-root wrapper carries the
@@ -555,7 +555,7 @@
         font-size: var(--fs-micro);
         font-family: monospace;
         color: var(--color-text-secondary);
-        margin-right: 6px;
+        margin-inline-end: 6px;
         background: var(--color-surface-hover);
         padding: 1px 4px;
         border-radius: 3px;

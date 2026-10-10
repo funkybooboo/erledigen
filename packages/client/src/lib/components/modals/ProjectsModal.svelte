@@ -316,7 +316,7 @@
         background: none;
         border: none;
         padding: 0;
-        text-align: left;
+        text-align: start;
         cursor: pointer;
         color: var(--color-text);
         font: inherit;

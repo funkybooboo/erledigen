@@ -167,7 +167,9 @@
         flex-direction: column;
     }
 
+    /* Logical inset: sub-tasks indent toward the reading start, so an
+       RTL locale mirrors the whole hierarchy (USE-15). */
     .task-row-wrapper.sub-task {
-        margin-left: 24px;
+        margin-inline-start: 24px;
     }
 </style>

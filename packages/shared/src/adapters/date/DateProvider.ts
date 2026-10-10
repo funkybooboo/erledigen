@@ -9,8 +9,22 @@
  * - Swapping date libraries (date-fns, dayjs, luxon) without changing business logic
  * - Consistent date handling across client and server
  * - Timezone override support via setTimeZone()
+ * - Locale-aware DISPLAY with a fixed, locale-neutral STORAGE format (v0.13.0,
+ *   USE-15): setLocale() localizes formatDate/formatTime/formatDateTime/
+ *   formatDateParts; every date KEY stays Gregorian ASCII yyyy-MM-dd no
+ *   matter the locale (never run today()/dateFromTimestamp() through a
+ *   locale-formatted calendar)
  */
 export interface DateProvider {
+    /** The active DISPLAY locale (BCP 47; 'en' by default).
+     *  Display methods localize against it. */
+    readonly locale: string;
+
+    /**
+     * Switch the display locale. Unknown/empty ids fall back to 'en'.
+     * Storage formats (today(), dateFromTimestamp()) are immune.
+     */
+    setLocale(locale: string): void;
     /**
      * Get today's date in ISO 8601 format (YYYY-MM-DD), in the effective zone
      */

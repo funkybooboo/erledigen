@@ -16,6 +16,12 @@ test.describe('app shell & navigation', () => {
         // exposes ordinary nav/main landmarks instead.
         await expect(page.locator('nav[aria-label="App navigation"]')).toBeVisible();
         await expect(page.locator('main#main-content')).toBeVisible();
+
+        // The persisted locale lands on <html> once preferences load
+        // (v0.13.0 i18n): lang and script direction for screen readers
+        // and RTL layout alike.
+        await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+        await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
     });
 
     test('renders the icon rail with all 11 navigation items', async ({ page }) => {

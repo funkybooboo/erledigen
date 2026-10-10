@@ -436,7 +436,7 @@
         padding: 0;
         color: inherit;
         font: inherit;
-        text-align: left;
+        text-align: start;
         cursor: pointer;
     }
 

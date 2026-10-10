@@ -229,7 +229,7 @@
         color: var(--color-text-secondary);
         height: 12px;
         line-height: 12px;
-        text-align: right;
+        text-align: end;
         width: 22px;
     }
 

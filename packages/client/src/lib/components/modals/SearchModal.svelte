@@ -488,7 +488,7 @@
         border: none;
         border-radius: 6px;
         cursor: pointer;
-        text-align: left;
+        text-align: start;
         color: var(--color-text);
         font-size: 14px;
         transition: background-color 0.1s;
@@ -545,7 +545,7 @@
         align-items: center;
         gap: 4px;
         flex-shrink: 0;
-        margin-left: auto;
+        margin-inline-start: auto;
         padding: 1px 8px;
         border-radius: 999px;
         background: var(--color-accent-light);

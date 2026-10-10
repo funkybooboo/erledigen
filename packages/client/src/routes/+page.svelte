@@ -33,7 +33,7 @@
     }
 
     .error button {
-        margin-left: 12px;
+        margin-inline-start: 12px;
         padding: 4px 12px;
         background: var(--color-accent);
         color: var(--color-on-accent);

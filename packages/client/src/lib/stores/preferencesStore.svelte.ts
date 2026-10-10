@@ -148,11 +148,12 @@ class PreferencesStore {
             this.timezone = prefs.timezone ?? null;
             this.updatedAt = prefs.updatedAt;
             container.setDateProviderTimeZone(this.timezone);
-            // Activate the persisted locale (USE-14): adapter + <html
-            // lang/dir> through the i18n store; date display follows in
-            // USE-15's provider locale.
+            // Activate the persisted locale (USE-14/15): messages through
+            // the i18n store (adapter + <html lang/dir>), date display
+            // through the provider's locale.
             i18nStore.apply(prefs.locale);
             this.locale = container.i18n.locale;
+            container.setDateProviderLocale(this.locale);
             this.loaded = true;
             if (!this.persistActiveFilters) {
                 // Fresh start (USE-7): every session opens with no filters.
@@ -208,11 +209,13 @@ class PreferencesStore {
 
     /** Switch the interface language (USE-14). Unknown ids (a locale
      *  without a shipped message file) fall back to the default inside
-     *  the i18n store's apply(); only ids the adapter knows persist. */
+     *  the i18n store's apply(); only ids the adapter knows persist.
+     *  Date display follows through the provider's locale (USE-15). */
     setLocale(locale: string) {
         i18nStore.apply(locale);
         if (this.locale !== container.i18n.locale) {
             this.locale = container.i18n.locale;
+            container.setDateProviderLocale(this.locale);
             void this.save({ locale: this.locale });
         }
     }

@@ -419,7 +419,7 @@
         width: 24px;
         min-width: 24px;
         background: var(--color-surface);
-        border-left: 1px solid var(--color-border);
+        border-inline-start: 1px solid var(--color-border);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -480,7 +480,7 @@
         .someday-panel {
             position: fixed;
             top: 0;
-            right: 0;
+            inset-inline-end: 0;
             bottom: 40px;
             width: min(85vw, 400px);
             min-width: 0;
@@ -496,7 +496,7 @@
     .resize-handle {
         position: absolute;
         top: 0;
-        left: -3px;
+        inset-inline-start: -3px;
         width: 6px;
         height: 100%;
         cursor: col-resize;
@@ -516,7 +516,7 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        border-left: 1px solid var(--color-border);
+        border-inline-start: 1px solid var(--color-border);
     }
 
     .panel-header {

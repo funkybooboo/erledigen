@@ -234,7 +234,7 @@
     .tag-remove {
         font-size: 14px;
         line-height: 1;
-        margin-left: 2px;
+        margin-inline-start: 2px;
     }
 
     .tag-input-row {
@@ -301,7 +301,7 @@
     .suggestion-item {
         display: block;
         width: 100%;
-        text-align: left;
+        text-align: start;
         background: none;
         border: none;
         padding: 6px 10px;

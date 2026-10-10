@@ -49,7 +49,7 @@
     .notification-container {
         position: fixed;
         bottom: 48px;
-        right: 16px;
+        inset-inline-end: 16px;
         z-index: 300;
         display: flex;
         flex-direction: column-reverse;
@@ -80,19 +80,19 @@
     }
 
     .notification--success {
-        border-left: 3px solid var(--color-success);
+        border-inline-start: 3px solid var(--color-success);
     }
 
     .notification--warning {
-        border-left: 3px solid var(--color-warning);
+        border-inline-start: 3px solid var(--color-warning);
     }
 
     .notification--error {
-        border-left: 3px solid var(--color-danger);
+        border-inline-start: 3px solid var(--color-danger);
     }
 
     .notification--info {
-        border-left: 3px solid var(--color-accent);
+        border-inline-start: 3px solid var(--color-accent);
     }
 
     .notification-icon {

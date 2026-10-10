@@ -164,7 +164,7 @@
     .skip-link {
         position: absolute;
         top: -40px;
-        left: 0;
+        inset-inline-start: 0;
         background: var(--color-accent);
         color: var(--color-on-accent);
         padding: 8px 16px;
