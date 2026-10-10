@@ -58,7 +58,7 @@
         padding: 8px 0;
         border-bottom: 1px solid var(--color-border);
         color: var(--color-text);
-        text-align: left;
+        text-align: start;
         font-family: inherit;
         font-variant-numeric: tabular-nums;
     }
@@ -74,7 +74,7 @@
         line-height: 1;
         width: 32px;
         flex-shrink: 0;
-        text-align: right;
+        text-align: end;
         letter-spacing: -0.5px;
     }
 
@@ -110,7 +110,7 @@
 
     /* Stats pushed to the far right, always visible. */
     .section-stats {
-        margin-left: auto;
+        margin-inline-start: auto;
         font-weight: 400;
         font-size: 12px;
         color: var(--color-text-secondary);

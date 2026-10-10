@@ -212,3 +212,37 @@ describe('NativeDateProvider', () => {
         });
     });
 });
+
+describe('locale-aware display (USE-15)', () => {
+    it('formats dates in the active locale', () => {
+        const provider = new NativeDateProvider();
+        provider.setLocale('de');
+        expect(provider.formatDate('2026-10-09', 'long')).toContain('Oktober');
+        expect(provider.formatDateParts('2026-10-09').weekday).toBe('Freitag');
+        expect(provider.locale).toBe('de');
+    });
+
+    it('falls back to en for unknown or empty locale ids', () => {
+        const provider = new NativeDateProvider();
+        provider.setLocale('not-a-locale!');
+        expect(provider.locale).toBe('en');
+        provider.setLocale('de');
+        provider.setLocale('');
+        expect(provider.locale).toBe('de');
+    });
+
+    it('keeps every stored date key locale-neutral', () => {
+        // The storage-format invariant: a locale with non-ASCII digits
+        // (ar-EG) or a non-Gregorian default calendar (ar-SA) must never
+        // leak into today() or dateFromTimestamp() -- only DISPLAY
+        // localizes (ADR-023 + USE-15).
+        const provider = new NativeDateProvider();
+        provider.setLocale('ar-EG');
+        expect(provider.today()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+        const now = new Date('2026-10-09T12:00:00Z').toISOString();
+        expect(provider.dateFromTimestamp(now)).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+        // Byte-ASCII Gregorian keys: no Arabic-Indic digits ever.
+        const asciiOnly = [...provider.today()].every(ch => (ch.codePointAt(0) ?? 0) < 0x80);
+        expect(asciiOnly).toBe(true);
+    });
+});

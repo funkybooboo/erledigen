@@ -92,6 +92,15 @@ export class Container {
         this.dateProvider.setTimeZone(timeZone);
     }
 
+    /**
+     * Set the date provider's DISPLAY locale (USE-15): date/time labels
+     * localize; storage formats stay fixed. Called on the same path as
+     * the i18n store's apply (preferences load / language change).
+     */
+    setDateProviderLocale(locale: string): void {
+        this.dateProvider.setLocale(locale);
+    }
+
     setClientId(clientId: string | null): void {
         const http = this.httpClient;
         if (clientId) {

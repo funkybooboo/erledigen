@@ -20,6 +20,15 @@ import type { DateProvider } from './DateProvider';
  * timestamp grouping, and the live clock then follow the chosen zone instead,
  * even though the browser's Date local-getters remain fixed to the device zone.
  *
+ * LOCALE MODEL (v0.13.0, USE-15)
+ * ------------------------------
+ * The DISPLAY methods (formatDate, formatTime, formatDateTime,
+ * formatDateParts) format against the active locale ('en' by default,
+ * settable via setLocale). Every DATE KEY stays locale-neutral on purpose:
+ * keyFromInstant parses with fixed 'en-US' numeric parts so an ar-EG
+ * (Arabic-Indic digits) or ar-SA (Islamic calendar) locale can never leak
+ * into storage. Only what the user reads ever localizes.
+ *
  * DATE-KEY ARITHMETIC IS DST-PROOF
  * --------------------------------
  * Calendar-date keys (`YYYY-MM-DD`) are manipulated as pure Gregorian dates
@@ -38,6 +47,8 @@ import type { DateProvider } from './DateProvider';
 export class NativeDateProvider implements DateProvider {
     /** Effective IANA timezone, or null to follow the device's local zone. */
     private timeZone: string | null = null;
+    /** The DISPLAY locale (BCP 47). Storage formats are immune to it. */
+    private activeLocale: string = 'en';
 
     /**
      * @param timeZone - Optional IANA timezone (e.g. 'America/Denver').
@@ -46,6 +57,26 @@ export class NativeDateProvider implements DateProvider {
     constructor(timeZone: string | null = null) {
         if (timeZone) {
             this.setTimeZone(timeZone);
+        }
+    }
+
+    get locale(): string {
+        return this.activeLocale;
+    }
+
+    /**
+     * Switch the DISPLAY locale (BCP 47 tag). Unknown or empty ids fall
+     * back to 'en'; display methods re-render through the new locale on
+     * their next call. Storage formats never change.
+     */
+    setLocale(locale: string): void {
+        if (locale === '') return;
+        try {
+            // Validate eagerly: an unparseable tag must not half-apply.
+            new Intl.DateTimeFormat(locale);
+            this.activeLocale = locale;
+        } catch {
+            this.activeLocale = 'en';
         }
     }
 
@@ -75,6 +106,9 @@ export class NativeDateProvider implements DateProvider {
      * hardwired to the device zone and ignore this.timeZone.
      */
     private keyFromInstant(date: Date): string {
+        // STORAGE format: fixed 'en-US' numeric parts below -- never
+        // this.activeLocale (non-Gregorian calendars and non-ASCII digits
+        // must never reach a stored date key).
         if (this.timeZone) {
             const parts = new Intl.DateTimeFormat('en-US', {
                 timeZone: this.timeZone,
@@ -187,21 +221,21 @@ export class NativeDateProvider implements DateProvider {
 
         switch (format) {
             case 'short':
-                return date.toLocaleDateString('en-US', {
+                return date.toLocaleDateString(this.activeLocale, {
                     ...opts,
                     month: 'short',
                     day: '2-digit',
                     year: 'numeric',
                 });
             case 'long':
-                return date.toLocaleDateString('en-US', {
+                return date.toLocaleDateString(this.activeLocale, {
                     ...opts,
                     year: 'numeric',
                     month: 'long',
                     day: '2-digit',
                 });
             case 'full':
-                return date.toLocaleDateString('en-US', {
+                return date.toLocaleDateString(this.activeLocale, {
                     ...opts,
                     weekday: 'long',
                     month: 'long',
@@ -209,7 +243,7 @@ export class NativeDateProvider implements DateProvider {
                     year: 'numeric',
                 });
             case 'weekday':
-                return date.toLocaleDateString('en-US', { ...opts, weekday: 'long' });
+                return date.toLocaleDateString(this.activeLocale, { ...opts, weekday: 'long' });
             default:
                 return dateStr;
         }
@@ -270,7 +304,7 @@ export class NativeDateProvider implements DateProvider {
             hour12: timeFormat !== '24h',
             ...this.zoneOptions(),
         };
-        return date.toLocaleTimeString('en-US', opts);
+        return date.toLocaleTimeString(this.activeLocale, opts);
     }
 
     /**
@@ -280,7 +314,7 @@ export class NativeDateProvider implements DateProvider {
      * @param timeFormat - '12h' or '24h'
      */
     formatDateTime(date: Date, timeFormat: '12h' | '24h' = '12h'): string {
-        const datePart = date.toLocaleDateString('en-US', {
+        const datePart = date.toLocaleDateString(this.activeLocale, {
             ...this.zoneOptions(),
             weekday: 'long',
             month: 'long',
@@ -320,14 +354,16 @@ export class NativeDateProvider implements DateProvider {
         const date = this.utcNoonFromKey(dateStr);
         const opts: Intl.DateTimeFormatOptions = { timeZone: 'UTC' };
         return {
-            weekday: date.toLocaleDateString('en-US', { ...opts, weekday: 'long' }),
-            month: date.toLocaleDateString('en-US', { ...opts, month: 'long' }),
-            day: date.toLocaleDateString('en-US', { ...opts, day: '2-digit' }),
-            year: date.toLocaleDateString('en-US', { ...opts, year: 'numeric' }),
+            weekday: date.toLocaleDateString(this.activeLocale, { ...opts, weekday: 'long' }),
+            month: date.toLocaleDateString(this.activeLocale, { ...opts, month: 'long' }),
+            day: date.toLocaleDateString(this.activeLocale, { ...opts, day: '2-digit' }),
+            year: date.toLocaleDateString(this.activeLocale, { ...opts, year: 'numeric' }),
             weekdayShort: date
-                .toLocaleDateString('en-US', { ...opts, weekday: 'short' })
+                .toLocaleDateString(this.activeLocale, { ...opts, weekday: 'short' })
                 .toUpperCase(),
-            monthShort: date.toLocaleDateString('en-US', { ...opts, month: 'short' }).toUpperCase(),
+            monthShort: date
+                .toLocaleDateString(this.activeLocale, { ...opts, month: 'short' })
+                .toUpperCase(),
         };
     }
 

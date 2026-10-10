@@ -298,7 +298,7 @@
         overflow-y: auto;
         overflow-x: hidden;
         background: var(--color-surface-dim);
-        border-right: 1px solid var(--color-border);
+        border-inline-end: 1px solid var(--color-border);
         padding: 6px 0;
         scrollbar-width: thin;
         position: relative;
@@ -323,7 +323,7 @@
         padding: 6px 8px 2px 8px;
         border-top: 1px solid var(--color-border);
         margin-top: 2px;
-        text-align: left;
+        text-align: start;
     }
 
     .month-row {

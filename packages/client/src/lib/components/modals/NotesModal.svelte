@@ -230,7 +230,7 @@
     }
 
     .entry.sub-task {
-        margin-left: 16px;
+        margin-inline-start: 16px;
     }
 
     .day-note-entry {

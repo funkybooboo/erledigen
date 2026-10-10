@@ -1320,7 +1320,7 @@
     .tag-actions {
         display: flex;
         gap: 2px;
-        margin-left: auto;
+        margin-inline-start: auto;
         flex-shrink: 0;
     }
 
@@ -1467,7 +1467,7 @@
 
     .import-warnings {
         margin: 4px 0 0;
-        padding-left: 18px;
+        padding-inline-start: 18px;
         font-size: 12px;
         color: var(--color-text-secondary);
     }

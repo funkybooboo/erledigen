@@ -148,7 +148,7 @@
         display: inline-flex;
         align-items: center;
         gap: 5px;
-        margin-left: 1px;
+        margin-inline-start: 1px;
         padding: 2px 6px 2px 1px;
         border: none;
         border-radius: 6px;

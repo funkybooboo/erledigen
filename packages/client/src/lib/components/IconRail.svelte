@@ -65,7 +65,7 @@
         width: 64px;
         min-width: 64px;
         background: var(--color-surface);
-        border-right: 1px solid var(--color-border);
+        border-inline-end: 1px solid var(--color-border);
         padding: 8px 0;
         gap: 4px;
         overflow-y: auto;
