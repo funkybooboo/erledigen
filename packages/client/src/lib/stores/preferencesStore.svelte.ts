@@ -20,6 +20,7 @@ import {
     USER_PREFERENCES_DEFAULTS,
 } from '@erledigen/shared';
 import { container } from '$lib/container';
+import { i18nStore } from '$lib/i18n/i18nStore.svelte';
 import {
     applyShortcutOverrides,
     SHORTCUTS,
@@ -147,6 +148,11 @@ class PreferencesStore {
             this.timezone = prefs.timezone ?? null;
             this.updatedAt = prefs.updatedAt;
             container.setDateProviderTimeZone(this.timezone);
+            // Activate the persisted locale (USE-14): adapter + <html
+            // lang/dir> through the i18n store; date display follows in
+            // USE-15's provider locale.
+            i18nStore.apply(prefs.locale);
+            this.locale = container.i18n.locale;
             this.loaded = true;
             if (!this.persistActiveFilters) {
                 // Fresh start (USE-7): every session opens with no filters.
@@ -198,6 +204,17 @@ class PreferencesStore {
 
     setTheme(theme: ThemeType) {
         void this.save({ theme });
+    }
+
+    /** Switch the interface language (USE-14). Unknown ids (a locale
+     *  without a shipped message file) fall back to the default inside
+     *  the i18n store's apply(); only ids the adapter knows persist. */
+    setLocale(locale: string) {
+        i18nStore.apply(locale);
+        if (this.locale !== container.i18n.locale) {
+            this.locale = container.i18n.locale;
+            void this.save({ locale: this.locale });
+        }
     }
 
     setAccent(accent: AccentSchemeId) {

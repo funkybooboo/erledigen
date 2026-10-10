@@ -1,5 +1,7 @@
 <script lang="ts">
     import { Icon } from 'svelte-icons-pack';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import type { TranslationKey } from '$lib/i18n/locales';
     import { LuLock, LuX } from 'svelte-icons-pack/lu';
     import { container } from '$lib/container';
     import { dragStore, projectStore, taskStore, uiStore } from '$lib/stores';
@@ -39,11 +41,20 @@
     let done = $derived(topLevel.filter(t => t.completed));
 
     const columns = [
-        { id: 'ready', title: 'Ready' },
-        { id: 'scheduled', title: 'Scheduled' },
-        { id: 'done', title: 'Done' },
+        { id: 'ready', titleKey: 'kanban.ready' },
+        { id: 'scheduled', titleKey: 'kanban.scheduled' },
+        { id: 'done', titleKey: 'kanban.done' },
     ] as const;
     type ColumnId = (typeof columns)[number]['id'];
+
+    /** Locale key for a card's accessible name: one template per
+     *  date/completed combination (no string concatenation in aria). */
+    function cardAriaKey(task: Task): TranslationKey {
+        if (task.date !== null && task.completed) return 'kanban.cardAriaScheduledCompleted';
+        if (task.date !== null) return 'kanban.cardAriaScheduled';
+        if (task.completed) return 'kanban.cardAriaCompleted';
+        return 'kanban.cardAria';
+    }
 
     function columnTasks(id: ColumnId): Task[] {
         return id === 'ready' ? ready : id === 'scheduled' ? scheduled : done;
@@ -198,29 +209,29 @@
     <div class="kanban-toolbar">
         <span class="kanban-hint">
             {scheduledDropDate === today
-                ? 'Drops into Scheduled land on today'
-                : `Drops into Scheduled land on ${scheduledDropDate}`}
+                ? i18nStore.t('kanban.dropToday')
+                : i18nStore.t('kanban.dropDate', { date: scheduledDropDate })}
         </span>
         <div class="kanban-actions">
             {#if preview !== null}
                 <button class="btn btn-primary" onclick={confirmAutoDistribute} disabled={applying || preview.length === 0}>
-                    {applying ? 'Applying...' : `Schedule ${preview.length}`}
+                    {applying ? i18nStore.t('kanban.applying') : i18nStore.t('kanban.apply', { count: preview.length })}
                 </button>
                 <button class="btn btn-secondary" onclick={cancelPreview} disabled={applying}>
-                    Cancel
+                    {i18nStore.t('common.cancel')}
                 </button>
             {:else}
                 <button
                     class="btn btn-secondary"
                     onclick={startPreview}
                     disabled={distributionPlan.length === 0}
-                    aria-label="Preview auto-distribution of unscheduled tasks"
+                    aria-label={i18nStore.t('kanban.autoDistributeAria')}
                 >
-                    Auto-distribute
+                    {i18nStore.t('kanban.autoDistribute')}
                 </button>
                 {#if !project.isActive}
                     <button class="btn btn-primary" onclick={activateAndDistribute} disabled={applying}>
-                        Activate
+                        {i18nStore.t('kanban.activate')}
                     </button>
                 {/if}
             {/if}
@@ -228,11 +239,9 @@
     </div>
 
     {#if preview !== null}
-        <div class="distribution-preview" aria-label="Distribution preview">
+        <div class="distribution-preview" aria-label={i18nStore.t('kanban.previewAria')}>
             {#if preview.length === 0}
-                <p class="empty-small">
-                    Nothing to schedule -- no unscheduled tasks, or the due date has passed.
-                </p>
+                <p class="empty-small">{i18nStore.t('kanban.previewEmpty')}</p>
             {:else}
                 <ul class="preview-list">
                     {#each preview as assignment (assignment.taskId)}
@@ -253,13 +262,13 @@
             <section
                 class="kanban-column"
                 class:drop-target={isOver(column.id)}
-                aria-label="{column.title} column"
+                aria-label={i18nStore.t('kanban.columnAria', { title: i18nStore.t(column.titleKey) })}
                 ondragover={(e: DragEvent) => columnDragOver(column.id, e)}
                 ondragleave={(e: DragEvent) => columnDragLeave(column.id, e)}
                 ondrop={(e: DragEvent) => void columnDrop(column.id, e)}
             >
                 <h4 class="kanban-column-heading">
-                    {column.title}
+                    {i18nStore.t(column.titleKey)}
                     <span class="kanban-count">{columnTasks(column.id).length}</span>
                 </h4>
                 <ul class="kanban-cards" role="list">
@@ -271,7 +280,10 @@
                                 class:dragging={dragStore.isDragging(task.id)}
                                 draggable="true"
                                 role="listitem"
-                                aria-label="{task.text}{task.date ? `, scheduled ${task.date}` : ''}{task.completed ? ', done' : ''}"
+                                aria-label={i18nStore.t(cardAriaKey(task), {
+                                    text: task.text,
+                                    date: task.date ?? '',
+                                })}
                                 ondragstart={(e: DragEvent) => cardDragStart(task, e)}
                             >
                                 <span class="card-text">{task.text}</span>
@@ -281,7 +293,7 @@
                                         type="date"
                                         value={task.date}
                                         onchange={(e: Event) => setDate(task, e)}
-                                        aria-label="Date for {task.text}"
+                                        aria-label={i18nStore.t('kanban.dateAria', { text: task.text })}
                                     />
                                 {/if}
                                 {#if column.id !== 'done'}
@@ -289,8 +301,8 @@
                                         class="icon-btn small lock-btn"
                                         class:blocked={blockerOf(task) !== null}
                                         onclick={() => toggleBlockedPicker(task)}
-                                        title={blockerOf(task) ? `Blocked by ${blockerOf(task)?.text}` : 'Set blocked-by'}
-                                        aria-label="Set blocked-by for {task.text}"
+                                        title={blockerOf(task) ? i18nStore.t('kanban.blockedByTitle', { text: blockerOf(task)?.text ?? '' }) : i18nStore.t('kanban.setBlockedBy')}
+                                        aria-label={i18nStore.t('kanban.setBlockedFor', { text: task.text })}
                                     >
                                         <Icon src={LuLock} />
                                     </button>
@@ -300,12 +312,12 @@
                                 <div class="blocked-picker">
                                     <select
                                         class="select"
-                                        aria-label="Blocked by"
+                                        aria-label={i18nStore.t('kanban.blockedByAria')}
                                         value={task.dependsOn ?? ''}
                                         onchange={(e: Event) =>
                                             setBlocker(task, (e.currentTarget as HTMLSelectElement).value)}
                                     >
-                                        <option value="">(not blocked)</option>
+                                        <option value="">{i18nStore.t('kanban.notBlocked')}</option>
                                         {#each blockerCandidates(task) as candidate (candidate.id)}
                                             <option value={candidate.id}>{candidate.text}</option>
                                         {/each}
@@ -313,13 +325,13 @@
                                     <button
                                         class="icon-btn small"
                                         onclick={() => (blockedPickerFor = null)}
-                                        aria-label="Close blocked-by picker"
+                                        aria-label={i18nStore.t('kanban.closePicker')}
                                     >
                                         <Icon src={LuX} />
                                     </button>
                                     {#if blockerOf(task)}
                                         <span class="blocked-by-hint">
-                                            blocked by {blockerOf(task)?.text}
+                                            {i18nStore.t('kanban.blockedByHint', { text: blockerOf(task)?.text ?? '' })}
                                         </span>
                                     {/if}
                                 </div>

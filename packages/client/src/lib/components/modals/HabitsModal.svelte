@@ -27,7 +27,24 @@
         type RecurringTask,
     } from '@erledigen/shared';
     import { container } from '$lib/container';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import { recurrencePhrases } from '$lib/i18n/recurrencePhrases';
     import { onMount } from 'svelte';
+
+    /** Localized recurrence descriptions (schedule sentences from the
+     *  locale file, weekday names via Intl). */
+    function describe(habit: RecurringTask): string {
+        return describeRecurrence(
+            {
+                frequency: habit.frequency,
+                interval: habit.interval,
+                daysOfWeek: habit.daysOfWeek,
+                dayOfMonth: habit.dayOfMonth,
+                startTime: habit.startTime,
+            },
+            recurrencePhrases(),
+        );
+    }
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
@@ -167,7 +184,7 @@
         if (!result) {
             // The form stays open with its contents; say why (USE-12:
             // errors are announced, not just silently dropped).
-            notificationStore.push('Could not save the habit', { kind: 'error' });
+            notificationStore.push(i18nStore.t('habits.saveFailed'), { kind: 'error' });
             return;
         }
 
@@ -184,13 +201,13 @@
 
     async function deleteHabit(habit: RecurringTask) {
         if (preferencesStore.deleteConfirmation === 'confirm') {
-            if (!(await uiStore.confirm(`Delete habit "${habit.text}"?`))) return;
+            if (!(await uiStore.confirm(i18nStore.t('habits.deleteConfirm', { name: habit.text })))) return;
         }
         await recurringTaskStore.remove(habit.id);
         // If the deleted habit is open in the detail view, fall back to
         // the list (the derived selectedHabit already went null).
         if (habit.id === selectedHabitId) closeDetail();
-        notificationStore.push('Habit deleted -- existing instances are kept', {
+        notificationStore.push(i18nStore.t('habits.deleted'), {
             kind: 'info',
         });
     }
@@ -237,11 +254,11 @@
     );
 </script>
 
-<Modal title="Habits" onclose={onclose}>
+<Modal title={i18nStore.t('modal.habits')} onclose={onclose}>
     <div class="habits">
         <div class="list-header">
-            <h3>Recurring Tasks</h3>
-            <button class="icon-btn" onclick={startNew} aria-label="New habit">
+            <h3>{i18nStore.t('habits.recurringTasks')}</h3>
+            <button class="icon-btn" onclick={startNew} aria-label={i18nStore.t('habits.new')}>
                 <Icon src={LuPlus} />
             </button>
         </div>
@@ -253,9 +270,9 @@
                     <input
                         type="text"
                         bind:value={form.text}
-                        placeholder="Habit name (e.g. Water plants every friday at 9am)"
+                        placeholder={i18nStore.t('habits.namePlaceholder')}
                         onkeydown={handleFormKeydown}
-                        aria-label="Habit name"
+                        aria-label={i18nStore.t('habits.nameAria')}
                     />
                     {#if parsed}
                         <RecurrenceHint {parsed} />
@@ -269,43 +286,43 @@
                     bind:startTime={form.startTime}
                 />
                 <div class="form-row">
-                    <label for="habit-start">Start date</label>
+                    <label for="habit-start">{i18nStore.t('habits.startDate')}</label>
                     <input type="date" id="habit-start" bind:value={form.startDate} />
-                    <label for="habit-end" class="inline-label">End date</label>
+                    <label for="habit-end" class="inline-label">{i18nStore.t('habits.endDate')}</label>
                     <input type="date" id="habit-end" bind:value={form.endDate} />
                 </div>
                 <div class="form-row">
                     <label class="checkbox-label" for="habit-rollover">
                         <input type="checkbox" id="habit-rollover" bind:checked={form.rolloverEnabled} />
-                        Rollover incomplete instances
+                        {i18nStore.t('habits.rolloverInstances')}
                     </label>
                 </div>
                 <div class="form-actions">
                     <button class="btn btn-primary" onclick={saveHabit} disabled={!form.text.trim() || saving}>
-                        {saving ? 'Saving...' : (editingHabitId ? 'Save' : 'Create')}
+                        {saving ? i18nStore.t('habits.saving') : (editingHabitId ? i18nStore.t('habits.save') : i18nStore.t('habits.create'))}
                     </button>
-                    <button class="btn btn-secondary" onclick={closeForm}>Cancel</button>
+                    <button class="btn btn-secondary" onclick={closeForm}>{i18nStore.t('common.cancel')}</button>
                 </div>
             </div>
         {/if}
 
         {#if recurringTaskStore.habits.length > 0}
             {#each recurringTaskStore.habits as habit (habit.id)}
-                <div class="habit-card" aria-label="{habit.text}, {describeRecurrence(habit)}">
+                <div class="habit-card" aria-label={i18nStore.t('habits.cardAria', { name: habit.text, schedule: describe(habit) })}>
                     <div class="card-top">
                         <button
                             class="habit-name"
                             onclick={() => openDetail(habit)}
-                            aria-label="View habit detail and heatmap for {habit.text}"
+                            aria-label={i18nStore.t('habits.viewDetail', { name: habit.text })}
                         >
                             {habit.text}
-                            <span class="habit-freq">{describeRecurrence(habit)}</span>
+                            <span class="habit-freq">{describe(habit)}</span>
                         </button>
                         <div class="card-actions">
-                            <button class="icon-btn small" onclick={() => startEdit(habit)} aria-label="Edit habit">
+                            <button class="icon-btn small" onclick={() => startEdit(habit)} aria-label={i18nStore.t('habits.edit')}>
                                 <Icon src={LuPencil} />
                             </button>
-                            <button class="icon-btn small danger" onclick={() => deleteHabit(habit)} aria-label="Delete habit">
+                            <button class="icon-btn small danger" onclick={() => deleteHabit(habit)} aria-label={i18nStore.t('habits.delete')}>
                                 <Icon src={LuTrash2} />
                             </button>
                         </div>
@@ -318,12 +335,12 @@
                         </div>
                     {/if}
                     <div class="habit-meta">
-                        <span>Starts: {habit.startDate}</span>
+                        <span>{i18nStore.t('habits.starts', { date: habit.startDate })}</span>
                         {#if habit.endDate}
-                            <span>Ends: {habit.endDate}</span>
+                            <span>{i18nStore.t('habits.ends', { date: habit.endDate })}</span>
                         {/if}
                         {#if habit.rolloverEnabled}
-                            <span>Rollover</span>
+                            <span>{i18nStore.t('habits.rollover')}</span>
                         {/if}
                     </div>
                     <div class="habit-streak">
@@ -332,26 +349,23 @@
                                 <Icon src={LuFlame} />
                                 {streakLabel(habit.id)}
                             </span>
-                            <span class="meta-stat">{getInstanceCount(habit.id)} instance{getInstanceCount(habit.id) !== 1 ? 's' : ''}</span>
+                            <span class="meta-stat">{i18nStore.t('habits.instances', { count: getInstanceCount(habit.id) })}</span>
                             {@const stats = recurringTaskStore.stats.get(habit.id)}
                             {#if stats}
-                                <span class="meta-stat">best {stats.longestStreak}</span>
-                                <span class="meta-stat">{stats.totalCompletions} done</span>
+                                <span class="meta-stat">{i18nStore.t('habits.best', { count: stats.longestStreak })}</span>
+                                <span class="meta-stat">{i18nStore.t('habits.doneCount', { count: stats.totalCompletions })}</span>
                                 {#if stats.lastCompletedDate}
-                                    <span class="meta-stat">last {stats.lastCompletedDate}</span>
+                                    <span class="meta-stat">{i18nStore.t('habits.lastDone', { date: stats.lastCompletedDate })}</span>
                                 {/if}
                             {/if}
                         {:else}
-                            <span class="streak-badge empty">No instances yet</span>
+                            <span class="streak-badge empty">{i18nStore.t('habits.noInstances')}</span>
                         {/if}
                     </div>
                 </div>
             {/each}
         {:else if !showForm}
-            <p class="empty">
-                No habits yet. Add a task that ends with a phrase like "every day" or "every
-                friday at 9am" -- or create one above.
-            </p>
+            <p class="empty">{i18nStore.t('habits.empty')}</p>
         {/if}
         {:else if selectedHabit}
             <div class="habit-detail" data-testid="habit-detail">
@@ -359,12 +373,12 @@
                     <button
                         class="icon-btn small"
                         onclick={closeDetail}
-                        aria-label="Back to habits list"
+                        aria-label={i18nStore.t('habits.backToList')}
                     >
                         <Icon src={LuArrowLeft} />
                     </button>
                     <span class="detail-title">{selectedHabit.text}</span>
-                    <span class="habit-freq">{describeRecurrence(selectedHabit)}</span>
+                    <span class="habit-freq">{describe(selectedHabit)}</span>
                 </div>
 
                 <div class="detail-stats">
@@ -373,10 +387,10 @@
                         {streakLabel(selectedHabit.id)}
                     </span>
                     {#if selectedStats}
-                        <span class="meta-stat">best {selectedStats.longestStreak}</span>
-                        <span class="meta-stat">{selectedStats.totalCompletions} done</span>
+                        <span class="meta-stat">{i18nStore.t('habits.best', { count: selectedStats.longestStreak })}</span>
+                        <span class="meta-stat">{i18nStore.t('habits.doneCount', { count: selectedStats.totalCompletions })}</span>
                         {#if selectedStats.lastCompletedDate}
-                            <span class="meta-stat">last {selectedStats.lastCompletedDate}</span>
+                            <span class="meta-stat">{i18nStore.t('habits.lastDone', { date: selectedStats.lastCompletedDate })}</span>
                         {/if}
                     {/if}
                 </div>
@@ -387,7 +401,7 @@
                         today={container.dateProvider.today()}
                     />
                 {:else}
-                    <p class="empty">Loading stats...</p>
+                    <p class="empty">{i18nStore.t('habits.loadingStats')}</p>
                 {/if}
             </div>
         {/if}

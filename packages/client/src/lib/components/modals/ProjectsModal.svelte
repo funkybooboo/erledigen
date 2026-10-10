@@ -5,6 +5,7 @@
     import { Icon } from 'svelte-icons-pack';
     import { LuPlus, LuPencil, LuTrash2, LuArrowLeft } from 'svelte-icons-pack/lu';
     import { onMount } from 'svelte';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
@@ -59,7 +60,7 @@
         } else {
             // A failed create must be heard, not just silently kept (the
             // form stays open either way).
-            notificationStore.push('Could not create the project', { kind: 'error' });
+            notificationStore.push(i18nStore.t('projects.createFailed'), { kind: 'error' });
         }
     }
 
@@ -105,7 +106,7 @@
         // delete -- but the message does not count tasks: deleting a
         // project leaves its tasks in place (they keep the project tag),
         // so there is nothing destructive beyond the project itself.
-        if (!(await uiStore.confirm(`Delete "${project.name}"?`))) return;
+        if (!(await uiStore.confirm(i18nStore.t('projects.deleteConfirm', { name: project.name })))) return;
         await projectStore.remove(id);
         if (selectedProjectId === id) {
             selectedProjectId = null;
@@ -121,23 +122,23 @@
     }
 </script>
 
-<Modal title="Projects" onclose={onclose}>
+<Modal title={i18nStore.t('modal.projects')} onclose={onclose}>
     {#if selectedProject}
         <div class="detail-view">
             <button class="back-btn" onclick={backToList}>
                 <Icon src={LuArrowLeft} />
-                <span>Back to list</span>
+                <span>{i18nStore.t('projects.backToList')}</span>
             </button>
 
             <div class="detail-header">
                 <h3 class="detail-name">{selectedProject.name}</h3>
                 <div class="detail-actions">
                     {#if editingProjectId !== selectedProject.id}
-                        <button class="icon-btn" onclick={() => startEdit(selectedProject!.id, selectedProject!.name, selectedProject!.description)} aria-label="Edit project">
+                        <button class="icon-btn" onclick={() => startEdit(selectedProject!.id, selectedProject!.name, selectedProject!.description)} aria-label={i18nStore.t('projects.editProject')}>
                             <Icon src={LuPencil} />
                         </button>
                     {/if}
-                    <button class="icon-btn danger" onclick={() => deleteProject(selectedProject!.id)} aria-label="Delete project">
+                    <button class="icon-btn danger" onclick={() => deleteProject(selectedProject!.id)} aria-label={i18nStore.t('projects.deleteProject')}>
                         <Icon src={LuTrash2} />
                     </button>
                 </div>
@@ -145,11 +146,11 @@
 
             {#if editingProjectId === selectedProject.id}
                 <div class="inline-form">
-                    <input type="text" bind:value={editName} placeholder="Project name" aria-label="Project name" onkeydown={handleEditKeydown} />
-                    <input type="text" bind:value={editDesc} placeholder="Description (optional)" aria-label="Project description" onkeydown={handleEditKeydown} />
+                    <input type="text" bind:value={editName} placeholder={i18nStore.t('projects.namePlaceholder')} aria-label={i18nStore.t('projects.nameAria')} onkeydown={handleEditKeydown} />
+                    <input type="text" bind:value={editDesc} placeholder={i18nStore.t('projects.descPlaceholder')} aria-label={i18nStore.t('projects.descAria')} onkeydown={handleEditKeydown} />
                     <div class="form-actions">
-                        <button class="btn btn-primary" onclick={saveEdit}>Save</button>
-                        <button class="btn btn-secondary" onclick={cancelEdit}>Cancel</button>
+                        <button class="btn btn-primary" onclick={saveEdit}>{i18nStore.t('projects.save')}</button>
+                        <button class="btn btn-secondary" onclick={cancelEdit}>{i18nStore.t('common.cancel')}</button>
                     </div>
                 </div>
             {:else}
@@ -158,53 +159,53 @@
                 {/if}
                 <div class="detail-meta">
                     {#if selectedProject.startDate}
-                        <span>Start: {selectedProject.startDate}</span>
+                        <span>{i18nStore.t('projects.start', { date: selectedProject.startDate })}</span>
                     {/if}
                     {#if selectedProject.dueDate}
-                        <span>Due: {selectedProject.dueDate}</span>
+                        <span>{i18nStore.t('projects.due', { date: selectedProject.dueDate })}</span>
                     {/if}
-                    <span>Status: {selectedProject.isActive ? 'Active' : 'Inactive'}</span>
+                    <span>{i18nStore.t('projects.status', { status: selectedProject.isActive ? i18nStore.t('projects.active') : i18nStore.t('projects.inactive') })}</span>
                 </div>
             {/if}
 
-            <section class="detail-kanban" aria-label="Kanban board">
-                <h4 class="modal-section-heading">Board</h4>
+            <section class="detail-kanban" aria-label={i18nStore.t('projects.boardAria')}>
+                <h4 class="modal-section-heading">{i18nStore.t('projects.board')}</h4>
                 <KanbanBoard project={selectedProject} tasks={projectTasks} />
             </section>
         </div>
     {:else}
         <div class="projects">
             <div class="list-header">
-                <h3>Projects</h3>
-                <button class="icon-btn" onclick={() => (showNewForm = true)} aria-label="New project">
+                <h3>{i18nStore.t('modal.projects')}</h3>
+                <button class="icon-btn" onclick={() => (showNewForm = true)} aria-label={i18nStore.t('projects.new')}>
                     <Icon src={LuPlus} />
                 </button>
             </div>
 
             {#if showNewForm}
                 <div class="inline-form">
-                    <input type="text" bind:value={newProjectName} placeholder="Project name" aria-label="Project name" onkeydown={handleNewKeydown} />
-                    <input type="text" bind:value={newProjectDesc} placeholder="Description (optional)" aria-label="Project description" onkeydown={handleNewKeydown} />
+                    <input type="text" bind:value={newProjectName} placeholder={i18nStore.t('projects.namePlaceholder')} aria-label={i18nStore.t('projects.nameAria')} onkeydown={handleNewKeydown} />
+                    <input type="text" bind:value={newProjectDesc} placeholder={i18nStore.t('projects.descPlaceholder')} aria-label={i18nStore.t('projects.descAria')} onkeydown={handleNewKeydown} />
                     <div class="form-actions">
                         <button class="btn btn-primary" onclick={createProject} disabled={!newProjectName.trim() || creating}>
-                            {creating ? 'Creating...' : 'Create'}
+                            {creating ? i18nStore.t('projects.creating') : i18nStore.t('projects.create')}
                         </button>
-                        <button class="btn btn-secondary" onclick={cancelNew}>Cancel</button>
+                        <button class="btn btn-secondary" onclick={cancelNew}>{i18nStore.t('common.cancel')}</button>
                     </div>
                 </div>
             {/if}
 
             {#if activeProjects.length > 0}
-                <section class="section" aria-label="Active projects">
-                    <h4 id="projects-active-heading" class="modal-section-heading">Active</h4>
+                <section class="section" aria-label={i18nStore.t('projects.activeSectionAria')}>
+                    <h4 id="projects-active-heading" class="modal-section-heading">{i18nStore.t('projects.activeHeading')}</h4>
                     {#each activeProjects as project (project.id)}
                         {#if editingProjectId === project.id}
                             <div class="project-card editing">
-                                <input type="text" bind:value={editName} placeholder="Project name" aria-label="Project name" onkeydown={handleEditKeydown} />
-                                <input type="text" bind:value={editDesc} placeholder="Description (optional)" aria-label="Project description" onkeydown={handleEditKeydown} />
+                                <input type="text" bind:value={editName} placeholder={i18nStore.t('projects.namePlaceholder')} aria-label={i18nStore.t('projects.nameAria')} onkeydown={handleEditKeydown} />
+                                <input type="text" bind:value={editDesc} placeholder={i18nStore.t('projects.descPlaceholder')} aria-label={i18nStore.t('projects.descAria')} onkeydown={handleEditKeydown} />
                                 <div class="form-actions">
-                                    <button class="btn btn-primary" onclick={saveEdit}>Save</button>
-                                    <button class="btn btn-secondary" onclick={cancelEdit}>Cancel</button>
+                                    <button class="btn btn-primary" onclick={saveEdit}>{i18nStore.t('projects.save')}</button>
+                                    <button class="btn btn-secondary" onclick={cancelEdit}>{i18nStore.t('common.cancel')}</button>
                                 </div>
                             </div>
                         {:else}
@@ -218,7 +219,7 @@
                                     <button
                                         class="card-open"
                                         onclick={() => selectProject(project.id)}
-                                        aria-label="Open project {project.name} (active)"
+                                        aria-label={i18nStore.t('projects.openActive', { name: project.name })}
                                     >
                                         <div class="project-name">{project.name}</div>
                                         {#if project.description}
@@ -226,19 +227,19 @@
                                         {/if}
                                         <div class="project-meta">
                                             {#if project.startDate}
-                                                <span>Start: {project.startDate}</span>
+                                                <span>{i18nStore.t('projects.start', { date: project.startDate })}</span>
                                             {/if}
                                             {#if project.dueDate}
-                                                <span>Due: {project.dueDate}</span>
+                                                <span>{i18nStore.t('projects.due', { date: project.dueDate })}</span>
                                             {/if}
-                                            <span class="task-count">{getTaskCount(project.tag)} task{getTaskCount(project.tag) !== 1 ? 's' : ''}</span>
+                                            <span class="task-count">{i18nStore.t('projects.taskCount', { count: getTaskCount(project.tag) })}</span>
                                         </div>
                                     </button>
                                     <div class="card-actions">
-                                        <button class="icon-btn small" onclick={() => startEdit(project.id, project.name, project.description)} aria-label="Edit project">
+                                        <button class="icon-btn small" onclick={() => startEdit(project.id, project.name, project.description)} aria-label={i18nStore.t('projects.editProject')}>
                                             <Icon src={LuPencil} />
                                         </button>
-<button class="icon-btn small danger" onclick={() => deleteProject(project.id)} aria-label="Delete project">
+<button class="icon-btn small danger" onclick={() => deleteProject(project.id)} aria-label={i18nStore.t('projects.deleteProject')}>
                                             <Icon src={LuTrash2} />
                                         </button>
                                     </div>
@@ -250,26 +251,26 @@
             {/if}
 
             {#if inactiveProjects.length > 0}
-                <section class="section" aria-label="Inactive projects">
-                    <h4 id="projects-inactive-heading" class="modal-section-heading">Inactive</h4>
+                <section class="section" aria-label={i18nStore.t('projects.inactiveSectionAria')}>
+                    <h4 id="projects-inactive-heading" class="modal-section-heading">{i18nStore.t('projects.inactiveHeading')}</h4>
                     {#each inactiveProjects as project (project.id)}
                         <div class="project-card inactive">
                             <div class="card-top">
                                 <button
                                     class="card-open"
                                     onclick={() => selectProject(project.id)}
-                                    aria-label="Open project {project.name} (inactive)"
+                                    aria-label={i18nStore.t('projects.openInactive', { name: project.name })}
                                 >
                                     <div class="project-name">{project.name}</div>
                                     {#if project.description}
                                         <div class="project-desc">{project.description}</div>
                                     {/if}
                                     <div class="project-meta">
-                                        <span class="task-count">{getTaskCount(project.tag)} task{getTaskCount(project.tag) !== 1 ? 's' : ''}</span>
+                                        <span class="task-count">{i18nStore.t('projects.taskCount', { count: getTaskCount(project.tag) })}</span>
                                     </div>
                                 </button>
                                 <div class="card-actions">
-                                    <button class="icon-btn small danger" onclick={() => deleteProject(project.id)} aria-label="Delete project">
+                                    <button class="icon-btn small danger" onclick={() => deleteProject(project.id)} aria-label={i18nStore.t('projects.deleteProject')}>
                                         <Icon src={LuTrash2} />
                                     </button>
                                 </div>
@@ -280,7 +281,7 @@
             {/if}
 
             {#if projectStore.projects.length === 0 && !showNewForm}
-                <p class="empty">No projects yet. Create one to organize your tasks.</p>
+                <p class="empty">{i18nStore.t('projects.empty')}</p>
             {/if}
         </div>
     {/if}

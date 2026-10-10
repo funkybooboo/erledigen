@@ -10,7 +10,9 @@
      * dates, and rollover: adopt derives the start from the task, and
      * rollover follows the task's existing setting.
      */
-    import { WEEKDAY_ABBREVIATIONS, type RecurringFrequency } from '@erledigen/shared';
+    import { type RecurringFrequency } from '@erledigen/shared';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import { weekdayShortName } from '$lib/i18n/recurrencePhrases';
 
     let {
         frequency = $bindable('daily'),
@@ -27,8 +29,6 @@
         startTime?: string;
     } = $props();
 
-    const DAY_NAMES = WEEKDAY_ABBREVIATIONS;
-
     /** Day chips apply to daily and weekly schedules. */
     const usesDaysOfWeek = $derived(frequency === 'daily' || frequency === 'weekly');
 
@@ -41,30 +41,30 @@
 
 <div class="schedule-form">
     <div class="form-row">
-        <label for="habit-frequency">Repeats</label>
+        <label for="habit-frequency">{i18nStore.t('schedule.repeats')}</label>
         <select id="habit-frequency" bind:value={frequency}>
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
-            <option value="yearly">Yearly</option>
+            <option value="daily">{i18nStore.t('schedule.daily')}</option>
+            <option value="weekly">{i18nStore.t('schedule.weekly')}</option>
+            <option value="monthly">{i18nStore.t('schedule.monthly')}</option>
+            <option value="yearly">{i18nStore.t('schedule.yearly')}</option>
         </select>
         {#if interval > 1 || frequency !== 'daily'}
-            <label for="habit-interval" class="inline-label">every</label>
+            <label for="habit-interval" class="inline-label">{i18nStore.t('schedule.every')}</label>
             <input
                 id="habit-interval"
                 type="number"
                 min="1"
                 max="365"
                 bind:value={interval}
-                aria-label="Interval"
+                aria-label={i18nStore.t('schedule.interval')}
             />
         {/if}
     </div>
     {#if usesDaysOfWeek}
         <div class="form-row">
-            <span class="chip-label">On days</span>
-            <div class="day-chips" role="group" aria-label="Days of week">
-                {#each DAY_NAMES as day, i (i)}
+            <span class="chip-label">{i18nStore.t('schedule.onDays')}</span>
+            <div class="day-chips" role="group" aria-label={i18nStore.t('schedule.daysOfWeekAria')}>
+                {#each Array(7) as _, i (i)}
                     <button
                         type="button"
                         class="day-chip"
@@ -72,18 +72,18 @@
                         onclick={() => toggleDay(i)}
                         aria-pressed={daysOfWeek.includes(i)}
                     >
-                        {day}
+                        {weekdayShortName(i)}
                     </button>
                 {/each}
             </div>
             {#if daysOfWeek.length === 0}
-                <span class="chip-hint">any day</span>
+                <span class="chip-hint">{i18nStore.t('schedule.anyDay')}</span>
             {/if}
         </div>
     {/if}
     {#if frequency === 'monthly'}
         <div class="form-row">
-            <label for="habit-day-of-month">On day of month</label>
+            <label for="habit-day-of-month">{i18nStore.t('schedule.onDayOfMonth')}</label>
             <input
                 id="habit-day-of-month"
                 type="number"
@@ -94,7 +94,7 @@
         </div>
     {/if}
     <div class="form-row">
-        <label for="habit-time">Time</label>
+        <label for="habit-time">{i18nStore.t('schedule.time')}</label>
         <input type="time" id="habit-time" bind:value={startTime} />
     </div>
 </div>

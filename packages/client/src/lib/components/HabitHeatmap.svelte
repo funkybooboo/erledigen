@@ -15,8 +15,10 @@
         monthKeyOf,
         splitKey,
         weekdayOf,
-        WEEKDAY_ABBREVIATIONS,
     } from '@erledigen/shared';
+    import { container } from '$lib/container';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import { weekdayShortName } from '$lib/i18n/recurrencePhrases';
 
     let {
         completedDates,
@@ -72,11 +74,13 @@
     }
 
     function monthAbbreviation(key: string): string {
-        const [, monthIndex] = splitKey(key);
-        return new Date(Date.UTC(2026, monthIndex, 1)).toLocaleString('en-US', {
+        // Month names against the ACTIVE LOCALE (USE-14): the hardcoded
+        // en-US call moved to Intl through the i18n adapter's locale.
+        const [year, monthIndex, day] = splitKey(key);
+        return new Intl.DateTimeFormat(container.i18n.locale, {
             month: 'short',
             timeZone: 'UTC',
-        });
+        }).format(new Date(Date.UTC(year, monthIndex, day)));
     }
 
     const columns = $derived.by(() => {
@@ -99,10 +103,13 @@
                     state,
                     title:
                         state === 'future'
-                            ? `${key}`
+                            ? i18nStore.t('heatmap.futureTitle', { date: key })
                             : level > 0
-                              ? `${key} -- ${completedCounts.get(key)} completed`
-                              : `${key} -- no completion`,
+                              ? i18nStore.t('heatmap.completedTitle', {
+                                    date: key,
+                                    count: completedCounts.get(key) ?? 0,
+                                })
+                              : i18nStore.t('heatmap.noCompletionTitle', { date: key }),
                 });
             }
             out.push({ label, days });
@@ -125,7 +132,7 @@
     class="heatmap"
     style="--heatmap-weeks: {weeks}"
     role="img"
-    aria-label="Completion heatmap: {totalCompletions} completions in the last {weeks} weeks"
+    aria-label={i18nStore.t('heatmap.aria', { count: totalCompletions, weeks })}
 >
     <!-- Decorative grid: the wrapper's aria-label summarizes it, so
          screen readers skip the hundreds of cell titles. -->
@@ -140,7 +147,7 @@
             <div class="weekday-labels">
                 {#each Array(7) as _, row}
                     {#if labelRows.includes(row)}
-                        <span>{WEEKDAY_ABBREVIATIONS[row]}</span>
+                        <span>{weekdayShortName(row)}</span>
                     {:else}
                         <span></span>
                     {/if}
@@ -161,13 +168,13 @@
         </div>
     </div>
     <div class="legend">
-        <span>Less</span>
-        <span class="cell level-0" title="No completion"></span>
-        <span class="cell level-1" title="1 completion"></span>
-        <span class="cell level-2" title="2-3 completions"></span>
-        <span class="cell level-3" title="4-6 completions"></span>
-        <span class="cell level-4" title="7+ completions"></span>
-        <span>More</span>
+        <span>{i18nStore.t('heatmap.legendLess')}</span>
+        <span class="cell level-0" title={i18nStore.t('heatmap.legend0')}></span>
+        <span class="cell level-1" title={i18nStore.t('heatmap.legend1')}></span>
+        <span class="cell level-2" title={i18nStore.t('heatmap.legend2')}></span>
+        <span class="cell level-3" title={i18nStore.t('heatmap.legend3')}></span>
+        <span class="cell level-4" title={i18nStore.t('heatmap.legend4')}></span>
+        <span>{i18nStore.t('heatmap.legendMore')}</span>
     </div>
 </div>
 
