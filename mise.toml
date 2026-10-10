@@ -121,12 +121,8 @@ run = "tools/test-stack.sh unit"
 description = "Run Playwright e2e + api tests in the docker test stack"
 run = "tools/test-stack.sh e2e"
 
-[tasks.test-api]
-description = "Run Bruno API tests against the dockerized test server"
-run = "tools/test-stack.sh api"
-
 [tasks.test-all]
-description = "Run Bruno API tests and Playwright e2e tests in the docker test stack"
+description = "Run unit tests and Playwright e2e + api tests in the docker test stack"
 run = "tools/test-stack.sh all"
 
 # -- Tests (local; quick feedback loops that only touch the repo) -------------

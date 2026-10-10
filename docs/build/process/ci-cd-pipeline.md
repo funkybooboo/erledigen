@@ -15,7 +15,6 @@ Merging to `main` is blocked unless all gates pass:
 | Types | `mise run type-check` | TypeScript strict mode across all three packages (tsc for shared/server; svelte-kit sync + tsc for client) |
 | Unit tests | `mise run test` | All Bun unit tests (dockerized); repository contract suites run against BOTH adapters, so SQL bugs are caught here |
 | E2E | `mise run test-e2e` | Playwright browser specs + black-box `api` project against the self-contained docker test stack (`compose.test.yaml`, `STORAGE_ADAPTER=memory`, bundled Chromium); includes the axe-core accessibility audit (page + every modal, both themes, zero WCAG 2.1 A/AA violations); 1 retry allowed |
-| API | `mise run test-api` | The Bruno collection in `tests/api/` against the dockerized test server |
 | Build | `mise run build` | Server + client compile; client bundle (browser payload in `packages/client/build/client`) <= 768 KiB |
 | Storybook | `mise run build-storybook` | Storybook builds |
 | Security | `mise run security` | `bun audit` -- `continue-on-error`: advisories surface for review without blocking merges |
@@ -30,7 +29,6 @@ via `mise run install-ci` (frozen lockfile), then:
 | `quality-checks` | `biome-check` -> `spellcheck` -> `check-links` -> `scan-secrets` -> `type-check` (<= 10 min) |
 | `unit-tests` | `mise run test` (dockerized Bun unit tests) |
 | `e2e-tests` | `mise run test-e2e` -- builds and boots the self-contained compose.test.yaml stack (no host servers; the stack mounts nothing, so the exit code is the only artifact) |
-| `api-tests` | `mise run test-api` (Bruno against the dockerized server-test container) |
 | `build` | `mise run build` + client bundle <= 768 KiB check |
 | `storybook-build` | `mise run build-storybook` |
 | `security` | `mise run security` (`bun audit`, `continue-on-error`) |

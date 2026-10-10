@@ -92,30 +92,6 @@ jobs:
             - name: Run E2E tests
               run: mise run test-e2e
 
-    api-tests:
-        name: API Tests
-        runs-on: ubuntu-latest
-        # test-api builds compose.test.yaml's server-test image from
-        # scratch on a fresh runner before the Bruno suite runs.
-        timeout-minutes: 20
-
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
-
-            - name: Install mise
-              uses: jdx/mise-action@v2
-
-            - name: Install dependencies
-              run: mise run install-ci
-
-            # test-api builds and boots the dockerized server-test stack and
-            # runs the Bruno collection against it in-network. The previous
-            # Start/Wait steps were vestigial from the pre-docker layout and
-            # timed out waiting for a background dev-stack image build.
-            - name: Run API tests
-              run: mise run test-api
-
     build:
         name: Build
         runs-on: ubuntu-latest
@@ -174,7 +150,7 @@ jobs:
     all-checks:
         name: All Checks Passed
         runs-on: ubuntu-latest
-        needs: [quality-checks, unit-tests, e2e-tests, api-tests, build, storybook-build]
+        needs: [quality-checks, unit-tests, e2e-tests, build, storybook-build]
         if: always()
 
         steps:

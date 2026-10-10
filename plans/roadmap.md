@@ -30,6 +30,13 @@ The queue. Versions are the release cadence; stories are the work
 [USE-15 locale formatting](./stories/USE-15-locale-formatting.md),
 [BUILD-3 i18n infrastructure](./stories/BUILD-3-i18n-infrastructure.md).
 
+## v0.13.1: Test infrastructure (ADR-024)
+
+[BUILD-5 one asserted API suite](./stories/BUILD-5-one-asserted-api-suite.md)
+-- the Playwright `api` project becomes the only automated API suite
+(Bruno removed), with Swagger UI served from the OpenAPI spec for
+exploration.
+
 ## v0.14.0: Calendar time grid -- deferred
 
 An hour grid is Google Calendar's shape, not a calendar book's; it

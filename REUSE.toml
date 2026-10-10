@@ -18,7 +18,6 @@ path = [
     "*.yaml",
     "*.yml",
     "*.toml",
-    "*.bru",
     "Dockerfile",
     ".dockerignore",
     ".gitignore",

@@ -13,7 +13,6 @@
         "**/playwright-report",
         "**/test-results",
         "bun.lock",
-        "**/*.bru",
         "**/*.tsbuildinfo",
         ".git"
     ],
@@ -198,7 +197,6 @@
         "upserted",
         "upserting",
         "upserts",
-        "usebruno",
         "userlands",
         "vbscript",
         "VCALENDAR",

@@ -7,9 +7,8 @@
 #
 # Usage:
 #   tools/test-stack.sh unit   unit tests (compose service: unit)
-#   tools/test-stack.sh api    Bruno API tests against server-test
 #   tools/test-stack.sh e2e    Playwright e2e + api tests (server-test + client-test)
-#   tools/test-stack.sh all    api then e2e in one stack
+#   tools/test-stack.sh all    unit then e2e in one stack
 #
 # NOTE: compose.test.yaml tags images erledigen/dev and erledigen/e2e
 # regardless of which checkout built them. If you run this from a worktree
@@ -54,16 +53,6 @@ case "$MODE" in
         compose run --rm unit
         ;;
 
-    api)
-        step "Building the test stack (server-test, api)"
-        compose build server-test api
-        step "Starting server-test"
-        compose up -d server-test
-        STACK_UP=1
-        step "Running Bruno API tests"
-        compose run --rm api
-        ;;
-
     e2e)
         step "Building the test stack (server-test, client-test, e2e)"
         compose build server-test client-test e2e
@@ -75,26 +64,19 @@ case "$MODE" in
         ;;
 
     all)
-        step "Building the test stack (server-test, client-test, e2e, api)"
-        compose build server-test client-test e2e api
+        step "Building the test stack (server-test, client-test, e2e, unit)"
+        compose build server-test client-test e2e unit
+        step "Running unit tests"
+        compose run --rm unit
         step "Starting server-test + client-test"
         compose up -d server-test client-test
         STACK_UP=1
-        step "Running Bruno API tests"
-        compose run --rm api
-        # Recreate server-test between suites: Bruno's leftovers (tasks for
-        # today) must not leak into the Playwright server -- GitHub CI runs
-        # these as SEPARATE jobs on fresh runners, and the keyboard spec's
-        # focus-clamp assertion assumes a clean today. The client keeps
-        # running; only the ephemeral in-memory server resets.
-        step "Resetting server-test for the Playwright run (fresh, like CI)"
-        compose up -d --force-recreate server-test
         step "Running Playwright e2e + api tests"
         compose run --rm e2e
         ;;
 
     *)
-        die "unknown mode: '$MODE' (expected unit, api, e2e, or all)"
+        die "unknown mode: '$MODE' (expected unit, e2e, or all)"
         ;;
 esac
 
