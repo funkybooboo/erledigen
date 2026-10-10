@@ -38,7 +38,7 @@ describe('SHORTCUTS registry', () => {
     test('every shortcut documents at least one binding', () => {
         for (const [id, shortcut] of Object.entries(SHORTCUTS)) {
             expect(shortcut.bindings.length, id).toBeGreaterThan(0);
-            expect(shortcut.label.length, id).toBeGreaterThan(0);
+            expect(shortcut.labelKey.length, id).toBeGreaterThan(0);
         }
     });
 
@@ -127,7 +127,7 @@ describe('shortcut remapping helpers (USE-7)', () => {
 
     test('applyShortcutOverrides overlays sanitized overrides on the defaults', () => {
         const resolved = applyShortcutOverrides(SHORTCUTS, {
-            openTrash: { label: 'Trash', bindings: ['g', 'z'] },
+            openTrash: { labelKey: 'shortcut.openTrash', bindings: ['g', 'z'] },
         });
         expect(resolved.openTrash.bindings).toEqual(['g', 'z']);
         // Untouched entries keep the defaults (identity for the rest).
@@ -136,20 +136,20 @@ describe('shortcut remapping helpers (USE-7)', () => {
 
     test('bindingConflicts reports exact and sequence-prefix clashes', () => {
         const resolved = applyShortcutOverrides(SHORTCUTS, {
-            openTrash: { label: 'Trash', bindings: ['j'] }, // same as focusNext
+            openTrash: { labelKey: 'shortcut.openTrash', bindings: ['j'] }, // same as focusNext
         });
         expect(bindingConflicts(resolved, 'openTrash')).toContain('focusNext');
 
         // A plain 'g' would swallow every chord's first key.
         const withPlainG = applyShortcutOverrides(SHORTCUTS, {
-            openTrash: { label: 'Trash', bindings: ['g'] },
+            openTrash: { labelKey: 'shortcut.openTrash', bindings: ['g'] },
         });
         expect(bindingConflicts(withPlainG, 'openTrash')).toContain('goToday');
 
         // {mod} chords are scoped by modifier: {mod}+P clashes with nothing
         // (undo owns {mod}+Z; a plain p is not the same key).
         const withChord = applyShortcutOverrides(SHORTCUTS, {
-            openTrash: { label: 'Trash', bindings: ['{mod}+P'] },
+            openTrash: { labelKey: 'shortcut.openTrash', bindings: ['{mod}+P'] },
         });
         expect(bindingConflicts(withChord, 'openTrash')).toEqual([]);
 

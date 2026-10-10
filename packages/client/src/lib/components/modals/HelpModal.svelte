@@ -2,6 +2,7 @@
     import Modal from '$lib/components/Modal.svelte';
     import { SHORTCUT_SECTIONS, formatBinding } from '$lib/keybindings';
     import { preferencesStore } from '$lib/stores';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
     // The LIVE registry, derived from the preferences store: remapped
@@ -11,11 +12,11 @@
     const shortcuts = $derived(preferencesStore.shortcutRegistry);
 </script>
 
-<Modal title="Keyboard Shortcuts" onclose={onclose}>
+<Modal title={i18nStore.t('modal.help')} onclose={onclose}>
     <div class="help">
-        {#each SHORTCUT_SECTIONS as section (section.title)}
+        {#each SHORTCUT_SECTIONS as section (section.titleKey)}
             <section class="section">
-                <h3 class="modal-section-heading">{section.title}</h3>
+                <h3 class="modal-section-heading">{i18nStore.t(section.titleKey)}</h3>
                 <table class="shortcut-table">
                     <tbody>
                         {#each section.ids as id (id)}
@@ -30,7 +31,7 @@
                                         {/each}
                                     </span>
                                 </td>
-                                <td>{shortcuts[id].label}</td>
+                                <td>{i18nStore.t(shortcuts[id].labelKey)}</td>
                             </tr>
                         {/each}
                     </tbody>

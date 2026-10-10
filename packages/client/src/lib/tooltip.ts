@@ -1,4 +1,5 @@
 import type { Action } from 'svelte/action';
+import { i18nStore } from '$lib/i18n/i18nStore.svelte';
 import { currentShortcuts } from '$lib/keybindingActions';
 import { formatBinding, type ShortcutId } from '$lib/keybindings';
 
@@ -38,11 +39,14 @@ const SHOW_DELAY_MS = 300;
 
 function resolveParam(param: TooltipParam): TooltipContent | null {
     // The LIVE registry (defaults + the user's remaps) -- a tooltip must
-    // never show a binding the keyboard no longer honors.
+    // never show a binding the keyboard no longer honors. Labels are
+    // locale keys; translation happens here at render.
     const shortcuts = currentShortcuts();
     if (typeof param === 'string') {
         const shortcut = shortcuts[param];
-        return shortcut ? { label: shortcut.label, bindings: shortcut.bindings } : null;
+        return shortcut
+            ? { label: i18nStore.t(shortcut.labelKey), bindings: shortcut.bindings }
+            : null;
     }
     const shortcut = param.shortcut ? shortcuts[param.shortcut] : undefined;
     return { label: param.label, bindings: shortcut?.bindings ?? [] };

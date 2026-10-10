@@ -2,6 +2,21 @@
     import Modal from '$lib/components/Modal.svelte';
     import { uiStore, dateViewStore } from '$lib/stores';
     import { container } from '$lib/container';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import type { TranslationKey } from '$lib/i18n/locales';
+
+    /** Locale keys for the two-letter weekday headers (index 0=Sunday --
+     *  kept as compile-checked keys; Intl's narrow/short widths do not
+     *  match the compact two-letter style). */
+    const WEEKDAY_HEADER_KEYS: readonly TranslationKey[] = [
+        'calendar.weekdayHeaders.su',
+        'calendar.weekdayHeaders.mo',
+        'calendar.weekdayHeaders.tu',
+        'calendar.weekdayHeaders.we',
+        'calendar.weekdayHeaders.th',
+        'calendar.weekdayHeaders.fr',
+        'calendar.weekdayHeaders.sa',
+    ] as const;
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
@@ -36,7 +51,13 @@
     let viewYear = $state(initYear);
     let viewMonth = $state(initMonth);
 
-    let monthName = $derived(new Date(viewYear, viewMonth).toLocaleString('en-US', { month: 'long', year: 'numeric' }));
+    let monthName = $derived(
+        new Intl.DateTimeFormat(container.i18n.locale, {
+            month: 'long',
+            year: 'numeric',
+            timeZone: 'UTC',
+        }).format(new Date(Date.UTC(viewYear, viewMonth, 15))),
+    );
     let daysInMonth = $derived(new Date(viewYear, viewMonth + 1, 0).getDate());
     let firstDayOfWeek = $derived(new Date(viewYear, viewMonth, 1).getDay());
     let calendarDays = $derived(generateCalendarDays());
@@ -66,24 +87,27 @@
      *  number (a screen reader hears "October 15, 2026" without needing
      *  the month header's context, USE-9). */
     function dayLabel(day: number): string {
-        const month = new Date(viewYear, viewMonth).toLocaleString('en-US', { month: 'long' });
+        const month = new Intl.DateTimeFormat(container.i18n.locale, {
+            month: 'long',
+            timeZone: 'UTC',
+        }).format(new Date(Date.UTC(viewYear, viewMonth, 15)));
         return `${month} ${day}, ${viewYear}`;
     }
 </script>
 
-<Modal title="Calendar" onclose={onclose}>
+<Modal title={i18nStore.t('modal.calendar')} onclose={onclose}>
     <div class="calendar">
-        <button class="today-btn" onclick={goToToday}>Today</button>
+        <button class="today-btn" onclick={goToToday}>{i18nStore.t('calendar.today')}</button>
 
         <div class="month-nav">
-            <button onclick={prevMonth} aria-label="Previous month">&#8249;</button>
+            <button onclick={prevMonth} aria-label={i18nStore.t('calendar.prevMonth')}>&#8249;</button>
             <span class="month-name">{monthName}</span>
-            <button onclick={nextMonth} aria-label="Next month">&#8250;</button>
+            <button onclick={nextMonth} aria-label={i18nStore.t('calendar.nextMonth')}>&#8250;</button>
         </div>
 
         <div class="weekday-headers">
-            {#each ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'] as day}
-                <span class="weekday">{day}</span>
+            {#each WEEKDAY_HEADER_KEYS as key}
+                <span class="weekday">{i18nStore.t(key)}</span>
             {/each}
         </div>
 
@@ -97,7 +121,12 @@
                         class:selected={selectedDate === dateStr(day)}
                         class:today={dateStr(day) === container.dateProvider.today()}
                         onclick={() => { selectedDate = dateStr(day); handleDateSelect(); }}
-                        aria-label="{dayLabel(day)}{dateStr(day) === container.dateProvider.today() ? ' (today)' : ''}"
+                        aria-label={i18nStore.t(
+                            dateStr(day) === container.dateProvider.today()
+                                ? 'calendar.dayAriaToday'
+                                : 'calendar.dayAria',
+                            { date: dayLabel(day) },
+                        )}
                         aria-current={dateStr(day) === container.dateProvider.today() ? 'date' : undefined}
                     >
                         {day}

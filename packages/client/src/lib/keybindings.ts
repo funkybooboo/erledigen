@@ -9,6 +9,9 @@
  *     against these binding strings, and lib/keybindingActions.ts supplies
  *     the handler for every id (TypeScript enforces the pairing)
  *
+ * Labels are locale keys (v0.13.0): the registry carries stable ids and
+ * every render site translates labelKey through the i18n store.
+
  * Binding string conventions:
  *   - each entry in `bindings` is one *alternate way* to trigger the action
  *     (rendered separated by "/")
@@ -17,6 +20,8 @@
  *   - the token "{mod}" is replaced at display time with the platform
  *     modifier key (Cmd on Apple platforms, Ctrl elsewhere)
  */
+
+import type { TranslationKey } from './i18n/locales';
 
 export type ShortcutId =
     | 'focusNext'
@@ -56,49 +61,52 @@ export interface Shortcut {
     /** One string per alternate way to trigger the action. Each is a
      *  space-separated keystroke sequence ("g t", "{mod}K", "j"). */
     bindings: string[];
-    /** Action description, shown in the help modal and in tooltips. */
-    label: string;
+    /** The action's label KEY (i18n, v0.13.0): 'shortcut.<id>' in the
+     *  locale file -- every render site (help table, tooltips, the
+     *  Settings remap rows) translates it through the i18n store. */
+    labelKey: TranslationKey;
 }
 
 export const SHORTCUTS: Record<ShortcutId, Shortcut> = {
-    focusNext: { bindings: ['j', '\u2193'], label: 'Focus next task' },
-    focusPrev: { bindings: ['k', '\u2191'], label: 'Focus previous task' },
-    jumpNextSection: { bindings: ['J'], label: 'Jump to next day / group' },
-    jumpPrevSection: { bindings: ['K'], label: 'Jump to previous day / group' },
-    addTask: { bindings: ['n', 'a'], label: 'Add new task' },
-    editTask: { bindings: ['Enter'], label: 'Edit focused task' },
-    taskDetail: { bindings: ['e'], label: 'Task details' },
-    toggleComplete: { bindings: ['Space'], label: 'Complete / uncomplete' },
-    deleteTask: { bindings: ['d'], label: 'Delete task' },
-    undo: { bindings: ['{mod}+Z'], label: 'Undo last action' },
-    redo: { bindings: ['{mod}+Shift+Z'], label: 'Redo' },
-    rescheduleTask: { bindings: ['r'], label: 'Reschedule task' },
-    moveTask: { bindings: ['m'], label: 'Move task to another day' },
-    editTags: { bindings: ['t'], label: 'Edit tags' },
-    setP1: { bindings: ['1'], label: 'Set priority #p1' },
-    setP2: { bindings: ['2'], label: 'Set priority #p2' },
-    setP3: { bindings: ['3'], label: 'Set priority #p3' },
-    clearPriority: { bindings: ['0'], label: 'Clear priority' },
-    goToday: { bindings: ['g t'], label: 'Jump to today' },
-    toggleSomedayPanel: { bindings: ['{mod}+\\'], label: 'Toggle Someday panel' },
-    search: { bindings: ['{mod}+K', '/'], label: 'Search / command palette' },
-    help: { bindings: ['?'], label: 'Keyboard shortcuts' },
-    closeModal: { bindings: ['Esc'], label: 'Close' },
-    openSummary: { bindings: ['g s'], label: 'Summary' },
-    openProjects: { bindings: ['g p'], label: 'Projects' },
-    openHabits: { bindings: ['g h'], label: 'Habits' },
-    openCalendar: { bindings: ['g c'], label: 'Calendar' },
-    openFilter: { bindings: ['g f'], label: 'Filter' },
-    openTrash: { bindings: ['g x'], label: 'Trash' },
-    openSettings: { bindings: ['g o'], label: 'Settings' },
-    openTheme: { bindings: ['g a'], label: 'Theme' },
-    openNotes: { bindings: ['g n'], label: 'Notes' },
+    focusNext: { bindings: ['j', '\u2193'], labelKey: 'shortcut.focusNext' },
+    focusPrev: { bindings: ['k', '\u2191'], labelKey: 'shortcut.focusPrev' },
+    jumpNextSection: { bindings: ['J'], labelKey: 'shortcut.jumpNextSection' },
+    jumpPrevSection: { bindings: ['K'], labelKey: 'shortcut.jumpPrevSection' },
+    addTask: { bindings: ['n', 'a'], labelKey: 'shortcut.addTask' },
+    editTask: { bindings: ['Enter'], labelKey: 'shortcut.editTask' },
+    taskDetail: { bindings: ['e'], labelKey: 'shortcut.taskDetail' },
+    toggleComplete: { bindings: ['Space'], labelKey: 'shortcut.toggleComplete' },
+    deleteTask: { bindings: ['d'], labelKey: 'shortcut.deleteTask' },
+    undo: { bindings: ['{mod}+Z'], labelKey: 'shortcut.undo' },
+    redo: { bindings: ['{mod}+Shift+Z'], labelKey: 'shortcut.redo' },
+    rescheduleTask: { bindings: ['r'], labelKey: 'shortcut.rescheduleTask' },
+    moveTask: { bindings: ['m'], labelKey: 'shortcut.moveTask' },
+    editTags: { bindings: ['t'], labelKey: 'shortcut.editTags' },
+    setP1: { bindings: ['1'], labelKey: 'shortcut.setP1' },
+    setP2: { bindings: ['2'], labelKey: 'shortcut.setP2' },
+    setP3: { bindings: ['3'], labelKey: 'shortcut.setP3' },
+    clearPriority: { bindings: ['0'], labelKey: 'shortcut.clearPriority' },
+    goToday: { bindings: ['g t'], labelKey: 'shortcut.goToday' },
+    toggleSomedayPanel: { bindings: ['{mod}+\\'], labelKey: 'shortcut.toggleSomedayPanel' },
+    search: { bindings: ['{mod}+K', '/'], labelKey: 'shortcut.search' },
+    help: { bindings: ['?'], labelKey: 'shortcut.help' },
+    closeModal: { bindings: ['Esc'], labelKey: 'shortcut.closeModal' },
+    openSummary: { bindings: ['g s'], labelKey: 'shortcut.openSummary' },
+    openProjects: { bindings: ['g p'], labelKey: 'shortcut.openProjects' },
+    openHabits: { bindings: ['g h'], labelKey: 'shortcut.openHabits' },
+    openCalendar: { bindings: ['g c'], labelKey: 'shortcut.openCalendar' },
+    openFilter: { bindings: ['g f'], labelKey: 'shortcut.openFilter' },
+    openTrash: { bindings: ['g x'], labelKey: 'shortcut.openTrash' },
+    openSettings: { bindings: ['g o'], labelKey: 'shortcut.openSettings' },
+    openTheme: { bindings: ['g a'], labelKey: 'shortcut.openTheme' },
+    openNotes: { bindings: ['g n'], labelKey: 'shortcut.openNotes' },
 };
 
-/** Section layout for the help modal's shortcut table. */
-export const SHORTCUT_SECTIONS: { title: string; ids: ShortcutId[] }[] = [
+/** Section layout for the help modal's shortcut table. Titles are
+ *  i18n keys (shortcutSection.*), rendered through the i18n store. */
+export const SHORTCUT_SECTIONS: { titleKey: TranslationKey; ids: ShortcutId[] }[] = [
     {
-        title: 'Navigation',
+        titleKey: 'shortcutSection.navigation',
         ids: [
             'focusNext',
             'focusPrev',
@@ -109,7 +117,7 @@ export const SHORTCUT_SECTIONS: { title: string; ids: ShortcutId[] }[] = [
         ],
     },
     {
-        title: 'Task Actions',
+        titleKey: 'shortcutSection.taskActions',
         ids: [
             'addTask',
             'editTask',
@@ -128,7 +136,7 @@ export const SHORTCUT_SECTIONS: { title: string; ids: ShortcutId[] }[] = [
         ],
     },
     {
-        title: 'Panels & Modals',
+        titleKey: 'shortcutSection.panelsModals',
         ids: [
             'search',
             'openSummary',
@@ -210,7 +218,7 @@ export function sanitizeShortcutOverrides(
         if (!(id in SHORTCUTS)) continue;
         if (!Array.isArray(bindings) || bindings.length === 0) continue;
         if (!bindings.every(binding => isValidBinding(binding))) continue;
-        clean[id as ShortcutId] = { label: SHORTCUTS[id as ShortcutId].label, bindings };
+        clean[id as ShortcutId] = { labelKey: SHORTCUTS[id as ShortcutId].labelKey, bindings };
     }
     return clean;
 }

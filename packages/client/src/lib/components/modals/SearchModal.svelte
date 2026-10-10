@@ -21,6 +21,8 @@
     import { Icon } from 'svelte-icons-pack';
     import { LuCheck, LuCircle, LuPlus, LuRepeat, LuX } from 'svelte-icons-pack/lu';
     import { onMount } from 'svelte';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import { recurrencePhrases } from '$lib/i18n/recurrencePhrases';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
@@ -153,75 +155,80 @@
             case 'add': {
                 const result = await createFromText(args, { date: today });
                 if (!result) {
-                    notificationStore.push('Could not create -- the text is kept', {
+                    notificationStore.push(i18nStore.t('search.createFailed'), {
                         kind: 'error',
                     });
                     return false;
                 }
                 if (result.kind === 'habit') {
                     notificationStore.push(habitCreatedText(result.schedule), { kind: 'success' });
+                } else if (result.task.date === today) {
+                    notificationStore.push(i18nStore.t('search.addedToToday'), { kind: 'success' });
+                } else if (result.task.date === null) {
+                    notificationStore.push(i18nStore.t('search.addedToSomeday'), { kind: 'success' });
                 } else {
-                    const where = result.task.date === today ? 'today' : result.task.date ?? 'Someday';
-                    notificationStore.push(`Task added to ${where}`, { kind: 'success' });
+                    notificationStore.push(i18nStore.t('search.addedToDate', { date: result.task.date }), {
+                        kind: 'success',
+                    });
                 }
                 return true;
             }
             case 'complete': {
                 const task = findTaskByText(taskStore.tasks, args);
                 if (!task) {
-                    notificationStore.push(`No task matches "${args}"`, { kind: 'error' });
+                    notificationStore.push(i18nStore.t('search.noMatch', { query: args }), { kind: 'error' });
                     return false;
                 }
                 const updated = await taskStore.update(task.id, { completed: true });
                 if (!updated) {
-                    notificationStore.push('Could not complete the task', { kind: 'error' });
+                    notificationStore.push(i18nStore.t('search.couldNotComplete'), { kind: 'error' });
                     return false;
                 }
-                notificationStore.push(`Completed "${task.text}"`, { kind: 'success' });
+                notificationStore.push(i18nStore.t('search.completed', { text: task.text }), { kind: 'success' });
                 return true;
             }
             case 'delete': {
                 const task = findTaskByText(taskStore.tasks, args);
                 if (!task) {
-                    notificationStore.push(`No task matches "${args}"`, { kind: 'error' });
+                    notificationStore.push(i18nStore.t('search.noMatch', { query: args }), { kind: 'error' });
                     return false;
                 }
                 const outcome = await deleteTaskWithUndo(task);
                 if (outcome === 'failed') {
-                    notificationStore.push('Could not delete the task', { kind: 'error' });
+                    notificationStore.push(i18nStore.t('search.couldNotDelete'), { kind: 'error' });
                 }
                 return outcome === 'deleted';
             }
             case 'move': {
                 const parts = parseMoveArgs(args);
                 if (!parts) {
-                    notificationStore.push('Use "/move <text> to <date>"', { kind: 'error' });
+                    notificationStore.push(i18nStore.t('search.moveUsage'), { kind: 'error' });
                     return false;
                 }
                 const task = findTaskByText(taskStore.tasks, parts.text);
                 if (!task) {
-                    notificationStore.push(`No task matches "${parts.text}"`, { kind: 'error' });
+                    notificationStore.push(i18nStore.t('search.noMatch', { query: parts.text }), { kind: 'error' });
                     return false;
                 }
                 const date = resolveDatePhrase(parts.date, today);
                 if (!date) {
-                    notificationStore.push(`Could not parse "${parts.date}" as a date`, {
+                    notificationStore.push(i18nStore.t('task.dateParseError', { value: parts.date }), {
                         kind: 'error',
                     });
                     return false;
                 }
                 const updated = await taskStore.update(task.id, { date });
                 if (!updated) {
-                    notificationStore.push('Could not move the task', { kind: 'error' });
+                    notificationStore.push(i18nStore.t('search.couldNotMove'), { kind: 'error' });
                     return false;
                 }
-                notificationStore.push(`Moved "${task.text}" to ${date}`, { kind: 'success' });
+                notificationStore.push(i18nStore.t('search.moved', { text: task.text, date }), { kind: 'success' });
                 return true;
             }
             case 'go': {
                 const date = resolveDatePhrase(args, today);
                 if (!date) {
-                    notificationStore.push(`Could not parse "${args}" as a date`, { kind: 'error' });
+                    notificationStore.push(i18nStore.t('task.dateParseError', { value: args }), { kind: 'error' });
                     return false;
                 }
                 dateViewStore.requestScroll(date, true);
@@ -230,33 +237,33 @@
             case 'tag': {
                 const parts = parseTagArgs(args);
                 if (!parts) {
-                    notificationStore.push('Use "/tag <text> with <tag>"', { kind: 'error' });
+                    notificationStore.push(i18nStore.t('search.tagUsage'), { kind: 'error' });
                     return false;
                 }
                 const tag = normalizeTagInput(parts.tag);
                 if (!tag) {
-                    notificationStore.push('Type a tag to add', { kind: 'error' });
+                    notificationStore.push(i18nStore.t('search.typeTagToAdd'), { kind: 'error' });
                     return false;
                 }
                 const task = findTaskByText(taskStore.tasks, parts.text);
                 if (!task) {
-                    notificationStore.push(`No task matches "${parts.text}"`, { kind: 'error' });
+                    notificationStore.push(i18nStore.t('search.noMatch', { query: parts.text }), { kind: 'error' });
                     return false;
                 }
                 if (!task.tags.includes(tag)) {
                     const updated = await taskStore.update(task.id, { tags: [...task.tags, tag] });
                     if (!updated) {
-                        notificationStore.push('Could not tag the task', { kind: 'error' });
+                        notificationStore.push(i18nStore.t('search.couldNotTag'), { kind: 'error' });
                         return false;
                     }
                 }
-                notificationStore.push(`Tagged "${task.text}" with #${tag}`, { kind: 'success' });
+                notificationStore.push(i18nStore.t('search.tagged', { text: task.text, tag }), { kind: 'success' });
                 return true;
             }
             case 'filter': {
                 const tag = normalizeTagInput(args);
                 if (!tag) {
-                    notificationStore.push('Type a tag to filter by', { kind: 'error' });
+                    notificationStore.push(i18nStore.t('search.typeTagToFilter'), { kind: 'error' });
                     return false;
                 }
                 preferencesStore.setTags([tag]);
@@ -271,15 +278,15 @@
             case 'someday': {
                 const task = findTaskByText(taskStore.tasks, args);
                 if (!task) {
-                    notificationStore.push(`No task matches "${args}"`, { kind: 'error' });
+                    notificationStore.push(i18nStore.t('search.noMatch', { query: args }), { kind: 'error' });
                     return false;
                 }
                 const updated = await taskStore.update(task.id, { date: null });
                 if (!updated) {
-                    notificationStore.push('Could not move the task', { kind: 'error' });
+                    notificationStore.push(i18nStore.t('search.couldNotMove'), { kind: 'error' });
                     return false;
                 }
-                notificationStore.push(`Moved "${task.text}" to Someday`, { kind: 'success' });
+                notificationStore.push(i18nStore.t('search.movedToSomeday', { text: task.text }), { kind: 'success' });
                 return true;
             }
             case 'project':
@@ -345,7 +352,7 @@
     }
 </script>
 
-<Modal title="Search" onclose={onclose}>
+<Modal title={i18nStore.t('modal.search')} onclose={onclose}>
     <div class="search">
         <input
             class="search-input"
@@ -356,8 +363,8 @@
             aria-controls={optionCount > 0 ? 'search-results' : undefined}
             aria-activedescendant={optionCount > 0 ? optionId(selectedIndex) : undefined}
             bind:value={query}
-            placeholder="Search tasks... (or type / for commands)"
-            aria-label="Search tasks"
+            placeholder={i18nStore.t('search.placeholder')}
+            aria-label={i18nStore.t('search.ariaLabel')}
             onkeydown={handleKeydown}
         />
 
@@ -378,7 +385,7 @@
                             {#if addParsed}
                                 <span class="command-hint">
                                     <Icon src={LuRepeat} />
-                                    {describeRecurrence(addParsed.schedule)}
+                                    {describeRecurrence(addParsed.schedule, recurrencePhrases())}
                                 </span>
                             {:else if goDate}
                                 <span class="command-hint">{goDate}</span>
@@ -401,13 +408,13 @@
                                 aria-selected={i === selectedIndex}
                             >
                                 <span class="command-name">{command.label}</span>
-                                <span class="command-description">{command.description}</span>
+                                <span class="command-description">{i18nStore.t(command.descriptionKey)}</span>
                             </button>
                         </li>
                     {/each}
                 </ul>
             {:else}
-                <p class="empty">No such command.</p>
+                <p class="empty">{i18nStore.t('search.noCommand')}</p>
             {/if}
         {:else if results.length > 0}
             <ul class="results" role="listbox" id="search-results">
@@ -434,9 +441,9 @@
                 {/each}
             </ul>
         {:else if query.trim()}
-            <p class="empty">No tasks found.</p>
+            <p class="empty">{i18nStore.t('search.noResults')}</p>
         {:else}
-            <p class="hint">Type to search across task text, notes, and tags. Prefix with "/" to run commands like "/add" or "/go next monday".</p>
+            <p class="hint">{i18nStore.t('search.hint')}</p>
         {/if}
     </div>
 </Modal>
