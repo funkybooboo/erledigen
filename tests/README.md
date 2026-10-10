@@ -11,7 +11,10 @@ Run with Bun's built-in test runner. 950+ tests across the three packages:
 - `packages/server` -- repositories (in-memory **and** SQLite, via shared contract suites), services, middleware, utils, migration runner
 - `packages/client` -- DI container, filters, shortcut-registry invariants
   (`keybindings`: every shortcut documented in help, no duplicate keystrokes),
-  and the live-editor line ops (`liveLines`: split/merge/list continuation)
+  the live-editor line ops (`liveLines`: split/merge/list continuation), and
+  the i18n gates (`locales.test.ts`: every locale file at full key parity
+  with en.json; `keyboard` keeps a pending chord armed across a no-op
+  registry refresh)
 
 ## 2. API integration tests (`bun run test:e2e:api` / `mise run test-e2e`)
 
@@ -71,7 +74,8 @@ Location: `tests/e2e/` - Config: `playwright.config.ts` (project `e2e`).
 Covers:
 
 - **app shell** -- title/landmark, icon-rail (all 10 items), today section,
-  bottom bar (clock + task count), modal open/close + keyboard shortcuts
+  bottom bar (clock + task count), modal open/close + keyboard shortcuts,
+  `<html lang/dir>` from the persisted locale (v0.13.0 i18n)
   (`/`, `?`, `n`), modal switching, j/k navigation within the Someday panel.
 - **keyboard task actions** -- j/k focus movement on the day list, Space
   toggle, 1/2/3/0 priority tags, Enter inline edit, `e` detail modal, `d`

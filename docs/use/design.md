@@ -153,6 +153,13 @@ restart, tag management, and full keyboard-shortcut remapping (click a
 binding, press keys; clashes are warned). Your OS's reduced-motion setting
 stills every animation, whatever the app preferences say.
 
+### Language
+Settings > Language picks the interface language (only English ships
+today; other languages arrive as community contributions -- a locale
+file is all it takes). Dates, times, and counts follow the choice
+automatically, and the calendar's month names localize with it. Your
+data never changes: stored dates are locale-independent by design.
+
 ### Accessibility
 The app is built to WCAG 2.1 Level AA (ADR-022) and every surface is
 keyboard-operable -- the flows are documented in
