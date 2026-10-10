@@ -56,7 +56,9 @@ Covers, per resource:
   `mapping` param + auto-detect round-trip of our own export), unknown
   format 400.
 - **meta** -- root, health, 404+CORS, OPTIONS preflight, security headers,
-  OpenAPI JSON + YAML.
+  OpenAPI JSON + YAML, the `/api/openapi.json` proxy-safe alias, and the
+  Swagger UI explorer at `/api/docs` (page CSP, whitelisted assets, 404 for
+  unknown/traversal asset names; ADR-024).
 
 Each test cleans up the entities it creates via `afterEach` so the shared
 in-memory server stays tidy.
