@@ -8,7 +8,7 @@
 
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
-import { cleanup, createTask, track, uniq } from '../api-tests/helpers';
+import { cleanup, createTask, track, uniq } from '../api/helpers';
 import { dayISO, hydrated, modal, SERVER_URL, todayISO } from './util';
 
 test.afterEach(async ({ request }) => {

@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
-import { cleanup, createGroup, createTask, uniq } from '../api-tests/helpers';
+import { cleanup, createGroup, createTask, uniq } from '../api/helpers';
 import { dayISO, hydrated, SERVER_URL, todayISO } from './util';
 
 test.afterEach(async ({ request }) => {

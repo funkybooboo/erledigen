@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
-import { cleanup, createGroup, createTask, uniq } from '../api-tests/helpers';
+import { cleanup, createGroup, createTask, uniq } from '../api/helpers';
 import { hydrated, SERVER_URL, todayInput, todayISO } from './util';
 
 /** Texts of tasks created through the UI in this spec (serial worker). */

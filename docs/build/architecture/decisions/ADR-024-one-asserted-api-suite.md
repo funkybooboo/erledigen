@@ -7,7 +7,7 @@ Status: Accepted
 ## Context
 
 Until now the REST surface has been exercised by two hand-maintained
-suites: the Playwright `api` project (`tests/api-tests/`, black-box
+suites: the Playwright `api` project (`tests/api/`, black-box
 HTTP against the live server) and the Bruno collection
 (`tests/api/`, ~100 `.bru` files run in CI via
 `tools/test-stack.sh api`). They overlap heavily -- roughly a third of

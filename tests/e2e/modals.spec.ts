@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { cleanup, createProject, createTask, del, patch, uniq } from '../api-tests/helpers';
+import { cleanup, createProject, createTask, del, patch, uniq } from '../api/helpers';
 import { dayISO, hydrated, modal, SERVER_URL, todayISO } from './util';
 
 test.afterEach(async ({ request }) => {
