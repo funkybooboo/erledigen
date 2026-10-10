@@ -107,6 +107,9 @@ mise run nuke-db -- prod   # PERMANENTLY delete the prod DB (stops the stack, de
 *   **Server**: `http://localhost:4000`
 *   **Health Check**: `http://localhost:4000/api/health`
 *   **OpenAPI spec**: `http://localhost:4000/openapi.json` (or `/openapi.yaml`)
+*   **API explorer**: `http://localhost:4000/api/docs` -- Swagger UI over the
+    spec, served by the API server (ADR-024); `/api/docs` also works behind
+    the prod proxy, unlike the root-level spec URLs
 *   **Storybook**: `http://localhost:6006` (`mise run storybook` -- local, not dockerized)
 
 ## Available Tasks

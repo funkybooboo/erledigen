@@ -5,6 +5,20 @@
 
 version = 1
 
+# Vendored Swagger UI dist output (Apache-2.0, from the npm package
+# swagger-ui-dist; provenance in packages/server/src/docs/assets/README.md).
+# Our own init.js and README.md in that directory are project files and
+# stay under the general annotation below.
+[[annotations]]
+path = [
+    "packages/server/src/docs/assets/swagger-ui-bundle.js",
+    "packages/server/src/docs/assets/swagger-ui-bundle.js.LICENSE.txt",
+    "packages/server/src/docs/assets/swagger-ui.css",
+]
+precedence = "closest"
+SPDX-FileCopyrightText = "2020-2021 SmartBear Software Inc."
+SPDX-License-Identifier = "Apache-2.0"
+
 [[annotations]]
 path = [
     "*.md",

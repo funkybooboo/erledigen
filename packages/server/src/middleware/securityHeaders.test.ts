@@ -36,6 +36,16 @@ describe('createSecurityHeadersMiddleware', () => {
         expect(result.headers['Content-Security-Policy']).toContain("default-src 'none'");
     });
 
+    it('preserves a handler-set Content-Security-Policy', () => {
+        const middleware = createSecurityHeadersMiddleware('development');
+        const pageCsp = "default-src 'none'; script-src 'self'";
+        const result = middleware(
+            makeRequest(),
+            makeResponse({ 'Content-Security-Policy': pageCsp }),
+        );
+        expect(result.headers['Content-Security-Policy']).toBe(pageCsp);
+    });
+
     it('does NOT add HSTS header in development', () => {
         const middleware = createSecurityHeadersMiddleware('development');
         const result = middleware(makeRequest(), makeResponse());

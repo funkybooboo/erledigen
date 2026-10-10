@@ -15,6 +15,9 @@ exclude_path = [
     "bun\\.lock",
     "(^|/)\\.git/",
     "(^|/)\\.svelte-kit/",
+    # Vendored Swagger UI output (ADR-024): its data:-URI SVGs and
+    # embedded URLs are upstream artifacts, not links we maintain.
+    "packages/server/src/docs/assets/",
 ]
 
 # Exclude URLs that block automated checkers (Cloudflare bot protection)

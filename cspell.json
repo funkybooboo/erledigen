@@ -13,6 +13,7 @@
         "**/playwright-report",
         "**/test-results",
         "bun.lock",
+        "packages/server/src/docs/assets/swagger-ui*",
         "**/*.tsbuildinfo",
         ".git"
     ],
@@ -39,6 +40,7 @@
         "CATEGORIES",
         "Centralises",
         "chrono",
+        "clickjacking",
         "commitlint",
         "cspell",
         "daylie",
