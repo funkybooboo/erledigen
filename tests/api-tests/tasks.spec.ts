@@ -329,21 +329,26 @@ test.describe('tasks -- content negotiation', () => {
         expect(res.body).toContain('[ ]');
     });
 
-    test('Accept: application/json (default) returns JSON', async ({ request }) => {
+    test('explicit Accept: application/json returns JSON', async ({ request }) => {
         await createTask(request, { text: 'Json task', date: '2026-05-13' });
-        const res = await get(request, '/api/tasks');
+        const res = await get(request, '/api/tasks', { Accept: 'application/json' });
         expect(res.status).toBe(200);
         expect(Array.isArray(res.body.data)).toBe(true);
     });
 
-    // Realistic client Accept shapes must stay JSON (ADR-024). These were
-    // covered incidentally by the removed Bruno client (axios defaults);
-    // now they are asserted deliberately. The parsing matrix itself lives
-    // in the negotiate() unit tests -- these prove the HTTP wiring.
+    // Every realistic client Accept shape must stay JSON (ADR-024). The
+    // axios/bruno list was covered incidentally by the removed Bruno client
+    // and is asserted deliberately now; the empty header is the closest
+    // expressible case to a literal absence (APIRequestContext always sends
+    // an Accept -- its default is */* -- so a truly absent header is only
+    // reachable at the unit level, negotiate(undefined)). The parsing
+    // matrix itself lives in the negotiate() unit tests -- these prove the
+    // HTTP wiring.
     for (const [accept, shape] of [
         ['application/json, text/plain, */*', 'axios/bruno default list'],
-        ['*/*', 'curl default'],
+        ['*/*', "curl default, and this suite's own baseline"],
         ['text/plain;q=0.5, application/json', 'q-weighted, json preferred'],
+        ['', 'empty Accept header'],
     ] as const) {
         test(`Accept: ${accept} (${shape}) returns JSON`, async ({ request }) => {
             await createTask(request, { text: 'Shape task', date: '2026-05-13' });
