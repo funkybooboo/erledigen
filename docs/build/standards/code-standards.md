@@ -137,6 +137,15 @@ Each of these has shipped a real bug in this repo.
   `packages/client/src/lib/keybindings.ts`; the help modal and every tooltip
   derive from it. Never hand-write a keybinding hint.
 
+### Strings and i18n
+
+Every user-facing string comes from the locale layer (v0.13.0): templates
+call `i18nStore.t('key', params)`, TS code builds toasts/confirms through
+it, and the keybinding registry carries label keys. Never concatenate a
+count into prose -- use a plural-variant key. Keycaps (`Ctrl`, `Esc`) and
+typed command syntax (`/add`, `g t`) stay literal. The full standard:
+[i18n.md](./i18n.md).
+
 ### Date Handling
 
 Task dates are local `yyyy-MM-dd` key strings. Do date math through the

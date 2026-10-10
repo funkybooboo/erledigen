@@ -159,6 +159,15 @@ Facts that are easy to get wrong when working on the domain, API, or stores.
   local time; `date === null` means the task lives in Someday. Date math goes
   through the shared `dateProvider` key helpers -- never `Date` object
   arithmetic (timezone bugs have shipped from that).
+- **Only date DISPLAY localizes; date KEYS never do** (v0.13.0, ADR-023). The
+  `DateProvider` carries a display locale next to its timezone
+  (`setLocale`); `keyFromInstant` parses with fixed `en-US` numeric parts so
+  non-Gregorian calendars or non-ASCII digits can never reach a stored key.
+  UI strings live in the client's locale files (`i18n/locales/en.json` is
+  canonical and types every `t()` key at compile time); the shortcut registry
+  stores label KEYS (`Shortcut.labelKey`), translated at each render site.
+  A user-facing string hardcoded in a component is a review blocker -- see
+  [the i18n standard](../standards/i18n.md).
 - **The Kanban board maps onto real task state, not the `state` field.** The
   v0.9.0 project board's columns are derived: Ready = undated,
   Scheduled = dated, Done = completed. The task model's `state`
