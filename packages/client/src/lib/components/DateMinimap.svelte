@@ -3,6 +3,8 @@
     import { addMonths, monthKeyOf, monthRangeKeys } from '@erledigen/shared';
     import { dateViewStore, preferencesStore } from '$lib/stores';
     import { tooltip } from '$lib/tooltip';
+    import { container } from '$lib/container';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
 
     // Month granularity: each row is one month. The minimap has its OWN
     // bidirectional infinite scroll. There is NO hard wall: extension
@@ -20,9 +22,15 @@
     // --- month math: pure key arithmetic lives in shared dateKeys ---
 
     function monthLabel(monthKey: string): string {
+        // Short month name against the ACTIVE LOCALE (the i18n adapter's,
+        // same as every other date display): the hardcoded Jan..Dec list
+        // moved to Intl (USE-14). En output is identical to the old list.
+        const y = Number(monthKey.slice(0, 4));
         const m = Number(monthKey.slice(5, 7));
-        return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][m - 1] ?? '';
+        return new Intl.DateTimeFormat(container.i18n.locale, {
+            month: 'short',
+            timeZone: 'UTC',
+        }).format(new Date(Date.UTC(y, m - 1, 15)));
     }
 
     function yearOf(monthKey: string): number {
@@ -271,8 +279,8 @@
             class:selected={isSelected(mk)}
             data-mk={mk}
             onclick={() => scrollToDateStart(firstOfMonth(mk))}
-            use:tooltip={{ label: `{monthLabel(mk)} {yearOf(mk)} -- jump to month` }}
-            aria-label="{monthLabel(mk)} {yearOf(mk)}"
+            use:tooltip={{ label: i18nStore.t('minimap.jumpToMonth', { month: monthLabel(mk), year: yearOf(mk) }) }}
+            aria-label={i18nStore.t('minimap.monthAria', { month: monthLabel(mk), year: yearOf(mk) })}
             aria-current={isSelected(mk) ? 'true' : undefined}
         >
             <span class="month-label">{monthLabel(mk)}</span>

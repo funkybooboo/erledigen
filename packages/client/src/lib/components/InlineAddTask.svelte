@@ -2,11 +2,14 @@
     import { tick } from 'svelte';
     import { notificationStore } from '$lib/stores';
     import { TASK_CONSTRAINTS, parseRecurrence } from '@erledigen/shared';
-    import { createFromText, habitCreatedText } from '$lib/createFromText';
+    import { createFromText } from '$lib/createFromText';
     import RecurrenceHint from './RecurrenceHint.svelte';
     import { Icon } from 'svelte-icons-pack';
     import { LuCircle } from 'svelte-icons-pack/lu';
     import { tooltip } from '$lib/tooltip';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import { describeRecurrence } from '@erledigen/shared';
+    import { recurrencePhrases } from '$lib/i18n/recurrencePhrases';
 
     let {
         date,
@@ -38,15 +41,20 @@
         if (!result) {
             // Creation failed (network/server). The text is kept so the
             // user can retry; the toast says what happened.
-            notificationStore.push('Could not create -- the text is kept', { kind: 'error' });
+            notificationStore.push(i18nStore.t('inlineAddTask.createFailed'), { kind: 'error' });
             return;
         }
         text = '';
 
         if (result.kind === 'habit') {
-            notificationStore.push(habitCreatedText(result.schedule), {
-                kind: 'success',
-            });
+            notificationStore.push(
+                i18nStore.t('inlineAddTask.habitCreated', {
+                    schedule: describeRecurrence(result.schedule, recurrencePhrases()),
+                }),
+                {
+                    kind: 'success',
+                },
+            );
             // Flash the instance on this day, matching the plain-task path.
             const instanceHere = result.tasks.find(t => t.date === date);
             if (instanceHere && oncreated) oncreated(instanceHere.id);
@@ -76,11 +84,11 @@
         bind:this={inputEl}
         bind:value={text}
         class="add-input"
-        placeholder="Add a task..."
+        placeholder={i18nStore.t('inlineAddTask.placeholder')}
         onkeydown={handleKeydown}
-        use:tooltip={{ label: 'New task -- Enter to add, Esc to cancel', shortcut: 'addTask' }}
+        use:tooltip={{ label: i18nStore.t('inlineAddTask.tooltip'), shortcut: 'addTask' }}
         maxlength={TASK_CONSTRAINTS.MAX_TEXT_LENGTH}
-        aria-label="New task text"
+        aria-label={i18nStore.t('inlineAddTask.ariaLabel')}
     />
     <span class="add-actions-spacer" aria-hidden="true"></span>
     {#if parsed}

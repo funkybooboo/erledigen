@@ -9,7 +9,8 @@ export {
     splitKey,
     weekdayOf,
 } from './dateKeys';
-export { describeRecurrence } from './formatFrequency';
+export type { RecurrencePhrases } from './formatFrequency';
+export { describeRecurrence, ENGLISH_RECURRENCE_PHRASES } from './formatFrequency';
 export { formatTags } from './formatTags';
 export { groupTasksByDate } from './groupTasksByDate';
 export { hasDeadlineTag } from './hasDeadlineTag';

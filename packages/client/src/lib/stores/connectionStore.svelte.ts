@@ -1,5 +1,6 @@
 import type { ConnectionStatus } from '@erledigen/shared';
 import { container } from '$lib/container';
+import { i18nStore } from '$lib/i18n/i18nStore.svelte';
 import { websocketService } from '$lib/services/websocketService';
 import { notificationStore } from './notificationStore.svelte';
 
@@ -23,19 +24,19 @@ class ConnectionStore {
             this.status = status;
 
             if (status === 'connected' && this.#lastStatus !== 'connected') {
-                notificationStore.push('Connected', {
+                notificationStore.push(i18nStore.t('connection.connected'), {
                     kind: 'success',
                     iconType: 'connected',
                     duration: 3000,
                 });
             } else if (status === 'reconnecting' && this.#lastStatus === 'connected') {
-                notificationStore.push('Connection lost -- reconnecting...', {
+                notificationStore.push(i18nStore.t('connection.reconnecting'), {
                     kind: 'warning',
                     iconType: 'reconnecting',
                     duration: 5000,
                 });
             } else if (status === 'disconnected' && this.#lastStatus !== 'disconnected') {
-                notificationStore.push('Disconnected', {
+                notificationStore.push(i18nStore.t('connection.disconnected'), {
                     kind: 'error',
                     iconType: 'disconnected',
                     duration: 5000,

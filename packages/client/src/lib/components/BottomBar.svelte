@@ -7,6 +7,7 @@
     import Logo from '$lib/components/Logo.svelte';
     import { tooltip } from '$lib/tooltip';
     import { tagChipStyle } from '$lib/tagColors';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
 
     let totalTasks = $derived(taskStore.tasks.length);
     let completedCount = $derived(taskStore.tasks.filter(t => t.completed).length);
@@ -49,7 +50,7 @@
 </script>
 
 <footer class="bottom-bar">
-    <button class="logo-btn" onclick={handleHomeClick} use:tooltip={{ label: 'Clear filters and go to today' }} aria-label="Home -- clear filters and go to today">
+    <button class="logo-btn" onclick={handleHomeClick} use:tooltip={{ label: i18nStore.t('bottomBar.homeTooltip') }} aria-label={i18nStore.t('bottomBar.homeAria')}>
         <Logo size={18} />
         <strong>erledigen</strong>
     </button>
@@ -58,21 +59,20 @@
         {#each preferencesStore.activeFilters.tags ?? [] as tag (tag)}
             <span class="chip" style={tagChipStyle(tag) || undefined}>
                 #{tag}
-                <button class="chip-remove" onclick={() => preferencesStore.toggleTag(tag)} use:tooltip={{ label: `Remove filter #${tag}` }} aria-label="Remove filter #{tag}"><Icon src={LuX} /></button>
+                <button class="chip-remove" onclick={() => preferencesStore.toggleTag(tag)} use:tooltip={{ label: i18nStore.t('bottomBar.removeFilter', { tag }) }} aria-label={i18nStore.t('bottomBar.removeFilter', { tag })}><Icon src={LuX} /></button>
             </span>
         {/each}
         {#if preferencesStore.activeFilterCount > 0}
-            <button class="clear-all-btn" onclick={preferencesStore.clearAll} use:tooltip={{ label: 'Clear all filters' }}>clear all</button>
+            <button class="clear-all-btn" onclick={preferencesStore.clearAll} use:tooltip={{ label: i18nStore.t('bottomBar.clearAllTooltip') }}>{i18nStore.t('bottomBar.clearAll')}</button>
         {/if}
     </div>
 
     <div class="status">
-        <button class="date-btn" onclick={goToday} use:tooltip={'goToday'} aria-label="Scroll to today">
+        <button class="date-btn" onclick={goToday} use:tooltip={'goToday'} aria-label={i18nStore.t('bottomBar.scrollToToday')}>
             {dateLabel} &middot; {clockLabel}
         </button>
         <span class="task-stats">
-            {totalTasks} task{totalTasks !== 1 ? 's' : ''}
-            {completedCount} done
+            {i18nStore.t('bottomBar.stats', { count: totalTasks, done: completedCount })}
         </span>
     </div>
 </footer>

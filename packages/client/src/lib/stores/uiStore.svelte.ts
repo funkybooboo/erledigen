@@ -60,7 +60,8 @@ class UIStore {
     /** Pending destructive-action confirmation, rendered as ConfirmModal. */
     confirmRequest = $state<{
         message: string;
-        confirmLabel: string;
+        /** Undefined = ConfirmModal's locale-file default ('Delete'). */
+        confirmLabel: string | undefined;
         resolve: (ok: boolean) => void;
     } | null>(null);
 
@@ -109,8 +110,11 @@ class UIStore {
 
     /** Ask the user to confirm a destructive action through ConfirmModal
      *  (never window.confirm -- a blocking dialog freezes the whole app,
-     *  including toasts and live sync). Resolves false when dismissed. */
-    confirm(message: string, confirmLabel = 'Delete'): Promise<boolean> {
+     *  including toasts and live sync). Resolves false when dismissed.
+     *  The confirm button defaults to the locale's 'Delete' in the
+     *  modal; callers with a different verb pass their own (already
+     *  localized) label. */
+    confirm(message: string, confirmLabel?: string): Promise<boolean> {
         // A second request while one is pending supersedes it.
         this.resolveConfirm(false);
         return new Promise(resolve => {
