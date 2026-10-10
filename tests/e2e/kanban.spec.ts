@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { cleanup, createProject, put, track, uniq } from '../api-tests/helpers';
+import { cleanup, createProject, put, track, uniq } from '../api/helpers';
 import { dayISO, hydrated, modal, SERVER_URL, todayISO } from './util';
 
 /**

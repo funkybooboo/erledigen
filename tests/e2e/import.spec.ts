@@ -1,6 +1,6 @@
 import type { ExportSnapshot } from '@erledigen/shared';
 import { expect, test } from '@playwright/test';
-import { createTask, post, postText, uniq } from '../api-tests/helpers';
+import { createTask, post, postText, uniq } from '../api/helpers';
 import { hydrated, modal, SERVER_URL, todayISO } from './util';
 
 /** Fetch the live server's snapshot via the API (for restore fixtures). */

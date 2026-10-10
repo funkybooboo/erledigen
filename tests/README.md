@@ -23,7 +23,7 @@ Playwright's `APIRequestContext`. They exercise the real HTTP stack -- routing,
 validation (Zod), guards (rate limit), middleware (security headers), error
 mapping, and content negotiation -- end to end.
 
-Location: `tests/api-tests/` - Config: `playwright.config.ts` (project `api`).
+Location: `tests/api/` - Config: `playwright.config.ts` (project `api`).
 
 Covers, per resource:
 
@@ -175,7 +175,7 @@ published ports, nothing written to the host; it sets the same test env
   seeding/cleanup, even in the browser project, so they are independent of
   the client's CORS/proxy behavior.
 - Browse the API surface against a running server via Swagger UI at
-  `/api/docs` (ADR-024); the Playwright `tests/api-tests/` suite is the
+  `/api/docs` (ADR-024); the Playwright `tests/api/` suite is the
   single asserted API suite.
 - The Playwright suites and `playwright.config.ts` are biome-linted and
   type-checked like everything else: `tests/tsconfig.json` carries the same

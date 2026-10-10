@@ -18,7 +18,7 @@
 
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { cleanup, createGroup, createProject, createTask, uniq } from '../api-tests/helpers';
+import { cleanup, createGroup, createProject, createTask, uniq } from '../api/helpers';
 import { hydrated, modal, SERVER_URL, todayISO } from './util';
 
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];

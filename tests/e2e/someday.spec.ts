@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
-import { createTask, uniq } from '../api-tests/helpers';
+import { createTask, uniq } from '../api/helpers';
 import { hydrated, SERVER_URL } from './util';
 
 const PREFIX = 'SomedayE2E';

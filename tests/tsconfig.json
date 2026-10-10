@@ -25,5 +25,5 @@
         "noImplicitReturns": true,
         "forceConsistentCasingInFileNames": true
     },
-    "include": ["api-tests/**/*.ts", "e2e/**/*.ts", "../playwright.config.ts"]
+    "include": ["api/**/*.ts", "e2e/**/*.ts", "../playwright.config.ts"]
 }

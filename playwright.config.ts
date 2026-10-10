@@ -39,7 +39,7 @@ export default defineConfig({
     projects: [
         {
             name: 'api',
-            testDir: './tests/api-tests',
+            testDir: './tests/api',
             testMatch: /.*\.spec\.ts$/,
             // No project-wide Accept injection: the context's own default
             // is Accept: */* (curl-like), a realistic client shape. Forcing
