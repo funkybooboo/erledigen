@@ -33,6 +33,12 @@ function weekdayName(index: number, weekday: Intl.DateTimeFormatOptions['weekday
     }).format(new Date(Date.UTC(y, (m ?? 1) - 1, d)));
 }
 
+/** Short weekday name ('Mon') for a 0=Sunday..6=Saturday index, in the
+ *  active locale. Used by the recurrence phrases and the habit UI. */
+export function weekdayShortName(index: number): string {
+    return weekdayName(index, 'short');
+}
+
 /** The recurrence phrases for the active locale. */
 export function recurrencePhrases(): RecurrencePhrases {
     const t = i18nStore.t.bind(i18nStore);

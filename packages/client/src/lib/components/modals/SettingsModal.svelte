@@ -29,6 +29,7 @@
         PRIORITY_TAGS,
         TAG_COLORS,
         type CsvColumnMapping,
+        type CsvImportField,
         type ExportFormat,
         type ImportFormat,
         type ImportResult,
@@ -37,6 +38,7 @@
     } from '@erledigen/shared';
     import { onMount } from 'svelte';
     import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import type { TranslationKey } from '$lib/i18n/locales';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
@@ -52,6 +54,36 @@
     // Full IANA timezone list from the runtime; a native <datalist> does the
     // substring search so ~400 options need no shipped data.
     const tzOptions: string[] = Intl.supportedValuesOf('timeZone');
+
+    // Display labels for the shared constant lists ride the locale file
+    // (ids stay the API values): import formats + the CSV mapping fields.
+    const IMPORT_FORMAT_KEYS: Record<ImportFormat, TranslationKey> = {
+        json: 'settings.importFormats.json',
+        csv: 'settings.importFormats.csv',
+        ics: 'settings.importFormats.ics',
+        'todoist-csv': 'settings.importFormats.todoist-csv',
+        'things-json': 'settings.importFormats.things-json',
+    };
+    const CSV_FIELD_KEYS: Record<CsvImportField, TranslationKey> = {
+        text: 'settings.csvFields.text',
+        notes: 'settings.csvFields.notes',
+        date: 'settings.csvFields.date',
+        tags: 'settings.csvFields.tags',
+        completed: 'settings.csvFields.completed',
+        priority: 'settings.csvFields.priority',
+        startTime: 'settings.csvFields.startTime',
+        endTime: 'settings.csvFields.endTime',
+    };
+
+    /** The language's own name, in its own script (what the list shows). */
+    function languageName(locale: string): string {
+        return new Intl.DisplayNames([locale], { type: 'language' }).of(locale) ?? locale;
+    }
+
+    function handleLanguageChange(e: Event) {
+        const value = (e.target as HTMLSelectElement).value;
+        preferencesStore.setLocale(value);
+    }
 
     $effect(() => {
         rolloverEnabled = preferencesStore.rolloverEnabled;
@@ -77,14 +109,14 @@
     function buildTzPreview(): string {
         const tz =
             preferencesStore.timezone !== null && !tzInvalid ? preferencesStore.timezone : null;
-        const time = now.toLocaleTimeString('en-US', {
+        const time = now.toLocaleTimeString(container.i18n.locale, {
             hour: '2-digit',
             minute: '2-digit',
             hour12: preferencesStore.timeFormat !== '24h',
             ...(tz ? { timeZone: tz } : {}),
         });
         const zoneLabel = (tz ?? Intl.DateTimeFormat().resolvedOptions().timeZone) || 'system';
-        return `Now: ${time} (${zoneLabel})`;
+        return i18nStore.t('settings.timezonePreview', { time, zone: zoneLabel });
     }
 
     function handleRolloverChange(e: Event) {
@@ -149,9 +181,8 @@
         const result = holidayImportResult;
         if (result === null) return null;
         const skipped =
-            result.skipped > 0 ? ` (${result.skipped} skipped as duplicates)` : '';
-        const n = result.holidays.length;
-        return `Imported ${n} holiday${n !== 1 ? 's' : ''}${skipped}.`;
+            result.skipped > 0 ? i18nStore.t('settings.holidaySkippedSuffix', { count: result.skipped }) : '';
+        return i18nStore.t('settings.holidayImported', { count: result.holidays.length }) + skipped + '.';
     });
 
     async function addHoliday(): Promise<void> {
@@ -164,7 +195,7 @@
             newHolidayDate = '';
         } else {
             // The store swallows the failure (logged); surface it here.
-            holidayError = 'Could not add the holiday -- check the name and date.';
+            holidayError = i18nStore.t('settings.holidayAddFailed');
         }
     }
 
@@ -197,7 +228,7 @@
             holidayError =
                 error instanceof HttpClientError
                     ? parseHolidayImportError(error)
-                    : 'Holiday import failed -- check that the server is reachable.';
+                    : i18nStore.t('settings.holidayImportFailed');
         } finally {
             holidayImporting = false;
         }
@@ -206,11 +237,11 @@
     function parseHolidayImportError(error: HttpClientError): string {
         try {
             const body = JSON.parse(String(error.body ?? '')) as { error?: string };
-            if (body.error) return `Import rejected: ${body.error}`;
+            if (body.error) return i18nStore.t('settings.holidayImportRejected', { error: body.error });
         } catch {
             // fall through to the generic message
         }
-        return 'Holiday import failed -- the document could not be processed.';
+        return i18nStore.t('settings.holidayImportUnprocessable');
     }
 
     // -- Tags management (USE-5) -------------------------------------------------
@@ -275,7 +306,7 @@
         tagEditor = null;
         if (to === '' || to === from) return;
         const ok = await tagStore.rename(from, to);
-        if (!ok) tagError = `Could not rename #${from}.`;
+        if (!ok) tagError = i18nStore.t('settings.tagRenameFailed', { name: from });
     }
 
     function handleRenameKeydown(from: string, e: KeyboardEvent) {
@@ -299,24 +330,26 @@
         const sourceCount = tagStore.tagInfo.find(info => info.name === source)?.count ?? 0;
         tagEditor = null;
         const ok = await uiStore.confirm(
-            `Merge #${source} into #${target}? The ${sourceCount} task${sourceCount !== 1 ? 's' : ''} carrying #${source} switch to #${target}.`,
-            'Merge',
+            i18nStore.t('settings.tagMergeConfirm', {
+                source, target, count: sourceCount,
+            }),
+            i18nStore.t('settings.mergeTag'),
         );
         if (!ok) return;
         const merged = await tagStore.merge([source], target);
-        if (!merged) tagError = `Could not merge #${source} into #${target}.`;
+        if (!merged) tagError = i18nStore.t('settings.tagMergeFailed', { source, target });
     }
 
     /** Delete: strip the tag from every task (confirm first). */
     async function deleteTag(name: string) {
         const count = tagStore.tagInfo.find(info => info.name === name)?.count ?? 0;
         const ok = await uiStore.confirm(
-            `Remove #${name} from ${count} task${count !== 1 ? 's' : ''}? The tasks stay; the tag goes.`,
-            'Remove',
+            i18nStore.t('settings.tagDeleteConfirm', { name, count }),
+            i18nStore.t('settings.remove'),
         );
         if (!ok) return;
         const deleted = await tagStore.delete(name);
-        if (!deleted) tagError = `Could not remove #${name}.`;
+        if (!deleted) tagError = i18nStore.t('settings.tagRemoveFailed', { name });
     }
 
     /** Set (or clear) a tag's color. 'none' returns the tag to its
@@ -464,7 +497,7 @@
             anchor.click();
             URL.revokeObjectURL(url);
         } catch {
-            exportError = 'Export failed -- check that the server is reachable.';
+            exportError = i18nStore.t('settings.exportFailed');
         } finally {
             exporting = null;
         }
@@ -531,15 +564,15 @@
         if (result === null) return null;
         if (result.mode === 'restore') {
             const restored = result.restored;
-            return (
-                `Restored ${restored?.tasks ?? 0} task(s), ` +
-                `${restored?.someDayGroups ?? 0} Someday group(s), ` +
-                `${restored?.projects ?? 0} project(s), ` +
-                `${restored?.recurringTasks ?? 0} recurring template(s), ` +
-                `${restored?.holidays ?? 0} holiday(s), and settings.`
-            );
+            return i18nStore.t('settings.importRestored', {
+                tasks: restored?.tasks ?? 0,
+                groups: restored?.someDayGroups ?? 0,
+                projects: restored?.projects ?? 0,
+                recurring: restored?.recurringTasks ?? 0,
+                holidays: restored?.holidays ?? 0,
+            });
         }
-        return `Imported ${result.created} task(s).`;
+        return i18nStore.t('settings.importedTasks', { count: result.created });
     });
 
     async function runImport(): Promise<void> {
@@ -550,8 +583,8 @@
 
         if (IMPORT_FORMAT_META[importFormat].restore) {
             const ok = await uiStore.confirm(
-                'Restoring replaces ALL data on this instance: tasks (trash included), Someday groups, projects, habits, and these settings. The server writes a backup file first. Continue?',
-                'Restore',
+                i18nStore.t('settings.restoreConfirm'),
+                i18nStore.t('settings.restore'),
             );
             if (!ok) return;
         }
@@ -573,7 +606,7 @@
             importError =
                 error instanceof HttpClientError
                     ? parseImportError(error)
-                    : 'Import failed -- check that the server is reachable.';
+                    : i18nStore.t('settings.importFailed');
         } finally {
             importing = false;
         }
@@ -582,34 +615,53 @@
     function parseImportError(error: HttpClientError): string {
         try {
             const body = JSON.parse(String(error.body ?? '')) as { error?: string };
-            if (body.error) return `Import rejected: ${body.error}`;
+            if (body.error) return i18nStore.t('settings.importRejected', { error: body.error });
         } catch {
             // fall through to the generic message
         }
-        return 'Import failed -- the document could not be processed.';
+        return i18nStore.t('settings.importUnprocessable');
     }
 </script>
 
-<Modal title="Settings" onclose={onclose}>
+<Modal title={i18nStore.t('modal.settings')} onclose={onclose}>
     <div class="settings">
         <fieldset class="section">
-            <legend class="section-heading">Time</legend>
+            <legend class="section-heading">{i18nStore.t('settings.language')}</legend>
             <label class="field">
-                <span class="label" id="time-format-label">Time format</span>
+                <span class="label" id="language-label">{i18nStore.t('settings.language')}</span>
+                <select
+                    class="select"
+                    id="language-select"
+                    value={preferencesStore.locale}
+                    onchange={handleLanguageChange}
+                    aria-labelledby="language-label"
+                >
+                    {#each i18nStore.availableLocales as locale (locale)}
+                        <option value={locale}>{languageName(locale)}</option>
+                    {/each}
+                </select>
+            </label>
+            <p class="hint">{i18nStore.t('settings.languageHint')}</p>
+        </fieldset>
+
+        <fieldset class="section">
+            <legend class="section-heading">{i18nStore.t('settings.time')}</legend>
+            <label class="field">
+                <span class="label" id="time-format-label">{i18nStore.t('settings.timeFormat')}</span>
                 <select class="select" value={timeFormat} onchange={handleTimeFormatChange} aria-labelledby="time-format-label" id="time-format-select">
-                    <option value="12h">12-hour (08:53 PM)</option>
-                    <option value="24h">24-hour (20:53)</option>
+                    <option value="12h">{i18nStore.t('settings.time12h')}</option>
+                    <option value="24h">{i18nStore.t('settings.time24h')}</option>
                 </select>
             </label>
             <label class="field">
-                <span class="label" id="tz-label">Timezone</span>
+                <span class="label" id="tz-label">{i18nStore.t('settings.timezone')}</span>
                 <input
                     class="select tz-input"
                     list="tz-options"
                     id="tz-input"
                     value={timezoneInput}
                     oninput={handleTimezoneInput}
-                    placeholder="System (device)"
+                    placeholder={i18nStore.t('settings.timezonePlaceholder')}
                     aria-labelledby="tz-label"
                     aria-invalid={tzInvalid}
                 />
@@ -624,36 +676,36 @@
                      screen readers announce it the moment it appears. The
                      preview span below is NOT live, so its every-keystroke
                      updates stay unannounced (USE-12). -->
-                <span class="hint invalid" role="alert">Unknown timezone -- expected an IANA identifier</span>
+                <span class="hint invalid" role="alert">{i18nStore.t('settings.timezoneInvalid')}</span>
             {:else}
                 <span class="hint">{tzPreview}</span>
             {/if}
             <details class="tz-help">
-                <summary>Examples & format</summary>
+                <summary>{i18nStore.t('settings.timezoneExamples')}</summary>
                 <p class="tz-help-text">
-                    Use an IANA timezone identifier: <code>Area/Location</code>
-                    (case-sensitive). E.g. <code>America/Denver</code>,
+                    {i18nStore.t('settings.tzHelp1')}
+                    <code>{i18nStore.t('settings.tzHelp1Code')}</code>
+                    {i18nStore.t('settings.tzHelp2')}
+                    <code>America/Denver</code>,
                     <code>America/Boise</code>, <code>Europe/London</code>,
                     <code>Asia/Tokyo</code>, <code>Asia/Kolkata</code>,
                     <code>Australia/Sydney</code>, <code>UTC</code>.
                 </p>
                 <p class="tz-help-text">
-                    No abbreviations (MST, PST, EST are ambiguous) and no
-                    numeric offsets (use a named zone instead). Leave blank to
-                    follow your device's system timezone.
+                    {i18nStore.t('settings.tzHelp3')}
                 </p>
                 <p class="tz-help-text">
-                    Full list:
-                    <a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones" target="_blank" rel="noopener noreferrer">wikipedia.org &rarr;</a>
+                    {i18nStore.t('settings.tzHelp4')}
+                    <a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones" target="_blank" rel="noopener noreferrer">{i18nStore.t('settings.wikipediaLink')} &rarr;</a>
                 </p>
             </details>
         </fieldset>
 
         <fieldset class="section">
-            <legend class="section-heading">Behavior</legend>
+            <legend class="section-heading">{i18nStore.t('settings.behavior')}</legend>
             <label class="checkbox-field">
                 <input type="checkbox" checked={rolloverEnabled} onchange={handleRolloverChange} id="rollover-enabled" />
-                <span>Auto-rollover incomplete tasks</span>
+                <span>{i18nStore.t('settings.autoRollover')}</span>
             </label>
             <label class="checkbox-field">
                 <input
@@ -662,7 +714,7 @@
                     onchange={handleShowEmptyDaysChange}
                     id="show-empty-days"
                 />
-                <span>Show empty days (today always shows)</span>
+                <span>{i18nStore.t('settings.showEmptyDays')}</span>
             </label>
             <label class="checkbox-field">
                 <input
@@ -671,44 +723,39 @@
                     onchange={handlePersistActiveFiltersChange}
                     id="persist-active-filters"
                 />
-                <span>Keep filters between sessions (off = start fresh)</span>
+                <span>{i18nStore.t('settings.persistFilters')}</span>
             </label>
             {#if rolloverEnabled}
                 <label class="field">
-                    <span class="label" id="rollover-trigger-label">Rollover time</span>
+                    <span class="label" id="rollover-trigger-label">{i18nStore.t('settings.rolloverTime')}</span>
                     <select class="select" value={rolloverTriggerTime} onchange={handleRolloverTriggerChange} aria-labelledby="rollover-trigger-label" id="rollover-trigger-select">
-                        <option value="midnight">At midnight (server time)</option>
-                        <option value="9am">At 9am (server time)</option>
-                        <option value="manual">Only at server startup</option>
+                        <option value="midnight">{i18nStore.t('settings.rolloverMidnight')}</option>
+                        <option value="9am">{i18nStore.t('settings.rollover9am')}</option>
+                        <option value="manual">{i18nStore.t('settings.rolloverManual')}</option>
                     </select>
                 </label>
             {/if}
             <label class="field">
-                <span class="label" id="delete-confirm-label">Delete confirmation</span>
+                <span class="label" id="delete-confirm-label">{i18nStore.t('settings.deleteConfirmation')}</span>
                 <select class="select" value={deleteConfirmation} onchange={handleDeleteConfirmationChange} aria-labelledby="delete-confirm-label" id="delete-confirm-select">
-                    <option value="instant">Instant delete</option>
-                    <option value="confirm">Ask before deleting</option>
+                    <option value="instant">{i18nStore.t('settings.deleteInstant')}</option>
+                    <option value="confirm">{i18nStore.t('settings.deleteAsk')}</option>
                 </select>
             </label>
         </fieldset>
 
         <fieldset class="section">
-            <legend class="section-heading">Tags</legend>
-            <p class="hint">
-                Every tag with its task count. Rename and merge apply to every
-                task that carries the tag; recoloring changes chips and filters
-                everywhere; removing strips the tag from its tasks (the tasks
-                stay).
-            </p>
+            <legend class="section-heading">{i18nStore.t('settings.tags')}</legend>
+            <p class="hint">{i18nStore.t('settings.tagsHint')}</p>
             {#if tagRows.length === 0}
-                <p class="hint">No tags yet -- add a #tag to any task and it shows up here.</p>
+                <p class="hint">{i18nStore.t('settings.tagsEmpty')}</p>
             {:else}
                 <ul class="tag-manage-list">
                     {#each tagRows as row (row.name)}
                         {@const editing = tagEditor?.name === row.name ? tagEditor : null}
                         <li class="tag-manage-row">
                             {#if editing?.kind === 'color'}
-                                <div class="tag-color-picker" role="radiogroup" aria-label="Color for #{row.name}">
+                                <div class="tag-color-picker" role="radiogroup" aria-label={i18nStore.t('settings.colorForTag', { name: row.name })}>
                                     {#each TAG_COLORS as color (color)}
                                         <button
                                             type="button"
@@ -716,7 +763,7 @@
                                             class:selected={preferencesStore.tagColors[row.name] === color}
                                             style="background: {TAG_SWATCH_COLORS[color]}"
                                             onclick={() => setTagColor(row.name, color)}
-                                            aria-label="#{row.name} in {color}"
+                                            aria-label={i18nStore.t('settings.tagInColor', { name: row.name, color })}
                                         ></button>
                                     {/each}
                                     {#if preferencesStore.tagColors[row.name] !== undefined}
@@ -724,7 +771,7 @@
                                             type="button"
                                             class="color-dot color-none"
                                             onclick={() => setTagColor(row.name, 'none')}
-                                            aria-label="#{row.name} back to the default color"
+                                            aria-label={i18nStore.t('settings.tagDefaultColor', { name: row.name })}
                                         >
                                             <Icon src={LuTrash2} />
                                         </button>
@@ -736,7 +783,7 @@
                                     class="color-dot current"
                                     style="{row.color ? `background: ${row.color};` : ''}"
                                     onclick={() => openTagEditor(row.name, 'color')}
-                                    aria-label="Recolor #{row.name}"
+                                    aria-label={i18nStore.t('settings.recolorTag', { name: row.name })}
                                 ></button>
                             {/if}
 
@@ -746,19 +793,19 @@
                                     bind:value={renameValue}
                                     onkeydown={e => handleRenameKeydown(row.name, e)}
                                     onblur={() => void commitTagRename(row.name)}
-                                    aria-label="Rename #{row.name}"
+                                    aria-label={i18nStore.t('settings.renameTag', { name: row.name })}
                                     maxlength={60}
                                 />
                             {:else}
                                 <span class="tag-manage-name">#{row.name}</span>
-                                <span class="tag-count">{row.count} task{row.count !== 1 ? 's' : ''}</span>
+                                <span class="tag-count">{i18nStore.t('settings.tagCount', { count: row.count })}</span>
                             {/if}
 
                             {#if editing?.kind === 'merge'}
                                 <select
                                     class="select tag-merge-select"
                                     bind:value={mergeTarget}
-                                    aria-label="Merge #{row.name} into"
+                                    aria-label={i18nStore.t('settings.mergeTagInto', { name: row.name })}
                                 >
                                     {#each tagRows as other (other.name)}
                                         {#if other.name !== row.name}
@@ -767,10 +814,10 @@
                                     {/each}
                                 </select>
                                 <button type="button" class="btn btn-secondary" onclick={() => void commitTagMerge(row.name)}>
-                                    Merge
+                                    {i18nStore.t('settings.mergeTag')}
                                 </button>
                                 <button type="button" class="btn btn-secondary" onclick={() => (tagEditor = null)}>
-                                    Cancel
+                                    {i18nStore.t('common.cancel')}
                                 </button>
                             {/if}
 
@@ -779,7 +826,7 @@
                                     type="button"
                                     class="icon-btn small"
                                     onclick={() => openTagEditor(row.name, 'rename')}
-                                    aria-label="Rename #{row.name}"
+                                    aria-label={i18nStore.t('settings.renameTag', { name: row.name })}
                                 >
                                     <Icon src={LuPencil} />
                                 </button>
@@ -788,7 +835,7 @@
                                     class="icon-btn small"
                                     disabled={tagRows.length < 2}
                                     onclick={() => openTagEditor(row.name, 'merge')}
-                                    aria-label="Merge #{row.name} into another tag"
+                                    aria-label={i18nStore.t('settings.mergeTagIntoAnother', { name: row.name })}
                                 >
                                     <Icon src={LuGitMerge} />
                                 </button>
@@ -796,7 +843,7 @@
                                     type="button"
                                     class="icon-btn small danger"
                                     onclick={() => void deleteTag(row.name)}
-                                    aria-label="Remove #{row.name}"
+                                    aria-label={i18nStore.t('settings.removeTag', { name: row.name })}
                                 >
                                     <Icon src={LuTrash2} />
                                 </button>
@@ -811,27 +858,23 @@
         </fieldset>
 
         <fieldset class="section">
-            <legend class="section-heading">Holidays</legend>
-            <p class="hint">
-                Named dates display a small banner above that day in the list.
-                Import a holiday .ics calendar by URL or file; duplicates are
-                skipped automatically.
-            </p>
+            <legend class="section-heading">{i18nStore.t('settings.holidays')}</legend>
+            <p class="hint">{i18nStore.t('settings.holidaysHint')}</p>
             <div class="holiday-add">
                 <input
                     class="holiday-name-input"
                     type="text"
-                    placeholder="Holiday name"
+                    placeholder={i18nStore.t('settings.holidayNamePlaceholder')}
                     bind:value={newHolidayName}
                     onkeydown={handleHolidayKeydown}
-                    aria-label="Holiday name"
+                    aria-label={i18nStore.t('settings.holidayName')}
                 />
                 <input
                     class="select"
                     type="date"
                     bind:value={newHolidayDate}
                     onkeydown={handleHolidayKeydown}
-                    aria-label="Holiday date"
+                    aria-label={i18nStore.t('settings.holidayDate')}
                 />
                 <button
                     type="button"
@@ -839,7 +882,7 @@
                     onclick={addHoliday}
                     disabled={newHolidayName.trim() === '' || newHolidayDate === ''}
                 >
-                    Add
+                    {i18nStore.t('settings.add')}
                 </button>
             </div>
             {#if holidayStore.holidays.length > 0}
@@ -851,7 +894,7 @@
                             <button
                                 class="icon-btn small danger"
                                 onclick={() => holidayStore.remove(holiday.id)}
-                                aria-label="Delete {holiday.name}"
+                                aria-label={i18nStore.t('settings.deleteHoliday', { name: holiday.name })}
                             >
                                 <Icon src={LuTrash2} />
                             </button>
@@ -863,9 +906,9 @@
                 <input
                     class="holiday-url-input"
                     type="url"
-                    placeholder="https://example.com/holidays.ics"
+                    placeholder={i18nStore.t('settings.holidayUrlPlaceholder')}
                     bind:value={holidayImportUrlInput}
-                    aria-label="Holiday calendar URL"
+                    aria-label={i18nStore.t('settings.holidayUrl')}
                     onkeydown={(e: KeyboardEvent) => {
                         if (e.key === 'Enter') void importHolidayUrl();
                     }}
@@ -876,7 +919,7 @@
                     onclick={importHolidayUrl}
                     disabled={holidayImporting || holidayImportUrlInput.trim() === ''}
                 >
-                    {holidayImporting ? 'Importing...' : 'Import URL'}
+                    {holidayImporting ? i18nStore.t('settings.importing') : i18nStore.t('settings.importUrl')}
                 </button>
             </div>
             <div class="holiday-import">
@@ -884,7 +927,7 @@
                     type="file"
                     accept=".ics,text/calendar"
                     onchange={importHolidayFile}
-                    aria-label="Holiday calendar file"
+                    aria-label={i18nStore.t('settings.holidayFile')}
                     disabled={holidayImporting}
                 />
             </div>
@@ -896,7 +939,7 @@
                             <li>{warning.message}</li>
                         {/each}
                         {#if holidayImportResult.warnings.length > 3}
-                            <li>... and {holidayImportResult.warnings.length - 3} more</li>
+                            <li>{i18nStore.t('settings.andMore', { count: holidayImportResult.warnings.length - 3 })}</li>
                         {/if}
                     </ul>
                 {/if}
@@ -907,47 +950,44 @@
         </fieldset>
 
         <fieldset class="section">
-            <legend class="section-heading">Export</legend>
-            <p class="hint">
-                Download your data. JSON is the complete backup (every entity,
-                trash included); CSV, Markdown, and iCal are task views.
-            </p>
+            <legend class="section-heading">{i18nStore.t('settings.export')}</legend>
+            <p class="hint">{i18nStore.t('settings.exportHint')}</p>
             <div class="export-buttons">
                 <button
                     type="button"
                     class="btn btn-secondary"
                     onclick={() => downloadExport('json')}
                     disabled={exporting !== null}
-                    aria-label="Download JSON backup"
+                    aria-label={i18nStore.t('settings.downloadJson')}
                 >
-                    {exporting === 'json' ? 'Exporting...' : 'JSON (backup)'}
+                    {exporting === 'json' ? i18nStore.t('settings.exporting') : i18nStore.t('settings.jsonBackup')}
                 </button>
                 <button
                     type="button"
                     class="btn btn-secondary"
                     onclick={() => downloadExport('csv')}
                     disabled={exporting !== null}
-                    aria-label="Download CSV export"
+                    aria-label={i18nStore.t('settings.csv')}
                 >
-                    CSV
+                    {i18nStore.t('settings.csv')}
                 </button>
                 <button
                     type="button"
                     class="btn btn-secondary"
                     onclick={() => downloadExport('md')}
                     disabled={exporting !== null}
-                    aria-label="Download Markdown export"
+                    aria-label={i18nStore.t('settings.markdown')}
                 >
-                    Markdown
+                    {i18nStore.t('settings.markdown')}
                 </button>
                 <button
                     type="button"
                     class="btn btn-secondary"
                     onclick={() => downloadExport('ics')}
                     disabled={exporting !== null}
-                    aria-label="Download iCal export"
+                    aria-label={i18nStore.t('settings.ical')}
                 >
-                    iCal
+                    {i18nStore.t('settings.ical')}
                 </button>
             </div>
             {#if exportError}
@@ -956,13 +996,10 @@
         </fieldset>
 
         <fieldset class="section">
-            <legend class="section-heading">Import</legend>
-            <p class="hint">
-                Restore a JSON backup (replaces everything on this instance) or
-                add tasks from CSV, iCal, Todoist, or Things 3.
-            </p>
+            <legend class="section-heading">{i18nStore.t('settings.import')}</legend>
+            <p class="hint">{i18nStore.t('settings.importHint')}</p>
             <label class="field">
-                <span class="label" id="import-format-label">Source</span>
+                <span class="label" id="import-format-label">{i18nStore.t('settings.source')}</span>
                 <select
                     class="select"
                     id="import-format-select"
@@ -971,7 +1008,7 @@
                     aria-labelledby="import-format-label"
                 >
                     {#each importFormats as format (format)}
-                        <option value={format}>{IMPORT_FORMAT_META[format].label}</option>
+                        <option value={format}>{i18nStore.t(IMPORT_FORMAT_KEYS[format])}</option>
                     {/each}
                 </select>
             </label>
@@ -980,22 +1017,22 @@
                 type="file"
                 accept={importAccept[importFormat]}
                 onchange={handleImportFile}
-                aria-label="File to import"
+                aria-label={i18nStore.t('settings.fileToImport')}
                 disabled={importing}
             />
             {#if importFormat === 'csv' && csvHeader !== null}
-                <div class="csv-mapping" aria-label="Column mapping">
+                <div class="csv-mapping" aria-label={i18nStore.t('settings.columnMapping')}>
                     {#each CSV_IMPORT_FIELDS as field (field)}
                         <label class="field">
-                            <span class="label">{field}</span>
+                            <span class="label">{i18nStore.t(CSV_FIELD_KEYS[field])}</span>
                             <select
                                 class="select"
-                                aria-label="CSV column for {field}"
+                                aria-label={i18nStore.t('settings.csvColumnFor', { field: i18nStore.t(CSV_FIELD_KEYS[field]) })}
                                 value={csvMapping[field] ?? ''}
                                 onchange={event =>
                                     setCsvMappingField(field, (event.currentTarget as HTMLSelectElement).value)}
                             >
-                                <option value="">(not mapped)</option>
+                                <option value="">{i18nStore.t('settings.notMapped')}</option>
                                 {#each csvHeader as column (column)}
                                     <option value={column}>{column}</option>
                                 {/each}
@@ -1012,9 +1049,9 @@
                     disabled={importing || importSource === null}
                 >
                     {#if IMPORT_FORMAT_META[importFormat].restore}
-                        {importing ? 'Restoring...' : 'Restore'}
+                        {importing ? i18nStore.t('settings.restoring') : i18nStore.t('settings.restore')}
                     {:else}
-                        {importing ? 'Importing...' : 'Import'}
+                        {importing ? i18nStore.t('settings.importing') : i18nStore.t('settings.import')}
                     {/if}
                 </button>
             </div>
@@ -1023,10 +1060,10 @@
                 {#if importResult && importResult.warnings.length > 0}
                     <ul class="import-warnings">
                         {#each importResult.warnings.slice(0, 5) as warning}
-                            <li>{warning.source ? `Row ${warning.source}: ` : ''}{warning.message}</li>
+                            <li>{warning.source ? i18nStore.t('settings.importRowWarning', { source: warning.source }) : ''}{warning.message}</li>
                         {/each}
                         {#if importResult.warnings.length > 5}
-                            <li>... and {importResult.warnings.length - 5} more</li>
+                            <li>{i18nStore.t('settings.andMore', { count: importResult.warnings.length - 5 })}</li>
                         {/if}
                     </ul>
                 {/if}
@@ -1036,18 +1073,22 @@
             {/if}
         </fieldset>
 
-        <section class="section" aria-label="Panel settings">
-            <h3 class="section-heading">Panel</h3>
-            <p class="hint">Toggle the Someday panel with <kbd>Ctrl</kbd>+<kbd>\</kbd></p>
+        <section class="section" aria-label={i18nStore.t('settings.panelSettings')}>
+            <h3 class="section-heading">{i18nStore.t('settings.panel')}</h3>
+            <p class="hint">{i18nStore.t('settings.panelHint')} <kbd>Ctrl</kbd>+<kbd>\</kbd></p>
         </section>
 
         <fieldset class="section">
-            <legend class="section-heading">Shortcuts</legend>
+            <legend class="section-heading">{i18nStore.t('settings.shortcuts')}</legend>
             <p class="hint">
-                Click a binding, then press the keys you want. Two-key chords
-                start with <kbd>g</kbd> (press <kbd>g</kbd>, then the second
-                key). <kbd>Esc</kbd> cancels a capture. A clash is warned,
-                not blocked -- swapping two actions is a legitimate remap.
+                {i18nStore.t('settings.shortcutsHint1')}
+                {i18nStore.t('settings.shortcutsHint2')}
+                <kbd>g</kbd>
+                {i18nStore.t('settings.shortcutsHint3')}
+                <kbd>g</kbd>
+                {i18nStore.t('settings.shortcutsHint4')}
+                <kbd>Esc</kbd>
+                {i18nStore.t('settings.shortcutsHint5')}
             </p>
             <ul class="shortcut-list">
                 {#each shortcutRows as row (row.id)}
@@ -1055,7 +1096,7 @@
                         <span class="shortcut-label">{i18nStore.t(row.labelKey)}</span>
                         {#if capturingId === row.id}
                             <button type="button" class="btn btn-secondary capture-hint">
-                                {capturePrefix === null ? 'Press keys...' : 'Press the second key...'}
+                                {capturePrefix === null ? i18nStore.t('settings.pressKeys') : i18nStore.t('settings.pressSecondKey')}
                             </button>
                         {:else}
                             <button
@@ -1093,7 +1134,7 @@
             {#if Object.keys(preferencesStore.shortcutOverrides).length > 0}
                 <div>
                     <button type="button" class="btn btn-secondary" onclick={resetAllShortcuts}>
-                        Reset all shortcuts
+                        {i18nStore.t('settings.resetAllShortcuts')}
                     </button>
                 </div>
             {/if}

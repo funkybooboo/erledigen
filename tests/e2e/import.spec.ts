@@ -106,11 +106,13 @@ test.describe('Settings import (ADR-009)', () => {
             buffer: Buffer.from(`Title,Due Date\n${marker},${todayISO()}\n`),
         });
 
-        // The mapping UI appears with the auto-detected columns.
+        // The mapping UI appears with the auto-detected columns. The
+        // field labels localize (v0.13.0 i18n): 'text' shows as 'Task
+        // text' in the accessible name.
         const mapping = settings.locator('.csv-mapping');
         await expect(mapping).toBeVisible();
-        await expect(mapping.getByLabel('CSV column for text')).toHaveValue('Title');
-        await expect(mapping.getByLabel('CSV column for date')).toHaveValue('Due Date');
+        await expect(mapping.getByLabel('CSV column for Task text')).toHaveValue('Title');
+        await expect(mapping.getByLabel('CSV column for Date')).toHaveValue('Due Date');
 
         await settings.getByRole('button', { name: 'Import', exact: true }).click();
         await expect(settings.getByRole('status')).toContainText('Imported 1 task(s)');

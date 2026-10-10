@@ -9,6 +9,7 @@
         findUpcomingHolidays,
     } from '$lib/summary';
     import { onMount } from 'svelte';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
@@ -34,26 +35,26 @@
     });
 
     function daysLateLabel(days: number): string {
-        return `${days} ${days === 1 ? 'day' : 'days'} late`;
+        return i18nStore.t('summary.daysLate', { count: days });
     }
 
     function streakLabel(days: number): string {
-        return `${days} ${days === 1 ? 'day' : 'days'}`;
+        return i18nStore.t('summary.days', { count: days });
     }
 </script>
 
-<Modal title="Summary" onclose={onclose}>
-    <div class="summary" role="region" aria-label="Daily summary">
+<Modal title={i18nStore.t('modal.summary')} onclose={onclose}>
+    <div class="summary" role="region" aria-label={i18nStore.t('summary.regionAria')}>
         <section class="section" aria-labelledby="summary-today-heading">
-            <h3 id="summary-today-heading" class="modal-section-heading">Today</h3>
+            <h3 id="summary-today-heading" class="modal-section-heading">{i18nStore.t('summary.today')}</h3>
             <div class="stat-grid">
                 <div class="stat">
                     <span class="stat-value">{completionPct}%</span>
-                    <span class="stat-label">Complete</span>
+                    <span class="stat-label">{i18nStore.t('summary.complete')}</span>
                 </div>
                 <div class="stat">
                     <span class="stat-value">{completedToday}/{totalToday}</span>
-                    <span class="stat-label">Tasks</span>
+                    <span class="stat-label">{i18nStore.t('summary.tasks')}</span>
                 </div>
             </div>
             <div class="progress-bar">
@@ -64,7 +65,7 @@
         {#if overdue.length > 0}
             <section class="section" aria-labelledby="summary-overdue-heading">
                 <h3 id="summary-overdue-heading" class="modal-section-heading">
-                    Overdue ({overdue.length})
+                    {i18nStore.t('summary.overdue', { count: overdue.length })}
                 </h3>
                 <ul class="list">
                     {#each overdue as { task, daysLate } (task.id)}
@@ -79,7 +80,7 @@
 
         {#if streaks.length > 0}
             <section class="section" aria-labelledby="summary-streaks-heading">
-                <h3 id="summary-streaks-heading" class="modal-section-heading">Active Streaks</h3>
+                <h3 id="summary-streaks-heading" class="modal-section-heading">{i18nStore.t('summary.streaks')}</h3>
                 <ul class="list">
                     {#each streaks as { habit, currentStreak } (habit.id)}
                         <li class="list-item">
@@ -93,7 +94,7 @@
 
         {#if upcomingDeadlines.length > 0 || upcomingHolidays.length > 0}
             <section class="section" aria-labelledby="summary-upcoming-heading">
-                <h3 id="summary-upcoming-heading" class="modal-section-heading">Next 14 Days</h3>
+                <h3 id="summary-upcoming-heading" class="modal-section-heading">{i18nStore.t('summary.next')}</h3>
                 <ul class="list">
                     {#each upcomingDeadlines as task (task.id)}
                         <li class="list-item">

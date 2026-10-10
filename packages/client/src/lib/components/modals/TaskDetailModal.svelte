@@ -13,6 +13,7 @@
     import type { RecurringFrequency, Task, UpdateTaskInput } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
     import { LuTrash2, LuPlus, LuCheck, LuCircle, LuRepeat } from 'svelte-icons-pack/lu';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
@@ -72,7 +73,7 @@
 
         adopting = false;
         if (!result) {
-            notificationStore.push('Could not make the task recurring', { kind: 'error' });
+            notificationStore.push(i18nStore.t('taskDetail.adoptFailed'), { kind: 'error' });
             return;
         }
 
@@ -83,7 +84,7 @@
         const taskId = task.id;
         task = taskStore.tasks.find(t => t.id === taskId) ?? task;
         showRecurringForm = false;
-        notificationStore.push(`"${result.task.text}" is now a habit`);
+        notificationStore.push(i18nStore.t('taskDetail.adopted', { text: result.task.text }));
     }
 
     let subTasks = $derived.by(() => {
@@ -127,7 +128,7 @@
         // guaranteed; the RANGE is the real client-side guard (the server
         // schema checks format only).
         if (!isValidTimeRange(editStartTime || null, editEndTime || null)) {
-            notificationStore.push('End time cannot be before start time', { kind: 'error' });
+            notificationStore.push(i18nStore.t('taskDetail.endTimeInvalid'), { kind: 'error' });
             return;
         }
 
@@ -191,84 +192,84 @@
 </script>
 
 {#if task}
-    <Modal title="Task Details" onclose={onclose}>
+    <Modal title={i18nStore.t('modal.taskDetail')} onclose={onclose}>
         <div class="task-detail">
             <label class="field">
-                <span class="label">Text</span>
+                <span class="label">{i18nStore.t('taskDetail.text')}</span>
                 <input
                     class="input"
                     type="text"
                     bind:value={editText}
                     maxlength={TASK_CONSTRAINTS.MAX_TEXT_LENGTH}
-                    aria-label="Task text"
+                    aria-label={i18nStore.t('taskDetail.taskTextAria')}
                 />
             </label>
 
             <div class="field">
-                <span class="label">Notes</span>
+                <span class="label">{i18nStore.t('taskDetail.notes')}</span>
                 <div class="notes-editor">
                     <LiveMarkdownEditor
                         value={editNotes}
                         onchange={notes => (editNotes = notes)}
-                        placeholder={"Add notes -- # headings, **bold**, *italic*, `code`, - lists, [links](https://...)"}
+                        placeholder={i18nStore.t('taskDetail.notesPlaceholder')}
                         ariaLabel="Task notes"
                     />
                 </div>
             </div>
 
             <label class="field">
-                <span class="label">Date</span>
+                <span class="label">{i18nStore.t('taskDetail.date')}</span>
                 <div class="date-row">
-                    <input class="input" type="date" bind:value={editDate} aria-label="Task date" />
+                    <input class="input" type="date" bind:value={editDate} aria-label={i18nStore.t('taskDetail.taskDateAria')} />
                     {#if editDate}
-                        <button class="clear-date-btn" onclick={clearDate} aria-label="Clear date">Clear</button>
+                        <button class="clear-date-btn" onclick={clearDate} aria-label={i18nStore.t('taskDetail.clearDateAria')}>{i18nStore.t('taskDetail.clear')}</button>
                     {/if}
                 </div>
             </label>
 
             <div class="time-row">
                 <label class="field time-field">
-                    <span class="label">Start time</span>
+                    <span class="label">{i18nStore.t('taskDetail.startTime')}</span>
                     <input
                         class="input"
                         type="time"
                         bind:value={editStartTime}
-                        aria-label="Start time"
+                        aria-label={i18nStore.t('taskDetail.startTimeAria')}
                     />
                 </label>
                 <label class="field time-field">
-                    <span class="label">End time</span>
+                    <span class="label">{i18nStore.t('taskDetail.endTime')}</span>
                     <input
                         class="input"
                         type="time"
                         bind:value={editEndTime}
-                        aria-label="End time"
+                        aria-label={i18nStore.t('taskDetail.endTimeAria')}
                     />
                 </label>
             </div>
 
             <label class="field">
-                <span class="label">Tags</span>
+                <span class="label">{i18nStore.t('taskDetail.tags')}</span>
                 <input
                     class="input"
                     type="text"
                     bind:value={editTags}
-                    placeholder="work, p1, important"
-                    aria-label="Tags (comma-separated)"
+                    placeholder={i18nStore.t('taskDetail.tagsPlaceholder')}
+                    aria-label={i18nStore.t('taskDetail.tagsAria')}
                 />
             </label>
 
             <label class="checkbox-field">
                 <input type="checkbox" bind:checked={editRollover} />
-                <span>Auto-rollover enabled</span>
+                <span>{i18nStore.t('taskDetail.autoRollover')}</span>
             </label>
 
             {#if task.parentId}
-                <div class="info-text">Sub-task of: {taskStore.tasks.find(t => t.id === task?.parentId)?.text ?? 'unknown'}</div>
+                <div class="info-text">{i18nStore.t('taskDetail.subTaskOf', { name: taskStore.tasks.find(t => t.id === task?.parentId)?.text ?? i18nStore.t('taskDetail.unknownTask') })}</div>
             {/if}
 
             {#if task.recurringTaskId}
-                <div class="info-text">This is a recurring task instance</div>
+                <div class="info-text">{i18nStore.t('taskDetail.recurringInstance')}</div>
             {:else if showRecurringForm}
                 <div class="recurring-form" data-testid="make-recurring-form">
                     <HabitScheduleForm
@@ -284,16 +285,13 @@
                             onclick={handleAdopt}
                             disabled={adopting}
                         >
-                            {adopting ? 'Making recurring...' : 'Make recurring'}
+                            {adopting ? i18nStore.t('taskDetail.makingRecurring') : i18nStore.t('taskDetail.makeRecurring')}
                         </button>
                         <button class="btn btn-secondary" onclick={() => (showRecurringForm = false)}>
-                            Cancel
+                            {i18nStore.t('common.cancel')}
                         </button>
                     </div>
-                    <p class="adopt-hint">
-                        Repeats from this task's date -- the task itself becomes the first
-                        instance and stays where it is.
-                    </p>
+                    <p class="adopt-hint">{i18nStore.t('taskDetail.adoptHint')}</p>
                 </div>
             {:else}
                 <button
@@ -302,16 +300,16 @@
                     aria-expanded={showRecurringForm}
                 >
                     <Icon src={LuRepeat} size={14} />
-                    Make recurring
+                    {i18nStore.t('taskDetail.makeRecurring')}
                 </button>
             {/if}
 
             <div class="subtask-section">
                 <span class="label">
                     {#if subTaskStats.total === 0}
-                        No sub-tasks
+                        {i18nStore.t('taskDetail.noSubTasks')}
                     {:else}
-                        Sub-tasks ({subTaskStats.completed}/{subTaskStats.total})
+                        {i18nStore.t('taskDetail.subTasks', { done: subTaskStats.completed, total: subTaskStats.total })}
                     {/if}
                 </span>
 
@@ -323,7 +321,7 @@
                                     class="subtask-checkbox"
                                     class:checked={subTask.completed}
                                     onclick={() => handleToggleSubTask(subTask)}
-                                    aria-label="{subTask.completed ? 'Mark incomplete' : 'Mark complete'}"
+                                    aria-label={i18nStore.t(subTask.completed ? 'taskRow.markIncomplete' : 'taskRow.markComplete')}
                                 >
                                     <Icon src={subTask.completed ? LuCheck : LuCircle} size={14} />
                                 </button>
@@ -331,7 +329,7 @@
                                 <button
                                     class="subtask-delete-btn"
                                     onclick={() => handleDeleteSubTask(subTask)}
-                                    aria-label="Delete sub-task"
+                                    aria-label={i18nStore.t('taskDetail.deleteSubTask')}
                                 >
                                     <Icon src={LuTrash2} size={14} />
                                 </button>
@@ -347,24 +345,24 @@
                             type="text"
                             bind:value={newSubTaskText}
                             bind:this={subTaskInputEl}
-                            placeholder="Sub-task name..."
+                            placeholder={i18nStore.t('taskDetail.subTaskPlaceholder')}
                             onkeydown={handleSubTaskKeydown}
-                            aria-label="New sub-task name"
+                            aria-label={i18nStore.t('taskDetail.newSubTaskAria')}
                         />
                     </div>
                 {:else}
                     <button class="add-subtask-btn" onclick={() => { showAddSubTask = true; newSubTaskText = ''; }}>
                         <Icon src={LuPlus} size={14} />
-                        add sub-task
+                        {i18nStore.t('taskDetail.addSubTask')}
                     </button>
                 {/if}
             </div>
 
             <div class="actions">
-                <button class="delete-task-btn" onclick={handleDeleteTask}>Delete task</button>
+                <button class="delete-task-btn" onclick={handleDeleteTask}>{i18nStore.t('taskDetail.deleteTask')}</button>
                 <div class="actions-spacer"></div>
-                <button class="save-btn" onclick={handleSave}>Save</button>
-                <button class="cancel-btn" onclick={() => uiStore.closeModal()}>Cancel</button>
+                <button class="save-btn" onclick={handleSave}>{i18nStore.t('taskDetail.save')}</button>
+                <button class="cancel-btn" onclick={() => uiStore.closeModal()}>{i18nStore.t('common.cancel')}</button>
             </div>
         </div>
     </Modal>
