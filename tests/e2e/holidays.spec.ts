@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { cleanup, createHoliday, uniq } from '../api-tests/helpers';
+import { cleanup, createHoliday, uniq } from '../api/helpers';
 import { dayISO, hydrated, modal, SERVER_URL } from './util';
 
 test.afterEach(async ({ request }) => {

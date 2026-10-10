@@ -12,7 +12,6 @@
 #   client-test  -- vite dev server (matches how local playwright runs)
 #   e2e          -- Playwright runner (e2e + api projects), bundled Chromium
 #   unit         -- bun unit tests (one-shot)
-#   api          -- Bruno API suite (one-shot)
 #
 # Usage (mise wraps these -- see mise.toml):
 #   docker compose -f compose.test.yaml build
@@ -90,16 +89,3 @@ services:
             context: .
             target: development
         command: bun run test:unit
-
-    api:
-        image: erledigen/dev
-        build:
-            context: .
-            target: development
-        # Bruno env override: point the "local" environment's baseUrl at the
-        # in-network server instead of localhost.
-        command: bunx @usebruno/cli run . --env local --env-var baseUrl=http://server-test:4000
-        working_dir: /app/tests/api
-        depends_on:
-            server-test:
-                condition: service_healthy

@@ -39,11 +39,14 @@ export default defineConfig({
     projects: [
         {
             name: 'api',
-            testDir: './tests/api-tests',
+            testDir: './tests/api',
             testMatch: /.*\.spec\.ts$/,
+            // No project-wide Accept injection: the context's own default
+            // is Accept: */* (curl-like), a realistic client shape. Forcing
+            // application/json here would mask the wildcard and empty-header
+            // code paths the negotiation specs assert explicitly (ADR-024).
             use: {
                 baseURL: API_BASE_URL,
-                extraHTTPHeaders: { Accept: 'application/json' },
             },
         },
         {

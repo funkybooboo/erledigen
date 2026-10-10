@@ -23,7 +23,7 @@ Playwright's `APIRequestContext`. They exercise the real HTTP stack -- routing,
 validation (Zod), guards (rate limit), middleware (security headers), error
 mapping, and content negotiation -- end to end.
 
-Location: `tests/api-tests/` - Config: `playwright.config.ts` (project `api`).
+Location: `tests/api/` - Config: `playwright.config.ts` (project `api`).
 
 Covers, per resource:
 
@@ -37,8 +37,8 @@ Covers, per resource:
   schedules (`daysOfWeek`), validation (frequency enum, ISO date,
   interval/day bounds), 404 paths.
 - **someday-groups** -- CRUD, validation (name/tag/position bounds).
-- **holidays** -- CRUD, validation (name/date bounds), `.ics` import (raw text + URL modes, duplicate skipping, non-iCal 400, failing-fetch 400), plain-text content negotiation, export snapshot coverage, and the pre-v0.9.0 snapshot-without-holidays restore path. Bruno mirrors these in `tests/api/*Holiday*.bru`.
-- **day notes** (v0.10.0) -- upsert create/replace by date, list/get/delete, validation (empty notes, malformed date), plain-text content negotiation, export snapshot coverage, the pre-v0.10.0 snapshot-without-dayNotes restore path, and duplicate-date rejection. Bruno mirrors these in `tests/api/*Day Note*.bru`.
+- **holidays** -- CRUD, validation (name/date bounds), `.ics` import (raw text + URL modes, duplicate skipping, non-iCal 400, failing-fetch 400), plain-text content negotiation, export snapshot coverage, and the pre-v0.9.0 snapshot-without-holidays restore path.
+- **day notes** (v0.10.0) -- upsert create/replace by date, list/get/delete, validation (empty notes, malformed date), plain-text content negotiation, export snapshot coverage, the pre-v0.10.0 snapshot-without-dayNotes restore path, and duplicate-date rejection.
 - **tags** -- list (sorted, de-duped), info (counts), rename, merge (incl.
   no-duplicate target), delete (strip from every task; unknown tag is a
   no-op), validation, content negotiation.
@@ -54,7 +54,7 @@ Covers, per resource:
   subtasks, recurring-date warnings), Things 3 JSON (completed/canceled,
   canceled lands in trash), iCal (timed + all-day), generic CSV (index-based
   `mapping` param + auto-detect round-trip of our own export), unknown
-  format 400. Bruno mirrors these in `tests/api/Import *.bru`.
+  format 400.
 - **meta** -- root, health, 404+CORS, OPTIONS preflight, security headers,
   OpenAPI JSON + YAML.
 
@@ -148,8 +148,7 @@ Covers:
 ```sh
 mise run test            # unit tests, in a container
 mise run test-e2e        # Playwright api + e2e projects, in the docker test stack
-mise run test-api        # Bruno API collection, against the dockerized test server
-mise run test-all        # Bruno + Playwright in the docker test stack
+mise run test-all        # unit + Playwright api/e2e, in the docker test stack
 mise run ci              # the full CI mirror
 
 # Local, quick feedback:
@@ -175,10 +174,9 @@ published ports, nothing written to the host; it sets the same test env
 - API/E2E tests target the **server directly** (`http://localhost:4000`) for
   seeding/cleanup, even in the browser project, so they are independent of
   the client's CORS/proxy behavior.
-- The `tests/api/` Bruno collection (`.bru` files) is a separate API
-  exerciser (manual in the Bruno GUI, or automated via `mise run test-api` /
-  `bun run test:api`); the Playwright `tests/api-tests/` suite is the
-  automated, asserted version of the same surface.
+- Browse the API surface against a running server via Swagger UI at
+  `/api/docs` (ADR-024); the Playwright `tests/api/` suite is the
+  single asserted API suite.
 - The Playwright suites and `playwright.config.ts` are biome-linted and
   type-checked like everything else: `tests/tsconfig.json` carries the same
   strict flags as the packages and joins the `mise run type-check` chain

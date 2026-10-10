@@ -66,7 +66,6 @@ mise run dev      # docker dev stack: client on :3000, server on :4000
 | `mise run type-check` | Type-check all packages |
 | `mise run test` | Run all unit tests in a container |
 | `mise run test-e2e` | Playwright e2e + api tests in the docker test stack |
-| `mise run test-api` | Bruno API tests in the docker test stack |
 | `mise run build` | Build all packages + client bundle-size budget |
 | `mise run ci` | Full local CI mirror |
 | `mise run doctor` | Pre-flight environment check |
@@ -114,7 +113,7 @@ erledigen/
 |   |-- server/   # Bun REST API + WebSocket server
 |   \-- shared/   # Types, adapter interfaces, constants, universal utilities
 |-- docs/         # User + developer documentation, ADRs
-|-- tests/        # Playwright e2e + api suites, Bruno collection
+|-- tests/        # Playwright e2e + api suites
 |-- tools/        # Build, test, release, and maintenance scripts
 |-- deploy/       # Caddy edge proxy for the prod stack
 |-- plans/        # Roadmap and planning docs
@@ -124,7 +123,7 @@ erledigen/
 Client and server both talk to `@erledigen/shared` -- the same Zod-driven
 types and the same adapter interfaces, so the API contract cannot drift
 between the two sides. Testing: Bun unit tests, Playwright e2e + api,
-Bruno collection; Storybook for components; Biome for lint and format.
+Storybook for components; Biome for lint and format.
 
 ## Learn more
 

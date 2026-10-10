@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { uniq } from '../api-tests/helpers';
+import { uniq } from '../api/helpers';
 import { hydrated, SERVER_URL, todayInput, todayISO } from './util';
 
 /**
