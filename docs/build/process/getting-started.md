@@ -147,8 +147,7 @@ All tasks are run via `mise run <task>` (pass arguments with `mise run <task> --
 |------|-------------|
 | `mise run test` | Run all unit tests in a container |
 | `mise run test-e2e` | Run Playwright e2e + api tests in the docker test stack |
-| `mise run test-api` | Run Bruno API tests against the dockerized test server |
-| `mise run test-all` | Run Bruno API + Playwright e2e tests in the docker test stack |
+| `mise run test-all` | Run unit tests + Playwright e2e + api tests in the docker test stack |
 | `mise run test-watch` | Run unit tests in watch mode (local) |
 | `mise run test-coverage` | Run unit tests with coverage (local) |
 

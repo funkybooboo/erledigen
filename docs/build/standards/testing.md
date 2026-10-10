@@ -29,7 +29,7 @@ isolated verification stack).
 |-------|------|-------|
 | Unit (the bulk) | `bun test` | Pure functions, validators, domain rules, parsers -- no I/O, no mocks |
 | Integration | `bun test` + `bun:sqlite` | Repository adapters against a fresh `:memory:` SQLite database per test; contract suites run against BOTH adapters |
-| E2E / API | Playwright (dockerized) + Bruno | Full user workflows in a browser; black-box HTTP against the real server |
+| E2E / API | Playwright (dockerized) | Full user workflows in a browser; black-box HTTP against the real server |
 
 ### The Contract-Test Pattern
 
@@ -89,15 +89,11 @@ a seeded row becoming visible. Never use a negative assertion
 (`not.toHaveClass`) as a readiness wait -- it passes vacuously on a missing
 element.
 
-### Bruno (API collection)
+### API exploration
 
-The Bruno collection in `tests/api/` covers the REST surface with
-git-friendly `.bru` files. Run via the GUI (open the collection, `local`
-environment) or CLI:
-
-```bash
-cd tests/api && bru run --env local
-```
+The API surface is browsable against a running server: Swagger UI at
+`/api/docs`, rendered from the OpenAPI spec the route-parity test
+keeps honest (ADR-024).
 
 ## The NO MOCKS Policy
 
@@ -106,7 +102,7 @@ confidence, and break during refactoring. Use instead:
 
 - **Real adapter implementations** -- in-memory repositories, or SQLite
   repositories on a fresh `:memory:` database
-- **The real server** -- the Playwright `api` project and Bruno both hit the
+- **The real server** -- the Playwright `api` project hits the
   actual Bun server end to end
 - **A test `DateProvider`** for deterministic dates
 
@@ -121,12 +117,11 @@ All of the following must pass before merging (CI enforces them; see
 
 1. Unit + integration tests (including both adapter contract suites)
 2. Playwright e2e + api projects
-3. Bruno API collection
-4. Biome lint/format
-5. TypeScript strict type-check
-6. Secret scan + link check + spell check
-7. Build + client bundle-size budget (768 KiB, browser payload)
-8. The accessibility gates (v0.12.0): the axe-core audit in the e2e
+3. Biome lint/format
+4. TypeScript strict type-check
+5. Secret scan + link check + spell check
+6. Build + client bundle-size budget (768 KiB, browser payload)
+7. The accessibility gates (v0.12.0): the axe-core audit in the e2e
    suite (zero WCAG 2.1 A/AA violations per run), the contrast token
    unit test, and svelte-check's a11y rules -- see
    [accessibility.md](accessibility.md) for the standard and the
@@ -138,7 +133,6 @@ above are what is enforced today.
 ```bash
 mise run test          # unit tests (dockerized)
 mise run test-e2e      # Playwright e2e + api (docker test stack)
-mise run test-api      # Bruno collection
-mise run test-all      # Bruno + Playwright together
+mise run test-all      # unit + Playwright in the docker test stack
 mise run ci            # full local CI mirror
 ```

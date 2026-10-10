@@ -335,4 +335,22 @@ test.describe('tasks -- content negotiation', () => {
         expect(res.status).toBe(200);
         expect(Array.isArray(res.body.data)).toBe(true);
     });
+
+    // Realistic client Accept shapes must stay JSON (ADR-024). These were
+    // covered incidentally by the removed Bruno client (axios defaults);
+    // now they are asserted deliberately. The parsing matrix itself lives
+    // in the negotiate() unit tests -- these prove the HTTP wiring.
+    for (const [accept, shape] of [
+        ['application/json, text/plain, */*', 'axios/bruno default list'],
+        ['*/*', 'curl default'],
+        ['text/plain;q=0.5, application/json', 'q-weighted, json preferred'],
+    ] as const) {
+        test(`Accept: ${accept} (${shape}) returns JSON`, async ({ request }) => {
+            await createTask(request, { text: 'Shape task', date: '2026-05-13' });
+            const res = await get(request, '/api/tasks', { Accept: accept });
+            expect(res.status).toBe(200);
+            expect((res.headers['content-type'] ?? '').includes('application/json')).toBe(true);
+            expect(Array.isArray(res.body.data)).toBe(true);
+        });
+    }
 });

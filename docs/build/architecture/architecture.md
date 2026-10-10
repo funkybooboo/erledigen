@@ -15,7 +15,7 @@ erledigen/
 |   |-- server/          # Bun API server
 |   \-- shared/          # Shared types and utilities
 |-- docs/                # Project documentation
-|-- tests/               # Playwright api/e2e suites + Bruno collection
+|-- tests/               # Playwright api/e2e suites
 |-- tools/               # Build, test, release, and maintenance scripts
 |-- deploy/              # Caddy edge proxy for the prod stack
 |-- plans/               # Roadmap and planning docs
