@@ -6,29 +6,25 @@ The queue. Versions are the release cadence; stories are the work
 [history.md](./history.md). Every change serves one of the three roles
 -- app user, operator, developer (ADR-017).
 
-## Where we stand (2026-10-09)
+## Where we stand (2026-10-10)
 
-- Package version tracks the LAST SHIPPED milestone: `0.12.0` since
-  the `v0.12.0` release. Releases go through PRs (main is
+- Package version tracks the LAST SHIPPED milestone: `0.13.0` since
+  the `v0.13.0` release. Releases go through PRs (main is
   branch-protected) via `tools/release.sh`, which also writes the
   CHANGELOG section and creates the GitHub Release.
-- Shipped complete: v0.1.0 through v0.12.0 (the full record, with the
+- Shipped complete: v0.1.0 through v0.13.0 (the full record, with the
   as-built notes, lives in [history.md](./history.md)).
-- **v0.13.0 (Internationalization) is NEXT** -- the app in the
-  user's language and locale formatting, on top of the i18n
-  infrastructure (USE-14, USE-15, BUILD-3).
+- **v0.13.1 (Test infrastructure, ADR-024) is NEXT** -- BUILD-5's
+  code is merged (#80 Bruno removal, #88 Swagger UI); what remains is
+  the v0.13.1 close-out and release. After it: v0.16.0 (Projects as
+  umbrellas), the lowest incomplete feature version -- the recorded
+  v0.14.0 deferral stands.
 - Policy: numeric order -- always complete the lowest incomplete
   version before starting anything higher. The recorded exceptions
   stand: the v0.14.0 time grid is deferred (ADR-014) and the polish
   pass (v0.18.0) runs last so it lands on final surfaces.
 
 ---
-
-## v0.13.0: Internationalization (NEXT)
-
-[USE-14 the app in my language](./stories/USE-14-my-language.md),
-[USE-15 locale formatting](./stories/USE-15-locale-formatting.md),
-[BUILD-3 i18n infrastructure](./stories/BUILD-3-i18n-infrastructure.md).
 
 ## v0.13.1: Test infrastructure (ADR-024)
 

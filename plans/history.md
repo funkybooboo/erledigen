@@ -1156,3 +1156,105 @@ the #68 fast-forward fix worked end to end; no manual assist).
       manual protocol for the human half.
 
 ---
+
+## v0.13.0: Internationalization
+
+The app speaks a language: every user-facing string rides the locale
+layer, dates/times/counts format for the selected locale, and adding a
+language becomes a locale file plus one import line -- never a code
+change. Only English ships; other languages arrive as contributions,
+and the CI gate holds every one of them to full key parity with the
+canonical en.json.
+
+**Status:** COMPLETE (2026-10-10, released as tag `v0.13.0`). All
+three stories shipped across one day (PRs #78, #79, #81, #83, #84),
+closed out (#85) and released (#86 -- the tag, GHCR images, and GitHub
+Release all green; the release script's auto-merge window expired
+during a CI flake's reruns, so the tag and release were finished by
+hand per its printed recovery, exactly as documented).
+
+- [x] **The i18n substrate for the developer (BUILD-3):** ADR-023
+      chose a FIRST-PARTY adapter over the story's paraglide-js /
+      svelte-i18n shortlist -- the same hand-rolled port pattern as
+      DateProvider/Logger (zero dependency bytes for one shipped
+      locale, and the port shape the story itself mandates).
+      I18nAdapter + JsonI18nAdapter in packages/shared (dotted-key
+      lookup, {param} interpolation, plural categories via
+      Intl.PluralRules, counts via Intl.NumberFormat, fallback
+      active -> en -> raw key); the client registers it as
+      container.i18n. Nested JSON locale files; en.json is canonical
+      and TYPES every t() key at compile time (TranslationKey derives
+      from the JSON). Loading is a static import map -- Bun's runner
+      cannot resolve import.meta.glob (verified), and the
+      completeness test imports exactly what the app loads. The CI
+      parity gate (locales.test.ts) fails any locale file that misses
+      keys, adds extras, or empties a template.
+      docs/build/standards/i18n.md is the standard: file format, key
+      conventions, and the adding-a-language walkthrough.
+- [x] **The app in my language (USE-14):** every user-facing string
+      on every surface -- shell, day list, task rows, Someday panel,
+      bottom bar, minimap, all thirteen modals, the shared toasts and
+      confirms -- renders from en.json. English output stayed
+      byte-identical through every extraction PR (the full 337-test
+      e2e+api suite passed unchanged), except ONE deliberate change:
+      the CSV column-mapping accessible names now carry localized
+      field names ('CSV column for Task text'). The keybinding
+      registry carries label KEYS (Shortcut.labelKey), translated at
+      every render site -- tooltips, help table, Settings remap rows
+      and conflict warnings; keycaps (Space, Esc, Ctrl) and the typed
+      palette syntax ('/add') stay literal, recorded in the ADR. The
+      recurrence sentences became a RecurrencePhrases descriptor
+      (shared keeps the schedule logic + English default; the client
+      supplies the locale's wording). The Settings Language selector
+      (the story's headline) lists the shipped locales via
+      Intl.DisplayNames, persists through UserPreferences.locale
+      (no migration -- the column existed since v0.2.0), and applies
+      through i18nStore.apply (adapter + <html lang/dir>).
+- [x] **Dates and numbers in my locale (USE-15):** the DateProvider
+      gained a DISPLAY locale next to its timezone
+      (formatDate/formatTime/formatDateTime/formatDateParts localize;
+      the storage side is immune by construction -- keyFromInstant
+      parses fixed en-US numeric parts, so ar-SA's Islamic calendar
+      or ar-EG's Arabic-Indic digits can never reach a stored key;
+      unit tests pin the split). Counts format through
+      Intl.NumberFormat with plural-variant keys ('1 task' / '2
+      tasks') -- every `${n} task${s}` concatenation is gone. The
+      RTL sweep converted every physical directional property in the
+      client to logical equivalents (margin-inline-*,
+      border-inline-*, text-align start/end, inset-inline-*), and
+      <html dir> sets itself from the locale's script
+      (textDirection in shared): adding an RTL language is a locale
+      file and nothing else.
+
+### Technical Notes & Considerations
+
+- The bundle budget moved 712 -> 768 KiB for the adapter + key ids
+  (justified in ADR-023); the v0.13.0 close measured 763.9 KiB.
+  Re-evaluate at the v1.0.0 gate.
+- A real race surfaced from the i18n timing: preferencesStore.load()
+  reassigns shortcutOverrides (a fresh object even when empty), the
+  registry effect re-ran, and the matcher CANCELLED any pending
+  chord -- preferences landing between the two keystrokes of 'g n'
+  killed the chord and the modal never opened. Fixed in #81:
+  matcher.update() short-circuits on unchanged bindings; only a real
+  registry swap drops a pending chord (regression-tested).
+- A CI-only focus flake on the skip-link test (passed 5x locally,
+  failed 3x on CI runners): headless Chromium intermittently skipped
+  the fragment focus when preferences landed mid-navigation. Fixed
+  with the canonical skip-link pattern -- tabindex="-1" on the
+  fragment target -- riding the release PR.
+- CI hit Docker Hub 429 rate limits pulling the oven/bun base image
+  (PR #79 cost ~30 min); rerunning the failed jobs after the window
+  clears it. If it recurs, a logged-in pull or a mirrored base image
+  is the fix -- an infrastructure decision, not a code one.
+
+### Definition of Done
+
+- [x] All three v0.13.0 stories done: BUILD-3, USE-14, USE-15.
+- [x] Released as tag `v0.13.0` -- CHANGELOG section, GHCR images,
+      GitHub Release (Latest).
+- [x] The gates hold the line: locale parity with en.json, compile-
+      checked message keys, the locale-neutral storage-format tests,
+      and the e2e lang/dir assertion.
+
+---
