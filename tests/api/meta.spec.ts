@@ -117,3 +117,52 @@ test.describe('meta -- OpenAPI spec is served', () => {
         expect(res.body).toContain('/api/tasks');
     });
 });
+
+test.describe('meta -- API explorer (Swagger UI, ADR-024)', () => {
+    test('GET /api/docs serves the Swagger UI page', async ({ request }) => {
+        const res = await get(request, '/api/docs');
+        expect(res.status).toBe(200);
+        expect(res.headers['content-type']).toContain('text/html');
+        // The page sets its own CSP; the global default (default-src
+        // 'none') would block the UI's same-origin scripts and styles.
+        expect(res.headers['content-security-policy']).toContain("script-src 'self'");
+        expect(res.body).toContain('/api/docs/assets/swagger-ui-bundle.js');
+        expect(res.body).toContain('/api/docs/assets/init.js');
+    });
+
+    test('GET /api/docs/assets/:file serves whitelisted assets with content types', async ({
+        request,
+    }) => {
+        const bundle = await get(request, '/api/docs/assets/swagger-ui-bundle.js');
+        expect(bundle.status).toBe(200);
+        expect(bundle.headers['content-type']).toContain('text/javascript');
+        expect(bundle.headers['cache-control']).toContain('max-age');
+        expect(bundle.body).toContain('SwaggerUIBundle');
+
+        const css = await get(request, '/api/docs/assets/swagger-ui.css');
+        expect(css.status).toBe(200);
+        expect(css.headers['content-type']).toContain('text/css');
+
+        const init = await get(request, '/api/docs/assets/init.js');
+        expect(init.status).toBe(200);
+        expect(init.body).toContain('/api/openapi.json');
+    });
+
+    test('unknown or traversal asset names return 404', async ({ request }) => {
+        const unknown = await get(request, '/api/docs/assets/nope.js');
+        expect(unknown.status).toBe(404);
+
+        // The whitelist is by exact name; an encoded traversal sequence is
+        // just another unknown string to it.
+        const traversal = await get(request, '/api/docs/assets/%2e%2e%2f%2e%2e');
+        expect(traversal.status).toBe(404);
+    });
+
+    test('GET /api/openapi.json serves the same document as /openapi.json', async ({ request }) => {
+        const alias = await get(request, '/api/openapi.json');
+        const root = await get(request, '/openapi.json');
+        expect(alias.status).toBe(200);
+        expect(alias.body).toHaveProperty('openapi');
+        expect(Object.keys(alias.body.paths)).toEqual(Object.keys(root.body.paths));
+    });
+});

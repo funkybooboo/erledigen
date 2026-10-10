@@ -25,4 +25,15 @@ export function registerOpenApiRoutes(server: HttpServer): void {
             body: getOpenApiJson(),
         };
     });
+
+    // /api/* alias of the spec: the prod edge proxy routes only /api/*
+    // and /ws to the API server, so browser-side consumers (the Swagger
+    // UI at /api/docs) need the spec on a proxied path (ADR-024).
+    server.route('GET', '/api/openapi.json', async (): Promise<HttpResponse> => {
+        return {
+            status: 200,
+            headers: {},
+            body: getOpenApiJson(),
+        };
+    });
 }

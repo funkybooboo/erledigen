@@ -11,6 +11,7 @@ import type { HttpResponse } from '../adapters/http/types';
 import type { Container } from '../container';
 import { APP_VERSION } from '../version';
 import { registerDayNoteRoutes } from './dayNoteRoutes';
+import { registerDocsRoutes } from './docsRoutes';
 import { registerExportRoutes } from './exportRoutes';
 import { registerHealthRoutes, type ServerStatusDeps } from './healthRoutes';
 import { registerHolidayRoutes } from './holidayRoutes';
@@ -46,6 +47,7 @@ export function registerAllRoutes(server: HttpServer, container: Container): voi
     };
 
     registerOpenApiRoutes(server);
+    registerDocsRoutes(server);
     registerHealthRoutes(server, statusDeps);
     // The metrics endpoint only exists when collection is on; a disabled
     // endpoint 404s instead of serving an empty payload (see ADR-005).

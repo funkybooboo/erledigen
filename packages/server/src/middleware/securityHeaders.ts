@@ -13,6 +13,8 @@ import type { Middleware } from '../adapters/http/types';
  * - X-Content-Type-Options: nosniff
  * - X-Frame-Options: DENY
  * - Content-Security-Policy: default-src 'none'; frame-ancestors 'none'
+ *   (a handler may set its own CSP -- e.g. the API docs page, which
+ *   needs same-origin scripts and styles; the default fills the rest)
  * - Strict-Transport-Security (production only)
  */
 export function createSecurityHeadersMiddleware(nodeEnv: string): Middleware {
@@ -21,7 +23,9 @@ export function createSecurityHeadersMiddleware(nodeEnv: string): Middleware {
             ...res.headers,
             'X-Content-Type-Options': 'nosniff',
             'X-Frame-Options': 'DENY',
-            'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
+            'Content-Security-Policy':
+                res.headers['Content-Security-Policy'] ??
+                "default-src 'none'; frame-ancestors 'none'",
         };
 
         if (nodeEnv === 'production') {
