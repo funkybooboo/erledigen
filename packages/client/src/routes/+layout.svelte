@@ -142,7 +142,13 @@
     <div class="main-area">
         <IconRail />
         <DateMinimap />
-        <main id="main-content" class="day-list-area">
+        <!-- tabindex="-1": the canonical skip-link pattern -- the
+             fragment target must be programmatically focusable so the
+             browser ALWAYS lands document focus on it after the skip
+             link, regardless of engine timing (CI caught headless
+             Chromium intermittently skipping the fragment focus when
+             preferences land mid-navigation). -->
+        <main id="main-content" class="day-list-area" tabindex="-1">
             {@render children()}
         </main>
         <SomedayPanel />
