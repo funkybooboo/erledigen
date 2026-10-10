@@ -1,5 +1,20 @@
 # Changelog
 
+## [v0.13.0](https://github.com/funkybooboo/erledigen/compare/v0.12.0...HEAD) - 2026-10-10
+
+### Features
+
+- **i18n:** locale-aware date display, RTL-ready layout (#84)
+- **i18n:** Settings, Habits, Task detail, Summary, Projects render through the locale layer (#83)
+- **i18n:** modals batch one render through the locale layer (#81)
+- **i18n:** shell surfaces render through the locale layer (#79)
+- **i18n:** first-party adapter, JSON locale files, completeness gate (#78)
+
+### Everything else
+
+- **i18n:** v0.13.0 close-out -- stories done, docs catch up (#85)
+- **plans:** v0.12.0 moves to history -- v0.13.0 is next (#77)
+
 ## [v0.12.0](https://github.com/funkybooboo/erledigen/compare/v0.11.0...HEAD) - 2026-10-09
 
 ### Features
