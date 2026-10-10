@@ -7,14 +7,16 @@
  */
 
 import type { Task } from '@erledigen/shared';
+import type { TranslationKey } from './i18n/locales';
 
 export interface PaletteCommand {
     /** The word after "/" that invokes the command. */
     id: string;
-    /** Rendered label ("/add"). */
+    /** Rendered label ("/add") -- typed COMMAND SYNTAX, never
+     *  localized (the input grammar stays English, ADR-023). */
     label: string;
-    /** Shown in the command list. */
-    description: string;
+    /** Locale key for the description shown in the command list. */
+    descriptionKey: TranslationKey;
     /** Commands without arguments run immediately on Enter. */
     noArgs?: boolean;
 }
@@ -25,77 +27,77 @@ export const PALETTE_COMMANDS: PaletteCommand[] = [
     {
         id: 'add',
         label: '/add',
-        description: 'Add a task (dates, #tags, and habit phrases are parsed)',
+        descriptionKey: 'search.commands.add',
     },
     {
         id: 'complete',
         label: '/complete',
-        description: 'Complete a task matching the text',
+        descriptionKey: 'search.commands.complete',
     },
     {
         id: 'delete',
         label: '/delete',
-        description: 'Delete a task matching the text',
+        descriptionKey: 'search.commands.delete',
     },
     {
         id: 'move',
         label: '/move',
-        description: 'Move a task to a date ("<text> to <date>")',
+        descriptionKey: 'search.commands.move',
     },
     {
         id: 'go',
         label: '/go',
-        description: 'Jump the day list to a date (e.g. /go next monday)',
+        descriptionKey: 'search.commands.go',
     },
     {
         id: 'tag',
         label: '/tag',
-        description: 'Add a tag to a task ("<text> with <tag>")',
+        descriptionKey: 'search.commands.tag',
     },
     {
         id: 'filter',
         label: '/filter',
-        description: 'Filter the day list by a tag',
+        descriptionKey: 'search.commands.filter',
     },
     {
         id: 'clear',
         label: '/clear',
-        description: 'Clear all active filters',
+        descriptionKey: 'search.commands.clear',
         noArgs: true,
     },
     {
         id: 'today',
         label: '/today',
-        description: 'Jump the day list to today',
+        descriptionKey: 'search.commands.today',
         noArgs: true,
     },
     {
         id: 'someday',
         label: '/someday',
-        description: 'Move a task to Someday',
+        descriptionKey: 'search.commands.someday',
     },
     {
         id: 'project',
         label: '/project',
-        description: 'Open the Projects modal',
+        descriptionKey: 'search.commands.project',
         noArgs: true,
     },
     {
         id: 'habit',
         label: '/habit',
-        description: 'Open the Habits modal',
+        descriptionKey: 'search.commands.habit',
         noArgs: true,
     },
     {
         id: 'settings',
         label: '/settings',
-        description: 'Open Settings',
+        descriptionKey: 'search.commands.settings',
         noArgs: true,
     },
     {
         id: 'help',
         label: '/help',
-        description: 'Open the keyboard shortcuts',
+        descriptionKey: 'search.commands.help',
         noArgs: true,
     },
 ];

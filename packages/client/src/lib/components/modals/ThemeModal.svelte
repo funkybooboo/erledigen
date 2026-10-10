@@ -7,6 +7,31 @@
         type FontSize,
         type RowDensity,
     } from '@erledigen/shared';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import type { TranslationKey } from '$lib/i18n/locales';
+
+    /** Locale key per accent id (compile-checked against en.json). */
+    const ACCENT_LABEL_KEYS: Record<(typeof ACCENT_SCHEMES)[number]['id'], TranslationKey> = {
+        blue: 'theme.accentColors.blue',
+        coral: 'theme.accentColors.coral',
+        amber: 'theme.accentColors.amber',
+    };
+    const FONT_SIZE_KEYS: Record<FontSize, TranslationKey> = {
+        small: 'theme.fontSize.small',
+        medium: 'theme.fontSize.medium',
+        large: 'theme.fontSize.large',
+    };
+    const DENSITY_KEYS: Record<RowDensity, TranslationKey> = {
+        compact: 'theme.density.compact',
+        comfortable: 'theme.density.comfortable',
+    };
+    /** The completion-flash choices (value + its label key). */
+    const COMPLETION_OPTIONS: [CompletionAnimation, TranslationKey][] = [
+        ['flash', 'theme.on'],
+        ['none', 'theme.off'],
+    ];
+    const FONT_SIZE_OPTIONS: readonly FontSize[] = ['small', 'medium', 'large'];
+    const DENSITY_OPTIONS: readonly RowDensity[] = ['compact', 'comfortable'];
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
@@ -58,12 +83,12 @@
     };
 </script>
 
-<Modal title="Theme" onclose={onclose}>
+<Modal title={i18nStore.t('modal.theme')} onclose={onclose}>
     <div class="theme">
         <fieldset class="section">
-            <legend class="section-heading">Color scheme</legend>
+            <legend class="section-heading">{i18nStore.t('theme.colorScheme')}</legend>
             <label class="field">
-                <span class="label" id="theme-label">Theme</span>
+                <span class="label" id="theme-label">{i18nStore.t('theme.theme')}</span>
                 <select
                     class="select"
                     value={themeSelection}
@@ -71,20 +96,17 @@
                     aria-labelledby="theme-label"
                     id="theme-select"
                 >
-                    <option value="system">System</option>
-                    <option value="light">Light</option>
-                    <option value="dark">Dark</option>
+                    <option value="system">{i18nStore.t('theme.themeSystem')}</option>
+                    <option value="light">{i18nStore.t('theme.themeLight')}</option>
+                    <option value="dark">{i18nStore.t('theme.themeDark')}</option>
                 </select>
             </label>
-            <p class="hint">
-                System follows your device's light/dark setting. The choice
-                syncs to every open window and persists with your settings.
-            </p>
+<p class="hint">{i18nStore.t('theme.themeHint')}</p>
         </fieldset>
 
         <fieldset class="section">
-            <legend class="section-heading">Accent</legend>
-            <div class="accent-options" role="radiogroup" aria-label="Accent scheme">
+            <legend class="section-heading">{i18nStore.t('theme.accent')}</legend>
+            <div class="accent-options" role="radiogroup" aria-label={i18nStore.t('theme.accentAria')}>
                 {#each ACCENT_SCHEMES as scheme (scheme.id)}
                     <label class="accent-option">
                         <input
@@ -99,19 +121,19 @@
                             style="background: {SWATCH_COLORS[scheme.id]}"
                             aria-hidden="true"
                         ></span>
-                        {scheme.label}
+                        {i18nStore.t(ACCENT_LABEL_KEYS[scheme.id])}
                     </label>
                 {/each}
             </div>
-            <p class="hint">Accent palettes drawn from the logo's colors.</p>
+            <p class="hint">{i18nStore.t('theme.accentHint')}</p>
         </fieldset>
 
         <fieldset class="section">
-            <legend class="section-heading">Size</legend>
+            <legend class="section-heading">{i18nStore.t('theme.size')}</legend>
             <div class="field">
-                <span class="label" id="font-size-label">Text</span>
+                <span class="label" id="font-size-label">{i18nStore.t('theme.text')}</span>
                 <div class="accent-options" role="radiogroup" aria-labelledby="font-size-label">
-                    {#each ['small', 'medium', 'large'] as size (size)}
+                    {#each FONT_SIZE_OPTIONS as size (size)}
                         <label class="accent-option">
                             <input
                                 type="radio"
@@ -120,15 +142,15 @@
                                 checked={fontSizeSelection === size}
                                 onchange={handleFontSizeChange}
                             />
-                            {size}
+                            {i18nStore.t(FONT_SIZE_KEYS[size])}
                         </label>
                     {/each}
                 </div>
             </div>
             <div class="field">
-                <span class="label" id="row-density-label">Rows</span>
+                <span class="label" id="row-density-label">{i18nStore.t('theme.rows')}</span>
                 <div class="accent-options" role="radiogroup" aria-labelledby="row-density-label">
-                    {#each ['compact', 'comfortable'] as density (density)}
+                    {#each DENSITY_OPTIONS as density (density)}
                         <label class="accent-option">
                             <input
                                 type="radio"
@@ -137,24 +159,24 @@
                                 checked={rowDensitySelection === density}
                                 onchange={handleRowDensityChange}
                             />
-                            {density}
+                            {i18nStore.t(DENSITY_KEYS[density])}
                         </label>
                     {/each}
                 </div>
             </div>
-            <p class="hint">Text size and row spacing apply to the day list and task rows.</p>
+            <p class="hint">{i18nStore.t('theme.sizeHint')}</p>
         </fieldset>
 
         <fieldset class="section">
-            <legend class="section-heading">Motion</legend>
+            <legend class="section-heading">{i18nStore.t('theme.motion')}</legend>
             <div class="field">
-                <span class="label" id="completion-label">Completion flash</span>
+                <span class="label" id="completion-label">{i18nStore.t('theme.completionFlash')}</span>
                 <div
                     class="accent-options"
                     role="radiogroup"
                     aria-labelledby="completion-label"
                 >
-                    {#each [['flash', 'On'], ['none', 'Off']] as [value, label] (value)}
+                    {#each COMPLETION_OPTIONS as [value, labelKey] (value)}
                         <label class="accent-option">
                             <input
                                 type="radio"
@@ -163,15 +185,12 @@
                                 checked={completionAnimationSelection === value}
                                 onchange={handleCompletionAnimationChange}
                             />
-                            {label}
+                            {i18nStore.t(labelKey)}
                         </label>
                     {/each}
                 </div>
             </div>
-            <p class="hint">
-                The brief pulse when a task is marked done. Your OS's reduced-motion
-                setting silences all motion regardless.
-            </p>
+<p class="hint">{i18nStore.t('theme.motionHint')}</p>
         </fieldset>
     </div>
 </Modal>

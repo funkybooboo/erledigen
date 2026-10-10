@@ -4,6 +4,7 @@
     import type { Task } from '@erledigen/shared';
     import { PURGE_RETENTION_DAYS } from '@erledigen/shared';
     import { container } from '$lib/container';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
     import { onMount } from 'svelte';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
@@ -18,7 +19,7 @@
             deletedTasks = [];
             // An error shown as an empty trash list would read as "nothing
             // was ever deleted" -- say what actually happened.
-            notificationStore.push('Failed to load deleted tasks', { kind: 'error' });
+            notificationStore.push(i18nStore.t('trash.loadFailed'), { kind: 'error' });
         } finally {
             loading = false;
         }
@@ -32,9 +33,9 @@
         const restored = await taskStore.restoreFromTrash(id);
         if (restored) {
             deletedTasks = deletedTasks.filter(t => t.id !== id);
-            notificationStore.push('Task restored', { kind: 'success' });
+            notificationStore.push(i18nStore.t('trash.restored'), { kind: 'success' });
         } else {
-            notificationStore.push('Failed to restore task', { kind: 'error' });
+            notificationStore.push(i18nStore.t('trash.restoreFailed'), { kind: 'error' });
         }
     }
 
@@ -47,20 +48,20 @@
     }
 
     function formatDate(dateStr: string | null): string {
-        if (!dateStr) return 'Someday';
+        if (!dateStr) return i18nStore.t('trash.someday');
         // Stored date keys format through the provider (UTC-anchored
         // label), not local Date parsing.
         return container.dateProvider.formatDate(dateStr, 'short');
     }
 </script>
 
-<Modal title="Trash" onclose={onclose}>
+<Modal title={i18nStore.t('modal.trash')} onclose={onclose}>
     <div class="trash">
         {#if loading}
-            <p class="hint">Loading...</p>
+            <p class="hint">{i18nStore.t('trash.loading')}</p>
         {:else if deletedTasks.length === 0}
-            <p class="empty">No recently deleted tasks.</p>
-            <p class="hint">Deleted tasks stay here until purged -- purging removes tasks deleted more than {PURGE_RETENTION_DAYS} days ago.</p>
+            <p class="empty">{i18nStore.t('trash.empty')}</p>
+            <p class="hint">{i18nStore.t('trash.purgeHint', { days: PURGE_RETENTION_DAYS })}</p>
         {:else}
             <ul class="list">
                 {#each deletedTasks as task (task.id)}
@@ -69,9 +70,9 @@
                             <span class="task-text">{task.text}</span>
                             <span class="task-date">{formatDate(task.date)}</span>
                         </div>
-                        <span class="days-left">{daysUntilPurge(task.deletedAt)}d left</span>
-                        <button class="restore-btn" onclick={() => handleRestore(task.id)} aria-label="Restore task">
-                            Restore
+                        <span class="days-left">{i18nStore.t('trash.daysLeft', { count: daysUntilPurge(task.deletedAt) })}</span>
+                        <button class="restore-btn" onclick={() => handleRestore(task.id)} aria-label={i18nStore.t('trash.restoreAria')}>
+                            {i18nStore.t('trash.restore')}
                         </button>
                     </li>
                 {/each}

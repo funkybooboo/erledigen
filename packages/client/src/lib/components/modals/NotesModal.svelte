@@ -19,6 +19,7 @@
     import type { Task } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
     import { LuArrowRight, LuFileText } from 'svelte-icons-pack/lu';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
@@ -56,7 +57,7 @@
         if (tasksByDate.has('__someday__')) {
             result.push({
                 date: null,
-                label: 'Someday',
+                label: i18nStore.t('notes.someday'),
                 tasks: tasksByDate.get('__someday__') ?? [],
             });
         }
@@ -135,13 +136,10 @@
     }
 </script>
 
-<Modal title="Notes" onclose={onclose}>
+<Modal title={i18nStore.t('modal.notes')} onclose={onclose}>
     <div class="notes-modal">
         {#if groups.filter(groupVisible).length === 0}
-            <p class="empty">
-                No notes anywhere yet. Write one on a day (its margin) or open a task's
-                details -- every note lives attached to a day or a task.
-            </p>
+            <p class="empty">{i18nStore.t('notes.empty')}</p>
         {:else}
             {#each groups as group (group.date ?? 'someday')}
                 {#if groupVisible(group)}
@@ -156,9 +154,9 @@
                                 <button
                                     class="hop-btn"
                                     onclick={() => hopToDay(group.date ?? '')}
-                                    aria-label="Show this day in the list"
+                                    aria-label={i18nStore.t('notes.showDay')}
                                 >
-                                    day
+                                    {i18nStore.t('notes.day')}
                                     <Icon src={LuArrowRight} />
                                 </button>
                             </div>
@@ -174,17 +172,17 @@
                                     <button
                                         class="hop-btn"
                                         onclick={() => hopToTask(task)}
-                                        aria-label="Open {task.text} details"
+                                        aria-label={i18nStore.t('notes.openTask', { text: task.text })}
                                     >
-                                        task
+                                        {i18nStore.t('notes.task')}
                                         <Icon src={LuArrowRight} />
                                     </button>
                                 </div>
                                 <LiveMarkdownEditor
                                     value={draftValue(task)}
                                     onchange={value => handleTaskNoteChange(task, value)}
-                                    placeholder="Write a note..."
-                                    ariaLabel="Notes for {task.text}"
+                                    placeholder={i18nStore.t('notes.placeholder')}
+                                    ariaLabel={i18nStore.t('notes.ariaLabel', { text: task.text })}
                                 />
                             </div>
                         {/each}

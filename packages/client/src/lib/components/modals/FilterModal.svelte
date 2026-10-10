@@ -4,6 +4,7 @@
     import { tagChipStyle } from '$lib/tagColors';
     import type { ActiveFilters } from '@erledigen/shared';
     import { onMount } from 'svelte';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
@@ -65,10 +66,10 @@
     });
 </script>
 
-<Modal title="Filter" onclose={onclose}>
+<Modal title={i18nStore.t('modal.filter')} onclose={onclose}>
     <div class="filter">
         <fieldset class="section" aria-labelledby="filter-tags-heading">
-            <legend class="modal-section-heading" id="filter-tags-heading">Tags</legend>
+            <legend class="modal-section-heading" id="filter-tags-heading">{i18nStore.t('filter.tags')}</legend>
 
             {#if activeTags.length > 0}
                 <div class="active-tags">
@@ -85,13 +86,13 @@
                 <input
                     type="text"
                     class="tag-input"
-                    placeholder="Add tag..."
+                    placeholder={i18nStore.t('filter.addTagPlaceholder')}
                     bind:value={tagInput}
                     onkeydown={handleInputKeydown}
                     onfocus={() => showSuggestions = true}
                     onblur={() => setTimeout(() => showSuggestions = false, 150)}
                     id="filter-tag-input"
-                    aria-label="Filter by tag"
+                    aria-label={i18nStore.t('filter.filterByTag')}
                 />
                 <button class="add-btn" onclick={() => addTag(tagInput)} disabled={!tagInput.trim()}>
                     +
@@ -124,7 +125,7 @@
         </fieldset>
 
         <fieldset class="section" aria-labelledby="filter-sort-heading">
-            <legend class="modal-section-heading" id="filter-sort-heading">Sort</legend>
+            <legend class="modal-section-heading" id="filter-sort-heading">{i18nStore.t('filter.sort')}</legend>
             <div class="sort-options" role="radiogroup" aria-labelledby="filter-sort-heading">
                 <label class="sort-option">
                     <input
@@ -134,7 +135,7 @@
                         checked={preferencesStore.activeFilters.sortMode !== 'priority'}
                         onchange={() => setSortMode('manual')}
                     />
-                    Default order
+                    {i18nStore.t('filter.defaultOrder')}
                 </label>
                 <label class="sort-option">
                     <input
@@ -144,16 +145,16 @@
                         checked={preferencesStore.activeFilters.sortMode === 'priority'}
                         onchange={() => setSortMode('priority')}
                     />
-                    Priority (#p1 first)
+                    {i18nStore.t('filter.priorityFirst')}
                 </label>
             </div>
         </fieldset>
 
         <fieldset class="section" aria-labelledby="filter-range-heading">
-            <legend class="modal-section-heading" id="filter-range-heading">Date range</legend>
+            <legend class="modal-section-heading" id="filter-range-heading">{i18nStore.t('filter.dateRange')}</legend>
             <div class="range-row">
                 <label class="range-label">
-                    From
+                    {i18nStore.t('filter.from')}
                     <input
                         type="date"
                         class="range-input"
@@ -162,7 +163,7 @@
                     />
                 </label>
                 <label class="range-label">
-                    To
+                    {i18nStore.t('filter.to')}
                     <input
                         type="date"
                         class="range-input"
@@ -178,13 +179,13 @@
                         preferencesStore.activeFilters.dateTo === null
                     }
                 >
-                    Clear
+                    {i18nStore.t('filter.clear')}
                 </button>
             </div>
         </fieldset>
 
         <button class="clear-btn" onclick={() => preferencesStore.clearAll()}>
-            Clear all filters
+            {i18nStore.t('filter.clearAll')}
         </button>
     </div>
 </Modal>

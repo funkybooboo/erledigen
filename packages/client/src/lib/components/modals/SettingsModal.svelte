@@ -36,6 +36,7 @@
         type TagColorId,
     } from '@erledigen/shared';
     import { onMount } from 'svelte';
+    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
@@ -337,19 +338,27 @@
      *  preferences store so remaps re-render the rows immediately. */
     const resolvedShortcuts = $derived(preferencesStore.shortcutRegistry);
 
-    /** Flattened id list in help-table order, with each id's section. */
+    /** Flattened id list in help-table order, with each id's label key
+     *  and section key (translated at render; English lives in en.json). */
     const shortcutRows = $derived(
         SHORTCUT_SECTIONS.flatMap(section =>
-            section.ids.map(id => ({ id, label: SHORTCUTS[id].label, section: section.title })),
+            section.ids.map(id => ({
+                id,
+                labelKey: SHORTCUTS[id].labelKey,
+                sectionKey: section.titleKey,
+            })),
         ),
     );
 
-    /** id -> labels of actions whose bindings clash with id's right now
-     *  (non-blocking warning: the user may deliberately swap two). */
+    /** id -> translated labels of actions whose bindings clash with id's
+     *  right now (non-blocking warning: the user may deliberately swap
+     *  two). */
     const shortcutConflicts = $derived.by(() => {
         const map = {} as Record<string, string[]>;
         for (const id of Object.keys(resolvedShortcuts) as ShortcutId[]) {
-            map[id] = bindingConflicts(resolvedShortcuts, id).map(other => resolvedShortcuts[other].label);
+            map[id] = bindingConflicts(resolvedShortcuts, id).map(
+                other => i18nStore.t(resolvedShortcuts[other].labelKey),
+            );
         }
         return map;
     });
@@ -1043,7 +1052,7 @@
             <ul class="shortcut-list">
                 {#each shortcutRows as row (row.id)}
                     <li class="shortcut-row">
-                        <span class="shortcut-label">{row.label}</span>
+                        <span class="shortcut-label">{i18nStore.t(row.labelKey)}</span>
                         {#if capturingId === row.id}
                             <button type="button" class="btn btn-secondary capture-hint">
                                 {capturePrefix === null ? 'Press keys...' : 'Press the second key...'}
@@ -1053,7 +1062,7 @@
                                 type="button"
                                 class="shortcut-binding"
                                 onclick={() => startCapture(row.id)}
-                                aria-label="Rebind {row.label}"
+                                aria-label={i18nStore.t('settings.rebind', { label: i18nStore.t(row.labelKey) })}
                             >
                                 {#each resolvedShortcuts[row.id].bindings as binding (binding)}
                                     {#each formatBinding(binding).split(' ') as key (key)}
@@ -1065,7 +1074,7 @@
                         {/if}
                         {#if shortcutConflicts[row.id] && shortcutConflicts[row.id].length > 0}
                             <span class="shortcut-warning" role="note">
-                                also {shortcutConflicts[row.id].join(', ')}
+                                {i18nStore.t('settings.alsoBound', { others: shortcutConflicts[row.id].join(', ') })}
                             </span>
                         {/if}
                         {#if preferencesStore.shortcutOverrides[row.id] !== undefined}
@@ -1073,7 +1082,7 @@
                                 type="button"
                                 class="icon-btn small"
                                 onclick={() => resetShortcut(row.id)}
-                                aria-label="Reset {row.label} to default"
+                                aria-label={i18nStore.t('settings.resetShortcut', { label: i18nStore.t(row.labelKey) })}
                             >
                                 <Icon src={LuRotateCcw} />
                             </button>
