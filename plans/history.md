@@ -1270,9 +1270,13 @@ made a green audit mean patched again (BUILD-6).
 code shipped in #80 (Bruno removal) and #88 (Swagger UI), the
 audit-green sweep landed in #90 (ADR-025), the story flip rode #89,
 and the release went out as #91: every CI gate green including the
-required Security Audit, the dockerized api + e2e suites 345/345, the
-GitHub Release published (Latest) with GHCR images built from the
-tag.
+required Security Audit, the dockerized api + e2e suites 345/345,
+the GitHub Release published (Latest). **As-built correction: the
+GHCR images never built from this tag** -- the oven/bun:1.3.10
+image binary kills kit 3's forked postbuild worker mid-build, so
+the Publish images run failed 50 seconds in; the fix (bun 1.3.14,
+#93) shipped as v0.13.2, which published the line's first green
+images (verified by pull + serve).
 
 - [x] **One asserted API suite (BUILD-5, ADR-024):** the Playwright
       `api` project is the only automated API suite -- the Bruno
@@ -1323,10 +1327,61 @@ tag.
 ### Definition of Done
 
 - [x] Both v0.13.1 stories done: BUILD-5, BUILD-6.
-- [x] Released as tag `v0.13.1` -- CHANGELOG section, GHCR images,
-      GitHub Release (Latest).
+- [x] Released as tag `v0.13.1` -- CHANGELOG section, GitHub Release
+      (Latest). (The images claim failed as-built -- see the
+      correction above and v0.13.2 below.)
 - [x] The gates hold the line: one api suite, the route-parity and
       Accept-shape assertions, the vendored Swagger UI, and a
       zero-vulnerability `bun audit`.
+
+---
+
+## v0.13.2: The images actually publish
+
+The v0.13.1 hotfix: the Publish images run on the v0.13.1 tag died
+-- no `packages/client/build` for the production-client COPY --
+because the oven/bun:1.3.10 image ships a bun whose bits differ
+from the mise/GitHub artifact of the same version, and under it
+SvelteKit 3's forked postbuild analysis worker (it ends with
+`setImmediate(() => process.exit())`) takes the whole build process
+down mid-await: "Analysing routes", then exit 0 -- no "Building
+app", no client environment, no adapter. Every other gate ran the
+mise bun and stayed green, which is why only the images failed.
+
+**Status:** COMPLETE (2026-11-05, released as tag `v0.13.2`). One
+fix -- the bun bump, BUN_VERSION (Dockerfile) and the mise pin
+moving together per the Dockerfile's own note -- merged as #93
+and released as #94. The Publish images run on the tag went green
+in 50 seconds; both images verified from the registry:
+`erledigen-client:0.13.2` pulled and served the app (HTTP 200,
+`x-sveltekit-page: true`, the adapter-node output on
+node:24-alpine), `erledigen-server:0.13.2` pulled.
+
+- [x] **The image bun moves with the kit (BUILD-6 fallout):** bun
+      1.3.10 -> 1.3.14 in the Dockerfile ARG and mise.toml together;
+      verified locally before the PR -- the container build completes
+      ("Building app" -> client environment -> adapter done), the
+      full production-client image builds and serves on :3000, and
+      host-side unit tests, client build, and type-check pass under
+      mise's 1.3.14.
+
+### Technical Notes & Considerations
+
+- "Same version" is not the same binary: the oven/bun:1.3.10 image
+  artifact (sha256 795b37d7..) differs from the mise/GitHub-release
+  1.3.10 (sha256 3632a4fa..) and only the image build exhibited the
+  worker-exit bug. When bun moves (either pin), build the images
+  locally before releasing -- the host and the image build do not
+  share a runtime.
+- The v0.13.1 record above carries the as-built correction: its
+  GHCR images never built. v0.13.2 published the line's first
+  green images (server + client, `0.13.2` + `latest`).
+
+### Definition of Done
+
+- [x] Released as tag `v0.13.2` -- CHANGELOG section, GHCR images
+      (both, registry-verified by pull + serve), GitHub Release
+      (Latest).
+- [x] The v0.13.1 record's image claim corrected in history.
 
 ---
