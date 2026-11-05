@@ -1258,3 +1258,75 @@ hand per its printed recovery, exactly as documented).
       and the e2e lang/dir assertion.
 
 ---
+
+## v0.13.1: Test infrastructure -- and the audit-green tree
+
+One asserted API suite with a served explorer (BUILD-5), and -- riding
+the same release because ten fresh advisories had frozen every PR
+behind the required Security Audit check -- the dependency sweep that
+made a green audit mean patched again (BUILD-6).
+
+**Status:** COMPLETE (2026-11-05, released as tag `v0.13.1`). The
+code shipped in #80 (Bruno removal) and #88 (Swagger UI), the
+audit-green sweep landed in #90 (ADR-025), the story flip rode #89,
+and the release went out as #91: every CI gate green including the
+required Security Audit, the dockerized api + e2e suites 345/345, the
+GitHub Release published (Latest) with GHCR images built from the
+tag.
+
+- [x] **One asserted API suite (BUILD-5, ADR-024):** the Playwright
+      `api` project is the only automated API suite -- the Bruno
+      collection, its compose service, its CI job, and every
+      `test-api` entry point are gone; the client-diversity value is
+      ported deliberately (the realistic Accept-header shapes assert
+      end to end over the negotiate() unit matrix, and the api
+      project no longer force-sends `Accept: application/json`); the
+      explorer is vendored Swagger UI served by the API server at
+      `/api/docs` -- under `/api/*` because the prod proxy routes
+      only `/api/*` and `/ws` -- with a proxy-reachable spec alias,
+      an exact-name asset whitelist, its own CSP, and no CDN.
+- [x] **The tree stays patched (BUILD-6, ADR-025):** zod ^4.6.7 (HIGH
+      -- the server's input validation), the Storybook family ^10.6.5
+      (critical + high, dev tooling only), fast-uri override 3.1.9,
+      cookie override 2.0.1, deepmerge pinned to 4.1.2 -- a ceiling
+      BELOW the vulnerable range (4.2.0-4.3.1; no patched release
+      exists) -- and the SvelteKit 2.70.3 -> 3.1.1 migration (its two
+      LOW advisories have no 2.x patch): adapter-node ^6.0.1, svelte
+      ^5.57.3, config into the `sveltekit()` Vite plugin,
+      `svelte.config.js` deleted, `$lib` -> `#lib` subpath imports
+      with extensions (222 sites, 63 unique specifiers), tsconfig
+      extends `$app/tsconfig`.
+
+### Technical Notes & Considerations
+
+- The audit triage order is now policy (ADR-025): in-range bump,
+  exact-pinned override, override ceiling below the vulnerable
+  range, or a deliberate major migration -- never a silent
+  `bun audit --ignore`. The Security Audit check stays REQUIRED:
+  the workflow job's `continue-on-error` does not lift the ruleset's
+  merge block; ci-cd-pipeline.md documents the reconciliation.
+- The deepmerge override sits below both consumers' declared ranges
+  (`^4.2.2`, `^4.3.1`); both only call the default `deepmerge()`,
+  which predates the vulnerable `mergeObject()`. Build-time only,
+  exercised by every `tools/build.sh` run. Drop the pin when
+  upstream ships a patched release.
+- Kit 3 migration facts: the kit config lives in the `sveltekit()`
+  Vite plugin (no `svelte.config.js`); `#lib` imports must carry
+  their extensions (Node subpath-import semantics -- an
+  extensionless import fails type-check, not just runtime); the
+  Storybook build needs `svelte-kit sync` first (CI caught the
+  fresh-checkout crash on #90 -- kit 3 no longer auto-syncs); the
+  client bundle budget moved 768 -> 800 KiB (measured 784.7 -- the
+  kit 3 runtime; prod runs the client on node:24-alpine, above
+  kit 3's Node 22 floor).
+
+### Definition of Done
+
+- [x] Both v0.13.1 stories done: BUILD-5, BUILD-6.
+- [x] Released as tag `v0.13.1` -- CHANGELOG section, GHCR images,
+      GitHub Release (Latest).
+- [x] The gates hold the line: one api suite, the route-parity and
+      Accept-shape assertions, the vendored Swagger UI, and a
+      zero-vulnerability `bun audit`.
+
+---
