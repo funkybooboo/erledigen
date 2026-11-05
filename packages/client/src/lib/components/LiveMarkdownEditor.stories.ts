@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/sveltekit';
-import LiveMarkdownEditor from '$lib/components/LiveMarkdownEditor.svelte';
+import LiveMarkdownEditor from '#lib/components/LiveMarkdownEditor.svelte';
 
 const meta: Meta<typeof LiveMarkdownEditor> = {
     title: 'Components/LiveMarkdownEditor',

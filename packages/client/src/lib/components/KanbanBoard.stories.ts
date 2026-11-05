@@ -1,7 +1,7 @@
 import type { Project, Task } from '@erledigen/shared';
 import type { Meta, StoryObj } from '@storybook/sveltekit';
-import KanbanBoard from '$lib/components/KanbanBoard.svelte';
-import { mockTask } from '$lib/stories/mockData';
+import KanbanBoard from '#lib/components/KanbanBoard.svelte';
+import { mockTask } from '#lib/stories/mockData.ts';
 
 const meta: Meta<typeof KanbanBoard> = {
     title: 'Components/KanbanBoard',

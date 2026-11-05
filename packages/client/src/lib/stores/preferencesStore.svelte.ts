@@ -19,15 +19,15 @@ import {
     normalizeActiveFilters,
     USER_PREFERENCES_DEFAULTS,
 } from '@erledigen/shared';
-import { container } from '$lib/container';
-import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+import { container } from '#lib/container.ts';
+import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
 import {
     applyShortcutOverrides,
     SHORTCUTS,
     type ShortcutRegistry,
     sanitizeShortcutOverrides,
-} from '$lib/keybindings';
-import { PreferencesService } from '$lib/services/preferencesService';
+} from '#lib/keybindings.ts';
+import { PreferencesService } from '#lib/services/preferencesService.ts';
 
 const preferencesService = new PreferencesService(container.httpClient);
 

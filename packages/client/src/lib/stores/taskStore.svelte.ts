@@ -1,6 +1,6 @@
 import type { CreateTaskInput, Task, UpdateTaskInput } from '@erledigen/shared';
-import { container } from '$lib/container';
-import { type TaskQueryParams, TaskService } from '$lib/services/taskService';
+import { container } from '#lib/container.ts';
+import { type TaskQueryParams, TaskService } from '#lib/services/taskService.ts';
 import { subscribeServerMessages } from './wsSync';
 
 /**

@@ -1,6 +1,6 @@
 <script lang="ts">
-    import { notificationStore } from '$lib/stores/notificationStore.svelte';
-    import { tooltip } from '$lib/tooltip';
+    import { notificationStore } from '#lib/stores/notificationStore.svelte.ts';
+    import { tooltip } from '#lib/tooltip.ts';
 
     // Inline SVG icons for the notification kinds. Removes the
     // svelte-icons-pack dependency from this component (part of the

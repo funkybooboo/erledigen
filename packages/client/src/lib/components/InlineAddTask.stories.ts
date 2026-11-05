@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/sveltekit';
-import InlineAddTask from '$lib/components/InlineAddTask.svelte';
+import InlineAddTask from '#lib/components/InlineAddTask.svelte';
 
 const meta: Meta<typeof InlineAddTask> = {
     title: 'Components/InlineAddTask',

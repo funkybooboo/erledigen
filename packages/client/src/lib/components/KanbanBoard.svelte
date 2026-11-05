@@ -1,10 +1,10 @@
 <script lang="ts">
     import { Icon } from 'svelte-icons-pack';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
-    import type { TranslationKey } from '$lib/i18n/locales';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
+    import type { TranslationKey } from '#lib/i18n/locales.ts';
     import { LuLock, LuX } from 'svelte-icons-pack/lu';
-    import { container } from '$lib/container';
-    import { dragStore, projectStore, taskStore, uiStore } from '$lib/stores';
+    import { container } from '#lib/container.ts';
+    import { dragStore, projectStore, taskStore, uiStore } from '#lib/stores/index.ts';
     import {
         distributionWindowStart,
         planProjectDistribution,

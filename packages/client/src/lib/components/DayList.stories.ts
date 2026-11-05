@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/sveltekit';
-import DayList from '$lib/components/DayList.svelte';
-import { mockTasks } from '$lib/stories/mockData';
+import DayList from '#lib/components/DayList.svelte';
+import { mockTasks } from '#lib/stories/mockData.ts';
 
 const meta: Meta<typeof DayList> = {
     title: 'Components/DayList',

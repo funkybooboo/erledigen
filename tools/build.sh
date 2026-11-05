@@ -8,7 +8,7 @@
 # and its types are enforced by type-check. A shared `dist/` was produced
 # here for a while and consumed by nothing.)
 #
-# The budget (768 KiB by default, on the browser payload) mirrors the gate
+# The budget (800 KiB by default, on the browser payload) mirrors the gate
 # documented in .github/workflows/ci.yml. Override it with MAX_CLIENT_BYTES;
 # set MAX_CLIENT_BYTES=0 to skip the check entirely.
 #
@@ -19,13 +19,15 @@
 # final +56 KiB: the extraction moves every UI string into the locale
 # file and the key ids ride the bundle -- measured +2.8 KiB for the
 # adapter + seed alone, with the full USE-14 extraction to land.
+# v0.13.1 (SvelteKit 3, ADR-025) raised it +32 KiB: the kit 3 runtime
+# (modulepreload everywhere, cookie v2) measures 784.7 KiB.
 # Re-evaluate at the v1.0.0 gate.
 
 set -euo pipefail
 
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
-DEFAULT_MAX_BYTES=786432 # 768 KiB
+DEFAULT_MAX_BYTES=819200 # 800 KiB
 MAX_BYTES="${MAX_CLIENT_BYTES:-$DEFAULT_MAX_BYTES}"
 
 step "Building server"

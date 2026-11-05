@@ -1,6 +1,6 @@
 import { addDays } from '@erledigen/shared';
 import type { Meta, StoryObj } from '@storybook/sveltekit';
-import HabitHeatmap from '$lib/components/HabitHeatmap.svelte';
+import HabitHeatmap from '#lib/components/HabitHeatmap.svelte';
 
 const meta: Meta<typeof HabitHeatmap> = {
     title: 'Components/HabitHeatmap',

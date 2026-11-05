@@ -8,8 +8,8 @@ import type {
     UpdateRecurringTaskInput,
 } from '@erledigen/shared';
 import { SvelteMap } from 'svelte/reactivity';
-import { container } from '$lib/container';
-import { RecurringTaskService } from '$lib/services/recurringTaskService';
+import { container } from '#lib/container.ts';
+import { RecurringTaskService } from '#lib/services/recurringTaskService.ts';
 import { EntityStore } from './entityStore.svelte';
 
 /**

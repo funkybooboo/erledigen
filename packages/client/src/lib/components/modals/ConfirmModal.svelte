@@ -1,7 +1,7 @@
 <script lang="ts">
-    import Modal from '$lib/components/Modal.svelte';
-    import { uiStore } from '$lib/stores';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import Modal from '#lib/components/Modal.svelte';
+    import { uiStore } from '#lib/stores/index.ts';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
 
     /**
      * Non-blocking confirmation for destructive actions (the replacement

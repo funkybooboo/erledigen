@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/sveltekit';
-import HabitScheduleForm from '$lib/components/HabitScheduleForm.svelte';
+import HabitScheduleForm from '#lib/components/HabitScheduleForm.svelte';
 
 const meta: Meta<typeof HabitScheduleForm> = {
     title: 'Components/HabitScheduleForm',

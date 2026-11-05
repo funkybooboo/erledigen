@@ -13,11 +13,11 @@
 
     import { onDestroy, tick } from 'svelte';
     import LiveMarkdownEditor from './LiveMarkdownEditor.svelte';
-    import { dayNoteStore } from '$lib/stores';
+    import { dayNoteStore } from '#lib/stores/index.ts';
     import type { DayNote } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
     import { LuStickyNote } from 'svelte-icons-pack/lu';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
 
     let { dateStr, label }: { dateStr: string; label: string } = $props();
 

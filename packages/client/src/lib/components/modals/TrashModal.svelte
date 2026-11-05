@@ -1,10 +1,10 @@
 <script lang="ts">
-    import Modal from '$lib/components/Modal.svelte';
-    import { notificationStore, taskStore } from '$lib/stores';
+    import Modal from '#lib/components/Modal.svelte';
+    import { notificationStore, taskStore } from '#lib/stores/index.ts';
     import type { Task } from '@erledigen/shared';
     import { PURGE_RETENTION_DAYS } from '@erledigen/shared';
-    import { container } from '$lib/container';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import { container } from '#lib/container.ts';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
     import { onMount } from 'svelte';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();

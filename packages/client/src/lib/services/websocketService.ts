@@ -6,8 +6,8 @@ import {
     type WsClientMessage,
     type WsServerMessage,
 } from '@erledigen/shared';
-import { resolveApiBaseUrl } from '$lib/apiBaseUrl';
-import { container } from '$lib/container';
+import { resolveApiBaseUrl } from '#lib/apiBaseUrl.ts';
+import { container } from '#lib/container.ts';
 
 type MessageHandler = (message: WsServerMessage) => void;
 

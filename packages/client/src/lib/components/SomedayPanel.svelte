@@ -1,17 +1,17 @@
 <script lang="ts">
-    import { notificationStore, preferencesStore, someDayGroupStore, dragStore, taskStore, uiStore, type TaskSection } from '$lib/stores';
-    import { applyFilters } from '$lib/filters';
-    import { byPositionThenCreated, snapInsertBeforeId } from '$lib/dragReorder';
-    import { commitZoneDrop, zoneDragLeave, zoneDragOver } from '$lib/nndZone';
-    import { createNewlyCreatedTracker } from '$lib/newlyCreated.svelte';
+    import { notificationStore, preferencesStore, someDayGroupStore, dragStore, taskStore, uiStore, type TaskSection } from '#lib/stores/index.ts';
+    import { applyFilters } from '#lib/filters.ts';
+    import { byPositionThenCreated, snapInsertBeforeId } from '#lib/dragReorder.ts';
+    import { commitZoneDrop, zoneDragLeave, zoneDragOver } from '#lib/nndZone.ts';
+    import { createNewlyCreatedTracker } from '#lib/newlyCreated.svelte.ts';
     import TaskRow from './TaskRow.svelte';
     import InlineAddTask from './InlineAddTask.svelte';
     import SectionHeader from './SectionHeader.svelte';
     import { Icon } from 'svelte-icons-pack';
     import { LuChevronRight, LuPencil, LuTrash2, LuCheck } from 'svelte-icons-pack/lu';
     import { slugify, type SomeDayGroup, type Task, type UpdateTaskInput } from '@erledigen/shared';
-    import { tooltip } from '$lib/tooltip';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import { tooltip } from '#lib/tooltip.ts';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
 
     let showAddGroupForm = $state(false);
     let newGroupName = $state('');

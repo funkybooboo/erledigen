@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/sveltekit';
-import TrashModal from '$lib/components/modals/TrashModal.svelte';
+import TrashModal from '#lib/components/modals/TrashModal.svelte';
 
 const meta: Meta<typeof TrashModal> = {
     title: 'Components/Modals/TrashModal',

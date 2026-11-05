@@ -1,8 +1,8 @@
 <script lang="ts">
-    import Modal from '$lib/components/Modal.svelte';
-    import { SHORTCUT_SECTIONS, formatBinding } from '$lib/keybindings';
-    import { preferencesStore } from '$lib/stores';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import Modal from '#lib/components/Modal.svelte';
+    import { SHORTCUT_SECTIONS, formatBinding } from '#lib/keybindings.ts';
+    import { preferencesStore } from '#lib/stores/index.ts';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
     // The LIVE registry, derived from the preferences store: remapped

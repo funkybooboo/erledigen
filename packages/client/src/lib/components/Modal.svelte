@@ -4,9 +4,9 @@
     import { fade, fly, scale } from 'svelte/transition';
     import { Icon } from 'svelte-icons-pack';
     import { LuX } from 'svelte-icons-pack/lu';
-    import { tooltip } from '$lib/tooltip';
-    import { motionMs } from '$lib/motion';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import { tooltip } from '#lib/tooltip.ts';
+    import { motionMs } from '#lib/motion.ts';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
 
     let { title = '', onclose = () => {}, children }: { title?: string; onclose?: () => void; children?: Snippet } = $props();
 

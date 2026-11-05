@@ -15,9 +15,9 @@ Merging to `main` is blocked unless all gates pass:
 | Types | `mise run type-check` | TypeScript strict mode across all three packages (tsc for shared/server; svelte-kit sync + tsc for client) |
 | Unit tests | `mise run test` | All Bun unit tests (dockerized); repository contract suites run against BOTH adapters, so SQL bugs are caught here |
 | E2E | `mise run test-e2e` | Playwright browser specs + black-box `api` project against the self-contained docker test stack (`compose.test.yaml`, `STORAGE_ADAPTER=memory`, bundled Chromium); includes the axe-core accessibility audit (page + every modal, both themes, zero WCAG 2.1 A/AA violations); 1 retry allowed |
-| Build | `mise run build` | Server + client compile; client bundle (browser payload in `packages/client/build/client`) <= 768 KiB |
+| Build | `mise run build` | Server + client compile; client bundle (browser payload in `packages/client/build/client`) <= 800 KiB |
 | Storybook | `mise run build-storybook` | Storybook builds |
-| Security | `mise run security` | `bun audit` -- `continue-on-error`: advisories surface for review without blocking merges |
+| Security | `mise run security` | `bun audit` -- the workflow job is `continue-on-error` (the run stays green for reporting), but the branch ruleset lists Security Audit as a required check, so a red audit blocks PR merges; green means patched (ADR-025) |
 
 ## GitHub Actions Workflow
 
@@ -29,9 +29,9 @@ via `mise run install-ci` (frozen lockfile), then:
 | `quality-checks` | `biome-check` -> `spellcheck` -> `check-links` -> `scan-secrets` -> `type-check` (<= 10 min) |
 | `unit-tests` | `mise run test` (dockerized Bun unit tests) |
 | `e2e-tests` | `mise run test-e2e` -- builds and boots the self-contained compose.test.yaml stack (no host servers; the stack mounts nothing, so the exit code is the only artifact) |
-| `build` | `mise run build` + client bundle <= 768 KiB check |
+| `build` | `mise run build` + client bundle <= 800 KiB check |
 | `storybook-build` | `mise run build-storybook` |
-| `security` | `mise run security` (`bun audit`, `continue-on-error`) |
+| `security` | `mise run security` (`bun audit`, `continue-on-error` on the job; the ruleset still requires the check to pass for merges -- ADR-025) |
 | `all-checks` | gate job -- fails if any required job failed or was cancelled |
 
 ## Deployment

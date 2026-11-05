@@ -1,9 +1,9 @@
 <script lang="ts">
-    import Modal from '$lib/components/Modal.svelte';
-    import { taskStore, uiStore, notificationStore, dateViewStore, preferencesStore } from '$lib/stores';
-    import { createFromText, habitCreatedText } from '$lib/createFromText';
-    import { deleteTaskWithUndo } from '$lib/taskActions';
-    import { container } from '$lib/container';
+    import Modal from '#lib/components/Modal.svelte';
+    import { taskStore, uiStore, notificationStore, dateViewStore, preferencesStore } from '#lib/stores/index.ts';
+    import { createFromText, habitCreatedText } from '#lib/createFromText.ts';
+    import { deleteTaskWithUndo } from '#lib/taskActions.ts';
+    import { container } from '#lib/container.ts';
     import {
         findTaskByText,
         normalizeTagInput,
@@ -11,7 +11,7 @@
         parseMoveArgs,
         parseTagArgs,
         type PaletteCommand,
-    } from '$lib/paletteCommands';
+    } from '#lib/paletteCommands.ts';
     import {
         describeRecurrence,
         parseRecurrence,
@@ -21,8 +21,8 @@
     import { Icon } from 'svelte-icons-pack';
     import { LuCheck, LuCircle, LuPlus, LuRepeat, LuX } from 'svelte-icons-pack/lu';
     import { onMount } from 'svelte';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
-    import { recurrencePhrases } from '$lib/i18n/recurrencePhrases';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
+    import { recurrencePhrases } from '#lib/i18n/recurrencePhrases.ts';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 

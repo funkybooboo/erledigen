@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/sveltekit';
-import IconRail from '$lib/components/IconRail.svelte';
+import IconRail from '#lib/components/IconRail.svelte';
 
 const meta: Meta<typeof IconRail> = {
     title: 'Components/IconRail',

@@ -1,9 +1,9 @@
 <script lang="ts">
-    import Modal from '$lib/components/Modal.svelte';
-    import HabitScheduleForm from '$lib/components/HabitScheduleForm.svelte';
-    import LiveMarkdownEditor from '$lib/components/LiveMarkdownEditor.svelte';
-    import { notificationStore, recurringTaskStore, taskStore, uiStore } from '$lib/stores';
-    import { deleteTaskWithUndo } from '$lib/taskActions';
+    import Modal from '#lib/components/Modal.svelte';
+    import HabitScheduleForm from '#lib/components/HabitScheduleForm.svelte';
+    import LiveMarkdownEditor from '#lib/components/LiveMarkdownEditor.svelte';
+    import { notificationStore, recurringTaskStore, taskStore, uiStore } from '#lib/stores/index.ts';
+    import { deleteTaskWithUndo } from '#lib/taskActions.ts';
     import {
         TASK_CONSTRAINTS,
         formatTags,
@@ -13,7 +13,7 @@
     import type { RecurringFrequency, Task, UpdateTaskInput } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
     import { LuTrash2, LuPlus, LuCheck, LuCircle, LuRepeat } from 'svelte-icons-pack/lu';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 

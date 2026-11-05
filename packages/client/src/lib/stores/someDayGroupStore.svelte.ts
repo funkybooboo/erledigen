@@ -4,8 +4,8 @@ import type {
     UpdateSomeDayGroupInput,
     WsServerMessage,
 } from '@erledigen/shared';
-import { container } from '$lib/container';
-import { SomeDayGroupService } from '$lib/services/someDayGroupService';
+import { container } from '#lib/container.ts';
+import { SomeDayGroupService } from '#lib/services/someDayGroupService.ts';
 import { EntityStore } from './entityStore.svelte';
 
 const someDayGroupService = new SomeDayGroupService(container.httpClient);

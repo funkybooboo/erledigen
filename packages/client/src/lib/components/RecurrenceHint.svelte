@@ -2,8 +2,8 @@
     import { describeRecurrence, type ParsedRecurrence } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
     import { LuRepeat } from 'svelte-icons-pack/lu';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
-    import { recurrencePhrases } from '$lib/i18n/recurrencePhrases';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
+    import { recurrencePhrases } from '#lib/i18n/recurrencePhrases.ts';
 
     let { parsed }: { parsed: ParsedRecurrence } = $props();
 </script>

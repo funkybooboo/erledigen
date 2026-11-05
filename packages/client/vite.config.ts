@@ -1,11 +1,21 @@
+import adapter from '@sveltejs/adapter-node';
 import { sveltekit } from '@sveltejs/kit/vite';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { loadEnv, defineConfig } from 'vite';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd(), '');
 
     return {
-        plugins: [sveltekit()],
+        plugins: [
+            // Since SvelteKit 3 the kit config lives here, not in
+            // svelte.config.js (kit passes non-kit options through to
+            // vite-plugin-svelte -- hence vitePreprocess at this level).
+            sveltekit({
+                adapter: adapter(),
+                preprocess: vitePreprocess(),
+            }),
+        ],
         server: {
             // VITE_HOST=0.0.0.0 lets the dev server run in a container while
             // staying reachable through the published port (docker dev/test).

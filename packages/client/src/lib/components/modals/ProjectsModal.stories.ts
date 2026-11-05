@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/sveltekit';
-import ProjectsModal from '$lib/components/modals/ProjectsModal.svelte';
+import ProjectsModal from '#lib/components/modals/ProjectsModal.svelte';
 
 const meta: Meta<typeof ProjectsModal> = {
     title: 'Components/Modals/ProjectsModal',

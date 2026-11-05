@@ -16,7 +16,7 @@
      */
 
     import { renderMarkdown } from '@erledigen/shared';
-    import { mergeLineUp, pasteLines, splitLineAt, toLines } from '$lib/liveLines';
+    import { mergeLineUp, pasteLines, splitLineAt, toLines } from '#lib/liveLines.ts';
 
     interface Props {
         value: string;

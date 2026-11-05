@@ -11,8 +11,8 @@
      * rollover follows the task's existing setting.
      */
     import { type RecurringFrequency } from '@erledigen/shared';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
-    import { weekdayShortName } from '$lib/i18n/recurrencePhrases';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
+    import { weekdayShortName } from '#lib/i18n/recurrencePhrases.ts';
 
     let {
         frequency = $bindable('daily'),

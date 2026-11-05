@@ -9,8 +9,8 @@
  */
 
 import type { Task } from '@erledigen/shared';
-import { i18nStore } from '$lib/i18n/i18nStore.svelte';
-import { notificationStore, preferencesStore, taskStore, uiStore } from '$lib/stores';
+import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
+import { notificationStore, preferencesStore, taskStore, uiStore } from '#lib/stores/index.ts';
 
 /** How a requested deletion settled. */
 type DeleteOutcome =

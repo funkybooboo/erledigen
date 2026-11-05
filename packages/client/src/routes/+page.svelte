@@ -1,6 +1,6 @@
 <script lang="ts">
-    import DayList from '$lib/components/DayList.svelte';
-    import { taskStore } from '$lib/stores';
+    import DayList from '#lib/components/DayList.svelte';
+    import { taskStore } from '#lib/stores/index.ts';
 
     // Store bootstrap lives in +layout.svelte (single place); this page
     // only renders whatever the stores already hold.

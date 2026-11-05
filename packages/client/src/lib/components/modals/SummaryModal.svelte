@@ -1,15 +1,15 @@
 <script lang="ts">
-    import Modal from '$lib/components/Modal.svelte';
-    import { holidayStore, recurringTaskStore, taskStore } from '$lib/stores';
-    import { container } from '$lib/container';
+    import Modal from '#lib/components/Modal.svelte';
+    import { holidayStore, recurringTaskStore, taskStore } from '#lib/stores/index.ts';
+    import { container } from '#lib/container.ts';
     import {
         findActiveStreaks,
         findOverdueTasks,
         findUpcomingDeadlineTasks,
         findUpcomingHolidays,
-    } from '$lib/summary';
+    } from '#lib/summary.ts';
     import { onMount } from 'svelte';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 

@@ -14,9 +14,9 @@
  */
 
 import { PRIORITY_TAGS, type Task } from '@erledigen/shared';
-import { container } from '$lib/container';
-import { SHORTCUTS, type ShortcutId, type ShortcutRegistry } from '$lib/keybindings';
-import { type KeybindingEvent, KeybindingMatcher } from '$lib/keyboard';
+import { container } from '#lib/container.ts';
+import { SHORTCUTS, type ShortcutId, type ShortcutRegistry } from '#lib/keybindings.ts';
+import { type KeybindingEvent, KeybindingMatcher } from '#lib/keyboard.ts';
 import {
     dateViewStore,
     notificationStore,
@@ -24,8 +24,8 @@ import {
     type TaskSection,
     taskStore,
     uiStore,
-} from '$lib/stores';
-import { deleteTaskWithUndo } from '$lib/taskActions';
+} from '#lib/stores/index.ts';
+import { deleteTaskWithUndo } from '#lib/taskActions.ts';
 
 /** What a shortcut does. run() returns whether the key was consumed (the
  *  dispatcher preventDefaults only then). allowWhileTyping lifts the

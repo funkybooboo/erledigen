@@ -1,13 +1,13 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { taskStore, preferencesStore, dateViewStore } from '$lib/stores';
-    import { container } from '$lib/container';
+    import { taskStore, preferencesStore, dateViewStore } from '#lib/stores/index.ts';
+    import { container } from '#lib/container.ts';
     import { Icon } from 'svelte-icons-pack';
     import { LuX } from 'svelte-icons-pack/lu';
-    import Logo from '$lib/components/Logo.svelte';
-    import { tooltip } from '$lib/tooltip';
-    import { tagChipStyle } from '$lib/tagColors';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import Logo from '#lib/components/Logo.svelte';
+    import { tooltip } from '#lib/tooltip.ts';
+    import { tagChipStyle } from '#lib/tagColors.ts';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
 
     let totalTasks = $derived(taskStore.tasks.length);
     let completedCount = $derived(taskStore.tasks.filter(t => t.completed).length);

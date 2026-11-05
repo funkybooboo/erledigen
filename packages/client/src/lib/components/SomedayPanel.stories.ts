@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/sveltekit';
-import SomedayPanel from '$lib/components/SomedayPanel.svelte';
+import SomedayPanel from '#lib/components/SomedayPanel.svelte';
 
 const meta: Meta<typeof SomedayPanel> = {
     title: 'Components/SomedayPanel',

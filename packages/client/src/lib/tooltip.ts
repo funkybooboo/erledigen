@@ -1,7 +1,7 @@
 import type { Action } from 'svelte/action';
-import { i18nStore } from '$lib/i18n/i18nStore.svelte';
-import { currentShortcuts } from '$lib/keybindingActions';
-import { formatBinding, type ShortcutId } from '$lib/keybindings';
+import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
+import { currentShortcuts } from '#lib/keybindingActions.ts';
+import { formatBinding, type ShortcutId } from '#lib/keybindings.ts';
 
 /**
  * Hover tooltip action. Shows the action's label plus its keyboard

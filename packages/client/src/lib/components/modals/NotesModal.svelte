@@ -11,15 +11,15 @@
      * task's detail).
      */
 
-    import Modal from '$lib/components/Modal.svelte';
-    import LiveMarkdownEditor from '$lib/components/LiveMarkdownEditor.svelte';
-    import DayNoteField from '$lib/components/DayNoteField.svelte';
-    import { dateViewStore, dayNoteStore, taskStore, uiStore } from '$lib/stores';
-    import { container } from '$lib/container';
+    import Modal from '#lib/components/Modal.svelte';
+    import LiveMarkdownEditor from '#lib/components/LiveMarkdownEditor.svelte';
+    import DayNoteField from '#lib/components/DayNoteField.svelte';
+    import { dateViewStore, dayNoteStore, taskStore, uiStore } from '#lib/stores/index.ts';
+    import { container } from '#lib/container.ts';
     import type { Task } from '@erledigen/shared';
     import { Icon } from 'svelte-icons-pack';
     import { LuArrowRight, LuFileText } from 'svelte-icons-pack/lu';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 

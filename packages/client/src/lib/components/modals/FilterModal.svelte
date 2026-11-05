@@ -1,10 +1,10 @@
 <script lang="ts">
-    import Modal from '$lib/components/Modal.svelte';
-    import { preferencesStore, tagStore } from '$lib/stores';
-    import { tagChipStyle } from '$lib/tagColors';
+    import Modal from '#lib/components/Modal.svelte';
+    import { preferencesStore, tagStore } from '#lib/stores/index.ts';
+    import { tagChipStyle } from '#lib/tagColors.ts';
     import type { ActiveFilters } from '@erledigen/shared';
     import { onMount } from 'svelte';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 
