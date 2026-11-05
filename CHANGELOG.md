@@ -1,5 +1,18 @@
 # Changelog
 
+## [v0.13.1](https://github.com/funkybooboo/erledigen/compare/v0.13.0...HEAD) - 2026-11-05
+
+### Features
+
+- **server:** serve Swagger UI at /api/docs over the OpenAPI spec (ADR-024) (#88)
+
+### Everything else
+
+- **plans:** BUILD-5 done -- v0.13.1 is ready to release (#89)
+- **deps:** audit-green sweep -- zod, Storybook, fast-uri, SvelteKit 3 (ADR-025) (#90)
+- **plans:** v0.13.0 moves to history -- v0.13.1 is next (#87)
+- **api:** consolidate on the Playwright api suite; remove Bruno (ADR-024) (#80)
+
 ## [v0.13.0](https://github.com/funkybooboo/erledigen/compare/v0.12.0...HEAD) - 2026-10-10
 
 ### Features
