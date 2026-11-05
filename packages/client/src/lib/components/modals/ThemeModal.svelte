@@ -1,14 +1,14 @@
 <script lang="ts">
-    import Modal from '$lib/components/Modal.svelte';
-    import { preferencesStore } from '$lib/stores';
+    import Modal from '#lib/components/Modal.svelte';
+    import { preferencesStore } from '#lib/stores/index.ts';
     import {
         ACCENT_SCHEMES,
         type CompletionAnimation,
         type FontSize,
         type RowDensity,
     } from '@erledigen/shared';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
-    import type { TranslationKey } from '$lib/i18n/locales';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
+    import type { TranslationKey } from '#lib/i18n/locales.ts';
 
     /** Locale key per accent id (compile-checked against en.json). */
     const ACCENT_LABEL_KEYS: Record<(typeof ACCENT_SCHEMES)[number]['id'], TranslationKey> = {

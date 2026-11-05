@@ -16,7 +16,7 @@
  */
 
 import type { WsServerMessage } from '@erledigen/shared';
-import { container } from '$lib/container';
+import { container } from '#lib/container.ts';
 import { subscribeServerMessages } from './wsSync';
 
 interface CrudService<T extends { id: string }, CreateInput, UpdateInput> {

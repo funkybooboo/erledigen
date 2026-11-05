@@ -1,7 +1,7 @@
 import type { ConnectionStatus } from '@erledigen/shared';
-import { container } from '$lib/container';
-import { i18nStore } from '$lib/i18n/i18nStore.svelte';
-import { websocketService } from '$lib/services/websocketService';
+import { container } from '#lib/container.ts';
+import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
+import { websocketService } from '#lib/services/websocketService.ts';
 import { notificationStore } from './notificationStore.svelte';
 
 class ConnectionStore {

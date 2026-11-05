@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { uiStore, type ModalType } from '$lib/stores';
+    import { uiStore, type ModalType } from '#lib/stores/index.ts';
     import { Icon } from 'svelte-icons-pack';
     import {
         LuCalendar,
@@ -14,10 +14,10 @@
         LuCircleHelp,
         LuList,
     } from 'svelte-icons-pack/lu';
-    import { tooltip } from '$lib/tooltip';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
-    import type { TranslationKey } from '$lib/i18n/locales';
-    import type { ShortcutId } from '$lib/keybindings';
+    import { tooltip } from '#lib/tooltip.ts';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
+    import type { TranslationKey } from '#lib/i18n/locales.ts';
+    import type { ShortcutId } from '#lib/keybindings.ts';
 
     const icons: { id: ModalType; icon: typeof LuCalendar; key: TranslationKey; shortcut: ShortcutId }[] = [
         { id: 'summary', icon: LuList, key: 'rail.summary', shortcut: 'openSummary' },

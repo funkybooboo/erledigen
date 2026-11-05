@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/sveltekit';
-import TaskDetailModal from '$lib/components/modals/TaskDetailModal.svelte';
-import { mockCompletedTask, mockTask, mockTimeTask } from '$lib/stories/mockData';
+import TaskDetailModal from '#lib/components/modals/TaskDetailModal.svelte';
+import { mockCompletedTask, mockTask, mockTimeTask } from '#lib/stories/mockData.ts';
 
 const meta: Meta<typeof TaskDetailModal> = {
     title: 'Components/Modals/TaskDetailModal',

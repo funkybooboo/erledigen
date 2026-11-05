@@ -9,8 +9,8 @@
  */
 
 import type { DayNote, WsServerMessage } from '@erledigen/shared';
-import { container } from '$lib/container';
-import { DayNoteService } from '$lib/services/dayNoteService';
+import { container } from '#lib/container.ts';
+import { DayNoteService } from '#lib/services/dayNoteService.ts';
 import { subscribeServerMessages } from './wsSync';
 
 const dayNoteService = new DayNoteService(container.httpClient);

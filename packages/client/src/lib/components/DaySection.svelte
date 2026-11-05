@@ -3,13 +3,13 @@
     import InlineAddTask from './InlineAddTask.svelte';
     import SectionHeader from './SectionHeader.svelte';
     import DayNoteField from './DayNoteField.svelte';
-    import { createNewlyCreatedTracker } from '$lib/newlyCreated.svelte';
-    import { commitZoneDrop, zoneDragLeave, zoneDragOver } from '$lib/nndZone';
-    import { snapInsertBeforeId } from '$lib/dragReorder';
+    import { createNewlyCreatedTracker } from '#lib/newlyCreated.svelte.ts';
+    import { commitZoneDrop, zoneDragLeave, zoneDragOver } from '#lib/nndZone.ts';
+    import { snapInsertBeforeId } from '#lib/dragReorder.ts';
     import type { Task, UpdateTaskInput } from '@erledigen/shared';
-    import { container } from '$lib/container';
-    import { dragStore, holidayStore, preferencesStore, taskStore, uiStore } from '$lib/stores';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import { container } from '#lib/container.ts';
+    import { dragStore, holidayStore, preferencesStore, taskStore, uiStore } from '#lib/stores/index.ts';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
 
     let { id, dateStr, label, tasks }: { id: string; dateStr: string; label: string; tasks: Task[] } = $props();
 

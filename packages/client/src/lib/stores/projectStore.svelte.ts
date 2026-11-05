@@ -4,8 +4,8 @@ import type {
     UpdateProjectInput,
     WsServerMessage,
 } from '@erledigen/shared';
-import { container } from '$lib/container';
-import { ProjectService } from '$lib/services/projectService';
+import { container } from '#lib/container.ts';
+import { ProjectService } from '#lib/services/projectService.ts';
 import { EntityStore } from './entityStore.svelte';
 
 const projectService = new ProjectService(container.httpClient);

@@ -1,7 +1,7 @@
 import type { TagKind } from '@erledigen/shared';
 import { getTagsByKind, leastUsedTagColor, PRIORITY_TAGS } from '@erledigen/shared';
-import { container } from '$lib/container';
-import { type TagInfo, TagService } from '$lib/services/tagService';
+import { container } from '#lib/container.ts';
+import { type TagInfo, TagService } from '#lib/services/tagService.ts';
 import { preferencesStore } from './preferencesStore.svelte';
 import { subscribeServerMessages } from './wsSync';
 

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/sveltekit';
-import HelpModal from '$lib/components/modals/HelpModal.svelte';
+import HelpModal from '#lib/components/modals/HelpModal.svelte';
 
 const meta: Meta<typeof HelpModal> = {
     title: 'Components/Modals/HelpModal',

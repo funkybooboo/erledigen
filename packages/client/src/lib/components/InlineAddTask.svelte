@@ -1,15 +1,15 @@
 <script lang="ts">
     import { tick } from 'svelte';
-    import { notificationStore } from '$lib/stores';
+    import { notificationStore } from '#lib/stores/index.ts';
     import { TASK_CONSTRAINTS, parseRecurrence } from '@erledigen/shared';
-    import { createFromText } from '$lib/createFromText';
+    import { createFromText } from '#lib/createFromText.ts';
     import RecurrenceHint from './RecurrenceHint.svelte';
     import { Icon } from 'svelte-icons-pack';
     import { LuCircle } from 'svelte-icons-pack/lu';
-    import { tooltip } from '$lib/tooltip';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import { tooltip } from '#lib/tooltip.ts';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
     import { describeRecurrence } from '@erledigen/shared';
-    import { recurrencePhrases } from '$lib/i18n/recurrencePhrases';
+    import { recurrencePhrases } from '#lib/i18n/recurrencePhrases.ts';
 
     let {
         date,

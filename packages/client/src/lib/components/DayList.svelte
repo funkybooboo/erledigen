@@ -1,11 +1,11 @@
 <script lang="ts">
     import { onMount, onDestroy, tick, untrack } from 'svelte';
-    import { taskStore, preferencesStore, dateViewStore, recurringTaskStore, uiStore, type TaskSection } from '$lib/stores';
+    import { taskStore, preferencesStore, dateViewStore, recurringTaskStore, uiStore, type TaskSection } from '#lib/stores/index.ts';
     import { addDays, dateRangeKeys, groupTasksByDate, SOMEDAY_KEY } from '@erledigen/shared';
-    import { applyFilters, sortTasksForView } from '$lib/filters';
-    import { prefersReducedMotion } from '$lib/motion';
-    import { container } from '$lib/container';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import { applyFilters, sortTasksForView } from '#lib/filters.ts';
+    import { prefersReducedMotion } from '#lib/motion.ts';
+    import { container } from '#lib/container.ts';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
     import DaySection from './DaySection.svelte';
 
     // How many days to add each time the window extends.

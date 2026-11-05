@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/sveltekit';
-import SearchModal from '$lib/components/modals/SearchModal.svelte';
+import SearchModal from '#lib/components/modals/SearchModal.svelte';
 
 const meta: Meta<typeof SearchModal> = {
     title: 'Components/Modals/SearchModal',

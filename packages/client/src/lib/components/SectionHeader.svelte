@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
 
     let {
         sectionId,

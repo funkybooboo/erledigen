@@ -11,17 +11,17 @@
         someDayGroupStore,
         tagStore,
         taskStore,
-    } from '$lib/stores';
-    import { container } from '$lib/container';
-    import { handleGlobalKeydown } from '$lib/keybindingActions';
-    import { refreshKeybindings } from '$lib/keybindingActions';
-    import IconRail from '$lib/components/IconRail.svelte';
-    import DateMinimap from '$lib/components/DateMinimap.svelte';
-    import SomedayPanel from '$lib/components/SomedayPanel.svelte';
-    import BottomBar from '$lib/components/BottomBar.svelte';
-    import ModalHost from '$lib/components/ModalHost.svelte';
-    import NotificationContainer from '$lib/components/NotificationContainer.svelte';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    } from '#lib/stores/index.ts';
+    import { container } from '#lib/container.ts';
+    import { handleGlobalKeydown } from '#lib/keybindingActions.ts';
+    import { refreshKeybindings } from '#lib/keybindingActions.ts';
+    import IconRail from '#lib/components/IconRail.svelte';
+    import DateMinimap from '#lib/components/DateMinimap.svelte';
+    import SomedayPanel from '#lib/components/SomedayPanel.svelte';
+    import BottomBar from '#lib/components/BottomBar.svelte';
+    import ModalHost from '#lib/components/ModalHost.svelte';
+    import NotificationContainer from '#lib/components/NotificationContainer.svelte';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
 
     let { children } = $props();
 

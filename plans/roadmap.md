@@ -33,6 +33,11 @@ The queue. Versions are the release cadence; stories are the work
 (Bruno removed), with Swagger UI served from the OpenAPI spec for
 exploration.
 
+[BUILD-6 the tree stays patched](./stories/BUILD-6-the-tree-stays-patched.md)
+-- the audit-green dependency sweep (ADR-025): zod + Storybook +
+fast-uri bumps, the SvelteKit 3 migration, the deepmerge override
+ceiling.
+
 ## v0.14.0: Calendar time grid -- deferred
 
 An hour grid is Google Calendar's shape, not a calendar book's; it

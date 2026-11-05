@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/sveltekit';
-import FilterModal from '$lib/components/modals/FilterModal.svelte';
+import FilterModal from '#lib/components/modals/FilterModal.svelte';
 
 const meta: Meta<typeof FilterModal> = {
     title: 'Components/Modals/FilterModal',

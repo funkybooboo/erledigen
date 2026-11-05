@@ -1,12 +1,12 @@
 <script lang="ts">
-    import Modal from '$lib/components/Modal.svelte';
-    import { holidayStore, preferencesStore, refetchAllStores, tagStore, uiStore } from '$lib/stores';
-    import { container } from '$lib/container';
-    import { ExportService } from '$lib/services/exportService';
-    import { HolidayService, type HolidayImportResult } from '$lib/services/holidayService';
-    import { ImportService } from '$lib/services/importService';
-    import { tagColorVar } from '$lib/tagColors';
-    import { currentShortcuts } from '$lib/keybindingActions';
+    import Modal from '#lib/components/Modal.svelte';
+    import { holidayStore, preferencesStore, refetchAllStores, tagStore, uiStore } from '#lib/stores/index.ts';
+    import { container } from '#lib/container.ts';
+    import { ExportService } from '#lib/services/exportService.ts';
+    import { HolidayService, type HolidayImportResult } from '#lib/services/holidayService.ts';
+    import { ImportService } from '#lib/services/importService.ts';
+    import { tagColorVar } from '#lib/tagColors.ts';
+    import { currentShortcuts } from '#lib/keybindingActions.ts';
     import {
         bindingConflicts,
         formatBinding,
@@ -14,8 +14,8 @@
         SHORTCUTS,
         SHORTCUT_SECTIONS,
         type ShortcutId,
-    } from '$lib/keybindings';
-    import { canonicalKey } from '$lib/keyboard';
+    } from '#lib/keybindings.ts';
+    import { canonicalKey } from '#lib/keyboard.ts';
     import { Icon } from 'svelte-icons-pack';
     import { LuGitMerge, LuPencil, LuRotateCcw, LuTrash2 } from 'svelte-icons-pack/lu';
     import {
@@ -37,8 +37,8 @@
         type TagColorId,
     } from '@erledigen/shared';
     import { onMount } from 'svelte';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
-    import type { TranslationKey } from '$lib/i18n/locales';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
+    import type { TranslationKey } from '#lib/i18n/locales.ts';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 

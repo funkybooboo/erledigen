@@ -17,10 +17,10 @@ import {
     extractInlineTags,
     parseRecurrence,
 } from '@erledigen/shared';
-import { container } from '$lib/container';
-import { i18nStore } from '$lib/i18n/i18nStore.svelte';
-import { recurrencePhrases } from '$lib/i18n/recurrencePhrases';
-import { GENERATE_HORIZON_DAYS, recurringTaskStore, taskStore } from '$lib/stores';
+import { container } from '#lib/container.ts';
+import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
+import { recurrencePhrases } from '#lib/i18n/recurrencePhrases.ts';
+import { GENERATE_HORIZON_DAYS, recurringTaskStore, taskStore } from '#lib/stores/index.ts';
 
 interface CreateFromTextOptions {
     /** Schedule date for a plain task (empty string = Someday) and the

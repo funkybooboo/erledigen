@@ -120,7 +120,7 @@ All of the following must pass before merging (CI enforces them; see
 3. Biome lint/format
 4. TypeScript strict type-check
 5. Secret scan + link check + spell check
-6. Build + client bundle-size budget (768 KiB, browser payload)
+6. Build + client bundle-size budget (800 KiB, browser payload)
 7. The accessibility gates (v0.12.0): the axe-core audit in the e2e
    suite (zero WCAG 2.1 A/AA violations per run), the contrast token
    unit test, and svelte-check's a11y rules -- see

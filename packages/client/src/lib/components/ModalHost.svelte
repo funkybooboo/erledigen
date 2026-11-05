@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { uiStore } from '$lib/stores';
+    import { uiStore } from '#lib/stores/index.ts';
     import SummaryModal from './modals/SummaryModal.svelte';
     import ProjectsModal from './modals/ProjectsModal.svelte';
     import HabitsModal from './modals/HabitsModal.svelte';

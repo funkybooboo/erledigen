@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/sveltekit';
-import CalendarModal from '$lib/components/modals/CalendarModal.svelte';
+import CalendarModal from '#lib/components/modals/CalendarModal.svelte';
 
 const meta: Meta<typeof CalendarModal> = {
     title: 'Components/Modals/CalendarModal',

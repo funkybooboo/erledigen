@@ -1,11 +1,11 @@
 <script lang="ts">
-    import Modal from '$lib/components/Modal.svelte';
-    import KanbanBoard from '$lib/components/KanbanBoard.svelte';
-    import { notificationStore, projectStore, taskStore, uiStore } from '$lib/stores';
+    import Modal from '#lib/components/Modal.svelte';
+    import KanbanBoard from '#lib/components/KanbanBoard.svelte';
+    import { notificationStore, projectStore, taskStore, uiStore } from '#lib/stores/index.ts';
     import { Icon } from 'svelte-icons-pack';
     import { LuPlus, LuPencil, LuTrash2, LuArrowLeft } from 'svelte-icons-pack/lu';
     import { onMount } from 'svelte';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
 
     let { onclose = () => {} }: { onclose?: () => void } = $props();
 

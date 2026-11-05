@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { notificationStore, preferencesStore, dragStore, taskStore, uiStore } from '$lib/stores';
-    import { deleteTaskWithUndo } from '$lib/taskActions';
-    import { container } from '$lib/container';
+    import { notificationStore, preferencesStore, dragStore, taskStore, uiStore } from '#lib/stores/index.ts';
+    import { deleteTaskWithUndo } from '#lib/taskActions.ts';
+    import { container } from '#lib/container.ts';
     import {
         TASK_CONSTRAINTS,
         formatTags,
@@ -21,9 +21,9 @@
         LuX,
     } from 'svelte-icons-pack/lu';
     import { onDestroy, untrack } from 'svelte';
-    import { tooltip } from '$lib/tooltip';
-    import { tagChipStyle } from '$lib/tagColors';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import { tooltip } from '#lib/tooltip.ts';
+    import { tagChipStyle } from '#lib/tagColors.ts';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
 
     let { task, isNew = false }: { task: Task; isNew?: boolean } = $props();
 

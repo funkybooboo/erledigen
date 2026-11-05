@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/sveltekit';
-import BottomBar from '$lib/components/BottomBar.svelte';
+import BottomBar from '#lib/components/BottomBar.svelte';
 
 const meta: Meta<typeof BottomBar> = {
     title: 'Components/BottomBar',

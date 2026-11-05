@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/sveltekit';
-import SummaryModal from '$lib/components/modals/SummaryModal.svelte';
+import SummaryModal from '#lib/components/modals/SummaryModal.svelte';
 
 const meta: Meta<typeof SummaryModal> = {
     title: 'Components/Modals/SummaryModal',

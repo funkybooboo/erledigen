@@ -1,10 +1,10 @@
 <script lang="ts">
     import { onMount, onDestroy, tick, untrack } from 'svelte';
     import { addMonths, monthKeyOf, monthRangeKeys } from '@erledigen/shared';
-    import { dateViewStore, preferencesStore } from '$lib/stores';
-    import { tooltip } from '$lib/tooltip';
-    import { container } from '$lib/container';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
+    import { dateViewStore, preferencesStore } from '#lib/stores/index.ts';
+    import { tooltip } from '#lib/tooltip.ts';
+    import { container } from '#lib/container.ts';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
 
     // Month granularity: each row is one month. The minimap has its OWN
     // bidirectional infinite scroll. There is NO hard wall: extension

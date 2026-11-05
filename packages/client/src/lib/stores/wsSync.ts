@@ -9,7 +9,7 @@
  */
 
 import type { WsServerMessage } from '@erledigen/shared';
-import { websocketService } from '$lib/services/websocketService';
+import { websocketService } from '#lib/services/websocketService.ts';
 
 /**
  * Subscribe to server messages with the shared restore handling wired

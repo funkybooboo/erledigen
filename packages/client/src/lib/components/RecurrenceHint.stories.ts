@@ -1,6 +1,6 @@
 import { type ParsedRecurrence, parseRecurrence } from '@erledigen/shared';
 import type { Meta, StoryObj } from '@storybook/sveltekit';
-import RecurrenceHint from '$lib/components/RecurrenceHint.svelte';
+import RecurrenceHint from '#lib/components/RecurrenceHint.svelte';
 
 const meta: Meta<typeof RecurrenceHint> = {
     title: 'Components/RecurrenceHint',

@@ -34,6 +34,7 @@ An ADR captures an important architectural decision: what was decided, why, and 
 | [ADR-022](ADR-022-wcag-2-1-aa.md) | WCAG 2.1 Level AA as the Accessibility Standard | Accepted | 2026-10-09 |
 | [ADR-023](ADR-023-first-party-i18n.md) | First-Party i18n Adapter with JSON Locale Files | Accepted | 2026-10-09 |
 | [ADR-024](ADR-024-one-asserted-api-suite.md) | One Asserted API Suite (Playwright) with a Served Explorer | Accepted | 2026-10-10 |
+| [ADR-025](ADR-025-security-driven-dependency-policy.md) | The Security Audit Gate: Patch, Override, or Migrate -- Never Ignore | Accepted | 2026-11-04 |
 
 ## Creating a New ADR
 

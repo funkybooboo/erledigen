@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/sveltekit';
-import TaskRow from '$lib/components/TaskRow.svelte';
+import TaskRow from '#lib/components/TaskRow.svelte';
 import {
     mockCompletedTask,
     mockHeadingTask,
@@ -10,7 +10,7 @@ import {
     mockTask,
     mockTaskWithNotes,
     mockTimeTask,
-} from '$lib/stories/mockData';
+} from '#lib/stories/mockData.ts';
 
 const meta: Meta<typeof TaskRow> = {
     title: 'Components/TaskRow',

@@ -13,7 +13,7 @@
 
 import type { I18nParams } from '@erledigen/shared';
 import { textDirection } from '@erledigen/shared';
-import { container } from '$lib/container';
+import { container } from '#lib/container.ts';
 import { DEFAULT_LOCALE, LOCALE_FILES, type TranslationKey } from './locales';
 
 class I18nStore {

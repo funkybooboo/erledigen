@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/sveltekit';
-import DaySection from '$lib/components/DaySection.svelte';
-import { container } from '$lib/container';
+import DaySection from '#lib/components/DaySection.svelte';
+import { container } from '#lib/container.ts';
 import {
     mockCompletedTask,
     mockOverdueTask,
     mockTask,
     mockTasks,
     mockTimeTask,
-} from '$lib/stories/mockData';
+} from '#lib/stories/mockData.ts';
 
 const meta: Meta<typeof DaySection> = {
     title: 'Components/DaySection',

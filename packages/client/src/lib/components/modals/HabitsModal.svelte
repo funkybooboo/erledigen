@@ -1,8 +1,8 @@
 <script lang="ts">
-    import Modal from '$lib/components/Modal.svelte';
-    import HabitHeatmap from '$lib/components/HabitHeatmap.svelte';
-    import RecurrenceHint from '$lib/components/RecurrenceHint.svelte';
-    import HabitScheduleForm from '$lib/components/HabitScheduleForm.svelte';
+    import Modal from '#lib/components/Modal.svelte';
+    import HabitHeatmap from '#lib/components/HabitHeatmap.svelte';
+    import RecurrenceHint from '#lib/components/RecurrenceHint.svelte';
+    import HabitScheduleForm from '#lib/components/HabitScheduleForm.svelte';
     import {
         GENERATE_HORIZON_DAYS,
         notificationStore,
@@ -10,7 +10,7 @@
         taskStore,
         preferencesStore,
         uiStore,
-    } from '$lib/stores';
+    } from '#lib/stores/index.ts';
     import { Icon } from 'svelte-icons-pack';
     import {
         LuArrowLeft,
@@ -26,9 +26,9 @@
         type RecurringFrequency,
         type RecurringTask,
     } from '@erledigen/shared';
-    import { container } from '$lib/container';
-    import { i18nStore } from '$lib/i18n/i18nStore.svelte';
-    import { recurrencePhrases } from '$lib/i18n/recurrencePhrases';
+    import { container } from '#lib/container.ts';
+    import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
+    import { recurrencePhrases } from '#lib/i18n/recurrencePhrases.ts';
     import { onMount } from 'svelte';
 
     /** Localized recurrence descriptions (schedule sentences from the

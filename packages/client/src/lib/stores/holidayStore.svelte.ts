@@ -4,8 +4,8 @@ import type {
     UpdateHolidayInput,
     WsServerMessage,
 } from '@erledigen/shared';
-import { container } from '$lib/container';
-import { HolidayService } from '$lib/services/holidayService';
+import { container } from '#lib/container.ts';
+import { HolidayService } from '#lib/services/holidayService.ts';
 import { EntityStore } from './entityStore.svelte';
 
 const holidayService = new HolidayService(container.httpClient);
