@@ -20,7 +20,7 @@
 #   PLAYWRIGHT_VERSION -- must equal the @playwright/test version in bun.lock
 # =============================================================================
 
-ARG BUN_VERSION=1.3.10
+ARG BUN_VERSION=1.3.14
 ARG PLAYWRIGHT_VERSION=1.63.0
 
 # ---- bun binary sources -----------------------------------------------------
