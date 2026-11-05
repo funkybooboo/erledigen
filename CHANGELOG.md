@@ -1,5 +1,15 @@
 # Changelog
 
+## [v0.13.2](https://github.com/funkybooboo/erledigen/compare/v0.13.1...HEAD) - 2026-11-05
+
+### Fixes
+
+- **build:** bump bun to 1.3.14 -- kit 3 builds die in the images (#93)
+
+### Everything else
+
+- **plans:** v0.13.1 moves to history -- v0.16.0 is next (#92)
+
 ## [v0.13.1](https://github.com/funkybooboo/erledigen/compare/v0.13.0...HEAD) - 2026-11-05
 
 ### Features
