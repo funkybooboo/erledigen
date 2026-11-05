@@ -16,7 +16,7 @@
         "test:watch": "bun test --watch",
         "test:coverage": "bun test --coverage",
         "storybook": "storybook dev -p 6006",
-        "build-storybook": "storybook build"
+        "build-storybook": "svelte-kit sync && storybook build"
     },
     "dependencies": {
         "@erledigen/shared": "workspace:*",
