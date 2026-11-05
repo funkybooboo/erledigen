@@ -8,11 +8,11 @@ The queue. Versions are the release cadence; stories are the work
 
 ## Where we stand (2026-11-05)
 
-- Package version tracks the LAST SHIPPED milestone: `0.13.1` since
-  the `v0.13.1` release. Releases go through PRs (main is
+- Package version tracks the LAST SHIPPED milestone: `0.13.2` since
+  the `v0.13.2` release. Releases go through PRs (main is
   branch-protected) via `tools/release.sh`, which also writes the
   CHANGELOG section and creates the GitHub Release.
-- Shipped complete: v0.1.0 through v0.13.1 (the full record, with the
+- Shipped complete: v0.1.0 through v0.13.2 (the full record, with the
   as-built notes, lives in [history.md](./history.md)).
 - **v0.16.0 (Projects as umbrellas, ADR-011) is NEXT** -- the lowest
   incomplete version; the recorded v0.14.0 deferral stands (the hour
