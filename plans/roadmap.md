@@ -6,37 +6,25 @@ The queue. Versions are the release cadence; stories are the work
 [history.md](./history.md). Every change serves one of the three roles
 -- app user, operator, developer (ADR-017).
 
-## Where we stand (2026-10-10)
+## Where we stand (2026-11-05)
 
-- Package version tracks the LAST SHIPPED milestone: `0.13.0` since
-  the `v0.13.0` release. Releases go through PRs (main is
+- Package version tracks the LAST SHIPPED milestone: `0.13.1` since
+  the `v0.13.1` release. Releases go through PRs (main is
   branch-protected) via `tools/release.sh`, which also writes the
   CHANGELOG section and creates the GitHub Release.
-- Shipped complete: v0.1.0 through v0.13.0 (the full record, with the
+- Shipped complete: v0.1.0 through v0.13.1 (the full record, with the
   as-built notes, lives in [history.md](./history.md)).
-- **v0.13.1 (Test infrastructure, ADR-024) is NEXT** -- BUILD-5's
-  code is merged (#80 Bruno removal, #88 Swagger UI); what remains is
-  the v0.13.1 close-out and release. After it: v0.16.0 (Projects as
-  umbrellas), the lowest incomplete feature version -- the recorded
-  v0.14.0 deferral stands.
+- **v0.16.0 (Projects as umbrellas, ADR-011) is NEXT** -- the lowest
+  incomplete version; the recorded v0.14.0 deferral stands (the hour
+  grid fights the identity, ADR-014). v0.13.1 added the standing
+  dependency policy (ADR-025): advisories land on the triage order,
+  they never wait for a release to be triaged.
 - Policy: numeric order -- always complete the lowest incomplete
   version before starting anything higher. The recorded exceptions
   stand: the v0.14.0 time grid is deferred (ADR-014) and the polish
   pass (v0.18.0) runs last so it lands on final surfaces.
 
 ---
-
-## v0.13.1: Test infrastructure (ADR-024)
-
-[BUILD-5 one asserted API suite](./stories/BUILD-5-one-asserted-api-suite.md)
--- the Playwright `api` project becomes the only automated API suite
-(Bruno removed), with Swagger UI served from the OpenAPI spec for
-exploration.
-
-[BUILD-6 the tree stays patched](./stories/BUILD-6-the-tree-stays-patched.md)
--- the audit-green dependency sweep (ADR-025): zod + Storybook +
-fast-uri bumps, the SvelteKit 3 migration, the deepmerge override
-ceiling.
 
 ## v0.14.0: Calendar time grid -- deferred
 
