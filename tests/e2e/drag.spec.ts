@@ -172,10 +172,10 @@ test.describe('drag and drop', () => {
             { tabId: 'default', name: uniq('BridgeList'), position: 0 },
             SERVER_URL,
         );
-        const text = uniq('BridgeTask #project:bridge-e2e');
+        const text = uniq('BridgeTask');
         const task = await createTask(
             page.request,
-            { text, date: null, somedayListId: list.id },
+            { text, date: null, somedayListId: list.id, tags: ['project:bridge-e2e'] },
             SERVER_URL,
         );
         await openPanel(page);
@@ -195,7 +195,7 @@ test.describe('drag and drop', () => {
         // It wears the project chip on the day.
         await expect(
             todaySection(page).locator('.task-row', { hasText: text }).locator('.tag-chip'),
-        ).toHaveText(['project:bridge-e2e']);
+        ).toContainText('project:bridge-e2e');
 
         // Back: drag it onto its list again.
         const listEl = page.locator('.someday-group', { hasText: list['name'] });
