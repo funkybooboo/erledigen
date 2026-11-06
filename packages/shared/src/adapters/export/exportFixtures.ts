@@ -22,7 +22,7 @@ export function makeTask(overrides: Partial<Task> & Pick<Task, 'id' | 'text'>): 
         tags: [],
         parentId: null,
         rolloverEnabled: true,
-        someDayGroupId: null,
+        somedayListId: null,
         position: null,
         state: null,
         recurringTaskId: null,
@@ -76,10 +76,11 @@ function makeUserPreferences(): UserPreferences {
 export function makeSnapshot(overrides: Partial<ExportSnapshot> = {}): ExportSnapshot {
     return {
         format: 'erledigen-export',
-        version: 1,
+        version: 2,
         exportedAt: '2026-01-15T12:00:00.000Z',
         tasks: [],
-        someDayGroups: [],
+        somedayTabs: [],
+        somedayLists: [],
         projects: [],
         recurringTasks: [],
         holidays: [],

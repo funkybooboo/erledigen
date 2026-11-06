@@ -2,8 +2,9 @@
  * Export format contract (see ADR-008).
  *
  * The JSON export is the canonical, lossless backup format: every
- * entity (tasks including the trash, Someday groups, projects, recurring
- * task templates, holidays, user preferences) round-trips through it.
+ * entity (tasks including the trash, Someday tabs and lists, projects,
+ * recurring task templates, holidays, user preferences) round-trips
+ * through it.
  * CSV, Markdown, and iCal are derived views of the task list -- readable
  * by other tools, but not backups.
  */
@@ -12,7 +13,8 @@ import type { DayNote } from './dayNote';
 import type { Holiday } from './holiday';
 import type { Project } from './project';
 import type { RecurringTask } from './recurringTask';
-import type { SomeDayGroup } from './someDayGroup';
+import type { SomedayList } from './somedayList';
+import type { SomedayTab } from './somedayTab';
 import type { Task } from './task';
 import type { UserPreferences } from './userPreferences';
 
@@ -43,13 +45,19 @@ export const EXPORT_FORMAT_META: Record<ExportFormat, { extension: string; conte
 export interface ExportSnapshot {
     /** Discriminator; always 'erledigen-export'. */
     format: 'erledigen-export';
-    /** Snapshot schema version (see ADR-008). */
-    version: 1;
+    /** Snapshot schema version (ADR-008; v2 = the v0.16.0 someday/
+     *  projects restructure, ADR-026). */
+    version: 2;
     /** ISO 8601 UTC timestamp of the export. */
     exportedAt: string;
     /** Every task, INCLUDING soft-deleted (trash) rows. */
     tasks: Task[];
-    someDayGroups: SomeDayGroup[];
+    /** Someday tabs and lists (v0.16.0, USE-16): tabs hold lists,
+     *  lists hold the parked, undated tasks. Snapshots exported before
+     *  the restructure carry `someDayGroups` instead -- the restore
+     *  path maps those forward (ADR-026). */
+    somedayTabs: SomedayTab[];
+    somedayLists: SomedayList[];
     projects: Project[];
     recurringTasks: RecurringTask[];
     /** Named calendar dates (v0.9.0). Snapshots exported before the

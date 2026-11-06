@@ -2,7 +2,8 @@ import type { DayNote } from './dayNote';
 import type { Holiday } from './holiday';
 import type { ImportResult } from './import';
 import type { Project } from './project';
-import type { SomeDayGroup } from './someDayGroup';
+import type { SomedayList } from './somedayList';
+import type { SomedayTab } from './somedayTab';
 import type { Task } from './task';
 
 /** Event type -> payload shape for every server-broadcast message.
@@ -22,9 +23,12 @@ export type WsServerEventMap = {
     'project:created': { project: Project };
     'project:updated': { project: Project };
     'project:deleted': { id: string };
-    'someDayGroup:created': { group: SomeDayGroup };
-    'someDayGroup:updated': { group: SomeDayGroup };
-    'someDayGroup:deleted': { id: string };
+    'somedayTab:created': { tab: SomedayTab };
+    'somedayTab:updated': { tab: SomedayTab };
+    'somedayTab:deleted': { id: string };
+    'somedayList:created': { list: SomedayList };
+    'somedayList:updated': { list: SomedayList };
+    'somedayList:deleted': { id: string };
     'holiday:created': { holiday: Holiday };
     'holiday:updated': { holiday: Holiday };
     'holiday:deleted': { id: string };

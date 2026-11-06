@@ -12,7 +12,7 @@ export interface Task {
     tags: string[];
     parentId: string | null;
     rolloverEnabled: boolean;
-    someDayGroupId: string | null;
+    somedayListId: string | null;
     position: number | null;
     state: 'ready' | 'scheduled' | 'done' | null;
     recurringTaskId: string | null;
@@ -44,7 +44,7 @@ export type CreateTaskInput = {
     notes?: string | null;
     tags?: string[];
     parentId?: string | null;
-    someDayGroupId?: string | null;
+    somedayListId?: string | null;
     rolloverEnabled?: boolean;
     position?: number | null;
     state?: 'ready' | 'scheduled' | 'done' | null;
@@ -72,7 +72,7 @@ export type UpdateTaskInput = Partial<{
     date: string | null;
     tags: string[];
     parentId: string | null;
-    someDayGroupId: string | null;
+    somedayListId: string | null;
     /** Task this one is blocked by (Kanban dependency indicator,
      *  v0.9.0). No existence check on update -- the same looseness as
      *  parentId; a dangling reference renders as unblocked. */

@@ -20,7 +20,7 @@ const baseTask: Task = {
     tags: ['project:x'],
     parentId: null,
     rolloverEnabled: true,
-    someDayGroupId: null,
+    somedayListId: null,
     position: null,
     state: null,
     recurringTaskId: null,

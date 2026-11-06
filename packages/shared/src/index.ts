@@ -134,10 +134,15 @@ export type {
     UpdateRecurringTaskInput,
 } from './types/recurringTask';
 export type {
-    CreateSomeDayGroupInput,
-    SomeDayGroup,
-    UpdateSomeDayGroupInput,
-} from './types/someDayGroup';
+    CreateSomedayListInput,
+    SomedayList,
+    UpdateSomedayListInput,
+} from './types/somedayList';
+export type {
+    CreateSomedayTabInput,
+    SomedayTab,
+    UpdateSomedayTabInput,
+} from './types/somedayTab';
 export type { CreateTaskInput, Task, UpdateTaskInput } from './types/task';
 export {
     isValidTimeRange,

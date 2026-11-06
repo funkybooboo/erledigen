@@ -30,9 +30,11 @@ export const API_ROUTES = {
     TASK_TRASH: '/api/tasks/trash',
     TASK_PURGE: '/api/tasks/purge',
 
-    // Someday groups
-    SOMEDAY_GROUPS: '/api/someday-groups',
-    SOMEDAY_GROUP_BY_ID: (id: string) => `/api/someday-groups/${id}`,
+    // Someday tabs + lists (v0.16.0, USE-16 -- tabs hold lists)
+    SOMEDAY_TABS: '/api/someday-tabs',
+    SOMEDAY_TAB_BY_ID: (id: string) => `/api/someday-tabs/${id}`,
+    SOMEDAY_LISTS: '/api/someday-lists',
+    SOMEDAY_LIST_BY_ID: (id: string) => `/api/someday-lists/${id}`,
 
     // Holidays (v0.9.0)
     HOLIDAYS: '/api/holidays',
@@ -86,7 +88,8 @@ export const API_ROUTES = {
     RECURRING_TASK_GENERATE_PATTERN: '/api/recurring-tasks/:id/generate',
     RECURRING_TASK_GENERATE_ALL_PATTERN: '/api/recurring-tasks/generate-all',
     RECURRING_TASK_STATS_PATTERN: '/api/recurring-tasks/:id/stats',
-    SOMEDAY_GROUP_ROUTE_PATTERN: '/api/someday-groups/:id',
+    SOMEDAY_TAB_ROUTE_PATTERN: '/api/someday-tabs/:id',
+    SOMEDAY_LIST_ROUTE_PATTERN: '/api/someday-lists/:id',
     HOLIDAY_ROUTE_PATTERN: '/api/holidays/:id',
     DAY_NOTE_ROUTE_PATTERN: '/api/day-notes/:date',
 } as const;
@@ -204,6 +207,17 @@ export const USER_PREFERENCES_DEFAULTS = {
     persistActiveFilters: true,
     shortcutOverrides: {} as Record<string, string[]>,
 } as const;
+
+/** The fixed id of the default Someday tab every install owns
+ *  (seeded by migration 013, undeletable). Dateless tasks with no
+ *  list render in it -- the "unlisted" bucket -- so parked work is
+ *  never invisible (USE-16). */
+export const DEFAULT_SOMEDAY_TAB_ID = 'default';
+
+/** The fixed id of the default list the migration seeds under the
+ *  default tab (both named "Someday" -- the story's default tab +
+ *  list). Unlike the tab, the list is deletable like any other. */
+export const DEFAULT_SOMEDAY_LIST_ID = 'default-list';
 
 export const SOMEDAY_KEY = '__someday__';
 
