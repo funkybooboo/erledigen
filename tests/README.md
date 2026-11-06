@@ -32,9 +32,8 @@ Covers, per resource:
   restore + purge, parent/child completion roll-up, plain-text content
   negotiation.
 - **projects** -- CRUD, auto-generated tag, `hillPosition` validation
-  (integer 0-100), the dormant `dependsOn` field stripped from the public
-  task update API, validation.
-- **recurring-tasks** -- CRUD, generate-instances (daily/interval), the
+  (integer 0-100), the dormant `dependsOn` field stripped from the
+  public task update API, validation.- **recurring-tasks** -- CRUD, generate-instances (daily/interval), the
   idempotent `generate-all` bulk endpoint, per-habit stats, weekday/weekend
   schedules (`daysOfWeek`), validation (frequency enum, ISO date,
   interval/day bounds), 404 paths.

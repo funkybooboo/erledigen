@@ -21,12 +21,14 @@ dates.
 
 ## Notes
 
-ADR-011. Open question carried from the audit: the Someday area as
-right-hand drawer vs its own modal -- explored before building the
-tab chrome.
+ADR-011. The drawer-vs-modal question is settled (2026-11-06,
+the user's call): the Someday area stays the right-hand drawer --
+tabs run across the top of the panel, lists nest under them. A modal
+would bury the capture net behind a keystroke and would put the
+task's one home (rule 1) inside a lens. The export snapshot carries
+the restructure as version 2 (ADR-026).
 
-As built (v0.16.0) -- the drawer won (the decision record lives in
-this file's history and ADR-026):
+As built (v0.16.0):
 
 - The Someday surface keeps the drawer, the resize handle, and the
   collapse behavior; the panel header lost its "Someday" title and
@@ -35,8 +37,8 @@ this file's history and ADR-026):
 - Data model: `SomedayTab` (with an optional `projectTag` -- the
   join key) and `SomedayList`; `Task.someDayGroupId` became
   `somedayListId`. The someday-group tag and description fields
-  died; old groups become lists under the default tab via migration
-  013 and the v1-snapshot forward mapping, ids preserved.
+  died; old groups become lists under the default tab via
+  migration 013 and the v1-snapshot forward mapping, ids preserved.
 - Every install owns a default tab (fixed id `default`): the API
   rejects deleting it and a restore re-seeds it when the snapshot
   lacks it. Dateless tasks with no list render in its implicit
