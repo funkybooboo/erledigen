@@ -21,6 +21,9 @@ dates.
 
 ## Notes
 
-ADR-011. Open question carried from the audit: the Someday area as
-right-hand drawer vs its own modal -- explored before building the
-tab chrome.
+ADR-011. The drawer-vs-modal question is settled (2026-11-06,
+the user's call): the Someday area stays the right-hand drawer --
+tabs run across the top of the panel, lists nest under them. A modal
+would bury the capture net behind a keystroke and would put the
+task's one home (rule 1) inside a lens. The export snapshot carries
+the restructure as version 2 (ADR-026).
