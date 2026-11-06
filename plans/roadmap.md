@@ -6,19 +6,21 @@ The queue. Versions are the release cadence; stories are the work
 [history.md](./history.md). Every change serves one of the three roles
 -- app user, operator, developer (ADR-017).
 
-## Where we stand (2026-11-05)
+## Where we stand (2026-11-06)
 
-- Package version tracks the LAST SHIPPED milestone: `0.13.2` since
-  the `v0.13.2` release. Releases go through PRs (main is
+- Package version tracks the LAST SHIPPED milestone: `0.16.0` since
+  the `v0.16.0` release. Releases go through PRs (main is
   branch-protected) via `tools/release.sh`, which also writes the
   CHANGELOG section and creates the GitHub Release.
-- Shipped complete: v0.1.0 through v0.13.2 (the full record, with the
+- Shipped complete: v0.1.0 through v0.16.0 (the full record, with the
   as-built notes, lives in [history.md](./history.md)).
-- **v0.16.0 (Projects as umbrellas, ADR-011) is NEXT** -- the lowest
+- **v0.17.0 (Routines, ADR-012, ADR-013) is NEXT** -- the lowest
   incomplete version; the recorded v0.14.0 deferral stands (the hour
-  grid fights the identity, ADR-014). v0.13.1 added the standing
-  dependency policy (ADR-025): advisories land on the triage order,
-  they never wait for a release to be triaged.
+  grid fights the identity, ADR-014). The snapshot version sequence
+  is recorded: v2 shipped with v0.16.0 (ADR-026); the routines rename
+  takes v3. The standing dependency policy (ADR-025) applies:
+  advisories land on the triage order, they never wait for a release
+  to be triaged.
 - Policy: numeric order -- always complete the lowest incomplete
   version before starting anything higher. The recorded exceptions
   stand: the v0.14.0 time grid is deferred (ADR-014) and the polish
