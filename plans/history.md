@@ -1385,3 +1385,87 @@ node:24-alpine), `erledigen-server:0.13.2` pulled.
 - [x] The v0.13.1 record's image claim corrected in history.
 
 ---
+## v0.16.0: Projects as umbrellas
+
+The full build of ADR-011 -- the fourth design shape for projects,
+and the reversal of the v0.9.0 board: a project is a named tag plus
+metadata that GATHERS related work instead of containing it. The tag
+is the join key; the date is the only bridge between the backlog
+world and the calendar world; a project reads, never moves.
+
+Four stories shipped in one train (USE-16 through USE-19, merged as
+#96-#101 and released as #102):
+
+- [x] **Someday becomes tabs of lists (USE-16, #97):** the panel
+      keeps the drawer (the user's call, recorded in the story) with
+      a tab strip across its top. `SomedayTab` (carrying an optional
+      `projectTag`) + `SomedayList` replace `SomeDayGroup`;
+      `Task.someDayGroupId` became `somedayListId`; the group tag
+      field died. Migration 013 turns old groups into lists under
+      the seeded default tab (ids preserved), and every install owns
+      that default tab: the API refuses deleting it, a restore
+      re-seeds it, and dateless listless tasks render in its
+      implicit Unlisted section -- parked work is never invisible.
+      Creating a project auto-creates its tab wearing the project
+      tag.
+- [x] **The scheduling bridge (USE-18, #98):** the v0.9.0 Kanban
+      board, Activate, `isActive` (migration 014 drops the column),
+      the `?active` filter, `ProjectService`, and the dependency
+      locks are removed; `dependsOn` stays dormant in the model and
+      `planProjectDistribution` stays dormant in shared, per the
+      ADR. Dragging a parked member onto a day keeps its list id
+      (the date wins; the list is remembered), so clearing the date
+      returns it to its list -- pinned by the e2e round-trip test.
+      Deleting a project now says so: the tasks are not deleted,
+      they keep the tag.
+- [x] **The project home (USE-17, #99):** the Projects modal detail
+      is the gathered lens -- Backlog (undated, grouped by their
+      someday lists, Unlisted last, sub-tasks glued under their
+      parents), Scheduled (by day), Routines (with streaks), Done
+      (count + the ten most recent). The metadata row edits the
+      start/due dates, drags the hill (`hillPosition`, migration
+      015: one marker, phase captions -- figuring it out / scope
+      settled / executing -- no percentages ever), and stamps
+      completion explicitly. Create-from-home goes through the one
+      grammar input (a trailing routine phrase makes a habit) with
+      the tag applied; "+ add list" shelves a shelf under the
+      project's tab. Project chips on day-task rows, habits, and
+      project-tab lists hop to the home.
+- [x] **Project milestones (USE-19, #100):** the project's start,
+      due, and completed dates draw quiet banner notes on their
+      days (the holiday banner family; due carries the danger tint),
+      and an uncompleted project whose due date passed keeps its due
+      note on today until marked complete.
+- [x] **Export snapshot version 2 (ADR-026, #96):** the restructure
+      rides a version bump per ADR-008 -- v2 replaces
+      `someDayGroups` with `somedayTabs` + `somedayLists`, renames
+      the task field, and drops `isActive`; the restore path maps v1
+      documents forward (groups become lists under the default tab,
+      ids preserved). ADR-012's routines rename moves to v3.
+
+Two latent bugs surfaced and died with the train: the inline tag
+parser never actually read interior colons (its own doc comment
+claimed otherwise -- `#project:x` parsed as `project` plus junk
+text), and the habit-creation path never extracted `#tags` (habits
+could not wear tags at all).
+
+**Status:** COMPLETE (2026-11-06, released as tag `v0.16.0` through
+#102). All gates green at every slice: 1079+ unit tests, 360 api +
+e2e in the docker stack, type-check, svelte-check, biome, cspell,
+build (client bundle 814,085 B against the 819,200 budget -- the
+v0.18.0 polish pass owns the trim), storybook. Both GHCR images
+verified from the registry: `erledigen-client:0.16.0` serves the
+app (HTTP 200, `x-sveltekit-page: true`), `erledigen-server:0.16.0`
+reports health `version: 0.16.0` and the default tab seeds from
+the migrations.
+
+### Definition of Done
+
+- [x] All four stories done with their acceptance boxes ticked and
+      as-built notes in the story files.
+- [x] Released as tag `v0.16.0` -- CHANGELOG section, GitHub
+      Release, GHCR images (both, registry-verified).
+- [x] design.md, export.md, introduction.md, and tests/README.md
+      describe the shipped world; the Kanban-era sections are gone.
+
+---
