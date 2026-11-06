@@ -31,12 +31,17 @@ Covers, per resource:
   format), filtering by date/tag/someday/completion, soft-delete + trash +
   restore + purge, parent/child completion roll-up, plain-text content
   negotiation.
-- **projects** -- CRUD, auto-generated tag, validation.
+- **projects** -- CRUD, auto-generated tag, `hillPosition` validation
+  (integer 0-100), the dormant `dependsOn` field stripped from the public
+  task update API, validation.
 - **recurring-tasks** -- CRUD, generate-instances (daily/interval), the
   idempotent `generate-all` bulk endpoint, per-habit stats, weekday/weekend
   schedules (`daysOfWeek`), validation (frequency enum, ISO date,
   interval/day bounds), 404 paths.
-- **someday-groups** -- CRUD, validation (name/tag/position bounds).
+- **someday-tabs + someday-lists** (v0.16.0, USE-16) -- CRUD, validation
+  (name/tabId/position bounds), the undeletable default tab (DELETE 400),
+  snapshot v2 shape, and the v1-snapshot forward-mapping restore
+  (groups become lists, ADR-026).
 - **holidays** -- CRUD, validation (name/date bounds), `.ics` import (raw text + URL modes, duplicate skipping, non-iCal 400, failing-fetch 400), plain-text content negotiation, export snapshot coverage, and the pre-v0.9.0 snapshot-without-holidays restore path.
 - **day notes** (v0.10.0) -- upsert create/replace by date, list/get/delete, validation (empty notes, malformed date), plain-text content negotiation, export snapshot coverage, the pre-v0.10.0 snapshot-without-dayNotes restore path, and duplicate-date rejection.
 - **tags** -- list (sorted, de-duped), info (counts), rename, merge (incl.
@@ -44,13 +49,15 @@ Covers, per resource:
   no-op), validation, content negotiation.
 - **user preferences** -- GET defaults, PATCH single-field/nested, validation
   (theme/accent/width enums/bounds), content negotiation.
-- **export** -- `GET /api/export` (ADR-008): canonical JSON snapshot (raw
-  document, attachment headers, trash included), CSV (header row, RFC 4180
+- **export** -- `GET /api/export` (ADR-008): canonical JSON snapshot
+  (version 2, ADR-026; raw document, attachment headers, trash included),
+  CSV (header row, RFC 4180
   escaping, `columns` subset + unknown-column 400), Markdown (day sections
   + Someday), iCal (VCALENDAR/VEVENT, floating times), unknown-format 400.
 - **import** -- `POST /api/import` (ADR-009): JSON restore (verbatim
   replace incl. preferences, ids kept; invalid snapshot/dangling reference
-  400s with nothing written), additive Todoist CSV (labels/priorities/
+  400s with nothing written; version-1 documents map forward onto the
+  v2 model -- ADR-026), additive Todoist CSV (labels/priorities/
   subtasks, recurring-date warnings), Things 3 JSON (completed/canceled,
   canceled lands in trash), iCal (timed + all-day), generic CSV (index-based
   `mapping` param + auto-detect round-trip of our own export), unknown
@@ -110,11 +117,25 @@ Covers:
   UI with auto-detected defaults, JSON restore with the always-confirm
   dialog (decline leaves data intact), and the `data:restored` broadcast
   refreshing a page without reload.
-- **Someday panel** -- Ctrl+\\ collapse/expand, group create/add-task/rename
-  through the panel, ungrouped tasks rendering.
+- **Someday panel** -- Ctrl+\\ collapse/expand, tab create/switch, list
+  create/add-task/rename through the panel, the lone default tab without a
+  label, the default tab's Unlisted safety section, and
+  cross-tab visibility (another tab's lists hidden).
 - **holidays** -- Settings add/delete flows and the day-list banner
   (created live through Settings, created in another tab via the WS
   broadcast, removed on delete).
+- **drag and drop** -- native HTML5 DnD: reorder within a day, move
+  between days (date + position rewrite), drag into a Someday list, drag
+  out to a day section, and the scheduling-bridge round trip (a parked
+  task keeps its list while scheduled, returns to it when the date
+  clears -- USE-18).
+- **project home** (v0.16.0, USE-17) -- the gathered lens: backlog
+  grouped by list, scheduled by day, routines with streaks, done count +
+  recent, add-from-home applying the project tag, Mark complete/Reopen,
+  the dragged hill marker, and the project-chip hop from a day-task row.
+- **project milestones** (v0.16.0, USE-19) -- start/due/completed date
+  banners, the overdue-due nag on today, and its end when the project is
+  completed.
 - **summary** -- the v0.9.0 sections: empty-state hiding, overdue rows
   with days-late badges (completed past tasks excluded), the combined
   "Next 14 Days" deadline + holiday list with window bounds, and

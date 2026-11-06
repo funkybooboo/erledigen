@@ -4,23 +4,46 @@ As an app user, I want the Someday panel to hold tabs of lists, so
 that my unscheduled ideas park in named places that are not tied to
 dates.
 
-**Status**: planned
+**Status**: done (v0.16.0)
 **Version**: v0.16.0
 
 ## Acceptance criteria
-- [ ] Tabs hold lists (replacing tag-based groups); default: one
+- [x] Tabs hold lists (replacing tag-based groups); default: one
       tab + one list, both "Someday", no title shown
-- [ ] Lists are not tied to a date; tasks parked in them are undated
+- [x] Lists are not tied to a date; tasks parked in them are undated
       backlog
-- [ ] Auto-tab: creating a project creates its someday tab with
+- [x] Auto-tab: creating a project creates its someday tab with
       "+ add list" ready
-- [ ] Plain lists carry no tag of their own; a project tab's lists
+- [x] Plain lists carry no tag of their own; a project tab's lists
       inherit the project's tag (the someday-group tag field dies)
-- [ ] Sub-tasks nest under their parents in the new surfaces too
-- [ ] The panel keeps its name: the Someday panel
+- [x] Sub-tasks nest under their parents in the new surfaces too
+- [x] The panel keeps its name: the Someday panel
 
 ## Notes
 
 ADR-011. Open question carried from the audit: the Someday area as
 right-hand drawer vs its own modal -- explored before building the
 tab chrome.
+
+As built (v0.16.0) -- the drawer won (the decision record lives in
+this file's history and ADR-026):
+
+- The Someday surface keeps the drawer, the resize handle, and the
+  collapse behavior; the panel header lost its "Someday" title and
+  the lone default tab carries no label (the story's "no title
+  shown").
+- Data model: `SomedayTab` (with an optional `projectTag` -- the
+  join key) and `SomedayList`; `Task.someDayGroupId` became
+  `somedayListId`. The someday-group tag and description fields
+  died; old groups become lists under the default tab via migration
+  013 and the v1-snapshot forward mapping, ids preserved.
+- Every install owns a default tab (fixed id `default`): the API
+  rejects deleting it and a restore re-seeds it when the snapshot
+  lacks it. Dateless tasks with no list render in its implicit
+  Unlisted section, so parked work is never invisible. The default
+  list is deletable data, not an invariant.
+- Tag inheritance is creation-time: tasks created in a project
+  tab's lists get the tag appended to their text (typed words and
+  manual controls never disagree), and the inline tag parser now
+  reads interior colons so `#project:x` is one tag -- its doc
+  comment finally true.
