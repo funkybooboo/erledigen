@@ -8,7 +8,7 @@ import {
     createTask,
     uniq,
 } from '../api/helpers';
-import { hydrated, modal, SERVER_URL, todayISO } from './util';
+import { dayISO, hydrated, modal, SERVER_URL, todayISO } from './util';
 
 const PREFIX = 'ProjectHomeE2E';
 
@@ -110,9 +110,12 @@ test.describe('project home (USE-17)', () => {
 
         const { home, projects } = await openHome(page, name);
 
-        // The grammar input carries the tag.
+        // The grammar input carries the tag. UI-created tasks are not
+        // tracked by the API cleanup helper, so the exact text is both
+        // the assertion anchor and the cleanup key.
+        const newText = uniq(`${PREFIX} from home`);
         const input = home.locator('.add-input');
-        await input.fill(uniq(`${PREFIX} from home`));
+        await input.fill(newText);
         await input.press('Enter');
         const first = home.locator('.task-row', { hasText: 'from home' });
         await expect(first).toBeVisible();
@@ -121,14 +124,17 @@ test.describe('project home (USE-17)', () => {
         const tasksRes = await page.request.get(`${SERVER_URL}/api/tasks`);
         const created = (
             (await tasksRes.json()).data as Array<{
+                id: string;
                 text: string;
                 tags: string[];
                 date: string | null;
             }>
-        ).find(t => t.text.includes('from home'));
+        ).find(t => t.text === newText);
         expect(created?.tags).toContain(project['tag']);
         expect(created?.date).toBeNull();
 
+        // Delete what the UI created (the API helper never saw it).
+        if (created) await page.request.delete(`${SERVER_URL}/api/tasks/${created.id}`);
         await projects.getByRole('button', { name: 'Close modal' }).click();
     });
 
@@ -206,5 +212,65 @@ test.describe('project home (USE-17)', () => {
         const home = modal(page, 'Projects').locator('.detail-view');
         await expect(home).toBeVisible();
         await expect(home.locator('.detail-name')).toHaveText(name);
+    });
+});
+
+test.describe('project milestones on their days (USE-19)', () => {
+    test('start, due, and completed dates draw banner notes', async ({ page }) => {
+        const name = uniq(`${PREFIX} Milestones`);
+        const today = todayISO();
+        const tomorrow = dayISO(1);
+        const project = await createProject(
+            page.request,
+            { name, startDate: today, dueDate: tomorrow },
+            SERVER_URL,
+        );
+        // Stamp it complete today: the completed note lands on today.
+        await page.request.put(`${SERVER_URL}/api/projects/${project.id}`, {
+            data: { completedAt: `${today}T12:00:00.000Z` },
+        });
+
+        await hydrated(page);
+        // Today draws "X starts" and "X completed"; tomorrow draws "X due".
+        const todaySection = page.locator('.day-section.today');
+        await expect(
+            todaySection.locator('.milestone-banner').filter({ hasText: 'starts' }),
+        ).toContainText(`${name} starts`);
+        await expect(
+            todaySection.locator('.milestone-banner').filter({ hasText: 'completed' }),
+        ).toContainText(`${name} completed`);
+        await expect(
+            page
+                .locator(`#day-${tomorrow}`)
+                .locator('.milestone-banner')
+                .filter({ hasText: 'due' }),
+        ).toContainText(`${name} due`);
+    });
+
+    test('an uncompleted overdue project nags on today', async ({ page }) => {
+        const name = uniq(`${PREFIX} Overdue`);
+        await createProject(page.request, { name, dueDate: dayISO(-1) }, SERVER_URL);
+
+        await hydrated(page);
+        const todaySection = page.locator('.day-section.today');
+        await expect(todaySection.locator('.milestone-banner.due')).toContainText(`${name} due`);
+    });
+
+    test('a completed overdue project stops nagging', async ({ page }) => {
+        const name = uniq(`${PREFIX} Forgiven`);
+        const project = await createProject(
+            page.request,
+            { name, dueDate: dayISO(-1) },
+            SERVER_URL,
+        );
+        await page.request.put(`${SERVER_URL}/api/projects/${project.id}`, {
+            data: { completedAt: `${todayISO()}T12:00:00.000Z` },
+        });
+
+        await hydrated(page);
+        const todaySection = page.locator('.day-section.today');
+        await expect(
+            todaySection.locator('.milestone-banner.due', { hasText: `${name} due` }),
+        ).toHaveCount(0);
     });
 });

@@ -8,7 +8,15 @@
     import { snapInsertBeforeId } from '#lib/dragReorder.ts';
     import type { Task, UpdateTaskInput } from '@erledigen/shared';
     import { container } from '#lib/container.ts';
-    import { dragStore, holidayStore, preferencesStore, taskStore, uiStore } from '#lib/stores/index.ts';
+    import {
+        dragStore,
+        holidayStore,
+        preferencesStore,
+        projectStore,
+        taskStore,
+        uiStore,
+    } from '#lib/stores/index.ts';
+    import { dueNagOn, milestonesOn } from '#lib/projectMilestones.ts';
     import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
 
     let { id, dateStr, label, tasks }: { id: string; dateStr: string; label: string; tasks: Task[] } = $props();
@@ -32,6 +40,20 @@
     // header (v0.9.0 holidays). Store read is reactive, so a Settings
     // add/import updates already-rendered sections immediately.
     let holidays = $derived(holidayStore.holidaysOn(dateStr));
+
+    // Project milestones draw the same way (USE-19): the project's
+    // start/due/completed dates as quiet banner chips, plus the nag --
+    // an uncompleted project whose due date passed keeps its due note
+    // on today until it is marked complete.
+    const MILESTONE_LABELS = {
+        starts: 'projects.startsBanner',
+        due: 'projects.dueBanner',
+        completed: 'projects.completedBanner',
+    } as const;
+    let milestones = $derived([
+        ...milestonesOn(projectStore.projects, dateStr),
+        ...dueNagOn(projectStore.projects, dateStr, todayStr),
+    ]);
 
     // Instance of the section's InlineAddTask, for the store-driven focus
     // request below (bind:this, no DOM queries).
@@ -99,6 +121,15 @@
             {holidays.map(h => h.name).join(' - ')}
         </div>
     {/if}
+    {#if milestones.length > 0}
+        <div class="milestone-banners">
+            {#each milestones as milestone (milestone.project.id + milestone.kind)}
+                <span class="milestone-banner" class:due={milestone.kind === 'due'}>
+                    {i18nStore.t(MILESTONE_LABELS[milestone.kind], { name: milestone.project.name })}
+                </span>
+            {/each}
+        </div>
+    {/if}
     <SectionHeader
         {sectionId}
         title={label}
@@ -149,6 +180,33 @@
         color: var(--color-accent);
         background: color-mix(in oklab, var(--color-accent) 10%, transparent);
         border: 1px solid color-mix(in oklab, var(--color-accent) 25%, transparent);
+    }
+
+    /* Project milestones (USE-19): the same banner family as holidays
+       -- quiet pills, visually distinct. Due (and the overdue nag)
+       carries the danger tint; starts/completed stay neutral. */
+    .milestone-banners {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-bottom: 4px;
+    }
+
+    .milestone-banner {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--color-text-secondary);
+        background: var(--color-surface-dim);
+        border: 1px solid var(--color-border);
+    }
+
+    .milestone-banner.due {
+        color: var(--color-danger);
+        background: color-mix(in oklab, var(--color-danger) 8%, transparent);
+        border-color: color-mix(in oklab, var(--color-danger) 25%, transparent);
     }
 
     /* Drop-zone highlight while a drag hovers this day, and the 2px
