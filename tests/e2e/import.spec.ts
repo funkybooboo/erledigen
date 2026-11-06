@@ -19,7 +19,8 @@ async function restoreEmpty(request: Parameters<typeof createTask>[0]): Promise<
         JSON.stringify({
             ...snapshot,
             tasks: [],
-            someDayGroups: [],
+            somedayTabs: [],
+            somedayLists: [],
             projects: [],
             recurringTasks: [],
         }),
@@ -44,7 +45,7 @@ function snapshotTask(
         tags: [],
         parentId: null,
         rolloverEnabled: false,
-        someDayGroupId: null,
+        somedayListId: null,
         position: null,
         state: null,
         recurringTaskId: null,

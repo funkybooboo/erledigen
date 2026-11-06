@@ -1,5 +1,14 @@
 <script lang="ts">
-    import { notificationStore, preferencesStore, someDayGroupStore, dragStore, taskStore, uiStore, type TaskSection } from '#lib/stores/index.ts';
+    import {
+        notificationStore,
+        preferencesStore,
+        somedayListStore,
+        somedayTabStore,
+        dragStore,
+        taskStore,
+        uiStore,
+        type TaskSection,
+    } from '#lib/stores/index.ts';
     import { applyFilters } from '#lib/filters.ts';
     import { byPositionThenCreated, snapInsertBeforeId } from '#lib/dragReorder.ts';
     import { commitZoneDrop, zoneDragLeave, zoneDragOver } from '#lib/nndZone.ts';
@@ -9,16 +18,54 @@
     import SectionHeader from './SectionHeader.svelte';
     import { Icon } from 'svelte-icons-pack';
     import { LuChevronRight, LuPencil, LuTrash2, LuCheck } from 'svelte-icons-pack/lu';
-    import { slugify, type SomeDayGroup, type Task, type UpdateTaskInput } from '@erledigen/shared';
+    import {
+        DEFAULT_SOMEDAY_TAB_ID,
+        type SomedayList,
+        type SomedayTab,
+        type Task,
+        type UpdateTaskInput,
+    } from '@erledigen/shared';
     import { tooltip } from '#lib/tooltip.ts';
     import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
 
-    let showAddGroupForm = $state(false);
-    let newGroupName = $state('');
-    let newGroupInput: HTMLInputElement | undefined = $state();
-    let editingGroupId = $state<string | null>(null);
-    let editGroupName = $state('');
-    let editGroupInput: HTMLInputElement | undefined = $state();
+    // -- tabs --------------------------------------------------------------
+    // Tabs hold lists (USE-16); the default tab (fixed id, undeletable) is
+    // the home of unlisted parked tasks, so nothing ever goes invisible.
+    // The active tab is session state -- it resets to the default tab.
+
+    let activeTabId = $state<string | null>(null);
+    let tabs = $derived(somedayTabStore.sortedTabs);
+    let activeTab = $derived(
+        tabs.find(t => t.id === activeTabId) ?? tabs[0] ?? null,
+    );
+
+    let showAddTabForm = $state(false);
+    let newTabName = $state('');
+    let newTabInput: HTMLInputElement | undefined = $state();
+    let editingTabId = $state<string | null>(null);
+    let editTabInput: HTMLInputElement | undefined = $state();
+
+    // With only the default tab, the tab strip shows no label: the area
+    // carries no title (the story's "no title shown").
+    let showTabLabels = $derived(tabs.length > 1 || tabs[0]?.id !== DEFAULT_SOMEDAY_TAB_ID);
+
+    function switchTab(id: string): void {
+        activeTabId = id;
+    }
+
+    // -- lists ---------------------------------------------------------------
+
+    let lists = $derived(somedayListStore.sortedLists);
+    let activeTabLists = $derived(
+        activeTab ? lists.filter(l => l.tabId === activeTab.id) : [],
+    );
+
+    let showAddListForm = $state(false);
+    let newListName = $state('');
+    let newListInput: HTMLInputElement | undefined = $state();
+    let editingListId = $state<string | null>(null);
+    let editListName = $state('');
+    let editListInput: HTMLInputElement | undefined = $state();
 
     let isCollapsed = $derived(preferencesStore.someDayPanelWidth === 0);
 
@@ -65,37 +112,41 @@
 
     let filteredSomedayTasks = $derived(applyFilters(taskStore.somedayTasks, preferencesStore.activeFilters));
 
-    // Tasks with date=null and no someDayGroupId -- rendered in an Ungrouped
-    // section below the named groups so they're never invisible.
-    let ungroupedTasks = $derived(
-        filteredSomedayTasks.filter(t => t.someDayGroupId === null).sort(byPositionThenCreated),
+    // Dateless tasks with no list. They render in the default tab (its
+    // implicit "Unlisted" section) so parked work is never invisible.
+    let unlistedTasks = $derived(
+        filteredSomedayTasks.filter(t => t.somedayListId === null).sort(byPositionThenCreated),
     );
 
-    let groups = $derived(someDayGroupStore.sortedGroups);
+    // The unlisted section renders only when the default tab (or no tab at
+    // all -- a defensive case) is active: one place, no duplication.
+    let showUnlisted = $derived(activeTab === null || activeTab.id === DEFAULT_SOMEDAY_TAB_ID);
 
-    // Publish the panel's task ids in render order (groups, then ungrouped)
-    // so global j/k navigation can move through Someday tasks, and the
-    // group sections so J/K can jump between them. Cleared when collapsed
-    // so stale ids never steer navigation.
+    // Publish the active tab's task ids in render order (lists, then
+    // unlisted) so global j/k navigation can move through Someday tasks,
+    // and the list sections so J/K can jump between them. Cleared when
+    // collapsed so stale ids never steer navigation.
     $effect(() => {
-        if (isCollapsed) {
+        if (isCollapsed || activeTab === null) {
             uiStore.setVisibleSomedayTasks([]);
             uiStore.setVisibleSomedaySections([]);
             return;
         }
         const ids: string[] = [];
         const sections: TaskSection[] = [];
-        for (const group of groups) {
-            const sectionIds = groupTasks(group).map(t => t.id);
+        for (const list of activeTabLists) {
+            const sectionIds = listTasks(list).map(t => t.id);
             ids.push(...sectionIds);
-            // Empty groups are skipped: a J/K jump lands on a task, and an
+            // Empty lists are skipped: a J/K jump lands on a task, and an
             // empty section has none to focus.
-            if (sectionIds.length > 0) sections.push({ key: group.id, taskIds: sectionIds });
+            if (sectionIds.length > 0) sections.push({ key: list.id, taskIds: sectionIds });
         }
-        const ungroupedIds = ungroupedTasks.map(t => t.id);
-        if (ungroupedIds.length > 0) {
-            ids.push(...ungroupedIds);
-            sections.push({ key: 'ungrouped', taskIds: ungroupedIds });
+        if (showUnlisted) {
+            const unlistedIds = unlistedTasks.map(t => t.id);
+            if (unlistedIds.length > 0) {
+                ids.push(...unlistedIds);
+                sections.push({ key: 'unlisted', taskIds: unlistedIds });
+            }
         }
         uiStore.setVisibleSomedayTasks(ids);
         uiStore.setVisibleSomedaySections(sections);
@@ -105,37 +156,45 @@
     let newlyCreated = createNewlyCreatedTracker();
 
     $effect(() => {
-        if (showAddGroupForm && newGroupInput) newGroupInput.focus();
+        if (showAddTabForm && newTabInput) newTabInput.focus();
     });
 
     $effect(() => {
-        if (editingGroupId && editGroupInput) editGroupInput.focus();
+        if (showAddListForm && newListInput) newListInput.focus();
     });
 
-    function groupTasks(group: SomeDayGroup) {
+    $effect(() => {
+        if (editingTabId && editTabInput) editTabInput.focus();
+    });
+
+    $effect(() => {
+        if (editingListId && editListInput) editListInput.focus();
+    });
+
+    function listTasks(list: SomedayList) {
         // Position-aware display order (drag reorders patch positions),
         // matching the day list's groupTasksByDate comparator.
-        return filteredSomedayTasks.filter(t => t.someDayGroupId === group.id).sort(byPositionThenCreated);
+        return filteredSomedayTasks.filter(t => t.somedayListId === list.id).sort(byPositionThenCreated);
     }
 
     // --- drop zones (native HTML5 DnD) ---------------------------------
-    // Each group is a zone (dragging in sets date=null + the group id);
-    // the ungrouped list and the panel padding share the
-    // someday-ungrouped zone (group id null). Group handlers stop
+    // Each list is a zone (dragging in sets date=null + the list id);
+    // the unlisted section and the panel padding share the
+    // someday-unlisted zone (list id null). List handlers stop
     // propagation so the padding fallback never double-fires.
 
     let listEls = $state<Record<string, HTMLDivElement | undefined>>({});
 
-    const UNGROUPED_ZONE = 'someday-ungrouped';
+    const UNLISTED_ZONE = 'someday-unlisted';
 
-    function zoneDrop(zoneTasks: Task[], groupId: string | null, e: DragEvent) {
+    function zoneDrop(zoneTasks: Task[], listId: string | null, e: DragEvent) {
         e.preventDefault();
         e.stopPropagation();
         const dragged = dragStore.draggingTask;
         if (!dragged) return;
         const base: UpdateTaskInput = {};
         if (dragged.date !== null) base.date = null;
-        if (dragged.someDayGroupId !== groupId) base.someDayGroupId = groupId;
+        if (dragged.somedayListId !== listId) base.somedayListId = listId;
         commitZoneDrop(zoneTasks, dragged, base, (id, input) => void taskStore.update(id, input));
     }
 
@@ -144,102 +203,185 @@
         return snapInsertBeforeId(zoneTasks, dragStore.insertBeforeId);
     }
 
-    async function submitNewGroup() {
-        const name = newGroupName.trim();
+    // --- tabs CRUD --------------------------------------------------------
+
+    async function submitNewTab() {
+        const name = newTabName.trim();
         if (!name) return;
-        const tag = slugify(name);
-        const created = await someDayGroupStore.create({ name, tag, position: groups.length });
+        const created = await somedayTabStore.create({ name, position: tabs.length });
         if (!created) {
             // The form stays open; say why (USE-12: errors are announced).
-            notificationStore.push(i18nStore.t('someday.createFailed'), { kind: 'error' });
+            notificationStore.push(i18nStore.t('someday.createTabFailed'), { kind: 'error' });
             return;
         }
-        newGroupName = '';
-        showAddGroupForm = false;
+        newTabName = '';
+        showAddTabForm = false;
+        activeTabId = created.id;
     }
 
-    function cancelNewGroup() {
-        newGroupName = '';
-        showAddGroupForm = false;
+    function cancelNewTab() {
+        newTabName = '';
+        showAddTabForm = false;
     }
 
-    function startRenameGroup(group: SomeDayGroup) {
-        editingGroupId = group.id;
-        editGroupName = group.name;
+    function handleNewTabKeydown(e: KeyboardEvent) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            submitNewTab();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelNewTab();
+        }
     }
 
-    function commitRenameGroup() {
-        if (!editingGroupId) return;
-        const name = editGroupName.trim();
+    async function commitRenameTab(tab: SomedayTab, name: string) {
+        if (!name) return;
+        const updated = await somedayTabStore.update(tab.id, { name });
+        if (!updated) {
+            notificationStore.push(i18nStore.t('someday.renameFailed'), { kind: 'error' });
+            return; // keep the editor open with the text
+        }
+        editingTabId = null;
+    }
+
+    function cancelRenameTab() {
+        editingTabId = null;
+    }
+
+    function handleRenameTabKeydown(e: KeyboardEvent, tab: SomedayTab) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            void commitRenameTab(tab, (e.currentTarget as HTMLInputElement).value.trim());
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelRenameTab();
+        }
+    }
+
+    async function handleDeleteTab(tab: SomedayTab) {
+        const tabLists = lists.filter(l => l.tabId === tab.id);
+        const taskCount = tabLists.reduce((sum, l) => sum + listTasks(l).length, 0);
+        const msg =
+            taskCount > 0 || tabLists.length > 0
+                ? i18nStore.t('someday.deleteTabConfirm', {
+                      name: tab.name,
+                      lists: tabLists.length,
+                      tasks: taskCount,
+                  })
+                : i18nStore.t('someday.deleteTabConfirmEmpty', { name: tab.name });
+        if (!(await uiStore.confirm(msg))) return;
+
+        // KNOWN ROUGH EDGE (same debt as list delete): the tasks and
+        // lists go one by one, so a tab delete costs N HTTP round-trips.
+        for (const list of tabLists) {
+            for (const task of [...listTasks(list)]) {
+                await taskStore.remove(task.id);
+            }
+            await somedayListStore.remove(list.id);
+        }
+        await somedayTabStore.remove(tab.id);
+        if (activeTabId === tab.id) activeTabId = DEFAULT_SOMEDAY_TAB_ID;
+    }
+
+    // --- lists CRUD -------------------------------------------------------
+
+    async function submitNewList() {
+        const name = newListName.trim();
+        if (!name || activeTab === null) return;
+        const created = await somedayListStore.create({
+            tabId: activeTab.id,
+            name,
+            position: lists.length,
+        });
+        if (!created) {
+            notificationStore.push(i18nStore.t('someday.createListFailed'), { kind: 'error' });
+            return;
+        }
+        newListName = '';
+        showAddListForm = false;
+    }
+
+    function cancelNewList() {
+        newListName = '';
+        showAddListForm = false;
+    }
+
+    function handleNewListKeydown(e: KeyboardEvent) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            submitNewList();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelNewList();
+        }
+    }
+
+    function startRenameList(list: SomedayList) {
+        editingListId = list.id;
+        editListName = list.name;
+    }
+
+    function commitRenameList() {
+        if (!editingListId) return;
+        const name = editListName.trim();
         if (name) {
             void commitRename();
         } else {
-            editingGroupId = null;
-            editGroupName = '';
+            editingListId = null;
+            editListName = '';
         }
     }
 
     async function commitRename() {
         // Snapshot before awaiting (the repo's async-handler rule).
-        const id = editingGroupId;
-        const name = editGroupName.trim();
+        const id = editingListId;
+        const name = editListName.trim();
         if (id === null || !name) return;
-        const tag = slugify(name);
-        const updated = await someDayGroupStore.update(id, { name, tag });
+        const updated = await somedayListStore.update(id, { name });
         if (!updated) {
             notificationStore.push(i18nStore.t('someday.renameFailed'), { kind: 'error' });
             return; // keep the editor open with the text
         }
-        if (editingGroupId === id) {
-            editingGroupId = null;
-            editGroupName = '';
+        if (editingListId === id) {
+            editingListId = null;
+            editListName = '';
         }
     }
 
-    function cancelRenameGroup() {
-        editingGroupId = null;
-        editGroupName = '';
+    function cancelRenameList() {
+        editingListId = null;
+        editListName = '';
     }
 
     function handleRenameKeydown(e: KeyboardEvent) {
         if (e.key === 'Enter') {
             e.preventDefault();
-            commitRenameGroup();
+            commitRenameList();
         } else if (e.key === 'Escape') {
             e.preventDefault();
-            cancelRenameGroup();
+            cancelRenameList();
         }
     }
 
-    function handleNewGroupKeydown(e: KeyboardEvent) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            submitNewGroup();
-        } else if (e.key === 'Escape') {
-            e.preventDefault();
-            cancelNewGroup();
-        }
-    }
-
-    async function handleDeleteGroup(id: string) {
-        const group = groups.find(g => g.id === id);
-        if (!group) return;
-        const tasks = groupTasks(group);
+    async function handleDeleteList(id: string) {
+        const list = activeTabLists.find(l => l.id === id);
+        if (!list) return;
+        const tasks = listTasks(list);
         const taskCount = tasks.length;
         const msg =
             taskCount > 0
-                ? i18nStore.t('someday.deleteConfirmTasks', { name: group.name, count: taskCount })
-                : i18nStore.t('someday.deleteConfirmEmpty', { name: group.name });
+                ? i18nStore.t('someday.deleteListConfirmTasks', { name: list.name, count: taskCount })
+                : i18nStore.t('someday.deleteListConfirmEmpty', { name: list.name });
         if (!(await uiStore.confirm(msg))) return;
 
         // KNOWN ROUGH EDGE (design debt, deliberate for now): the tasks go
-        // one by one, so a group delete costs N HTTP round-trips and N
+        // one by one, so a list delete costs N HTTP round-trips and N
         // separate undo entries (the toast history restores them one at a
         // time, newest first). A batch delete endpoint collapses both.
         for (const task of [...tasks]) {
             await taskStore.remove(task.id);
         }
-        await someDayGroupStore.remove(id);
+        await somedayListStore.remove(id);
     }
 
     function handleTaskCreated(id: string) {
@@ -269,34 +411,35 @@
         <div
             class="panel-content"
             role="region"
-            aria-label={i18nStore.t('someday.groupsRegion')}
-            ondragover={(e) => zoneDragOver(UNGROUPED_ZONE, e, listEls[UNGROUPED_ZONE])}
-            ondragleave={(e) => zoneDragLeave(UNGROUPED_ZONE, e, e.currentTarget)}
-            ondrop={(e) => zoneDrop(ungroupedTasks, null, e)}
+            aria-label={i18nStore.t('someday.listsRegion')}
+            ondragover={(e) => showUnlisted && zoneDragOver(UNLISTED_ZONE, e, listEls[UNLISTED_ZONE])}
+            ondragleave={(e) => showUnlisted && zoneDragLeave(UNLISTED_ZONE, e, e.currentTarget)}
+            ondrop={(e) => showUnlisted && zoneDrop(unlistedTasks, null, e)}
         >
             <div class="panel-header">
-                <h2 class="panel-title">{i18nStore.t('someday.title')}</h2>
                 <div class="panel-actions">
-                    {#if showAddGroupForm}
-                        <div class="new-group-form">
+                    {#if showAddListForm}
+                        <div class="new-list-form">
                             <input
-                                bind:this={newGroupInput}
-                                bind:value={newGroupName}
-                                class="new-group-input"
-                                placeholder={i18nStore.t('someday.groupNamePlaceholder')}
-                                aria-label={i18nStore.t('someday.newGroupName')}
-                                onkeydown={handleNewGroupKeydown}
-                                onblur={() => { if (!newGroupName.trim()) cancelNewGroup(); }}
+                                bind:this={newListInput}
+                                bind:value={newListName}
+                                class="new-list-input"
+                                placeholder={i18nStore.t('someday.listNamePlaceholder')}
+                                aria-label={i18nStore.t('someday.newListName')}
+                                onkeydown={handleNewListKeydown}
+                                onblur={() => { if (!newListName.trim()) cancelNewList(); }}
                             />
-                            <button class="icon-btn" onclick={submitNewGroup} use:tooltip={{ label: i18nStore.t('someday.createGroup') }} aria-label={i18nStore.t('someday.createGroup')}>
+                            <button class="icon-btn" onclick={submitNewList} use:tooltip={{ label: i18nStore.t('someday.createList') }} aria-label={i18nStore.t('someday.createList')}>
                                 <Icon src={LuCheck} size={14} />
                             </button>
                         </div>
                     {:else}
-                        <button class="add-group-btn" onclick={() => (showAddGroupForm = true)} use:tooltip={{ label: i18nStore.t('someday.addGroup') }} aria-label={i18nStore.t('someday.addGroup')}>
-                            {i18nStore.t('someday.addGroupVisible')}
+                        <button class="add-list-btn" onclick={() => (showAddListForm = true)} use:tooltip={{ label: i18nStore.t('someday.addList') }} aria-label={i18nStore.t('someday.addList')}>
+                            {i18nStore.t('someday.addListVisible')}
                         </button>
                     {/if}
+                </div>
+                <div class="panel-actions">
                     <!-- The v0.4.0 spec's collapse button: the only close
                          affordance that works on touch (the resize handle's
                          snap-shut is pointer-fine only, and Cmd/Ctrl+\ needs
@@ -307,37 +450,96 @@
                 </div>
             </div>
 
-            <div class="groups-container" role="list" aria-label={i18nStore.t('someday.groupsRegion')}>
-                {#each groups as group (group.id)}
-                    {@const tasks = groupTasks(group)}
+            <div class="tab-strip" role="group" aria-label={i18nStore.t('someday.tabsRegion')}>
+                {#each tabs as tab (tab.id)}
+                    {@const isActive = activeTab?.id === tab.id}
+                    {#if editingTabId === tab.id}
+                        <input
+                            bind:this={editTabInput}
+                            class="tab-rename-input"
+                            value={tab.name}
+                            aria-label={i18nStore.t('someday.renameTab')}
+                            onkeydown={(e) => handleRenameTabKeydown(e, tab)}
+                            onblur={() => cancelRenameTab()}
+                        />
+                    {:else}
+                        <div class="tab-chip" class:active={isActive}>
+                            <button
+                                class="tab-btn"
+                                class:hidden-label={!showTabLabels}
+                                aria-current={isActive ? 'page' : undefined}
+                                onclick={() => switchTab(tab.id)}
+                            >
+                                {tab.name}
+                            </button>
+                            {#if isActive}
+                                <div class="tab-actions">
+                                    <button class="icon-btn" onclick={() => (editingTabId = tab.id)} use:tooltip={{ label: i18nStore.t('someday.renameTab') }} aria-label={i18nStore.t('someday.renameTab')}>
+                                        <Icon src={LuPencil} size={11} />
+                                    </button>
+                                    {#if tab.id !== DEFAULT_SOMEDAY_TAB_ID}
+                                        <button class="icon-btn icon-btn-danger" onclick={() => handleDeleteTab(tab)} use:tooltip={{ label: i18nStore.t('someday.deleteTab') }} aria-label={i18nStore.t('someday.deleteTab')}>
+                                            <Icon src={LuTrash2} size={11} />
+                                        </button>
+                                    {/if}
+                                </div>
+                            {/if}
+                        </div>
+                    {/if}
+                {/each}
+                {#if showAddTabForm}
+                    <div class="new-tab-form">
+                        <input
+                            bind:this={newTabInput}
+                            bind:value={newTabName}
+                            class="new-tab-input"
+                            placeholder={i18nStore.t('someday.tabNamePlaceholder')}
+                            aria-label={i18nStore.t('someday.newTabName')}
+                            onkeydown={handleNewTabKeydown}
+                            onblur={() => { if (!newTabName.trim()) cancelNewTab(); }}
+                        />
+                        <button class="icon-btn" onclick={submitNewTab} use:tooltip={{ label: i18nStore.t('someday.createTab') }} aria-label={i18nStore.t('someday.createTab')}>
+                            <Icon src={LuCheck} size={12} />
+                        </button>
+                    </div>
+                {:else}
+                    <button class="add-tab-btn" onclick={() => (showAddTabForm = true)} use:tooltip={{ label: i18nStore.t('someday.addTab') }} aria-label={i18nStore.t('someday.addTab')}>
+                        +
+                    </button>
+                {/if}
+            </div>
+
+            <div class="groups-container" role="list" aria-label={i18nStore.t('someday.listsRegion')}>
+                {#each activeTabLists as list (list.id)}
+                    {@const tasks = listTasks(list)}
                     {@const taskCount = tasks.length}
                     {@const completedCount = tasks.filter(t => t.completed).length}
-                    {@const sectionId = `someday-${group.id}`}
-                    {@const zone = `someday-group:${group.id}`}
+                    {@const sectionId = `someday-${list.id}`}
+                    {@const zone = `someday-list:${list.id}`}
                     {@const indicator = indicatorBeforeId(zone, tasks)}
 
                     <div
                         class="someday-group"
                         class:drop-target={dragStore.overZone === zone && dragStore.draggingTask !== null}
                         role="listitem"
-                        ondragover={(e) => zoneDragOver(zone, e, listEls[group.id])}
+                        ondragover={(e) => zoneDragOver(zone, e, listEls[list.id])}
                         ondragleave={(e) => zoneDragLeave(zone, e, e.currentTarget)}
-                        ondrop={(e) => zoneDrop(tasks, group.id, e)}
+                        ondrop={(e) => zoneDrop(tasks, list.id, e)}
                     >
-                        {#if editingGroupId === group.id}
+                        {#if editingListId === list.id}
                             <div class="group-rename-row">
                                 <input
-                                    bind:this={editGroupInput}
-                                    bind:value={editGroupName}
+                                    bind:this={editListInput}
+                                    bind:value={editListName}
                                     class="rename-input"
-                                    aria-label={i18nStore.t('someday.renameGroup')}
+                                    aria-label={i18nStore.t('someday.renameList')}
                                     onkeydown={handleRenameKeydown}
-                                    onblur={commitRenameGroup}
+                                    onblur={commitRenameList}
                                 />
-                                <button class="icon-btn" onclick={commitRenameGroup} use:tooltip={{ label: i18nStore.t('someday.saveRenameHint') }} aria-label={i18nStore.t('someday.saveRename')}>
+                                <button class="icon-btn" onclick={commitRenameList} use:tooltip={{ label: i18nStore.t('someday.saveRenameHint') }} aria-label={i18nStore.t('someday.saveRename')}>
                                     <Icon src={LuCheck} size={13} />
                                 </button>
-                                <button class="icon-btn" onclick={cancelRenameGroup} use:tooltip={{ label: i18nStore.t('someday.cancelRenameHint') }} aria-label={i18nStore.t('someday.cancelRename')}>
+                                <button class="icon-btn" onclick={cancelRenameList} use:tooltip={{ label: i18nStore.t('someday.cancelRenameHint') }} aria-label={i18nStore.t('someday.cancelRename')}>
                                     &#x2715;
                                 </button>
                             </div>
@@ -345,21 +547,21 @@
                             <div class="group-header-row">
                                 <SectionHeader
                                     {sectionId}
-                                    title={`#${group.tag} ${group.name}`}
+                                    title={list.name}
                                     {taskCount}
                                     {completedCount}
                                 />
                                 <div class="group-actions">
-                                    <button class="icon-btn" onclick={() => startRenameGroup(group)} use:tooltip={{ label: i18nStore.t('someday.renameGroup') }} aria-label={i18nStore.t('someday.renameGroup')}>
+                                    <button class="icon-btn" onclick={() => startRenameList(list)} use:tooltip={{ label: i18nStore.t('someday.renameList') }} aria-label={i18nStore.t('someday.renameList')}>
                                         <Icon src={LuPencil} size={13} />
                                     </button>
-                                    <button class="icon-btn icon-btn-danger" onclick={() => handleDeleteGroup(group.id)} use:tooltip={{ label: i18nStore.t('someday.deleteGroup') }} aria-label={i18nStore.t('someday.deleteGroup')}>
+                                    <button class="icon-btn icon-btn-danger" onclick={() => handleDeleteList(list.id)} use:tooltip={{ label: i18nStore.t('someday.deleteList') }} aria-label={i18nStore.t('someday.deleteList')}>
                                         <Icon src={LuTrash2} size={13} />
                                     </button>
                                 </div>
                             </div>
                         {/if}
-                        <div class="group-tasks" role="list" bind:this={listEls[group.id]}>
+                        <div class="group-tasks" role="list" bind:this={listEls[list.id]}>
                             {#each tasks as task (task.id)}
                                 <div
                                     class="task-row-wrapper"
@@ -370,33 +572,33 @@
                                 </div>
                             {/each}
                         </div>
-                        <InlineAddTask date="" someDayGroupId={group.id} oncreated={handleTaskCreated} />
+                        <InlineAddTask date="" somedayListId={list.id} autoTag={activeTab?.projectTag ?? null} oncreated={handleTaskCreated} />
                     </div>
                 {:else}
                     <p class="empty-state">{i18nStore.t('someday.emptyState')}</p>
                 {/each}
 
-                {#if ungroupedTasks.length > 0}
-                    {@const zone = UNGROUPED_ZONE}
-                    {@const indicator = indicatorBeforeId(zone, ungroupedTasks)}
+                {#if showUnlisted && unlistedTasks.length > 0}
+                    {@const zone = UNLISTED_ZONE}
+                    {@const indicator = indicatorBeforeId(zone, unlistedTasks)}
                     <div
                         class="someday-group"
                         class:drop-target={dragStore.overZone === zone && dragStore.draggingTask !== null}
                         role="listitem"
-                        ondragover={(e) => zoneDragOver(zone, e, listEls[UNGROUPED_ZONE])}
+                        ondragover={(e) => zoneDragOver(zone, e, listEls[UNLISTED_ZONE])}
                         ondragleave={(e) => zoneDragLeave(zone, e, e.currentTarget)}
-                        ondrop={(e) => zoneDrop(ungroupedTasks, null, e)}
+                        ondrop={(e) => zoneDrop(unlistedTasks, null, e)}
                     >
                         <div class="group-header-row">
                             <SectionHeader
-                                sectionId="someday-ungrouped"
-                                title={i18nStore.t('someday.ungrouped')}
-                                taskCount={ungroupedTasks.length}
-                                completedCount={ungroupedTasks.filter(t => t.completed).length}
+                                sectionId="someday-unlisted"
+                                title={i18nStore.t('someday.unlisted')}
+                                taskCount={unlistedTasks.length}
+                                completedCount={unlistedTasks.filter(t => t.completed).length}
                             />
                         </div>
-                        <div class="group-tasks" role="list" bind:this={listEls[UNGROUPED_ZONE]}>
-                            {#each ungroupedTasks as task (task.id)}
+                        <div class="group-tasks" role="list" bind:this={listEls[UNLISTED_ZONE]}>
+                            {#each unlistedTasks as task (task.id)}
                                 <div
                                     class="task-row-wrapper"
                                     data-task-id={task.id}
@@ -524,14 +726,6 @@
         align-items: center;
         justify-content: space-between;
         padding: 12px 12px 8px;
-        border-bottom: 1px solid var(--color-border);
-    }
-
-    .panel-title {
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--color-text);
-        margin: 0;
     }
 
     .panel-actions {
@@ -540,7 +734,7 @@
         gap: 8px;
     }
 
-    .add-group-btn {
+    .add-list-btn {
         background: none;
         border: none;
         font-size: 12px;
@@ -551,18 +745,18 @@
         transition: color 0.15s, background-color 0.15s;
     }
 
-    .add-group-btn:hover {
+    .add-list-btn:hover {
         color: var(--color-text);
         background: var(--color-surface-hover);
     }
 
-    .new-group-form {
+    .new-list-form {
         display: flex;
         align-items: center;
         gap: 4px;
     }
 
-    .new-group-input {
+    .new-list-input {
         font-size: 12px;
         padding: 2px 6px;
         border: 1px solid var(--color-accent);
@@ -573,8 +767,107 @@
         width: 120px;
     }
 
-    .new-group-input::placeholder {
+    .new-list-input::placeholder {
         color: var(--color-text-muted);
+    }
+
+    /* Tabs: a quiet strip under the header row. */
+    .tab-strip {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        padding: 0 12px 8px;
+        border-bottom: 1px solid var(--color-border);
+        flex-wrap: wrap;
+    }
+
+    .tab-chip {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+    }
+
+    .tab-btn {
+        background: none;
+        border: none;
+        font-size: 12px;
+        color: var(--color-text-secondary);
+        cursor: pointer;
+        padding: 3px 8px;
+        border-radius: 4px;
+        transition: color 0.15s, background-color 0.15s;
+        white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+        color: var(--color-text);
+        background: var(--color-surface-hover);
+    }
+
+    .tab-chip .tab-btn[aria-current='page'] {
+        color: var(--color-text);
+        background: color-mix(in oklab, var(--color-accent) 14%, transparent);
+        font-weight: 600;
+    }
+
+    /* The lone default tab carries no visible label (the area has no
+       title -- USE-16); the active state keeps it findable. */
+    .tab-btn.hidden-label {
+        font-size: 0;
+        padding-inline: 8px;
+    }
+
+    .tab-btn.hidden-label::before {
+        content: '\2022';
+        font-size: 14px;
+        line-height: 1;
+    }
+
+    .tab-actions {
+        display: flex;
+        align-items: center;
+        gap: 1px;
+        opacity: 0;
+        transition: opacity 0.15s;
+    }
+
+    .tab-chip:hover .tab-actions,
+    .tab-actions:focus-within {
+        opacity: 1;
+    }
+
+    .tab-rename-input,
+    .new-tab-input {
+        font-size: 12px;
+        padding: 2px 6px;
+        border: 1px solid var(--color-accent);
+        border-radius: 4px;
+        outline: none;
+        background: var(--color-surface);
+        color: var(--color-text);
+        width: 100px;
+    }
+
+    .new-tab-form {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+    }
+
+    .add-tab-btn {
+        background: none;
+        border: none;
+        font-size: 14px;
+        color: var(--color-text-muted);
+        cursor: pointer;
+        padding: 1px 8px;
+        border-radius: 4px;
+        transition: color 0.15s, background-color 0.15s;
+    }
+
+    .add-tab-btn:hover {
+        color: var(--color-text);
+        background: var(--color-surface-hover);
     }
 
     .icon-btn {

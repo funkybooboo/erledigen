@@ -1,7 +1,13 @@
 <script lang="ts">
     import Modal from '#lib/components/Modal.svelte';
     import KanbanBoard from '#lib/components/KanbanBoard.svelte';
-    import { notificationStore, projectStore, taskStore, uiStore } from '#lib/stores/index.ts';
+    import {
+        notificationStore,
+        projectStore,
+        somedayTabStore,
+        taskStore,
+        uiStore,
+    } from '#lib/stores/index.ts';
     import { Icon } from 'svelte-icons-pack';
     import { LuPlus, LuPencil, LuTrash2, LuArrowLeft } from 'svelte-icons-pack/lu';
     import { onMount } from 'svelte';
@@ -54,6 +60,14 @@
         });
         creating = false;
         if (result) {
+            // Auto-tab (USE-16, ADR-011): the project's Someday tab is
+            // born with it, carrying the project's tag -- the tab's lists
+            // inherit it. The tag is the join key; nothing else links them.
+            void somedayTabStore.create({
+                name: result.name,
+                position: somedayTabStore.items.length,
+                projectTag: result.tag,
+            });
             newProjectName = '';
             newProjectDesc = '';
             showNewForm = false;

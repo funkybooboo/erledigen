@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
-import { cleanup, createGroup, createTask, uniq } from '../api/helpers';
+import { cleanup, createList, createTask, uniq } from '../api/helpers';
 import { hydrated, SERVER_URL, todayInput, todayISO } from './util';
 
 /** Texts of tasks created through the UI in this spec (serial worker). */
@@ -93,24 +93,23 @@ test.describe('live sync between open tabs (WebSocket)', () => {
         await expect(tabB.locator('.task-row', { hasText: text })).toHaveCount(0);
     });
 
-    test('a Someday group created in one tab appears in the other', async ({ page, context }) => {
+    test('a Someday list created in one tab appears in the other', async ({ page, context }) => {
         await hydrated(page);
         const tabB = await context.newPage();
         await hydrated(tabB);
 
         // Created AFTER both tabs hydrated: no fetchAll will deliver it,
         // only the WebSocket broadcast can.
-        const name = uniq('SyncGroup');
-        const tag = uniq('sg');
-        await createGroup(page.request, { name, tag, position: 0 }, SERVER_URL);
+        const name = uniq('SyncList');
+        await createList(page.request, { tabId: 'default', name, position: 0 }, SERVER_URL);
 
         for (const tab of [page, tabB]) {
             const panel = tab.locator('.someday-panel');
             if (!(await panel.isVisible())) {
                 await tab.getByRole('button', { name: 'Open Someday panel' }).click();
             }
-            const group = panel.locator('.someday-group', { hasText: name });
-            await expect(group.locator('.section-title')).toContainText(`#${tag} ${name}`);
+            const list = panel.locator('.someday-group', { hasText: name });
+            await expect(list.locator('.section-title')).toContainText(name);
         }
     });
 });

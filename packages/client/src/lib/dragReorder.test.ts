@@ -20,7 +20,7 @@ function task(id: string, position: number | null, createdAt = '2026-01-01T00:00
         updatedAt: createdAt,
         parentId: null,
         rolloverEnabled: true,
-        someDayGroupId: null,
+        somedayListId: null,
         position,
         state: null,
         recurringTaskId: null,

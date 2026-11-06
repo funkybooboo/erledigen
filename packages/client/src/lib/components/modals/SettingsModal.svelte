@@ -566,7 +566,8 @@
             const restored = result.restored;
             return i18nStore.t('settings.importRestored', {
                 tasks: restored?.tasks ?? 0,
-                groups: restored?.someDayGroups ?? 0,
+                tabs: restored?.somedayTabs ?? 0,
+                lists: restored?.somedayLists ?? 0,
                 projects: restored?.projects ?? 0,
                 recurring: restored?.recurringTasks ?? 0,
                 holidays: restored?.holidays ?? 0,

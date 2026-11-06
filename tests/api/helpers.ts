@@ -141,7 +141,7 @@ const created: Array<{ base: string; kind: string; id: string }> = [];
  *  For day notes the tracked "id" is the DATE (that is the addressable
  *  key). */
 export function track(
-    kind: 'task' | 'project' | 'recurring' | 'group' | 'holiday' | 'dayNote',
+    kind: 'task' | 'project' | 'recurring' | 'tab' | 'list' | 'holiday' | 'dayNote',
     id: string,
     base = '',
 ): void {
@@ -181,14 +181,25 @@ export async function createRecurring(
     return res.body.data;
 }
 
-export async function createGroup(
+export async function createTab(
     ctx: APIRequestContext,
     input: Record<string, unknown>,
     base = '',
 ): Promise<BaseEntity> {
-    const res = await post(ctx, '/api/someday-groups', input, base);
-    assertCreated(res, 'someday group');
-    created.push({ base, kind: 'group', id: res.body.data.id });
+    const res = await post(ctx, '/api/someday-tabs', input, base);
+    assertCreated(res, 'someday tab');
+    created.push({ base, kind: 'tab', id: res.body.data.id });
+    return res.body.data;
+}
+
+export async function createList(
+    ctx: APIRequestContext,
+    input: Record<string, unknown>,
+    base = '',
+): Promise<BaseEntity> {
+    const res = await post(ctx, '/api/someday-lists', input, base);
+    assertCreated(res, 'someday list');
+    created.push({ base, kind: 'list', id: res.body.data.id });
     return res.body.data;
 }
 
@@ -223,7 +234,9 @@ export async function cleanup(ctx: APIRequestContext, base = ''): Promise<void> 
                       ? '/api/holidays'
                       : item.kind === 'dayNote'
                         ? '/api/day-notes'
-                        : '/api/someday-groups';
+                        : item.kind === 'tab'
+                          ? '/api/someday-tabs'
+                          : '/api/someday-lists';
         await del(ctx, `${pathBase}/${item.id}`, item.base || base).catch(() => {});
     }
 }

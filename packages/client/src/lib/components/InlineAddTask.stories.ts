@@ -15,5 +15,5 @@ export const Default: Story = {
 };
 
 export const SomedayGroup: Story = {
-    args: { date: '', someDayGroupId: 'sg-1' },
+    args: { date: '', somedayListId: 'sl-1' },
 };

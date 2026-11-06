@@ -11,7 +11,8 @@ export {
     recurringTaskStore,
 } from './recurringTaskStore.svelte';
 export { refetchAllStores } from './refetchAll';
-export { someDayGroupStore } from './someDayGroupStore.svelte';
+export { somedayListStore } from './somedayListStore.svelte';
+export { somedayTabStore } from './somedayTabStore.svelte';
 export { tagStore } from './tagStore.svelte';
 export { taskStore } from './taskStore.svelte';
 export { type ModalType, type RowEditorKind, type TaskSection, uiStore } from './uiStore.svelte';

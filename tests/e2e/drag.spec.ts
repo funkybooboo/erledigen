@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test';
 import { expect, test } from '@playwright/test';
-import { cleanup, createGroup, createTask, uniq } from '../api/helpers';
+import { cleanup, createList, createTask, uniq } from '../api/helpers';
 import { dayISO, hydrated, SERVER_URL, todayISO } from './util';
 
 test.afterEach(async ({ request }) => {
@@ -116,31 +116,31 @@ test.describe('drag and drop', () => {
         expect(body.data.position).toBe(0);
     });
 
-    test('drag a task into a someday group', async ({ page }) => {
+    test('drag a task into a someday list', async ({ page }) => {
         const text = uniq('DragToSomeday');
         await createTask(page.request, { text, date: todayISO() }, SERVER_URL);
-        const group = await createGroup(
+        const list = await createList(
             page.request,
-            { name: uniq('DragGroup'), tag: `drag-${Date.now()}`, position: 0 },
+            { tabId: 'default', name: uniq('DragList'), position: 0 },
             SERVER_URL,
         );
         await openPanel(page);
 
-        const groupEl = page.locator('.someday-group', { hasText: group['name'] });
-        await expect(groupEl).toBeVisible();
-        await grip(page, text).dragTo(groupEl, { targetPosition: { x: 100, y: 20 } });
+        const listEl = page.locator('.someday-group', { hasText: list['name'] });
+        await expect(listEl).toBeVisible();
+        await grip(page, text).dragTo(listEl, { targetPosition: { x: 100, y: 20 } });
 
-        // Date cleared + group assigned on the server.
+        // Date cleared + list assigned on the server.
         const res = await page.request.get(`${SERVER_URL}/api/tasks?someday=true`);
         const body = (await res.json()) as {
-            data: Array<{ text: string; someDayGroupId: string | null }>;
+            data: Array<{ text: string; somedayListId: string | null }>;
         };
         const moved = body.data.find(t => t.text === text);
         expect(moved).toBeDefined();
-        expect(moved?.someDayGroupId).toBe(group.id);
+        expect(moved?.somedayListId).toBe(list.id);
 
-        // And the row renders inside the group in the panel.
-        await expect(groupEl.locator('.task-row', { hasText: text })).toBeVisible();
+        // And the row renders inside the list in the panel.
+        await expect(listEl.locator('.task-row', { hasText: text })).toBeVisible();
         await expect(todaySection(page).locator('.task-row', { hasText: text })).toHaveCount(0);
     });
 

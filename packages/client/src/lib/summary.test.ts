@@ -21,7 +21,7 @@ const baseTask: Task = {
     tags: [],
     parentId: null,
     rolloverEnabled: true,
-    someDayGroupId: null,
+    somedayListId: null,
     position: 0,
     state: null,
     recurringTaskId: null,

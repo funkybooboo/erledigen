@@ -6,9 +6,10 @@ import { hydrated, SERVER_URL } from './util';
 const PREFIX = 'SomedayE2E';
 
 /**
- * Groups and someday tasks are created through the UI, so the API-test
- * cleanup helper does not track them. Delete tasks first (a group's tasks
- * outlive the group), then the groups themselves.
+ * Lists, tabs, and someday tasks are created through the UI, so the
+ * API-test cleanup helper does not track them. Delete tasks first (a
+ * list's tasks outlive the list), then the lists, then the tabs -- the
+ * API does not cascade.
  */
 test.afterEach(async ({ request }) => {
     const tasksRes = await request.get(`${SERVER_URL}/api/tasks`);
@@ -18,19 +19,21 @@ test.afterEach(async ({ request }) => {
             await request.delete(`${SERVER_URL}/api/tasks/${task.id}`);
         }
     }
-    const groupsRes = await request.get(`${SERVER_URL}/api/someday-groups`);
-    const groups = ((await groupsRes.json()).data ?? []) as Array<{ id: string; name: string }>;
-    for (const group of groups) {
-        if (group.name.includes(PREFIX)) {
-            await request.delete(`${SERVER_URL}/api/someday-groups/${group.id}`);
+    const listsRes = await request.get(`${SERVER_URL}/api/someday-lists`);
+    const lists = ((await listsRes.json()).data ?? []) as Array<{ id: string; name: string }>;
+    for (const list of lists) {
+        if (list.name.includes(PREFIX)) {
+            await request.delete(`${SERVER_URL}/api/someday-lists/${list.id}`);
+        }
+    }
+    const tabsRes = await request.get(`${SERVER_URL}/api/someday-tabs`);
+    const tabs = ((await tabsRes.json()).data ?? []) as Array<{ id: string; name: string }>;
+    for (const tab of tabs) {
+        if (tab.name.includes(PREFIX)) {
+            await request.delete(`${SERVER_URL}/api/someday-tabs/${tab.id}`);
         }
     }
 });
-
-/** The someday tag form of a group name, as SomedayPanel derives it. */
-function groupTag(name: string): string {
-    return `#${name.toLowerCase().replace(/\s+/g, '-')}`;
-}
 
 /** Hydrate and open the someday panel, or expand it from the strip. */
 async function openPanel(page: Page) {
@@ -57,68 +60,123 @@ test.describe('Someday panel', () => {
         await expect(page.locator('.someday-panel')).toBeVisible();
     });
 
-    test('create a group, add a someday task to it, rename the group', async ({
-        page,
-        request,
-    }) => {
+    test('create a list, add a someday task to it, rename the list', async ({ page, request }) => {
         const panel = await openPanel(page);
         const name = uniq(`${PREFIX} Books`);
         const renamed = uniq(`${PREFIX} Reading`);
 
-        // Create the group through the panel's form.
-        await panel.getByRole('button', { name: 'Add group' }).click();
-        await panel.getByPlaceholder('Group name...').fill(name);
-        await panel.getByRole('button', { name: 'Create group' }).click();
+        // Create the list through the panel's form.
+        await panel.getByRole('button', { name: 'Add list' }).click();
+        await panel.getByPlaceholder('List name...').fill(name);
+        await panel.getByRole('button', { name: 'Create list' }).click();
 
-        const group = panel.locator('.someday-group', { hasText: name });
-        await expect(group).toBeVisible();
-        // The section header shows the tag form of the name.
-        await expect(group.locator('.section-title')).toContainText(groupTag(name));
+        const list = panel.locator('.someday-group', { hasText: name });
+        await expect(list).toBeVisible();
+        // The section header shows just the name -- plain lists carry
+        // no tag of their own (USE-16).
+        await expect(list.locator('.section-title')).toContainText(name);
 
-        // Add a task into the group via its inline input.
+        // Add a task into the list via its inline input.
         const text = uniq(`${PREFIX} Read Dune`);
-        const input = group.locator('.add-input');
+        const input = list.locator('.add-input');
         await input.fill(text);
         await input.press('Enter');
-        await expect(group.locator('.task-row', { hasText: text })).toBeVisible();
+        await expect(list.locator('.task-row', { hasText: text })).toBeVisible();
         // The input resets for the next capture.
         await expect(input).toHaveValue('');
 
-        // Server-side the task is unscheduled and linked to the group.
-        const groupsRes = await request.get(`${SERVER_URL}/api/someday-groups`);
-        const groupJson = (
-            (await groupsRes.json()).data as Array<{ id: string; name: string }>
-        ).find(g => g.name === name);
-        expect(groupJson).toBeDefined();
+        // Server-side the task is unscheduled and parked in the list.
+        const listsRes = await request.get(`${SERVER_URL}/api/someday-lists`);
+        const listJson = ((await listsRes.json()).data as Array<{ id: string; name: string }>).find(
+            l => l.name === name,
+        );
+        expect(listJson).toBeDefined();
         const tasksRes = await request.get(`${SERVER_URL}/api/tasks`);
         const taskJson = (
             (await tasksRes.json()).data as Array<{
                 id: string;
                 text: string;
                 date: string | null;
-                someDayGroupId: string | null;
+                somedayListId: string | null;
             }>
         ).find(t => t.text === text);
         expect(taskJson?.date).toBeNull();
-        expect(taskJson?.someDayGroupId).toBe(groupJson?.id);
+        expect(taskJson?.somedayListId).toBe(listJson?.id);
 
-        // Rename the group. While renaming, the header is replaced by the
+        // Rename the list. While renaming, the header is replaced by the
         // rename input (whose value is not text content), so scope by the
-        // panel instead of the group's hasText filter.
-        await group.getByRole('button', { name: 'Rename group' }).click();
+        // panel instead of the list's hasText filter.
+        await list.getByRole('button', { name: 'Rename list' }).click();
         await panel.locator('.rename-input').fill(renamed);
         await panel.getByRole('button', { name: 'Save rename' }).click();
-        const renamedGroup = panel.locator('.someday-group', { hasText: renamed });
-        await expect(renamedGroup.locator('.section-title')).toContainText(groupTag(renamed));
+        const renamedList = panel.locator('.someday-group', { hasText: renamed });
+        await expect(renamedList.locator('.section-title')).toContainText(renamed);
     });
 
-    test('ungrouped someday tasks render below the named groups', async ({ page }) => {
-        // date null, no someDayGroupId -- the Ungrouped safety section.
+    test('a second tab holds its own lists; the default tab cannot be deleted', async ({
+        page,
+        request,
+    }) => {
+        const panel = await openPanel(page);
+        const tabName = uniq(`${PREFIX} Projects`);
+        const listName = uniq(`${PREFIX} House`);
+
+        // Add a tab through the strip.
+        await panel.getByRole('button', { name: 'Add tab' }).click();
+        await panel.getByPlaceholder('Tab name...').fill(tabName);
+        await panel.getByRole('button', { name: 'Create tab' }).click();
+
+        // The new tab becomes active and its label shows (with more than
+        // one tab, labels render).
+        const tabBtn = panel.locator('.tab-btn', { hasText: tabName });
+        await expect(tabBtn).toBeVisible();
+        await expect(tabBtn).toHaveAttribute('aria-current', 'page');
+
+        // Add a list inside the new tab.
+        await panel.getByRole('button', { name: 'Add list' }).click();
+        await panel.getByPlaceholder('List name...').fill(listName);
+        await panel.getByRole('button', { name: 'Create list' }).click();
+        const list = panel.locator('.someday-group', { hasText: listName });
+        await expect(list).toBeVisible();
+
+        // Add a task to the tab's list.
+        const text = uniq(`${PREFIX} Fix stairs`);
+        const input = list.locator('.add-input');
+        await input.fill(text);
+        await input.press('Enter');
+        await expect(list.locator('.task-row', { hasText: text })).toBeVisible();
+
+        // Server-side the list carries the tab's id.
+        const listsRes = await request.get(`${SERVER_URL}/api/someday-lists`);
+        const tabsRes = await request.get(`${SERVER_URL}/api/someday-tabs`);
+        const tabJson = ((await tabsRes.json()).data as Array<{ id: string; name: string }>).find(
+            t => t.name === tabName,
+        );
+        const listJson = (
+            (await listsRes.json()).data as Array<{ id: string; name: string; tabId: string }>
+        ).find(l => l.name === listName);
+        expect(listJson?.tabId).toBe(tabJson?.id);
+
+        // Switching back to the default tab hides the other tab's list.
+        await panel.locator('.tab-btn', { hasText: 'Someday' }).first().click();
+        await expect(panel.locator('.someday-group', { hasText: listName })).toHaveCount(0);
+        await panel.locator('.tab-btn', { hasText: tabName }).click();
+        await expect(panel.locator('.someday-group', { hasText: listName })).toBeVisible();
+
+        // The default tab has no delete affordance; the new tab does.
+        await panel.locator('.tab-btn', { hasText: tabName }).click();
+        await expect(panel.getByRole('button', { name: 'Delete tab' })).toBeVisible();
+        await panel.locator('.tab-btn', { hasText: 'Someday' }).first().click();
+        await expect(panel.getByRole('button', { name: 'Delete tab' })).toHaveCount(0);
+    });
+
+    test('unlisted someday tasks render in the default tab below the lists', async ({ page }) => {
+        // date null, no somedayListId -- the Unlisted safety section.
         const text = uniq(`${PREFIX} Loose`);
         await createTask(page.request, { text, date: null }, SERVER_URL);
         const panel = await openPanel(page);
 
-        const ungrouped = panel.locator('.someday-group', { hasText: 'Ungrouped' });
-        await expect(ungrouped.locator('.task-row', { hasText: text })).toBeVisible();
+        const unlisted = panel.locator('.someday-group', { hasText: 'Unlisted' });
+        await expect(unlisted.locator('.task-row', { hasText: text })).toBeVisible();
     });
 });

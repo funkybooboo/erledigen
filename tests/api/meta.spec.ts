@@ -98,7 +98,8 @@ test.describe('meta -- OpenAPI spec is served', () => {
             '/api/tasks',
             '/api/projects',
             '/api/recurring-tasks',
-            '/api/someday-groups',
+            '/api/someday-tabs',
+            '/api/someday-lists',
             '/api/preferences',
         ]) {
             expect(res.body.paths).toHaveProperty(path);

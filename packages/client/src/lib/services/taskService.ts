@@ -49,7 +49,7 @@ export interface TaskQueryParams {
     completed?: boolean;
     date?: string;
     tag?: string;
-    someDayGroupId?: string;
+    somedayListId?: string;
     includeDeleted?: boolean;
 }
 
@@ -59,8 +59,7 @@ function buildQueryString(params?: TaskQueryParams): string {
     if (params.completed !== undefined) searchParams.set('completed', String(params.completed));
     if (params.date !== undefined) searchParams.set('date', params.date);
     if (params.tag !== undefined) searchParams.set('tag', params.tag);
-    if (params.someDayGroupId !== undefined)
-        searchParams.set('someDayGroupId', params.someDayGroupId);
+    if (params.somedayListId !== undefined) searchParams.set('somedayListId', params.somedayListId);
     if (params.includeDeleted !== undefined)
         searchParams.set('includeDeleted', String(params.includeDeleted));
     const qs = searchParams.toString();
