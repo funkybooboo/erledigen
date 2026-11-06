@@ -10,7 +10,6 @@ export interface Project {
     description: string | null;
     startDate: string | null;
     dueDate: string | null;
-    isActive: boolean;
     createdAt: string;
     completedAt: string | null;
 }
@@ -36,6 +35,5 @@ export type UpdateProjectInput = Partial<{
     description: string | null;
     startDate: string | null;
     dueDate: string | null;
-    isActive: boolean;
     completedAt: string | null;
 }>;

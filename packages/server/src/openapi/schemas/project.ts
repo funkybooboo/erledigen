@@ -18,7 +18,6 @@ export const ProjectSchema = registry.register(
             description: z.string().nullable(),
             startDate: z.string().nullable().openapi({ description: 'ISO 8601 date (YYYY-MM-DD)' }),
             dueDate: z.string().nullable().openapi({ description: 'ISO 8601 date (YYYY-MM-DD)' }),
-            isActive: z.boolean(),
             createdAt: z.string(),
             completedAt: z.string().nullable(),
         })
@@ -50,12 +49,7 @@ export const UpdateProjectSchema = registry.register(
             description: z.string().nullable().optional(),
             startDate: z.string().nullable().optional(),
             dueDate: z.string().nullable().optional(),
-            isActive: z.boolean().optional(),
             completedAt: z.string().nullable().optional(),
         })
         .openapi('UpdateProjectInput'),
 );
-
-export const ProjectQuerySchema = z.object({
-    active: z.enum(['true', 'false']).optional(),
-});

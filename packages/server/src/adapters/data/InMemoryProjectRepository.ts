@@ -19,10 +19,6 @@ export class InMemoryProjectRepository implements ProjectRepository {
         );
     }
 
-    async findActive(): Promise<Project[]> {
-        return (await this.findAll()).filter(p => p.isActive);
-    }
-
     async findById(id: string): Promise<Project | null> {
         return this.projects.get(id) ?? null;
     }
@@ -37,7 +33,6 @@ export class InMemoryProjectRepository implements ProjectRepository {
             description: input.description ?? null,
             startDate: input.startDate ?? null,
             dueDate: input.dueDate ?? null,
-            isActive: true,
             createdAt: this.dateProvider.timestamp(),
             completedAt: null,
         };

@@ -5,7 +5,6 @@ import type { CreateProjectInput, Project, UpdateProjectInput } from '@erledigen
  */
 export interface ProjectRepository {
     findAll(): Promise<Project[]>;
-    findActive(): Promise<Project[]>;
     findById(id: string): Promise<Project | null>;
     create(input: CreateProjectInput): Promise<Project>;
     /** Destructive restore (ADR-009): replace every row with the given

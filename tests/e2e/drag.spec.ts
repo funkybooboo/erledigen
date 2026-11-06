@@ -159,4 +159,53 @@ test.describe('drag and drop', () => {
         await expect(todaySection(page).locator('.task-row', { hasText: text })).toBeVisible();
         await expect(page.locator('.someday-panel .task-row', { hasText: text })).toHaveCount(0);
     });
+
+    test('the scheduling bridge round-trips: day task returns to its list wearing the project chip', async ({
+        page,
+    }) => {
+        // USE-18: the date is the only bridge. A parked task dragged
+        // onto a day becomes a day task (still wearing the project
+        // tag); clearing the date -- dragging it back -- returns it to
+        // its list.
+        const list = await createList(
+            page.request,
+            { tabId: 'default', name: uniq('BridgeList'), position: 0 },
+            SERVER_URL,
+        );
+        const text = uniq('BridgeTask #project:bridge-e2e');
+        const task = await createTask(
+            page.request,
+            { text, date: null, somedayListId: list.id },
+            SERVER_URL,
+        );
+        await openPanel(page);
+
+        // Scheduled: onto today's section.
+        await grip(page, text).dragTo(todaySection(page), { targetPosition: { x: 200, y: 30 } });
+        const after = (await (
+            await page.request.get(`${SERVER_URL}/api/tasks/${task.id}`)
+        ).json()) as {
+            data: { date: string | null; somedayListId: string | null; tags: string[] };
+        };
+        expect(after.data.date).toBe(todayISO());
+        // The list is retained while the task lives on its day, so the
+        // return knows where to land.
+        expect(after.data.somedayListId).toBe(list.id);
+        await expect(todaySection(page).locator('.task-row', { hasText: text })).toBeVisible();
+        // It wears the project chip on the day.
+        await expect(
+            todaySection(page).locator('.task-row', { hasText: text }).locator('.tag-chip'),
+        ).toHaveText(['project:bridge-e2e']);
+
+        // Back: drag it onto its list again.
+        const listEl = page.locator('.someday-group', { hasText: list['name'] });
+        await grip(page, text).dragTo(listEl, { targetPosition: { x: 100, y: 20 } });
+        const back = (await (
+            await page.request.get(`${SERVER_URL}/api/tasks/${task.id}`)
+        ).json()) as { data: { date: string | null; somedayListId: string | null } };
+        expect(back.data.date).toBeNull();
+        expect(back.data.somedayListId).toBe(list.id);
+        await expect(listEl.locator('.task-row', { hasText: text })).toBeVisible();
+        await expect(todaySection(page).locator('.task-row', { hasText: text })).toHaveCount(0);
+    });
 });

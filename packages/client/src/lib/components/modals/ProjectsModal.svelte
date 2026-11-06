@@ -1,6 +1,5 @@
 <script lang="ts">
     import Modal from '#lib/components/Modal.svelte';
-    import KanbanBoard from '#lib/components/KanbanBoard.svelte';
     import {
         notificationStore,
         projectStore,
@@ -19,8 +18,7 @@
         projectStore.fetchAll();
     });
 
-    let activeProjects = $derived(projectStore.projects.filter(p => p.isActive));
-    let inactiveProjects = $derived(projectStore.projects.filter(p => !p.isActive));
+    let projects = $derived(projectStore.projects);
 
     let showNewForm = $state(false);
     let newProjectName = $state('');
@@ -33,11 +31,6 @@
 
     let selectedProjectId = $state<string | null>(null);
     let selectedProject = $derived(projectStore.projects.find(p => p.id === selectedProjectId));
-    let projectTasks = $derived(
-        selectedProjectId && selectedProject
-            ? taskStore.tasks.filter(t => t.tags.includes(selectedProject!.tag))
-            : [],
-    );
 
     function getTaskCount(tag: string): number {
         return taskStore.tasks.filter(t => t.tags.includes(tag)).length;
@@ -116,10 +109,10 @@
     async function deleteProject(id: string) {
         const project = projectStore.projects.find(p => p.id === id);
         if (!project) return;
-        // Deletion is irreversible, so it confirms like the Someday-group
-        // delete -- but the message does not count tasks: deleting a
-        // project leaves its tasks in place (they keep the project tag),
-        // so there is nothing destructive beyond the project itself.
+        // A project is an umbrella, never a container (ADR-011): deleting
+        // it leaves the work in place -- the tasks keep the project tag
+        // -- so the confirm says so. Nothing destructive beyond the
+        // umbrella itself.
         if (!(await uiStore.confirm(i18nStore.t('projects.deleteConfirm', { name: project.name })))) return;
         await projectStore.remove(id);
         if (selectedProjectId === id) {
@@ -178,14 +171,9 @@
                     {#if selectedProject.dueDate}
                         <span>{i18nStore.t('projects.due', { date: selectedProject.dueDate })}</span>
                     {/if}
-                    <span>{i18nStore.t('projects.status', { status: selectedProject.isActive ? i18nStore.t('projects.active') : i18nStore.t('projects.inactive') })}</span>
                 </div>
+                <p class="detail-gathered">{i18nStore.t('projects.detailHint')}</p>
             {/if}
-
-            <section class="detail-kanban" aria-label={i18nStore.t('projects.boardAria')}>
-                <h4 class="modal-section-heading">{i18nStore.t('projects.board')}</h4>
-                <KanbanBoard project={selectedProject} tasks={projectTasks} />
-            </section>
         </div>
     {:else}
         <div class="projects">
@@ -209,90 +197,55 @@
                 </div>
             {/if}
 
-            {#if activeProjects.length > 0}
-                <section class="section" aria-label={i18nStore.t('projects.activeSectionAria')}>
-                    <h4 id="projects-active-heading" class="modal-section-heading">{i18nStore.t('projects.activeHeading')}</h4>
-                    {#each activeProjects as project (project.id)}
-                        {#if editingProjectId === project.id}
-                            <div class="project-card editing">
-                                <input type="text" bind:value={editName} placeholder={i18nStore.t('projects.namePlaceholder')} aria-label={i18nStore.t('projects.nameAria')} onkeydown={handleEditKeydown} />
-                                <input type="text" bind:value={editDesc} placeholder={i18nStore.t('projects.descPlaceholder')} aria-label={i18nStore.t('projects.descAria')} onkeydown={handleEditKeydown} />
-                                <div class="form-actions">
-                                    <button class="btn btn-primary" onclick={saveEdit}>{i18nStore.t('projects.save')}</button>
-                                    <button class="btn btn-secondary" onclick={cancelEdit}>{i18nStore.t('common.cancel')}</button>
-                                </div>
-                            </div>
-                        {:else}
-                            <!-- The card is a plain container; the OPEN affordance is a
-                                 real button wrapping name/description/meta, so the edit
-                                 and delete actions nest as SIBLINGS, not inside another
-                                 interactive control (axe nested-interactive, USE-9).
-                                 Enter/Space come from the button itself. -->
-                            <div class="project-card">
-                                <div class="card-top">
-                                    <button
-                                        class="card-open"
-                                        onclick={() => selectProject(project.id)}
-                                        aria-label={i18nStore.t('projects.openActive', { name: project.name })}
-                                    >
-                                        <div class="project-name">{project.name}</div>
-                                        {#if project.description}
-                                            <div class="project-desc">{project.description}</div>
-                                        {/if}
-                                        <div class="project-meta">
-                                            {#if project.startDate}
-                                                <span>{i18nStore.t('projects.start', { date: project.startDate })}</span>
-                                            {/if}
-                                            {#if project.dueDate}
-                                                <span>{i18nStore.t('projects.due', { date: project.dueDate })}</span>
-                                            {/if}
-                                            <span class="task-count">{i18nStore.t('projects.taskCount', { count: getTaskCount(project.tag) })}</span>
-                                        </div>
-                                    </button>
-                                    <div class="card-actions">
-                                        <button class="icon-btn small" onclick={() => startEdit(project.id, project.name, project.description)} aria-label={i18nStore.t('projects.editProject')}>
-                                            <Icon src={LuPencil} />
-                                        </button>
-<button class="icon-btn small danger" onclick={() => deleteProject(project.id)} aria-label={i18nStore.t('projects.deleteProject')}>
-                                            <Icon src={LuTrash2} />
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        {/if}
-                    {/each}
-                </section>
-            {/if}
-
-            {#if inactiveProjects.length > 0}
-                <section class="section" aria-label={i18nStore.t('projects.inactiveSectionAria')}>
-                    <h4 id="projects-inactive-heading" class="modal-section-heading">{i18nStore.t('projects.inactiveHeading')}</h4>
-                    {#each inactiveProjects as project (project.id)}
-                        <div class="project-card inactive">
-                            <div class="card-top">
-                                <button
-                                    class="card-open"
-                                    onclick={() => selectProject(project.id)}
-                                    aria-label={i18nStore.t('projects.openInactive', { name: project.name })}
-                                >
-                                    <div class="project-name">{project.name}</div>
-                                    {#if project.description}
-                                        <div class="project-desc">{project.description}</div>
+            {#each projects as project (project.id)}
+                {#if editingProjectId === project.id}
+                    <div class="project-card editing">
+                        <input type="text" bind:value={editName} placeholder={i18nStore.t('projects.namePlaceholder')} aria-label={i18nStore.t('projects.nameAria')} onkeydown={handleEditKeydown} />
+                        <input type="text" bind:value={editDesc} placeholder={i18nStore.t('projects.descPlaceholder')} aria-label={i18nStore.t('projects.descAria')} onkeydown={handleEditKeydown} />
+                        <div class="form-actions">
+                            <button class="btn btn-primary" onclick={saveEdit}>{i18nStore.t('projects.save')}</button>
+                            <button class="btn btn-secondary" onclick={cancelEdit}>{i18nStore.t('common.cancel')}</button>
+                        </div>
+                    </div>
+                {:else}
+                    <!-- The card is a plain container; the OPEN affordance is a
+                         real button wrapping name/description/meta, so the edit
+                         and delete actions nest as SIBLINGS, not inside another
+                         interactive control (axe nested-interactive, USE-9).
+                         Enter/Space come from the button itself. -->
+                    <div class="project-card">
+                        <div class="card-top">
+                            <button
+                                class="card-open"
+                                onclick={() => selectProject(project.id)}
+                                aria-label={i18nStore.t('projects.open', { name: project.name })}
+                            >
+                                <div class="project-name">{project.name}</div>
+                                {#if project.description}
+                                    <div class="project-desc">{project.description}</div>
+                                {/if}
+                                <div class="project-meta">
+                                    {#if project.startDate}
+                                        <span>{i18nStore.t('projects.start', { date: project.startDate })}</span>
                                     {/if}
-                                    <div class="project-meta">
-                                        <span class="task-count">{i18nStore.t('projects.taskCount', { count: getTaskCount(project.tag) })}</span>
-                                    </div>
-                                </button>
-                                <div class="card-actions">
-                                    <button class="icon-btn small danger" onclick={() => deleteProject(project.id)} aria-label={i18nStore.t('projects.deleteProject')}>
-                                        <Icon src={LuTrash2} />
-                                    </button>
+                                    {#if project.dueDate}
+                                        <span>{i18nStore.t('projects.due', { date: project.dueDate })}</span>
+                                    {/if}
+                                    <span class="task-count">{i18nStore.t('projects.taskCount', { count: getTaskCount(project.tag) })}</span>
                                 </div>
+                            </button>
+                            <div class="card-actions">
+                                <button class="icon-btn small" onclick={() => startEdit(project.id, project.name, project.description)} aria-label={i18nStore.t('projects.editProject')}>
+                                    <Icon src={LuPencil} />
+                                </button>
+                                <button class="icon-btn small danger" onclick={() => deleteProject(project.id)} aria-label={i18nStore.t('projects.deleteProject')}>
+                                    <Icon src={LuTrash2} />
+                                </button>
                             </div>
                         </div>
-                    {/each}
-                </section>
-            {/if}
+                    </div>
+                {/if}
+            {/each}
 
             {#if projectStore.projects.length === 0 && !showNewForm}
                 <p class="empty">{i18nStore.t('projects.empty')}</p>
@@ -340,10 +293,6 @@
         outline: 2px solid var(--color-accent);
         outline-offset: 2px;
         border-radius: 4px;
-    }
-
-    .project-card.inactive {
-        opacity: 0.6;
     }
 
     .project-card.editing {
@@ -423,10 +372,6 @@
         color: var(--color-text-secondary);
         display: flex;
         gap: 16px;
-    }
-
-    .detail-kanban {
-        margin-top: 4px;
     }
 
     .icon-btn :global(svg) {

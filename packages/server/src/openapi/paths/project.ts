@@ -29,14 +29,6 @@ registry.registerPath({
     path: '/api/projects',
     summary: 'List projects',
     operationId: 'listProjects',
-    request: {
-        query: z.object({
-            active: z
-                .enum(['true', 'false'])
-                .optional()
-                .openapi({ description: 'Filter by active status' }),
-        }),
-    },
     responses: {
         200: {
             description: 'List of projects',
@@ -103,30 +95,6 @@ registry.registerPath({
     request: { params: idParams },
     responses: {
         200: deleteSuccessResponse('Project deleted'),
-        404: notFoundResponse,
-    },
-});
-
-registry.registerPath({
-    method: 'post',
-    path: '/api/projects/{id}/activate',
-    summary: 'Activate a project',
-    operationId: 'activateProject',
-    request: { params: idParams },
-    responses: {
-        200: projectDataResponse,
-        404: notFoundResponse,
-    },
-});
-
-registry.registerPath({
-    method: 'post',
-    path: '/api/projects/{id}/deactivate',
-    summary: 'Deactivate a project',
-    operationId: 'deactivateProject',
-    request: { params: idParams },
-    responses: {
-        200: projectDataResponse,
         404: notFoundResponse,
     },
 });

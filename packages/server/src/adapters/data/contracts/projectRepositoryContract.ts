@@ -11,13 +11,12 @@ import type { ProjectRepository } from '../ProjectRepository';
 
 export function runProjectRepositoryContractTests(makeRepo: () => ProjectRepository): void {
     describe('create', () => {
-        test('creates with generated id, createdAt, isActive: true, completedAt: null', async () => {
+        test('creates with generated id, createdAt, completedAt: null', async () => {
             const repo = makeRepo();
             const project = await repo.create({ name: 'My Project' });
             expect(project.id).toBeDefined();
             expect(project.createdAt).toBeDefined();
             expect(project.name).toBe('My Project');
-            expect(project.isActive).toBe(true);
             expect(project.completedAt).toBeNull();
             expect(project.description).toBeNull();
             expect(project.startDate).toBeNull();
@@ -52,18 +51,6 @@ export function runProjectRepositoryContractTests(makeRepo: () => ProjectReposit
         });
     });
 
-    describe('findActive', () => {
-        test('returns only active projects', async () => {
-            const repo = makeRepo();
-            const active = await repo.create({ name: 'Active' });
-            const inactive = await repo.create({ name: 'Inactive' });
-            await repo.update(inactive.id, { isActive: false });
-            const results = await repo.findActive();
-            expect(results.length).toBe(1);
-            expect(results[0]?.id).toBe(active.id);
-        });
-    });
-
     describe('findById', () => {
         test('returns null for unknown id', async () => {
             const repo = makeRepo();
@@ -87,10 +74,8 @@ export function runProjectRepositoryContractTests(makeRepo: () => ProjectReposit
             const repo = makeRepo();
             const created = await repo.create({ name: 'Original' });
             const updated = await repo.update(created.id, {
-                isActive: false,
                 completedAt: '2026-04-06T00:00:00.000Z',
             });
-            expect(updated?.isActive).toBe(false);
             expect(updated?.completedAt).toBe('2026-04-06T00:00:00.000Z');
             expect(updated?.name).toBe('Original');
         });
@@ -98,7 +83,7 @@ export function runProjectRepositoryContractTests(makeRepo: () => ProjectReposit
 
     describe('delete', () => {
         describe('replaceAll (restore write path)', () => {
-            test('replaces every project verbatim, inactive ones included', async () => {
+            test('replaces every project verbatim', async () => {
                 const repo = makeRepo();
                 await repo.create({ name: 'Old project' });
                 await repo.replaceAll([
@@ -109,15 +94,11 @@ export function runProjectRepositoryContractTests(makeRepo: () => ProjectReposit
                         description: null,
                         startDate: null,
                         dueDate: null,
-                        isActive: false,
                         createdAt: '2026-01-01T00:00:00.000Z',
                         completedAt: null,
                     },
                 ]);
-                expect(await repo.findAll()).toEqual([
-                    expect.objectContaining({ id: 'p9', isActive: false }),
-                ]);
-                expect(await repo.findActive()).toEqual([]);
+                expect(await repo.findAll()).toEqual([expect.objectContaining({ id: 'p9' })]);
             });
         });
 

@@ -73,13 +73,7 @@ export function registerAllRoutes(server: HttpServer, container: Container): voi
         logger,
     );
     registerDayNoteRoutes(server, container.dayNoteRepository, container.eventBus, logger);
-    registerProjectRoutes(
-        server,
-        container.projectRepository,
-        container.projectService,
-        container.eventBus,
-        logger,
-    );
+    registerProjectRoutes(server, container.projectRepository, container.eventBus, logger);
     registerRecurringTaskRoutes(
         server,
         container.recurringTaskRepository,
