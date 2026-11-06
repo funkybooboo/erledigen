@@ -36,14 +36,6 @@ lives instead (times + arrival ordering v0.17.0, sections, month
 density v0.18.0, `.ics` as the bridge). Revisit only if lived
 experience demands minute-precision after v0.17.0.
 
-## v0.16.0: Projects as umbrellas (ADR-011)
-
-[USE-16 someday tabs + lists](./stories/USE-16-someday-tabs-lists.md),
-[USE-17 project home](./stories/USE-17-project-home.md),
-[USE-18 scheduling bridge](./stories/USE-18-scheduling-bridge.md)
-(removes the v0.9.0 Kanban, activate, and dependency locks),
-[USE-19 project milestones](./stories/USE-19-project-milestones.md).
-
 ## v0.17.0: Routines (ADR-012, ADR-013)
 
 [USE-20 the rename](./stories/USE-20-routines-rename.md),
