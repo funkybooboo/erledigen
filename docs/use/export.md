@@ -4,7 +4,7 @@ You can download your data at any time. Open **Settings -> Export** and
 pick a format:
 
 - **JSON (backup)** -- the complete backup: every task (including the
-  trash), Someday groups, projects, habits, day notes, and your
+  trash), Someday tabs and lists, projects, habits, day notes, and your
   preferences. Use this to keep a copy of your data.
 - **CSV** -- the task list as a spreadsheet. Import it into Excel,
   Numbers, or Google Sheets.

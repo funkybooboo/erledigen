@@ -14,7 +14,7 @@ no analytics, your data in your own database.
 The daily list is the execution surface. The Someday panel is the capture
 net. Habits generate their instances into the daily list automatically.
 Everything is organized with tags -- the same tag system works across tasks,
-groups, Someday, and filters.
+lists, Someday, and filters.
 
 **Key principles:**
 - One task type that appears differently depending on its attributes and context
@@ -33,16 +33,17 @@ groups, Someday, and filters.
 ```
 /--+------------------------------------------+--------------\
 |M |                                          |  Someday   < |
-|P |                                          |  + add group |
+|P |                                          |  + add list  |
 |H |                                          |              |
-|C |  March 30, Sunday  -  4 tasks            |  #work       |
-|S |  -------------------------------------  |  ----------- |
-|F |   o 09:00 fix auth  #work  #p1          |   o idea     |
-|T |   o unit tests                          |   o thing    |
-|A |   o write tests       #p2               |  + add task  |
-|G |  + add task   (every friday -> habit)    |              |
-|  |                                          |  #school     |
-|  |  March 31, Monday  -  2 tasks            |  ----------- |
+|C |  March 30, Sunday  -  4 tasks            |  [tab1][+]  |
+|S |  -------------------------------------  |  Home        |
+|F |   o 09:00 fix auth  #work  #p1          |  ----------- |
+|T |   o unit tests                          |   o idea     |
+|A |   o write tests       #p2               |   o thing    |
+|G |  + add task   (every friday -> habit)    |  + add task  |
+|  |                                          |              |
+|  |  March 31, Monday  -  2 tasks            |  Side        |
+|  |  -------------------------------------  |  ----------- |
 |  |  -------------------------------------  |   o essay    |
 |? |   o deploy to prod   #p1               |              |
 |--+------------------------------------------+--------------|
@@ -74,16 +75,23 @@ server, and API schemas alike) -- conceptually:
 - **Task** -- `text`, optional markdown `notes`, `completed`, and a
   local `date` key (`null` = lives in Someday). Times (`startTime` /
   `endTime`), `tags`, a `parentId` for sub-tasks (completion rolls up to
-  the parent), per-task `rolloverEnabled`, a Someday group assignment,
-  and soft-delete bookkeeping for the trash.
+  the parent), per-task `rolloverEnabled`, a Someday list assignment
+  (`somedayListId` -- kept while the task lives on its day, so clearing
+  the date returns it to its list), and soft-delete bookkeeping for the
+  trash.
 - **Tags ARE the domain model** -- `#p1`/`#p2`/`#p3` are priority,
   `project:`-prefixed tags link tasks to projects, and any free-form tag
   organizes work. There is no separate priority or project field.
-- **SomeDayGroup** -- a named, tag-based group in the Someday panel
-  (name, description, tag, position).
-- **Project** -- name, description, start/due dates, active flag. A
-  project owns a `project:`-prefixed tag; its tasks are the tasks
-  carrying that tag.
+- **SomedayTab + SomedayList** -- the Someday panel's structure (v0.16.0):
+  tabs hold lists, lists hold the parked undated tasks. Plain lists carry
+  no tag of their own; a project's tab carries the project's tag, and
+  tasks created in its lists wear it. Every install owns a default tab
+  ("Someday") whose implicit Unlisted section keeps dateless, listless
+  tasks visible.
+- **Project** -- an umbrella, never a container: name, description,
+  start/due/completed dates, and the hill marker (one user-dragged
+  position -- no percentages). A project owns a `project:`-prefixed tag;
+  its members are the tasks, habits, and lists carrying that tag.
 - **RecurringTask** -- a habit template parsed from natural language:
   frequency, interval, `daysOfWeek`/`dayOfMonth`, date window, and a
   `startTime` stamped onto generated instances. Stats (current/longest
@@ -118,17 +126,48 @@ rename, merge, recolor, and remove -- each applies to every task that
 carries the tag.
 
 ### Someday Panel
-The right-side Someday panel captures ideas and unscheduled work. Tasks are organized into user-created groups (tag-based). Works identically to the day list but without dates or automation. Global filtering applies.
+The right-side Someday panel captures ideas and unscheduled work. Tabs
+hold lists; tasks park in the lists and stay undated backlog. Every
+install starts with one tab and one list, both "Someday" (the lone
+default tab shows no label), and dateless tasks with no list render in
+the default tab's Unlisted section so nothing ever goes invisible.
+Creating a project adds its tab automatically (carrying the project's
+tag), and `+ add list` parks a shelf under it. Works like the day list
+for editing and dragging, but without dates or automation; global
+filtering applies.
 
 ### Command Palette (Cmd/Ctrl+K)
 One unified modal for search and commands. Plain text searches tasks (text, notes, tags). `/add fix auth tomorrow #work #p1` creates a task for the parsed date with the hashtags as tags (a trailing recurrence phrase instead creates a habit); other commands: `/complete <text>`, `/delete <text>`, `/move <text> to <date>`, `/go <date>` (e.g. `/go next monday`), `/tag <text> with <tag>`, `/filter <tag>`, `/clear`, `/today`, `/someday <text>`, `/project`, `/habit`, `/settings`, `/help`.
 
 ### Project Management
-Projects are collections of tasks linked by their `project:`-prefixed tag. The Projects modal's detail view is a Kanban board -- three columns mapped onto real task state: **Ready** (no date yet), **Scheduled** (has a date; the card shows and edits it inline), and **Done**. Drag cards between columns to unschedule, schedule, or complete the underlying task; drops into Scheduled land on the project's window-start date, adjustable inline afterwards.
+Projects are umbrellas, not containers (ADR-011): a project is a named
+`project:`-prefixed tag plus metadata, and everything carrying the tag is
+gathered -- the work itself lives on days or in Someday lists, exactly
+one home per thing.
 
-**Auto-distribute** previews a spread of the unscheduled backlog across the days between the project's start and due dates (never in the past; dependencies within the project are respected -- a blocked task is scheduled after its blocker); confirm to apply. **Activate** flips the project's `isActive` flag and applies the same distribution in one step.
+The Projects modal's detail view is the project home, a gathered lens:
+**Backlog** (undated members grouped by their Someday lists, Unlisted
+last), **Scheduled** (dated members by day), **Routines** (habits
+wearing the tag, with their streaks), and **Done** (count plus the most
+recent completions). The metadata row edits the start/due dates, drags
+the hill (one marker: uphill = figuring it out, top = scope settled,
+downhill = executing -- never a percentage), and stamps completion
+explicitly with **Mark complete**. Creating from the home goes through
+the one grammar input (a trailing routine phrase makes a habit) with the
+project tag applied automatically; `+ add list` parks a shelf under the
+project's Someday tab.
 
-Cards carry a lock button for dependencies: pick the task it is blocked by (a red lock shows while the predecessor is incomplete; completing the blocker releases it), and the blocked task schedules after its blocker in every distribution.
+The scheduling bridge is the date and nothing else: dragging a parked
+member onto a day schedules it (it keeps its list, and the project chip
+stays on its row); clearing the date returns it to its list. A scheduled
+task has no lifecycle beyond done -- the v0.9.0 board, Activate, and
+dependency locks are gone. Deleting a project deletes only the umbrella:
+its tasks keep the tag and stay exactly where they live.
+
+A project's start, due, and completed dates draw quiet banner notes on
+their days (the same family as holiday banners; the due note carries the
+danger tint), and an uncompleted project whose due date has passed keeps
+drawing its due note on today until it is marked complete.
 
 ### Notes
 Notes are the margin of the calendar. Task titles, task notes, and each day's margin note are live markdown -- only the line under your cursor shows the raw syntax while everything else renders. Tasks carrying notes show a sticky-note marker on their row, and the Notes modal (`g n`) is a lens over every note in one place: day notes by date, each day's task notes beneath them, and undated task notes at the end. Notes never exist standalone -- they always belong to a day or a task.
