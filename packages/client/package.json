@@ -1,6 +1,6 @@
 {
     "name": "@erledigen/client",
-    "version": "0.13.2",
+    "version": "0.16.0",
     "private": true,
     "type": "module",
     "imports": {

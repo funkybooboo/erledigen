@@ -1,5 +1,20 @@
 # Changelog
 
+## [v0.16.0](https://github.com/funkybooboo/erledigen/compare/v0.13.2...HEAD) - 2026-11-06
+
+### Features
+
+- project milestones on their days (USE-19) (#100)
+- the project home gathers its work (USE-17) (#99)
+- the scheduling bridge -- Kanban, activate, and locks die (USE-18) (#98)
+- Someday becomes tabs of lists (USE-16) (#97)
+
+### Everything else
+
+- v0.16.0 close-out -- stories done, docs catch up (#101)
+- ADR-026 -- snapshot v2 is the someday/projects restructure (#96)
+- **plans:** v0.13.2 moves to history -- the record goes green with the images (#95)
+
 ## [v0.13.2](https://github.com/funkybooboo/erledigen/compare/v0.13.1...HEAD) - 2026-11-05
 
 ### Fixes
