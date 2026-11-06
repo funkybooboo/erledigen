@@ -1,5 +1,6 @@
 <script lang="ts">
     import { notificationStore, preferencesStore, dragStore, taskStore, uiStore } from '#lib/stores/index.ts';
+    import { openProjectHomeByTag, projectByTag } from '#lib/projectLink.ts';
     import { deleteTaskWithUndo } from '#lib/taskActions.ts';
     import { container } from '#lib/container.ts';
     import {
@@ -25,7 +26,11 @@
     import { tagChipStyle } from '#lib/tagColors.ts';
     import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
 
-    let { task, isNew = false }: { task: Task; isNew?: boolean } = $props();
+    let {
+        task,
+        isNew = false,
+        dragEnabled = true,
+    }: { task: Task; isNew?: boolean; dragEnabled?: boolean } = $props();
 
     let isEditing = $derived(uiStore.editingTaskId === task.id);
     let isFocused = $derived(uiStore.focusedTaskId === task.id);
@@ -242,7 +247,7 @@
     // cross-day sub-task move would have no visible effect -- the
     // keyboard alternatives (r/m inline editors) stay the move path.
     let dragArmed = $state(false);
-    let isDraggable = $derived(dragArmed && task.parentId === null);
+    let isDraggable = $derived(dragEnabled && dragArmed && task.parentId === null);
 
     function handleDragStart(e: DragEvent) {
         if (!isDraggable) {
@@ -278,7 +283,7 @@
     ondragend={handleDragEnd}
     aria-label={i18nStore.t(task.completed ? 'taskRow.ariaLabelCompleted' : 'taskRow.ariaLabel', { text: task.text })}
 >
-    {#if task.parentId === null && !isEditing}
+    {#if dragEnabled && task.parentId === null && !isEditing}
         <!-- Mouse-only by design: keyboard users move tasks with the
              r/m inline editors (v0.5.0), so the grip needs no key path. -->
         <span
@@ -358,7 +363,22 @@
         {/if}
 
         {#each task.tags as tag (tag)}
-            <span class="tag-chip" style={tagChipStyle(tag)}>#{tag}</span>
+            {@const project = projectByTag(tag)}
+            {#if project}
+                <button
+                    class="tag-chip tag-chip-link"
+                    style={tagChipStyle(tag)}
+                    onclick={(e) => {
+                        e.stopPropagation();
+                        openProjectHomeByTag(tag);
+                    }}
+                    aria-label={i18nStore.t('taskRow.projectChip', { name: project.name })}
+                >
+                    #{tag}
+                </button>
+            {:else}
+                <span class="tag-chip" style={tagChipStyle(tag)}>#{tag}</span>
+            {/if}
         {/each}
     </div>
 
@@ -583,6 +603,14 @@
     .has-notes :global(svg) {
         width: 12px;
         height: 12px;
+    }
+
+    /* A project tag chip is a link to the project home (USE-17); the
+       inline chip style carries the colors, this resets the native
+       button chrome so it renders identically to the span chips. */
+    button.tag-chip-link {
+        font: inherit;
+        cursor: pointer;
     }
 
     .tag-chip {

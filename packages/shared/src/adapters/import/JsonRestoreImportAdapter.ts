@@ -112,6 +112,8 @@ interface ProjectRow {
     /** v0.15 and earlier documents carry it; the v0.16.0 model dropped
      *  it (ADR-011) -- tolerated, ignored. */
     isActive?: unknown;
+    /** v2 snapshots written before the hill existed (USE-17) lack it. */
+    hillPosition?: unknown;
     createdAt?: unknown;
     completedAt?: unknown;
 }
@@ -332,7 +334,18 @@ function validateProject(project: unknown, index: number): Project {
         throw new ImportValidationError(
             `Invalid snapshot: ${where}: description/startDate/dueDate/completedAt must be null or strings`,
         );
-    return project as unknown as Project;
+    if (
+        p.hillPosition != null &&
+        (typeof p.hillPosition !== 'number' ||
+            !Number.isInteger(p.hillPosition) ||
+            p.hillPosition < 0 ||
+            p.hillPosition > 100)
+    )
+        throw new ImportValidationError(
+            `Invalid snapshot: ${where}: hillPosition must be an integer between 0 and 100`,
+        );
+    // Normalize the additive shape: a snapshot without the hill reads 0.
+    return { ...(project as object), hillPosition: p.hillPosition ?? 0 } as Project;
 }
 
 function validateRecurringTask(rt: unknown, index: number): RecurringTask {

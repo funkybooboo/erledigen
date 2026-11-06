@@ -17,6 +17,12 @@ export type ModalType =
  *  the global Esc layering and keyboard actions stay in one place. */
 export type RowEditorKind = 'date' | 'tags';
 
+/** Extra context for opening a modal: the Projects modal can open
+ *  directly onto one project's home (USE-17 cross-links hop here). */
+export interface ModalParams {
+    projectId?: string;
+}
+
 export interface TaskSection {
     /** Stable key: a date key for day sections, a group id (or
      *  'ungrouped') for Someday sections. */
@@ -28,6 +34,7 @@ export interface TaskSection {
 class UIStore {
     focusedTaskId = $state<string | null>(null);
     activeModal = $state<ModalType | null>(null);
+    modalParams = $state<ModalParams | null>(null);
     editingTaskId = $state<string | null>(null);
 
     /** Task ids in day-list order, as currently rendered by DayList.
@@ -130,12 +137,14 @@ class UIStore {
         request?.resolve(ok);
     }
 
-    openModal(modal: ModalType) {
+    openModal(modal: ModalType, params?: ModalParams) {
         this.activeModal = modal;
+        this.modalParams = params ?? null;
     }
 
     closeModal() {
         this.activeModal = null;
+        this.modalParams = null;
     }
 
     startEditing(taskId: string | null) {
@@ -145,6 +154,7 @@ class UIStore {
     reset() {
         this.focusedTaskId = null;
         this.activeModal = null;
+        this.modalParams = null;
         this.editingTaskId = null;
         this.rowEditor = null;
     }

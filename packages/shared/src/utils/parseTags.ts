@@ -10,9 +10,11 @@
  * hashtags organize as you type.
  */
 
-/** An `#inline-tag` token: starts with a letter/digit, then word chars or
- *  hyphens (matches the app's tag convention, incl. `project:` names). */
-const INLINE_TAG_RE = /(?:^|\s)#([A-Za-z0-9][A-Za-z0-9_-]*)/g;
+/** An `#inline-tag` token: starts with a letter/digit, then word chars,
+ *  hyphens, or interior colons (the `project:` kind prefix is a
+ *  first-class citizen of the one grammar -- rule 3). A trailing colon
+ *  stays in the text: "#work:" reads as the tag `work`, not `work:`. */
+const INLINE_TAG_RE = /(?:^|\s)#([A-Za-z0-9](?:[A-Za-z0-9_:-]*[A-Za-z0-9_-])?)/g;
 
 export function parseTags(input: string): string[] {
     return input

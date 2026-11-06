@@ -56,7 +56,8 @@
         "hasNotes": "Has notes",
         "recurringInstance": "Recurring habit instance",
         "details": "Task details",
-        "delete": "Delete task"
+        "delete": "Delete task",
+        "projectChip": "Open the project {name}"
     },
     "section": {
         "stats": {
@@ -123,7 +124,8 @@
             "other": "Delete \"{name}\" and its {count} tasks? This cannot be undone."
         },
         "deleteTabConfirmEmpty": "Delete the tab \"{name}\"? This cannot be undone.",
-        "deleteTabConfirm": "Delete the tab \"{name}\" with its {lists} list(s) and {tasks} task(s)? This cannot be undone."
+        "deleteTabConfirm": "Delete the tab \"{name}\" with its {lists} list(s) and {tasks} task(s)? This cannot be undone.",
+        "projectChip": "Open the project #{tag}"
     },
     "connection": {
         "connected": "Connected",
@@ -468,7 +470,33 @@
         },
         "empty": "No projects yet. Create one to organize your tasks.",
         "open": "Open project {name}",
-        "detailHint": "Its tasks live where you put them -- on their days or in its Someday lists -- wearing its tag."
+        "detailHint": "Its tasks live where you put them -- on their days or in its Someday lists -- wearing its tag.",
+        "startLabel": "Start",
+        "startAria": "Project start date",
+        "dueLabel": "Due",
+        "dueAria": "Project due date",
+        "markComplete": "Mark complete",
+        "markCompleteFailed": "Could not mark the project complete",
+        "reopen": "Reopen",
+        "completedOn": "Completed {date}",
+        "addList": "+ add list",
+        "newProjectListName": "New list name",
+        "backlogHeading": "Backlog",
+        "scheduledHeading": "Scheduled",
+        "routinesHeading": "Routines",
+        "streakDays": {
+            "one": "{count} day streak",
+            "other": "{count} day streak"
+        },
+        "doneHeading": {
+            "one": "{count} done",
+            "other": "{count} done"
+        },
+        "doneEmpty": "Nothing completed yet.",
+        "hillAria": "Project hill progress",
+        "hillFiguring": "figuring it out",
+        "hillSettled": "scope settled",
+        "hillExecuting": "executing"
     },
     "settings": {
         "add": "Add",

@@ -18,7 +18,7 @@ import type { ProjectRepository } from './ProjectRepository';
 import { SqlUpdate } from './sqliteUpdate';
 
 const PROJECT_COLUMNS =
-    'id, name, tag, description, start_date, due_date, created_at, completed_at';
+    'id, name, tag, description, start_date, due_date, hill_position, created_at, completed_at';
 
 interface ProjectRow {
     id: string;
@@ -27,6 +27,7 @@ interface ProjectRow {
     description: string | null;
     start_date: string | null;
     due_date: string | null;
+    hill_position: number;
     created_at: string;
     completed_at: string | null;
 }
@@ -39,6 +40,7 @@ function mapProjectRow(row: ProjectRow): Project {
         description: row.description,
         startDate: row.start_date,
         dueDate: row.due_date,
+        hillPosition: row.hill_position,
         createdAt: row.created_at,
         completedAt: row.completed_at,
     };
@@ -67,7 +69,7 @@ export class SqliteProjectRepository implements ProjectRepository {
             .prepare(
                 `
                 INSERT INTO projects (${PROJECT_COLUMNS})
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `,
             )
             .run(
@@ -77,6 +79,7 @@ export class SqliteProjectRepository implements ProjectRepository {
                 input.description ?? null,
                 input.startDate ?? null,
                 input.dueDate ?? null,
+                input.hillPosition ?? 0,
                 this.dateProvider.timestamp(),
                 null,
             );
@@ -99,7 +102,7 @@ export class SqliteProjectRepository implements ProjectRepository {
         const insert = this.db.prepare(
             `
             INSERT INTO projects (${PROJECT_COLUMNS})
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             `,
         );
         this.db.transaction(() => {
@@ -112,6 +115,7 @@ export class SqliteProjectRepository implements ProjectRepository {
                     project.description,
                     project.startDate,
                     project.dueDate,
+                    project.hillPosition,
                     project.createdAt,
                     project.completedAt,
                 );
@@ -127,6 +131,7 @@ export class SqliteProjectRepository implements ProjectRepository {
         if ('description' in input) patch.assign('description', input.description);
         if ('startDate' in input) patch.assign('start_date', input.startDate);
         if ('dueDate' in input) patch.assign('due_date', input.dueDate);
+        if ('hillPosition' in input) patch.assign('hill_position', input.hillPosition);
         if ('completedAt' in input) patch.assign('completed_at', input.completedAt);
 
         if (patch.isEmpty) return this.findById(id);
