@@ -15,11 +15,10 @@ import type {
 } from '@erledigen/shared';
 import { slugify } from '@erledigen/shared';
 import type { ProjectRepository } from './ProjectRepository';
-import { toBoolean, toInteger } from './sqliteMapping';
 import { SqlUpdate } from './sqliteUpdate';
 
 const PROJECT_COLUMNS =
-    'id, name, tag, description, start_date, due_date, is_active, created_at, completed_at';
+    'id, name, tag, description, start_date, due_date, created_at, completed_at';
 
 interface ProjectRow {
     id: string;
@@ -28,7 +27,6 @@ interface ProjectRow {
     description: string | null;
     start_date: string | null;
     due_date: string | null;
-    is_active: number;
     created_at: string;
     completed_at: string | null;
 }
@@ -41,7 +39,6 @@ function mapProjectRow(row: ProjectRow): Project {
         description: row.description,
         startDate: row.start_date,
         dueDate: row.due_date,
-        isActive: toBoolean(row.is_active),
         createdAt: row.created_at,
         completedAt: row.completed_at,
     };
@@ -57,10 +54,6 @@ export class SqliteProjectRepository implements ProjectRepository {
         return this.select('ORDER BY created_at ASC');
     }
 
-    async findActive(): Promise<Project[]> {
-        return this.select('WHERE is_active = 1 ORDER BY created_at ASC');
-    }
-
     async findById(id: string): Promise<Project | null> {
         const rows = this.select('WHERE id = ?', [id]);
         return rows[0] ?? null;
@@ -74,7 +67,7 @@ export class SqliteProjectRepository implements ProjectRepository {
             .prepare(
                 `
                 INSERT INTO projects (${PROJECT_COLUMNS})
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 `,
             )
             .run(
@@ -84,7 +77,6 @@ export class SqliteProjectRepository implements ProjectRepository {
                 input.description ?? null,
                 input.startDate ?? null,
                 input.dueDate ?? null,
-                toInteger(true),
                 this.dateProvider.timestamp(),
                 null,
             );
@@ -107,7 +99,7 @@ export class SqliteProjectRepository implements ProjectRepository {
         const insert = this.db.prepare(
             `
             INSERT INTO projects (${PROJECT_COLUMNS})
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             `,
         );
         this.db.transaction(() => {
@@ -120,7 +112,6 @@ export class SqliteProjectRepository implements ProjectRepository {
                     project.description,
                     project.startDate,
                     project.dueDate,
-                    toInteger(project.isActive),
                     project.createdAt,
                     project.completedAt,
                 );
@@ -136,7 +127,6 @@ export class SqliteProjectRepository implements ProjectRepository {
         if ('description' in input) patch.assign('description', input.description);
         if ('startDate' in input) patch.assign('start_date', input.startDate);
         if ('dueDate' in input) patch.assign('due_date', input.dueDate);
-        if ('isActive' in input) patch.assign('is_active', toInteger(input.isActive));
         if ('completedAt' in input) patch.assign('completed_at', input.completedAt);
 
         if (patch.isEmpty) return this.findById(id);

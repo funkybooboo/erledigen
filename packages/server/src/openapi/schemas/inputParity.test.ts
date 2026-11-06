@@ -106,7 +106,6 @@ describe('task schemas', () => {
             tags: [],
             parentId: null,
             somedayListId: null,
-            dependsOn: 'blocker-id',
             rolloverEnabled: false,
             position: null,
             state: 'scheduled',
@@ -145,7 +144,6 @@ describe('project schemas', () => {
             description: null,
             startDate: '2026-09-02',
             dueDate: null,
-            isActive: true,
             completedAt: null,
         };
         parsePreserving(UpdateProjectSchema, sample);

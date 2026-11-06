@@ -123,10 +123,10 @@ test('the project detail board has no violations', async ({ page }) => {
     await page.getByRole('button', { name: 'Projects', exact: true }).click();
     const projects = modal(page, 'Projects');
     await projects
-        .getByRole('button', { name: /Open project Axe Project/ })
+        .getByRole('button', { name: /Open project/ })
         .first()
         .click();
-    await projects.locator('.kanban').waitFor();
+    await projects.locator('.detail-view').waitFor();
     await audit(page, 'modal Projects detail');
 });
 

@@ -109,6 +109,8 @@ interface ProjectRow {
     description?: unknown;
     startDate?: unknown;
     dueDate?: unknown;
+    /** v0.15 and earlier documents carry it; the v0.16.0 model dropped
+     *  it (ADR-011) -- tolerated, ignored. */
     isActive?: unknown;
     createdAt?: unknown;
     completedAt?: unknown;
@@ -317,8 +319,6 @@ function validateProject(project: unknown, index: number): Project {
         throw new ImportValidationError(
             `Invalid snapshot: ${where}: tag must be a non-empty string`,
         );
-    if (typeof p.isActive !== 'boolean')
-        throw new ImportValidationError(`Invalid snapshot: ${where}: isActive must be a boolean`);
     if (typeof p.createdAt !== 'string' || !ISO_TIMESTAMP.test(p.createdAt))
         throw new ImportValidationError(
             `Invalid snapshot: ${where}: createdAt must be an ISO 8601 timestamp`,

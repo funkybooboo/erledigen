@@ -31,7 +31,7 @@ Covers, per resource:
   format), filtering by date/tag/someday/completion, soft-delete + trash +
   restore + purge, parent/child completion roll-up, plain-text content
   negotiation.
-- **projects** -- CRUD, auto-generated tag, activate/deactivate, validation.
+- **projects** -- CRUD, auto-generated tag, validation.
 - **recurring-tasks** -- CRUD, generate-instances (daily/interval), the
   idempotent `generate-all` bulk endpoint, per-habit stats, weekday/weekend
   schedules (`daysOfWeek`), validation (frequency enum, ISO date,
@@ -127,12 +127,6 @@ Covers:
   WS live render, clear-to-delete), the Notes modal lens (grouped by
   owner, edit in place, hop back, empty state), and a browser-side
   XSS smoke (script payload renders inert -- ADR-015).
-- **kanban** (v0.9.0) -- column membership (sub-tasks excluded), drag
-  Ready -> Scheduled (window-start date), Scheduled -> Ready (date
-  cleared), -> Done (completed) with server-side verification,
-  Auto-distribute preview + apply, Activate's confirm-and-distribute,
-  and the blocked-by lock (blocked class, release on completion,
-  picker set/clear).
 - **accessibility** (v0.12.0) -- two specs: `accessibility.spec.ts`
   holds the focus-management and live-region behaviors (skip link as
   the first Tab stop, focus trap, Esc focus restore, completion state

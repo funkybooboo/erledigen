@@ -48,8 +48,6 @@ export const API_ROUTES = {
     // Projects
     PROJECTS: '/api/projects',
     PROJECT_BY_ID: (id: string) => `/api/projects/${id}`,
-    PROJECT_ACTIVATE: (id: string) => `/api/projects/${id}/activate`,
-    PROJECT_DEACTIVATE: (id: string) => `/api/projects/${id}/deactivate`,
 
     // Recurring tasks
     RECURRING_TASKS: '/api/recurring-tasks',
@@ -81,8 +79,6 @@ export const API_ROUTES = {
     TASK_ROUTE_PATTERN: '/api/tasks/:id',
     TASK_RESTORE_PATTERN: '/api/tasks/:id/restore',
     PROJECT_ROUTE_PATTERN: '/api/projects/:id',
-    PROJECT_ACTIVATE_PATTERN: '/api/projects/:id/activate',
-    PROJECT_DEACTIVATE_PATTERN: '/api/projects/:id/deactivate',
     RECURRING_TASK_ROUTE_PATTERN: '/api/recurring-tasks/:id',
     RECURRING_TASKS_ADOPT_PATTERN: '/api/recurring-tasks/adopt',
     RECURRING_TASK_GENERATE_PATTERN: '/api/recurring-tasks/:id/generate',

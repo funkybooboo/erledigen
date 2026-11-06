@@ -19,6 +19,11 @@ describe('runMigrations', () => {
         expect(tables).toContain('projects');
         expect(tables).toContain('someday_tabs');
         expect(tables).toContain('someday_lists');
+        // The v0.9.0 active/inactive distinction is gone (USE-18).
+        const projectCols = db.query("PRAGMA table_info('projects')").all() as Array<{
+            name: string;
+        }>;
+        expect(projectCols.map(col => col.name)).not.toContain('is_active');
         expect(tables).toContain('recurring_tasks');
         expect(tables).toContain('recurring_task_stats');
         expect(tables).toContain('user_preferences');
@@ -61,6 +66,7 @@ describe('runMigrations', () => {
             '011_preferences_behavior.sql',
             '012_preferences_shortcut_overrides.sql',
             '013_someday_tabs_lists.sql',
+            '014_drop_project_is_active.sql',
         ]);
     });
 
@@ -158,6 +164,11 @@ describe('runMigrations', () => {
         expect(tables).not.toContain('some_day_groups');
         expect(tables).toContain('someday_tabs');
         expect(tables).toContain('someday_lists');
+        // The v0.9.0 active/inactive distinction is gone (USE-18).
+        const projectCols = db.query("PRAGMA table_info('projects')").all() as Array<{
+            name: string;
+        }>;
+        expect(projectCols.map(col => col.name)).not.toContain('is_active');
 
         // The default tab is seeded; the old group became a list under
         // it, id and position preserved (the tag dies with the v1 model).

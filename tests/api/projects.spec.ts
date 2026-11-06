@@ -14,7 +14,6 @@ test.describe('projects -- create (POST /api/projects)', () => {
         expect(p.id).toBeTruthy();
         expect(p.name).toBe('Build Erledigen');
         expect(p.tag).toBe('project:build-erledigen');
-        expect(p.isActive).toBe(true);
         expect(p.description).toBeNull();
         expect(p.completedAt).toBeNull();
     });
@@ -56,17 +55,6 @@ test.describe('projects -- list (GET /api/projects)', () => {
         expect(res.status).toBe(200);
         expect(Array.isArray(res.body.data)).toBe(true);
     });
-
-    test('?active=true returns only active projects', async ({ request }) => {
-        const a = await createProject(request, { name: uniq('Active') });
-        const b = await createProject(request, { name: uniq('Inactive') });
-        await post(request, `/api/projects/${b.id}/deactivate`);
-        const res = await get(request, '/api/projects?active=true');
-        expect(res.status).toBe(200);
-        const ids = res.body.data.map((p: { id: string }) => p.id);
-        expect(ids).toContain(a.id);
-        expect(ids).not.toContain(b.id);
-    });
 });
 
 test.describe('projects -- by id', () => {
@@ -105,28 +93,6 @@ test.describe('projects -- by id', () => {
     });
 });
 
-test.describe('projects -- activate / deactivate', () => {
-    test('deactivate then activate toggles isActive', async ({ request }) => {
-        const p = await createProject(request, { name: 'Toggle' });
-        const off = await post(request, `/api/projects/${p.id}/deactivate`);
-        expect(off.status).toBe(200);
-        expect(off.body.data.isActive).toBe(false);
-        const on = await post(request, `/api/projects/${p.id}/activate`);
-        expect(on.status).toBe(200);
-        expect(on.body.data.isActive).toBe(true);
-    });
-
-    test('deactivate unknown id returns 404', async ({ request }) => {
-        const res = await post(request, '/api/projects/999999/deactivate');
-        expect(res.status).toBe(404);
-    });
-
-    test('activate unknown id returns 404', async ({ request }) => {
-        const res = await post(request, '/api/projects/999999/activate');
-        expect(res.status).toBe(404);
-    });
-});
-
 test.describe('projects -- delete', () => {
     test('DELETE removes the project', async ({ request }) => {
         const p = await createProject(request, { name: 'Delete me' });
@@ -150,6 +116,6 @@ test.describe('projects -- content negotiation', () => {
         expect(res.status).toBe(200);
         expect(typeof res.body).toBe('string');
         expect(res.body).toContain('Plain proj');
-        expect(res.body).toMatch(/\[active\]/);
+        expect(res.body).not.toMatch(/\[active\]/);
     });
 });

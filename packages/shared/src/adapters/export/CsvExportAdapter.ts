@@ -33,7 +33,6 @@ export const DEFAULT_CSV_COLUMNS = [
     'originalScheduledDate',
     'recurringTaskId',
     'instanceDate',
-    'dependsOn',
     'createdAt',
     'updatedAt',
 ] as const;
@@ -58,7 +57,6 @@ const COLUMN_GETTERS: Record<CsvColumn, (task: Task) => string> = {
     originalScheduledDate: t => t.originalScheduledDate ?? '',
     recurringTaskId: t => t.recurringTaskId ?? '',
     instanceDate: t => t.instanceDate ?? '',
-    dependsOn: t => t.dependsOn ?? '',
     createdAt: t => t.createdAt,
     updatedAt: t => t.updatedAt,
 };

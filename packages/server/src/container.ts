@@ -73,7 +73,6 @@ import { ExportService } from './services/ExportService';
 import { HolidayService } from './services/HolidayService';
 import { ImportService } from './services/ImportService';
 import { DEFAULT_JOB_RUNNER_CONFIG, JobRunner } from './services/JobRunner';
-import { ProjectService } from './services/ProjectService';
 import { RecurringTaskService } from './services/RecurringTaskService';
 import { TagService } from './services/TagService';
 import { TaskService } from './services/TaskService';
@@ -106,7 +105,6 @@ export class Container {
     private _taskService: TaskService | null = null;
     private _tagService: TagService | null = null;
     private _recurringTaskService: RecurringTaskService | null = null;
-    private _projectService: ProjectService | null = null;
     private _holidayService: HolidayService | null = null;
     private _exportService: ExportService | null = null;
     private _importService: ImportService | null = null;
@@ -362,13 +360,6 @@ export class Container {
             );
         }
         return this._recurringTaskService;
-    }
-
-    get projectService(): ProjectService {
-        if (!this._projectService) {
-            this._projectService = new ProjectService(this.projectRepository);
-        }
-        return this._projectService;
     }
 
     /** Holiday .ics import (v0.9.0): parsing + duplicate suppression

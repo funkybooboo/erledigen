@@ -29,9 +29,8 @@ export function formatProjectsAsText(projects: Project[]): string {
     if (projects.length === 0) return 'No projects found.';
     return projects
         .map(p => {
-            const status = p.isActive ? '[active]' : '[inactive]';
             const due = p.dueDate ? `  due: ${p.dueDate}` : '';
-            return `${status} ${p.name}${due}`;
+            return `${p.name}${due}`;
         })
         .join('\n');
 }

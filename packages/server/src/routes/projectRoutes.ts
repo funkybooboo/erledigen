@@ -11,14 +11,9 @@ import {
 } from '@erledigen/shared';
 import type { ProjectRepository } from '../adapters/data/ProjectRepository';
 import type { HttpServer } from '../adapters/http/HttpServer';
-import {
-    CreateProjectSchema,
-    ProjectQuerySchema,
-    UpdateProjectSchema,
-} from '../openapi/schemas/project';
+import { CreateProjectSchema, UpdateProjectSchema } from '../openapi/schemas/project';
 import { formatProjectsAsText } from '../presentation/formatters';
 import type { EventBus } from '../services/EventBus';
-import type { ProjectService } from '../services/ProjectService';
 import { notFoundError } from '../utils/errorHandler';
 import {
     requirePathParam,
@@ -26,12 +21,11 @@ import {
     successResponse,
     withErrorHandling,
 } from '../utils/routeHelpers';
-import { parseBody, parseQuery } from '../utils/validate';
+import { parseBody } from '../utils/validate';
 
 export function registerProjectRoutes(
     server: HttpServer,
     projectRepo: ProjectRepository,
-    projectService: ProjectService,
     eventBus: EventBus<WsServerEventMap>,
     logger: Logger,
 ): void {
@@ -40,8 +34,7 @@ export function registerProjectRoutes(
         'GET',
         API_ROUTES.PROJECTS,
         withErrorHandling(async req => {
-            const query = parseQuery(ProjectQuerySchema, req.url);
-            const projects = await projectService.listProjects(query.active === 'true');
+            const projects = await projectRepo.findAll();
             return respondNegotiated(req, projects, formatProjectsAsText);
         }, logger),
     );
@@ -82,34 +75,6 @@ export function registerProjectRoutes(
             const raw = await req.json<unknown>();
             const input = parseBody(UpdateProjectSchema, raw) as UpdateProjectInput;
             const project = await projectRepo.update(id, input);
-            if (!project) throw notFoundError('Project', id);
-            eventBus.publish('project:updated', { project }, originClientId);
-            return successResponse(project);
-        }, logger),
-    );
-
-    // POST /api/projects/:id/activate
-    server.route(
-        'POST',
-        API_ROUTES.PROJECT_ACTIVATE_PATTERN,
-        withErrorHandling(async req => {
-            const id = requirePathParam(req, API_ROUTES.PROJECT_ACTIVATE_PATTERN, 'project');
-            const originClientId = req.headers['x-client-id'];
-            const project = await projectRepo.update(id, { isActive: true });
-            if (!project) throw notFoundError('Project', id);
-            eventBus.publish('project:updated', { project }, originClientId);
-            return successResponse(project);
-        }, logger),
-    );
-
-    // POST /api/projects/:id/deactivate
-    server.route(
-        'POST',
-        API_ROUTES.PROJECT_DEACTIVATE_PATTERN,
-        withErrorHandling(async req => {
-            const id = requirePathParam(req, API_ROUTES.PROJECT_DEACTIVATE_PATTERN, 'project');
-            const originClientId = req.headers['x-client-id'];
-            const project = await projectRepo.update(id, { isActive: false });
             if (!project) throw notFoundError('Project', id);
             eventBus.publish('project:updated', { project }, originClientId);
             return successResponse(project);
