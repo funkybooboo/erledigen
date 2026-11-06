@@ -34,7 +34,7 @@ export const TaskSchema = registry.register(
             tags: z.array(z.string()),
             parentId: z.string().nullable(),
             rolloverEnabled: z.boolean(),
-            someDayGroupId: z.string().nullable(),
+            somedayListId: z.string().nullable(),
             position: z.number().int().nullable(),
             state: z.enum(['ready', 'scheduled', 'done']).nullable(),
             recurringTaskId: z.string().nullable(),
@@ -65,7 +65,7 @@ export const CreateTaskSchema = registry.register(
             notes: z.string().nullable().optional(),
             tags: z.array(z.string()).optional(),
             parentId: z.string().nullable().optional(),
-            someDayGroupId: z.string().nullable().optional(),
+            somedayListId: z.string().nullable().optional(),
             position: z.number().int().nullable().optional(),
             state: z.enum(['ready', 'scheduled', 'done']).nullable().optional(),
             startTime: HhMmTime.nullable().optional(),
@@ -90,7 +90,7 @@ export const UpdateTaskSchema = registry.register(
             notes: z.string().nullable().optional(),
             tags: z.array(z.string()).optional(),
             parentId: z.string().nullable().optional(),
-            someDayGroupId: z.string().nullable().optional(),
+            somedayListId: z.string().nullable().optional(),
             dependsOn: z
                 .string()
                 .nullable()
@@ -113,7 +113,7 @@ export const TaskQuerySchema = z.object({
         .enum(['true', 'false'])
         .transform(v => v === 'true')
         .optional(),
-    someDayGroupId: z.string().optional(),
+    somedayListId: z.string().optional(),
     someday: z.enum(['true']).optional(),
     includeDeleted: z
         .enum(['true', 'false'])

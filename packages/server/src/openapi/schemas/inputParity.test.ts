@@ -18,11 +18,13 @@ import { describe, expect, test } from 'bun:test';
 import type {
     CreateProjectInput,
     CreateRecurringTaskInput,
-    CreateSomeDayGroupInput,
+    CreateSomedayListInput,
+    CreateSomedayTabInput,
     CreateTaskInput,
     UpdateProjectInput,
     UpdateRecurringTaskInput,
-    UpdateSomeDayGroupInput,
+    UpdateSomedayListInput,
+    UpdateSomedayTabInput,
     UpdateTaskInput,
     UpdateUserPreferencesInput,
 } from '@erledigen/shared';
@@ -30,7 +32,8 @@ import { DEFAULT_TAG_KINDS, ValidationError } from '@erledigen/shared';
 import { parseBody } from '../../utils/validate';
 import { CreateProjectSchema, UpdateProjectSchema } from './project';
 import { CreateRecurringTaskSchema, UpdateRecurringTaskSchema } from './recurringTask';
-import { CreateSomeDayGroupSchema, UpdateSomeDayGroupSchema } from './someDayGroup';
+import { CreateSomedayListSchema, UpdateSomedayListSchema } from './somedayList';
+import { CreateSomedayTabSchema, UpdateSomedayTabSchema } from './somedayTab';
 import { CreateTaskSchema, UpdateTaskSchema } from './task';
 import { UpdateUserPreferencesSchema } from './userPreferences';
 
@@ -68,7 +71,7 @@ describe('task schemas', () => {
             notes: null,
             tags: ['p1'],
             parentId: null,
-            someDayGroupId: null,
+            somedayListId: null,
             rolloverEnabled: false,
             position: null,
             state: null,
@@ -102,7 +105,7 @@ describe('task schemas', () => {
             date: null,
             tags: [],
             parentId: null,
-            someDayGroupId: null,
+            somedayListId: null,
             dependsOn: 'blocker-id',
             rolloverEnabled: false,
             position: null,
@@ -149,25 +152,43 @@ describe('project schemas', () => {
     });
 });
 
-describe('someday-group schemas', () => {
-    test('CreateSomeDayGroupSchema keeps every CreateSomeDayGroupInput field', () => {
-        const sample: Required<CreateSomeDayGroupInput> = {
+describe('someday-tab schemas', () => {
+    test('CreateSomedayTabSchema keeps every CreateSomedayTabInput field', () => {
+        const sample: Required<CreateSomedayTabInput> = {
             name: 'Parity probe',
-            tag: 'parity-probe',
             position: 0,
-            description: null,
+            projectTag: 'project:parity-probe',
         };
-        parsePreserving(CreateSomeDayGroupSchema, sample);
+        parsePreserving(CreateSomedayTabSchema, sample);
     });
 
-    test('UpdateSomeDayGroupSchema keeps every UpdateSomeDayGroupInput field', () => {
-        const sample: Required<UpdateSomeDayGroupInput> = {
+    test('UpdateSomedayTabSchema keeps every UpdateSomedayTabInput field', () => {
+        const sample: Required<UpdateSomedayTabInput> = {
             name: 'Parity probe',
-            description: null,
-            tag: 'parity-probe',
+            position: 0,
+            projectTag: null,
+        };
+        parsePreserving(UpdateSomedayTabSchema, sample);
+    });
+});
+
+describe('someday-list schemas', () => {
+    test('CreateSomedayListSchema keeps every CreateSomedayListInput field', () => {
+        const sample: Required<CreateSomedayListInput> = {
+            tabId: 'default',
+            name: 'Parity probe',
             position: 0,
         };
-        parsePreserving(UpdateSomeDayGroupSchema, sample);
+        parsePreserving(CreateSomedayListSchema, sample);
+    });
+
+    test('UpdateSomedayListSchema keeps every UpdateSomedayListInput field', () => {
+        const sample: Required<UpdateSomedayListInput> = {
+            tabId: 'default',
+            name: 'Parity probe',
+            position: 0,
+        };
+        parsePreserving(UpdateSomedayListSchema, sample);
     });
 });
 

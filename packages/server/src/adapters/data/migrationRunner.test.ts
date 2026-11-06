@@ -1,5 +1,7 @@
 import { Database } from 'bun:sqlite';
 import { describe, expect, test } from 'bun:test';
+import { readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { runMigrations } from './migrationRunner';
 
 describe('runMigrations', () => {
@@ -15,7 +17,8 @@ describe('runMigrations', () => {
 
         expect(tables).toContain('tasks');
         expect(tables).toContain('projects');
-        expect(tables).toContain('some_day_groups');
+        expect(tables).toContain('someday_tabs');
+        expect(tables).toContain('someday_lists');
         expect(tables).toContain('recurring_tasks');
         expect(tables).toContain('recurring_task_stats');
         expect(tables).toContain('user_preferences');
@@ -57,6 +60,7 @@ describe('runMigrations', () => {
             '010_preferences_appearance.sql',
             '011_preferences_behavior.sql',
             '012_preferences_shortcut_overrides.sql',
+            '013_someday_tabs_lists.sql',
         ]);
     });
 
@@ -112,5 +116,78 @@ describe('runMigrations', () => {
         }>;
         const accent = cols.find(col => col.name === 'accent');
         expect(accent?.dflt_value).toBe("'blue'");
+    });
+
+    test('013 migrates an existing install: groups become lists, the task column renames', () => {
+        // Simulate a v0.15 install: apply everything before 013, then
+        // seed old-shape data (a group with a parked task, plus an
+        // unlisted parked task) and run the pending migration.
+        const db = new Database(':memory:');
+        db.run(`
+            CREATE TABLE _migrations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE,
+                applied_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+            )
+        `);
+        const dir = join(import.meta.dir, 'migrations');
+        for (const name of readdirSync(dir)
+            .filter(f => f.endsWith('.sql') && f < '013_someday_tabs_lists.sql')
+            .sort()) {
+            db.exec(readFileSync(join(dir, name), 'utf8'));
+            db.run('INSERT INTO _migrations (name) VALUES (?)', [name]);
+        }
+        db.run(
+            "INSERT INTO some_day_groups (id, name, description, tag, position, created_at) VALUES ('g1', 'Work', NULL, '#work', 3, '2026-01-01T00:00:00.000Z')",
+        );
+        db.run(
+            "INSERT INTO tasks (id, text, completed, date, created_at, updated_at, tags, some_day_group_id) VALUES ('t1', 'parked idea', 0, NULL, '2026-01-02T00:00:00.000Z', '2026-01-02T00:00:00.000Z', '[]', 'g1')",
+        );
+        db.run(
+            "INSERT INTO tasks (id, text, completed, date, created_at, updated_at, tags, some_day_group_id) VALUES ('t2', 'unlisted idea', 0, NULL, '2026-01-02T00:00:00.000Z', '2026-01-02T00:00:00.000Z', '[]', NULL)",
+        );
+
+        runMigrations(db);
+
+        // The groups table is gone; tabs + lists exist.
+        const tables = (
+            db
+                .query("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name")
+                .all() as Array<{ name: string }>
+        ).map(row => row.name);
+        expect(tables).not.toContain('some_day_groups');
+        expect(tables).toContain('someday_tabs');
+        expect(tables).toContain('someday_lists');
+
+        // The default tab is seeded; the old group became a list under
+        // it, id and position preserved (the tag dies with the v1 model).
+        const tabs = db
+            .query('SELECT id, name, position FROM someday_tabs ORDER BY position')
+            .all() as Array<{ id: string; name: string; position: number }>;
+        expect(tabs).toEqual([{ id: 'default', name: 'Someday', position: 0 }]);
+        const lists = db
+            .query(
+                'SELECT id, tab_id, name, position FROM someday_lists ORDER BY position, created_at',
+            )
+            .all() as Array<{ id: string; tab_id: string; name: string; position: number }>;
+        expect(lists).toEqual([
+            { id: 'default-list', tab_id: 'default', name: 'Someday', position: 0 },
+            { id: 'g1', tab_id: 'default', name: 'Work', position: 3 },
+        ]);
+
+        // The task column renamed; ids keep pointing at their list.
+        const taskCols = db.query("PRAGMA table_info('tasks')").all() as Array<{
+            name: string;
+        }>;
+        expect(taskCols.map(col => col.name)).not.toContain('some_day_group_id');
+        expect(taskCols.map(col => col.name)).toContain('someday_list_id');
+        const parked = db.query('SELECT someday_list_id FROM tasks WHERE id = ?').get('t1') as {
+            someday_list_id: string | null;
+        };
+        expect(parked.someday_list_id).toBe('g1');
+        const unlisted = db.query('SELECT someday_list_id FROM tasks WHERE id = ?').get('t2') as {
+            someday_list_id: string | null;
+        };
+        expect(unlisted.someday_list_id).toBeNull();
     });
 });

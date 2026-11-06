@@ -143,111 +143,113 @@ describe('JsonRestoreImportAdapter', () => {
         const bad = makeSnapshot({ dayNotes: [dayNote, { ...dayNote, id: 'n2' }] });
         expect(() => adapter.import(JSON.stringify(bad))).toThrow(/duplicate dayNote/);
     });
-});
 
-// -- version 1 -> 2 mapping (ADR-026, v0.16.0) ----------------------
+    // -- version 1 -> 2 mapping (ADR-026, v0.16.0) ----------------------
 
-const v1Snapshot = {
-    format: 'erledigen-export',
-    version: 1 as const,
-    exportedAt: '2026-01-15T12:00:00.000Z',
-    tasks: [
-        {
-            ...makeTask({ id: 't1', text: 'parked idea', date: null }),
-            someDayGroupId: 'g1',
-        },
-        makeTask({ id: 't2', text: 'unlisted idea', date: null }),
-    ],
-    someDayGroups: [
-        {
-            id: 'g1',
-            name: 'Work',
-            description: null,
-            tag: '#work',
-            position: 0,
-            createdAt: '2026-01-01T00:00:00.000Z',
-        },
-    ],
-    projects: [],
-    recurringTasks: [],
-    userPreferences: roundTrippable.userPreferences,
-};
-
-test('restores a version-1 snapshot by mapping it forward', () => {
-    const parsed = adapter.import(JSON.stringify(v1Snapshot));
-    expect(parsed.version).toBe(2);
-    // Groups become lists under one default tab, ids preserved.
-    expect(parsed.somedayLists).toEqual([
-        {
-            id: 'g1',
-            tabId: 'default',
-            name: 'Work',
-            position: 0,
-            createdAt: '2026-01-01T00:00:00.000Z',
-        },
-    ]);
-    expect(parsed.somedayTabs).toEqual([
-        {
-            id: 'default',
-            name: 'Someday',
-            position: 0,
-            projectTag: null,
-            createdAt: '2026-01-15T12:00:00.000Z',
-        },
-    ]);
-    // Task someDayGroupId reads as somedayListId.
-    expect(parsed.tasks[0]?.somedayListId).toBe('g1');
-    expect(parsed.tasks[1]?.somedayListId).toBeNull();
-});
-
-test('rejects a v1 snapshot whose group ids collide after mapping', () => {
-    const bad = {
-        ...v1Snapshot,
+    const v1Snapshot = {
+        format: 'erledigen-export',
+        version: 1 as const,
+        exportedAt: '2026-01-15T12:00:00.000Z',
+        tasks: [
+            {
+                ...makeTask({ id: 't1', text: 'parked idea', date: null }),
+                someDayGroupId: 'g1',
+            },
+            makeTask({ id: 't2', text: 'unlisted idea', date: null }),
+        ],
         someDayGroups: [
             {
                 id: 'g1',
-                name: 'A',
-                tag: '#a',
+                name: 'Work',
+                description: null,
+                tag: '#work',
                 position: 0,
                 createdAt: '2026-01-01T00:00:00.000Z',
-                description: null,
-            },
-            {
-                id: 'g1',
-                name: 'B',
-                tag: '#b',
-                position: 1,
-                createdAt: '2026-01-01T00:00:00.000Z',
-                description: null,
             },
         ],
+        projects: [],
+        recurringTasks: [],
+        userPreferences: roundTrippable.userPreferences,
     };
-    expect(() => adapter.import(JSON.stringify(bad))).toThrow(/duplicate somedayList ids/);
-});
 
-test('rejects a v1 snapshot missing someDayGroups', () => {
-    const bad = { ...v1Snapshot } as Record<string, unknown>;
-    delete bad.someDayGroups;
-    expect(() => adapter.import(JSON.stringify(bad))).toThrow(/someDayGroups must be an array/);
-});
-
-test('rejects version 3 (unreleased future version)', () => {
-    const future = { ...roundTrippable, version: 3 };
-    expect(() => adapter.import(JSON.stringify(future))).toThrow(/Unsupported export version: 3/);
-});
-
-test('rejects a v2 snapshot whose list points at a missing tab', () => {
-    const bad = makeSnapshot({
-        somedayTabs: [],
-        somedayLists: [
+    test('restores a version-1 snapshot by mapping it forward', () => {
+        const parsed = adapter.import(JSON.stringify(v1Snapshot));
+        expect(parsed.version).toBe(2);
+        // Groups become lists under one default tab, ids preserved.
+        expect(parsed.somedayLists).toEqual([
             {
-                id: 'l1',
-                tabId: 'missing-tab',
+                id: 'g1',
+                tabId: 'default',
                 name: 'Work',
                 position: 0,
                 createdAt: '2026-01-01T00:00:00.000Z',
             },
-        ],
+        ]);
+        expect(parsed.somedayTabs).toEqual([
+            {
+                id: 'default',
+                name: 'Someday',
+                position: 0,
+                projectTag: null,
+                createdAt: '2026-01-15T12:00:00.000Z',
+            },
+        ]);
+        // Task someDayGroupId reads as somedayListId.
+        expect(parsed.tasks[0]?.somedayListId).toBe('g1');
+        expect(parsed.tasks[1]?.somedayListId).toBeNull();
     });
-    expect(() => adapter.import(JSON.stringify(bad))).toThrow(/tabId missing-tab/);
+
+    test('rejects a v1 snapshot whose group ids collide after mapping', () => {
+        const bad = {
+            ...v1Snapshot,
+            someDayGroups: [
+                {
+                    id: 'g1',
+                    name: 'A',
+                    tag: '#a',
+                    position: 0,
+                    createdAt: '2026-01-01T00:00:00.000Z',
+                    description: null,
+                },
+                {
+                    id: 'g1',
+                    name: 'B',
+                    tag: '#b',
+                    position: 1,
+                    createdAt: '2026-01-01T00:00:00.000Z',
+                    description: null,
+                },
+            ],
+        };
+        expect(() => adapter.import(JSON.stringify(bad))).toThrow(/duplicate somedayList ids/);
+    });
+
+    test('rejects a v1 snapshot missing someDayGroups', () => {
+        const bad = { ...v1Snapshot } as Record<string, unknown>;
+        delete bad['someDayGroups'];
+        expect(() => adapter.import(JSON.stringify(bad))).toThrow(/someDayGroups must be an array/);
+    });
+
+    test('rejects version 3 (unreleased future version)', () => {
+        const future = { ...roundTrippable, version: 3 };
+        expect(() => adapter.import(JSON.stringify(future))).toThrow(
+            /Unsupported export version: 3/,
+        );
+    });
+
+    test('rejects a v2 snapshot whose list points at a missing tab', () => {
+        const bad = makeSnapshot({
+            somedayTabs: [],
+            somedayLists: [
+                {
+                    id: 'l1',
+                    tabId: 'missing-tab',
+                    name: 'Work',
+                    position: 0,
+                    createdAt: '2026-01-01T00:00:00.000Z',
+                },
+            ],
+        });
+        expect(() => adapter.import(JSON.stringify(bad))).toThrow(/tabId missing-tab/);
+    });
 });

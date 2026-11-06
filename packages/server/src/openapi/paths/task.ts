@@ -38,10 +38,7 @@ registry.registerPath({
                 .enum(['true', 'false'])
                 .optional()
                 .openapi({ description: 'Filter by completion status' }),
-            someDayGroupId: z
-                .string()
-                .optional()
-                .openapi({ description: 'Filter by Someday group' }),
+            somedayListId: z.string().optional().openapi({ description: 'Filter by Someday list' }),
             someday: z
                 .enum(['true'])
                 .optional()

@@ -20,7 +20,8 @@ import { registerMetricsRoutes } from './metricsRoutes';
 import { registerOpenApiRoutes } from './openApiRoutes';
 import { registerProjectRoutes } from './projectRoutes';
 import { registerRecurringTaskRoutes } from './recurringTaskRoutes';
-import { registerSomeDayGroupRoutes } from './someDayGroupRoutes';
+import { registerSomedayListRoutes } from './somedayListRoutes';
+import { registerSomedayTabRoutes } from './somedayTabRoutes';
 import { registerTagRoutes } from './tagRoutes';
 import { registerTaskRoutes } from './taskRoutes';
 import { registerUserPreferencesRoutes } from './userPreferencesRoutes';
@@ -62,12 +63,8 @@ export function registerAllRoutes(server: HttpServer, container: Container): voi
         logger,
         container.recurringTaskService,
     );
-    registerSomeDayGroupRoutes(
-        server,
-        container.someDayGroupRepository,
-        container.eventBus,
-        logger,
-    );
+    registerSomedayTabRoutes(server, container.somedayTabRepository, container.eventBus, logger);
+    registerSomedayListRoutes(server, container.somedayListRepository, container.eventBus, logger);
     registerHolidayRoutes(
         server,
         container.holidayRepository,

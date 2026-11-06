@@ -17,12 +17,14 @@ import type { DayNoteRepository } from './DayNoteRepository';
 import type { HolidayRepository } from './HolidayRepository';
 import type { ProjectRepository } from './ProjectRepository';
 import type { RecurringTaskRepository } from './RecurringTaskRepository';
-import type { SomeDayGroupRepository } from './SomeDayGroupRepository';
+import type { SomedayListRepository } from './SomedayListRepository';
+import type { SomedayTabRepository } from './SomedayTabRepository';
 import type { SqliteDayNoteRepository } from './SqliteDayNoteRepository';
 import type { SqliteHolidayRepository } from './SqliteHolidayRepository';
 import type { SqliteProjectRepository } from './SqliteProjectRepository';
 import type { SqliteRecurringTaskRepository } from './SqliteRecurringTaskRepository';
-import type { SqliteSomeDayGroupRepository } from './SqliteSomeDayGroupRepository';
+import type { SqliteSomedayListRepository } from './SqliteSomedayListRepository';
+import type { SqliteSomedayTabRepository } from './SqliteSomedayTabRepository';
 import type { SqliteTaskRepository } from './SqliteTaskRepository';
 import type { SqliteUserPreferencesRepository } from './SqliteUserPreferencesRepository';
 import type { SqliteConnection } from './sqliteConnection';
@@ -42,7 +44,8 @@ export interface SnapshotRestoreWriter {
 export class InMemorySnapshotRestoreWriter implements SnapshotRestoreWriter {
     constructor(
         private readonly taskRepo: TaskRepository,
-        private readonly groupRepo: SomeDayGroupRepository,
+        private readonly tabRepo: SomedayTabRepository,
+        private readonly listRepo: SomedayListRepository,
         private readonly projectRepo: ProjectRepository,
         private readonly recurringRepo: RecurringTaskRepository,
         private readonly holidayRepo: HolidayRepository,
@@ -52,7 +55,8 @@ export class InMemorySnapshotRestoreWriter implements SnapshotRestoreWriter {
 
     async writeAll(snapshot: ExportSnapshot): Promise<void> {
         await this.taskRepo.replaceAll(snapshot.tasks);
-        await this.groupRepo.replaceAll(snapshot.someDayGroups);
+        await this.tabRepo.replaceAll(snapshot.somedayTabs);
+        await this.listRepo.replaceAll(snapshot.somedayLists);
         await this.projectRepo.replaceAll(snapshot.projects);
         await this.recurringRepo.replaceAll(snapshot.recurringTasks);
         await this.holidayRepo.replaceAll(snapshot.holidays);
@@ -67,7 +71,8 @@ export class SqliteSnapshotRestoreWriter implements SnapshotRestoreWriter {
     constructor(
         private readonly connection: SqliteConnection,
         private readonly taskRepo: SqliteTaskRepository,
-        private readonly groupRepo: SqliteSomeDayGroupRepository,
+        private readonly tabRepo: SqliteSomedayTabRepository,
+        private readonly listRepo: SqliteSomedayListRepository,
         private readonly projectRepo: SqliteProjectRepository,
         private readonly recurringRepo: SqliteRecurringTaskRepository,
         private readonly holidayRepo: SqliteHolidayRepository,
@@ -81,7 +86,8 @@ export class SqliteSnapshotRestoreWriter implements SnapshotRestoreWriter {
         // savepoints (bun:sqlite supports nested transactions).
         this.connection.transaction(() => {
             this.taskRepo.replaceAllSync(snapshot.tasks);
-            this.groupRepo.replaceAllSync(snapshot.someDayGroups);
+            this.tabRepo.replaceAllSync(snapshot.somedayTabs);
+            this.listRepo.replaceAllSync(snapshot.somedayLists);
             this.projectRepo.replaceAllSync(snapshot.projects);
             this.recurringRepo.replaceAllSync(snapshot.recurringTasks);
             this.holidayRepo.replaceAllSync(snapshot.holidays);

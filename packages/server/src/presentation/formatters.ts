@@ -7,7 +7,8 @@ import type {
     Holiday,
     Project,
     RecurringTask,
-    SomeDayGroup,
+    SomedayList,
+    SomedayTab,
     Task,
     UserPreferences,
 } from '@erledigen/shared';
@@ -35,14 +36,16 @@ export function formatProjectsAsText(projects: Project[]): string {
         .join('\n');
 }
 
-export function formatGroupsAsText(groups: SomeDayGroup[]): string {
-    if (groups.length === 0) return 'No Someday groups found.';
-    return groups
-        .map(
-            g =>
-                `[${g.position}] ${g.name} (#${g.tag})${g.description ? `  ${g.description}` : ''}`,
-        )
+export function formatTabsAsText(tabs: SomedayTab[]): string {
+    if (tabs.length === 0) return 'No Someday tabs found.';
+    return tabs
+        .map(t => `[${t.position}] ${t.name}${t.projectTag ? `  (#${t.projectTag})` : ''}`)
         .join('\n');
+}
+
+export function formatListsAsText(lists: SomedayList[]): string {
+    if (lists.length === 0) return 'No Someday lists found.';
+    return lists.map(l => `[${l.position}] ${l.name} (tab ${l.tabId})`).join('\n');
 }
 
 export function formatRecurringTasksAsText(tasks: RecurringTask[]): string {
