@@ -79,6 +79,17 @@ export function runProjectRepositoryContractTests(makeRepo: () => ProjectReposit
             expect(updated?.completedAt).toBe('2026-04-06T00:00:00.000Z');
             expect(updated?.name).toBe('Original');
         });
+
+        test('creates with the hill at 0 and drags it along the update path', async () => {
+            const repo = makeRepo();
+            const created = await repo.create({ name: 'Hill' });
+            expect(created.hillPosition).toBe(0);
+            const updated = await repo.update(created.id, { hillPosition: 60 });
+            expect(updated?.hillPosition).toBe(60);
+            // The hill never moves on its own (ADR-011).
+            const untouched = await repo.update(created.id, { name: 'Hill 2' });
+            expect(untouched?.hillPosition).toBe(60);
+        });
     });
 
     describe('delete', () => {
@@ -94,6 +105,7 @@ export function runProjectRepositoryContractTests(makeRepo: () => ProjectReposit
                         description: null,
                         startDate: null,
                         dueDate: null,
+                        hillPosition: 30,
                         createdAt: '2026-01-01T00:00:00.000Z',
                         completedAt: null,
                     },

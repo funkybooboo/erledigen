@@ -129,6 +129,7 @@ describe('project schemas', () => {
     test('CreateProjectSchema keeps every CreateProjectInput field', () => {
         const sample: Required<CreateProjectInput> = {
             name: 'Parity probe',
+            hillPosition: 0,
             tag: 'project:parity-probe',
             description: null,
             startDate: '2026-09-02',
@@ -139,6 +140,7 @@ describe('project schemas', () => {
 
     test('UpdateProjectSchema keeps every UpdateProjectInput field', () => {
         const sample: Required<UpdateProjectInput> = {
+            hillPosition: 42,
             name: 'Parity probe',
             tag: 'project:parity-probe',
             description: null,

@@ -67,6 +67,7 @@ describe('runMigrations', () => {
             '012_preferences_shortcut_overrides.sql',
             '013_someday_tabs_lists.sql',
             '014_drop_project_is_active.sql',
+            '015_project_hill_position.sql',
         ]);
     });
 

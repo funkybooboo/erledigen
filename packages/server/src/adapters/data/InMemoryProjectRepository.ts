@@ -33,6 +33,7 @@ export class InMemoryProjectRepository implements ProjectRepository {
             description: input.description ?? null,
             startDate: input.startDate ?? null,
             dueDate: input.dueDate ?? null,
+            hillPosition: input.hillPosition ?? 0,
             createdAt: this.dateProvider.timestamp(),
             completedAt: null,
         };

@@ -18,6 +18,10 @@ export const ProjectSchema = registry.register(
             description: z.string().nullable(),
             startDate: z.string().nullable().openapi({ description: 'ISO 8601 date (YYYY-MM-DD)' }),
             dueDate: z.string().nullable().openapi({ description: 'ISO 8601 date (YYYY-MM-DD)' }),
+            hillPosition: z.number().int().min(0).max(100).openapi({
+                description:
+                    'The user-dragged hill marker (0-100). No percentages are displayed; nothing moves it but the user.',
+            }),
             createdAt: z.string(),
             completedAt: z.string().nullable(),
         })
@@ -36,6 +40,7 @@ export const CreateProjectSchema = registry.register(
             description: z.string().nullable().optional(),
             startDate: z.string().nullable().optional(),
             dueDate: z.string().nullable().optional(),
+            hillPosition: z.number().int().min(0).max(100).optional(),
         })
         .openapi('CreateProjectInput'),
 );
@@ -49,6 +54,7 @@ export const UpdateProjectSchema = registry.register(
             description: z.string().nullable().optional(),
             startDate: z.string().nullable().optional(),
             dueDate: z.string().nullable().optional(),
+            hillPosition: z.number().int().min(0).max(100).optional(),
             completedAt: z.string().nullable().optional(),
         })
         .openapi('UpdateProjectInput'),

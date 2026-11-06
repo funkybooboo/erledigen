@@ -10,6 +10,11 @@ export interface Project {
     description: string | null;
     startDate: string | null;
     dueDate: string | null;
+    /** The hill progress marker (USE-17, ADR-011): one user-dragged
+     *  position 0-100 -- uphill = figuring it out, top = scope settled,
+     *  downhill = executing. No percentages are ever displayed, and
+     *  nothing moves it but the user. */
+    hillPosition: number;
     createdAt: string;
     completedAt: string | null;
 }
@@ -24,6 +29,7 @@ export type CreateProjectInput = {
     description?: string | null;
     startDate?: string | null;
     dueDate?: string | null;
+    hillPosition?: number;
 };
 
 /**
@@ -35,5 +41,6 @@ export type UpdateProjectInput = Partial<{
     description: string | null;
     startDate: string | null;
     dueDate: string | null;
+    hillPosition: number;
     completedAt: string | null;
 }>;
