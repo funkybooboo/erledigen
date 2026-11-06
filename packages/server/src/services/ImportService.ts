@@ -86,7 +86,8 @@ export class ImportService {
             created: 0,
             restored: {
                 tasks: snapshot.tasks.length,
-                someDayGroups: snapshot.someDayGroups.length,
+                somedayTabs: snapshot.somedayTabs.length,
+                somedayLists: snapshot.somedayLists.length,
                 projects: snapshot.projects.length,
                 recurringTasks: snapshot.recurringTasks.length,
                 holidays: snapshot.holidays.length,

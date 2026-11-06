@@ -25,7 +25,7 @@ export function runTaskRepositoryContractTests(makeRepo: () => TaskRepository): 
             expect(task.tags).toEqual([]);
             expect(task.parentId).toBeNull();
             expect(task.rolloverEnabled).toBe(false);
-            expect(task.someDayGroupId).toBeNull();
+            expect(task.somedayListId).toBeNull();
             expect(task.position).toBeNull();
             expect(task.state).toBeNull();
             expect(task.recurringTaskId).toBeNull();
@@ -47,7 +47,7 @@ export function runTaskRepositoryContractTests(makeRepo: () => TaskRepository): 
                 notes: 'Agenda: sprint review',
                 startTime: '09:00',
                 endTime: '10:00',
-                someDayGroupId: 'g1',
+                somedayListId: 'g1',
                 rolloverEnabled: true,
                 state: 'scheduled',
             });
@@ -55,7 +55,7 @@ export function runTaskRepositoryContractTests(makeRepo: () => TaskRepository): 
             expect(task.notes).toBe('Agenda: sprint review');
             expect(task.startTime).toBe('09:00');
             expect(task.endTime).toBe('10:00');
-            expect(task.someDayGroupId).toBe('g1');
+            expect(task.somedayListId).toBe('g1');
             expect(task.rolloverEnabled).toBe(true);
             expect(task.state).toBe('scheduled');
         });
@@ -317,15 +317,15 @@ export function runTaskRepositoryContractTests(makeRepo: () => TaskRepository): 
         });
     });
 
-    describe('findBySomeDayGroup', () => {
-        test('returns tasks belonging to a specific group', async () => {
+    describe('findBySomedayList', () => {
+        test('returns tasks belonging to a specific list', async () => {
             const repo = makeRepo();
-            await repo.create({ text: 'In group', date: null, someDayGroupId: 'g1' });
-            await repo.create({ text: 'Other group', date: null, someDayGroupId: 'g2' });
-            await repo.create({ text: 'No group', date: null });
-            const results = await repo.findBySomeDayGroup('g1');
+            await repo.create({ text: 'In list', date: null, somedayListId: 'g1' });
+            await repo.create({ text: 'Other list', date: null, somedayListId: 'g2' });
+            await repo.create({ text: 'No list', date: null });
+            const results = await repo.findBySomedayList('g1');
             expect(results.length).toBe(1);
-            expect(results[0]?.text).toBe('In group');
+            expect(results[0]?.text).toBe('In list');
         });
     });
 
@@ -525,7 +525,7 @@ export function runTaskRepositoryContractTests(makeRepo: () => TaskRepository): 
                         tags: [],
                         parentId: null,
                         rolloverEnabled: false,
-                        someDayGroupId: null,
+                        somedayListId: null,
                         position: null,
                         state: null,
                         recurringTaskId: null,
@@ -564,7 +564,7 @@ export function runTaskRepositoryContractTests(makeRepo: () => TaskRepository): 
                         tags: [],
                         parentId: null,
                         rolloverEnabled: false,
-                        someDayGroupId: null,
+                        somedayListId: null,
                         position: null,
                         state: null,
                         recurringTaskId: null,

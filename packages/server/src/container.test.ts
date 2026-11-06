@@ -16,7 +16,8 @@ describe('Container', () => {
         expect(container.taskRepository).toBeDefined();
         expect(container.logger).toBeDefined();
         expect(container.dateProvider).toBeDefined();
-        expect(container.someDayGroupRepository).toBeDefined();
+        expect(container.somedayTabRepository).toBeDefined();
+        expect(container.somedayListRepository).toBeDefined();
         expect(container.projectRepository).toBeDefined();
         expect(container.recurringTaskRepository).toBeDefined();
         expect(container.userPreferencesRepository).toBeDefined();
@@ -29,8 +30,8 @@ describe('Container', () => {
         const config2 = container.config;
         expect(config1).toBe(config2);
 
-        const repo1 = container.someDayGroupRepository;
-        const repo2 = container.someDayGroupRepository;
+        const repo1 = container.somedayTabRepository;
+        const repo2 = container.somedayTabRepository;
         expect(repo1).toBe(repo2);
     });
 });

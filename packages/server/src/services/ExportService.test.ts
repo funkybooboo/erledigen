@@ -11,7 +11,8 @@ import { InMemoryDayNoteRepository } from '../adapters/data/InMemoryDayNoteRepos
 import { InMemoryHolidayRepository } from '../adapters/data/InMemoryHolidayRepository';
 import { InMemoryProjectRepository } from '../adapters/data/InMemoryProjectRepository';
 import { InMemoryRecurringTaskRepository } from '../adapters/data/InMemoryRecurringTaskRepository';
-import { InMemorySomeDayGroupRepository } from '../adapters/data/InMemorySomeDayGroupRepository';
+import { InMemorySomedayListRepository } from '../adapters/data/InMemorySomedayListRepository';
+import { InMemorySomedayTabRepository } from '../adapters/data/InMemorySomedayTabRepository';
 import { InMemoryTaskRepository } from '../adapters/data/InMemoryTaskRepository';
 import { InMemoryUserPreferencesRepository } from '../adapters/data/InMemoryUserPreferencesRepository';
 import { ExportService } from './ExportService';
@@ -19,7 +20,8 @@ import { ExportService } from './ExportService';
 function makeService() {
     const dateProvider = new NativeDateProvider();
     const taskRepo = new InMemoryTaskRepository(dateProvider);
-    const someDayGroupRepo = new InMemorySomeDayGroupRepository(dateProvider);
+    const somedayTabRepo = new InMemorySomedayTabRepository(dateProvider);
+    const somedayListRepo = new InMemorySomedayListRepository(dateProvider);
     const projectRepo = new InMemoryProjectRepository(dateProvider);
     const recurringTaskRepo = new InMemoryRecurringTaskRepository(dateProvider);
     const holidayRepo = new InMemoryHolidayRepository(dateProvider);
@@ -27,7 +29,8 @@ function makeService() {
     const preferencesRepo = new InMemoryUserPreferencesRepository(dateProvider);
     const service = new ExportService(
         taskRepo,
-        someDayGroupRepo,
+        somedayTabRepo,
+        somedayListRepo,
         projectRepo,
         recurringTaskRepo,
         holidayRepo,
@@ -35,7 +38,7 @@ function makeService() {
         preferencesRepo,
         dateProvider,
     );
-    return { service, taskRepo, someDayGroupRepo, projectRepo, recurringTaskRepo };
+    return { service, taskRepo, somedayTabRepo, somedayListRepo, projectRepo, recurringTaskRepo };
 }
 
 describe('ExportService', () => {
@@ -48,12 +51,15 @@ describe('ExportService', () => {
         const snapshot = await service.buildSnapshot();
 
         expect(snapshot.format).toBe('erledigen-export');
-        expect(snapshot.version).toBe(1);
+        expect(snapshot.version).toBe(2);
         expect(snapshot.tasks.map(t => t.id)).toContain(task.id);
         // Soft-deleted rows stay in the snapshot -- a backup that loses the
         // trash is not lossless.
         const trashedRow = snapshot.tasks.find(t => t.id === trashed.id);
         expect(trashedRow?.deletedAt).not.toBeNull();
+        // The seeded default tab + list ride along like any other row.
+        expect(snapshot.somedayTabs.map(t => t.id)).toContain('default');
+        expect(snapshot.somedayLists.map(l => l.id)).toContain('default-list');
         expect(snapshot.userPreferences.id).toBe('default');
     });
 

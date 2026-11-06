@@ -2,19 +2,27 @@
  * JsonRestoreImportAdapter -- parses an Erledigen export snapshot for a
  * destructive restore (ADR-008/ADR-009).
  *
+ * Accepts every RELEASED snapshot version (ADR-008: exports are written
+ * years before they are read). Version 1 documents are mapped forward
+ * onto the version-2 model before validation (ADR-026): Someday groups
+ * become lists under one default tab, the group tags are dropped, and
+ * `someDayGroupId` reads as `somedayListId`.
+ *
  * Validation is strict: a restore rewrites every table, so the snapshot
- * must be a complete, self-consistent version-1 document before the
- * service wipes anything. Row-level problems are FATAL here (unlike the
- * additive import adapters, which skip bad rows and warn) -- a
- * half-restored backup silently violates the lossless contract.
+ * must be a complete, self-consistent document before the service wipes
+ * anything. Row-level problems are FATAL here (unlike the additive
+ * import adapters, which skip bad rows and warn) -- a half-restored
+ * backup silently violates the lossless contract.
  */
 
+import { DEFAULT_SOMEDAY_TAB_ID } from '../../constants';
 import type { DayNote } from '../../types/dayNote';
 import type { ExportSnapshot } from '../../types/export';
 import type { Holiday } from '../../types/holiday';
 import type { Project } from '../../types/project';
 import type { RecurringTask } from '../../types/recurringTask';
-import type { SomeDayGroup } from '../../types/someDayGroup';
+import type { SomedayList } from '../../types/somedayList';
+import type { SomedayTab } from '../../types/somedayTab';
 import type { Task } from '../../types/task';
 import type { ActiveFilters, UserPreferences } from '../../types/userPreferences';
 import { normalizeActiveFilters } from '../../types/userPreferences';
@@ -54,7 +62,7 @@ interface TaskRow {
     tags?: unknown;
     parentId?: unknown;
     rolloverEnabled?: unknown;
-    someDayGroupId?: unknown;
+    somedayListId?: unknown;
     position?: unknown;
     state?: unknown;
     recurringTaskId?: unknown;
@@ -68,7 +76,24 @@ interface TaskRow {
     deletedAt?: unknown;
 }
 
-interface SomeDayGroupRow {
+interface SomedayTabRow {
+    id?: unknown;
+    name?: unknown;
+    position?: unknown;
+    projectTag?: unknown;
+    createdAt?: unknown;
+}
+
+interface SomedayListRow {
+    id?: unknown;
+    tabId?: unknown;
+    name?: unknown;
+    position?: unknown;
+    createdAt?: unknown;
+}
+
+/** A version-1 Someday group row (mapped forward, ADR-026). */
+interface SomeDayGroupV1Row {
     id?: unknown;
     name?: unknown;
     description?: unknown;
@@ -192,7 +217,7 @@ function validateTask(task: unknown, index: number): Task {
     if (!isStringArray(t.tags)) fail('tags must be an array of strings');
     if (!optionalString(t.notes)) fail('notes must be null or a string');
     if (!optionalString(t.parentId)) fail('parentId must be null or a string');
-    if (!optionalString(t.someDayGroupId)) fail('someDayGroupId must be null or a string');
+    if (!optionalString(t.somedayListId)) fail('somedayListId must be null or a string');
     if (!optionalString(t.recurringTaskId)) fail('recurringTaskId must be null or a string');
     if (!optionalString(t.instanceDate)) fail('instanceDate must be null or a string');
     if (!optionalString(t.originalScheduledDate))
@@ -228,7 +253,7 @@ function validateTask(task: unknown, index: number): Task {
         ...(task as Task),
         notes: (t.notes as string | null) ?? null,
         parentId: (t.parentId as string | null) ?? null,
-        someDayGroupId: (t.someDayGroupId as string | null) ?? null,
+        somedayListId: (t.somedayListId as string | null) ?? null,
         recurringTaskId: (t.recurringTaskId as string | null) ?? null,
         instanceDate: (t.instanceDate as string | null) ?? null,
         originalScheduledDate: (t.originalScheduledDate as string | null) ?? null,
@@ -242,35 +267,36 @@ function validateTask(task: unknown, index: number): Task {
     };
 }
 
-function validateSomeDayGroup(group: unknown, index: number): SomeDayGroup {
-    const where = `someDayGroups[${index}]`;
-    if (!isRecord(group)) {
-        throw new ImportValidationError(`Invalid snapshot: ${where}: expected a group object`);
-    }
-    const g = group as SomeDayGroupRow;
-    if (typeof g.id !== 'string' || g.id === '')
-        throw new ImportValidationError(
-            `Invalid snapshot: ${where}: id must be a non-empty string`,
-        );
-    if (typeof g.name !== 'string' || g.name === '')
-        throw new ImportValidationError(
-            `Invalid snapshot: ${where}: name must be a non-empty string`,
-        );
-    if (typeof g.tag !== 'string' || g.tag === '')
-        throw new ImportValidationError(
-            `Invalid snapshot: ${where}: tag must be a non-empty string`,
-        );
-    if (typeof g.position !== 'number')
-        throw new ImportValidationError(`Invalid snapshot: ${where}: position must be a number`);
-    if (typeof g.createdAt !== 'string' || !ISO_TIMESTAMP.test(g.createdAt))
-        throw new ImportValidationError(
-            `Invalid snapshot: ${where}: createdAt must be an ISO 8601 timestamp`,
-        );
-    if (!optionalString(g.description))
-        throw new ImportValidationError(
-            `Invalid snapshot: ${where}: description must be null or a string`,
-        );
-    return group as unknown as SomeDayGroup;
+function validateSomedayTab(tab: unknown, index: number): SomedayTab {
+    const where = `somedayTabs[${index}]`;
+    const fail = (msg: string): never => {
+        throw new ImportValidationError(`Invalid snapshot: ${where}: ${msg}`);
+    };
+    if (!isRecord(tab)) fail('expected a tab object');
+    const t = tab as SomedayTabRow;
+    if (typeof t.id !== 'string' || t.id === '') fail('id must be a non-empty string');
+    if (typeof t.name !== 'string' || t.name === '') fail('name must be a non-empty string');
+    if (typeof t.position !== 'number') fail('position must be a number');
+    if (!optionalString(t.projectTag)) fail('projectTag must be null or a string');
+    if (typeof t.createdAt !== 'string' || !ISO_TIMESTAMP.test(t.createdAt))
+        fail('createdAt must be an ISO 8601 timestamp');
+    return tab as unknown as SomedayTab;
+}
+
+function validateSomedayList(list: unknown, index: number): SomedayList {
+    const where = `somedayLists[${index}]`;
+    const fail = (msg: string): never => {
+        throw new ImportValidationError(`Invalid snapshot: ${where}: ${msg}`);
+    };
+    if (!isRecord(list)) fail('expected a list object');
+    const l = list as SomedayListRow;
+    if (typeof l.id !== 'string' || l.id === '') fail('id must be a non-empty string');
+    if (typeof l.tabId !== 'string' || l.tabId === '') fail('tabId must be a non-empty string');
+    if (typeof l.name !== 'string' || l.name === '') fail('name must be a non-empty string');
+    if (typeof l.position !== 'number') fail('position must be a number');
+    if (typeof l.createdAt !== 'string' || !ISO_TIMESTAMP.test(l.createdAt))
+        fail('createdAt must be an ISO 8601 timestamp');
+    return list as unknown as SomedayList;
 }
 
 function validateProject(project: unknown, index: number): Project {
@@ -414,8 +440,17 @@ function validateUserPreferences(prefs: unknown): UserPreferences {
  *  restore there is no other data for them to point at. */
 function validateReferences(snapshot: ExportSnapshot): void {
     const taskIds = new Set(snapshot.tasks.map(t => t.id));
-    const groupIds = new Set(snapshot.someDayGroups.map(g => g.id));
+    const tabIds = new Set(snapshot.somedayTabs.map(t => t.id));
+    const listIds = new Set(snapshot.somedayLists.map(l => l.id));
     const recurringIds = new Set(snapshot.recurringTasks.map(r => r.id));
+
+    for (const [index, list] of snapshot.somedayLists.entries()) {
+        if (!tabIds.has(list.tabId)) {
+            throw new ImportValidationError(
+                `Invalid snapshot: somedayLists[${index}] (${list.id}): tabId ${list.tabId} does not exist in the snapshot`,
+            );
+        }
+    }
 
     for (const [index, task] of snapshot.tasks.entries()) {
         const where = `tasks[${index}] (${task.id})`;
@@ -424,9 +459,9 @@ function validateReferences(snapshot: ExportSnapshot): void {
                 `Invalid snapshot: ${where}: parentId ${task.parentId} does not exist in the snapshot`,
             );
         }
-        if (task.someDayGroupId !== null && !groupIds.has(task.someDayGroupId)) {
+        if (task.somedayListId !== null && !listIds.has(task.somedayListId)) {
             throw new ImportValidationError(
-                `Invalid snapshot: ${where}: someDayGroupId ${task.someDayGroupId} does not exist in the snapshot`,
+                `Invalid snapshot: ${where}: somedayListId ${task.somedayListId} does not exist in the snapshot`,
             );
         }
         if (task.recurringTaskId !== null && !recurringIds.has(task.recurringTaskId)) {
@@ -442,10 +477,48 @@ function validateReferences(snapshot: ExportSnapshot): void {
     }
 }
 
+/** Map a version-1 document forward onto the version-2 model
+ *  (ADR-026): Someday groups become lists under one default tab (ids
+ *  preserved, group tags and descriptions dropped), and task
+ *  `someDayGroupId` reads as `somedayListId`. */
+function mapV1Forward(doc: Parsed & { someDayGroups?: unknown }, exportedAt: string): Parsed {
+    if (!Array.isArray(doc.someDayGroups)) {
+        throw new ImportValidationError('Invalid snapshot: someDayGroups must be an array');
+    }
+    return {
+        ...doc,
+        somedayTabs: [
+            {
+                id: DEFAULT_SOMEDAY_TAB_ID,
+                name: 'Someday',
+                position: 0,
+                projectTag: null,
+                createdAt: exportedAt,
+            },
+        ],
+        somedayLists: doc.someDayGroups.map(group => {
+            const g = group as SomeDayGroupV1Row;
+            return {
+                id: g.id,
+                tabId: DEFAULT_SOMEDAY_TAB_ID,
+                name: g.name,
+                position: g.position,
+                createdAt: g.createdAt,
+            };
+        }),
+        tasks: (Array.isArray(doc.tasks) ? doc.tasks : []).map(task => {
+            const t = task as Record<string, unknown> & { someDayGroupId?: unknown };
+            const { someDayGroupId, ...rest } = t;
+            return { ...rest, somedayListId: someDayGroupId ?? null };
+        }),
+    };
+}
+
 export class JsonRestoreImportAdapter implements ImportAdapter<ExportSnapshot> {
     readonly format = 'json';
 
-    /** Parse and validate a version-1 Erledigen export snapshot. */
+    /** Parse and validate an Erledigen export snapshot -- version 1 or
+     *  version 2 (v1 documents map forward first, ADR-026). */
     import(source: string): ExportSnapshot {
         let parsed: unknown;
         try {
@@ -456,24 +529,37 @@ export class JsonRestoreImportAdapter implements ImportAdapter<ExportSnapshot> {
         if (!isRecord(parsed)) {
             throw new ImportValidationError('Expected an Erledigen export snapshot object');
         }
-        const doc = parsed as Parsed;
+        let doc = parsed as Parsed;
 
         if (doc.format !== 'erledigen-export') {
             throw new ImportValidationError(
                 "Not an Erledigen export: missing format: 'erledigen-export'",
             );
         }
-        if (doc.version !== 1) {
+        if (doc.version !== 1 && doc.version !== 2) {
             throw new ImportValidationError(
-                `Unsupported export version: ${String(doc.version)} (this server restores version 1)`,
+                `Unsupported export version: ${String(doc.version)} (this server restores versions 1 and 2)`,
             );
+        }
+        if (typeof doc.exportedAt !== 'string' || !ISO_TIMESTAMP.test(doc.exportedAt)) {
+            throw new ImportValidationError(
+                'Invalid snapshot: exportedAt must be an ISO 8601 timestamp',
+            );
+        }
+        const exportedAt: string = doc.exportedAt;
+
+        if (doc.version === 1) {
+            doc = mapV1Forward(doc, exportedAt);
         }
 
         if (!Array.isArray(doc.tasks)) {
             throw new ImportValidationError('Invalid snapshot: tasks must be an array');
         }
-        if (!Array.isArray(doc.someDayGroups)) {
-            throw new ImportValidationError('Invalid snapshot: someDayGroups must be an array');
+        if (!Array.isArray(doc.somedayTabs)) {
+            throw new ImportValidationError('Invalid snapshot: somedayTabs must be an array');
+        }
+        if (!Array.isArray(doc.somedayLists)) {
+            throw new ImportValidationError('Invalid snapshot: somedayLists must be an array');
         }
         if (!Array.isArray(doc.projects)) {
             throw new ImportValidationError('Invalid snapshot: projects must be an array');
@@ -493,18 +579,14 @@ export class JsonRestoreImportAdapter implements ImportAdapter<ExportSnapshot> {
         if (doc.dayNotes !== undefined && !Array.isArray(doc.dayNotes)) {
             throw new ImportValidationError('Invalid snapshot: dayNotes must be an array');
         }
-        if (typeof doc.exportedAt !== 'string' || !ISO_TIMESTAMP.test(doc.exportedAt)) {
-            throw new ImportValidationError(
-                'Invalid snapshot: exportedAt must be an ISO 8601 timestamp',
-            );
-        }
 
         const snapshot: ExportSnapshot = {
             format: 'erledigen-export',
-            version: 1,
-            exportedAt: doc.exportedAt,
+            version: 2,
+            exportedAt,
             tasks: doc.tasks.map(validateTask),
-            someDayGroups: doc.someDayGroups.map(validateSomeDayGroup),
+            somedayTabs: doc.somedayTabs.map(validateSomedayTab),
+            somedayLists: doc.somedayLists.map(validateSomedayList),
             projects: doc.projects.map(validateProject),
             recurringTasks: doc.recurringTasks.map(validateRecurringTask),
             holidays: (doc.holidays ?? []).map(validateHoliday),
@@ -514,7 +596,8 @@ export class JsonRestoreImportAdapter implements ImportAdapter<ExportSnapshot> {
 
         for (const [kind, ids] of [
             ['task', snapshot.tasks.map(t => t.id)],
-            ['someDayGroup', snapshot.someDayGroups.map(g => g.id)],
+            ['somedayTab', snapshot.somedayTabs.map(t => t.id)],
+            ['somedayList', snapshot.somedayLists.map(l => l.id)],
             ['project', snapshot.projects.map(p => p.id)],
             ['recurringTask', snapshot.recurringTasks.map(r => r.id)],
             ['holiday', snapshot.holidays.map(h => h.id)],

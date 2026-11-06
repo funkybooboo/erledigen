@@ -30,7 +30,7 @@ export interface TaskRepository {
     update(id: string, input: UpdateTaskInput): Promise<Task | null>;
     delete(id: string): Promise<boolean>;
     findSomeday(): Promise<Task[]>;
-    findBySomeDayGroup(groupId: string): Promise<Task[]>;
+    findBySomedayList(listId: string): Promise<Task[]>;
     findByRecurringTaskId(recurringTaskId: string): Promise<Task[]>;
     findChildren(parentId: string): Promise<Task[]>;
     findByTags(tags: string[]): Promise<Task[]>;

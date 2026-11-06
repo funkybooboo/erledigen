@@ -18,7 +18,8 @@ export const ImportResultSchema = registry.register(
         restored: z
             .object({
                 tasks: z.number(),
-                someDayGroups: z.number(),
+                somedayTabs: z.number(),
+                somedayLists: z.number(),
                 projects: z.number(),
                 recurringTasks: z.number(),
                 holidays: z.number(),

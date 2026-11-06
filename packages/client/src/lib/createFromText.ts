@@ -27,7 +27,7 @@ interface CreateFromTextOptions {
      *  start date fallback for a habit (defaults to today). */
     date?: string;
     /** Someday group for a plain task. */
-    someDayGroupId?: string | null;
+    somedayListId?: string | null;
 }
 
 type CreatedFromText =
@@ -97,7 +97,7 @@ export async function createFromText(
         date: datePhrase ? datePhrase.date : options.date || null,
     };
     if (inlineTags.tags.length > 0) input.tags = inlineTags.tags;
-    if (options.someDayGroupId) input.someDayGroupId = options.someDayGroupId;
+    if (options.somedayListId) input.somedayListId = options.somedayListId;
     const task = await taskStore.create(input);
     return task ? { kind: 'task', task } : null;
 }

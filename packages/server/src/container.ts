@@ -36,7 +36,8 @@ import { InMemoryDayNoteRepository } from './adapters/data/InMemoryDayNoteReposi
 import { InMemoryHolidayRepository } from './adapters/data/InMemoryHolidayRepository';
 import { InMemoryProjectRepository } from './adapters/data/InMemoryProjectRepository';
 import { InMemoryRecurringTaskRepository } from './adapters/data/InMemoryRecurringTaskRepository';
-import { InMemorySomeDayGroupRepository } from './adapters/data/InMemorySomeDayGroupRepository';
+import { InMemorySomedayListRepository } from './adapters/data/InMemorySomedayListRepository';
+import { InMemorySomedayTabRepository } from './adapters/data/InMemorySomedayTabRepository';
 import { InMemoryTaskRepository } from './adapters/data/InMemoryTaskRepository';
 import { InMemoryUserPreferencesRepository } from './adapters/data/InMemoryUserPreferencesRepository';
 import type { ProjectRepository } from './adapters/data/ProjectRepository';
@@ -46,12 +47,14 @@ import {
     type SnapshotRestoreWriter,
     SqliteSnapshotRestoreWriter,
 } from './adapters/data/SnapshotRestoreWriter';
-import type { SomeDayGroupRepository } from './adapters/data/SomeDayGroupRepository';
+import type { SomedayListRepository } from './adapters/data/SomedayListRepository';
+import type { SomedayTabRepository } from './adapters/data/SomedayTabRepository';
 import { SqliteDayNoteRepository } from './adapters/data/SqliteDayNoteRepository';
 import { SqliteHolidayRepository } from './adapters/data/SqliteHolidayRepository';
 import { SqliteProjectRepository } from './adapters/data/SqliteProjectRepository';
 import { SqliteRecurringTaskRepository } from './adapters/data/SqliteRecurringTaskRepository';
-import { SqliteSomeDayGroupRepository } from './adapters/data/SqliteSomeDayGroupRepository';
+import { SqliteSomedayListRepository } from './adapters/data/SqliteSomedayListRepository';
+import { SqliteSomedayTabRepository } from './adapters/data/SqliteSomedayTabRepository';
 import { SqliteTaskRepository } from './adapters/data/SqliteTaskRepository';
 import { SqliteUserPreferencesRepository } from './adapters/data/SqliteUserPreferencesRepository';
 import { SqliteConnection } from './adapters/data/sqliteConnection';
@@ -89,7 +92,8 @@ export class Container {
     private _httpServer: HttpServer | null = null;
     private _httpClient: HttpClient | null = null;
     private _taskRepository: TaskRepository | null = null;
-    private _someDayGroupRepository: SomeDayGroupRepository | null = null;
+    private _somedayTabRepository: SomedayTabRepository | null = null;
+    private _somedayListRepository: SomedayListRepository | null = null;
     private _holidayRepository: HolidayRepository | null = null;
     private _dayNoteRepository: DayNoteRepository | null = null;
     private _projectRepository: ProjectRepository | null = null;
@@ -259,14 +263,24 @@ export class Container {
         return this._logger;
     }
 
-    get someDayGroupRepository(): SomeDayGroupRepository {
-        if (!this._someDayGroupRepository) {
-            this._someDayGroupRepository =
+    get somedayTabRepository(): SomedayTabRepository {
+        if (!this._somedayTabRepository) {
+            this._somedayTabRepository =
                 this.storageAdapter === 'sqlite'
-                    ? new SqliteSomeDayGroupRepository(this.sqliteConnection.db, this.dateProvider)
-                    : new InMemorySomeDayGroupRepository(this.dateProvider);
+                    ? new SqliteSomedayTabRepository(this.sqliteConnection.db, this.dateProvider)
+                    : new InMemorySomedayTabRepository(this.dateProvider);
         }
-        return this._someDayGroupRepository;
+        return this._somedayTabRepository;
+    }
+
+    get somedayListRepository(): SomedayListRepository {
+        if (!this._somedayListRepository) {
+            this._somedayListRepository =
+                this.storageAdapter === 'sqlite'
+                    ? new SqliteSomedayListRepository(this.sqliteConnection.db, this.dateProvider)
+                    : new InMemorySomedayListRepository(this.dateProvider);
+        }
+        return this._somedayListRepository;
     }
 
     get holidayRepository(): HolidayRepository {
@@ -371,7 +385,8 @@ export class Container {
         if (!this._exportService) {
             this._exportService = new ExportService(
                 this.taskRepository,
-                this.someDayGroupRepository,
+                this.somedayTabRepository,
+                this.somedayListRepository,
                 this.projectRepository,
                 this.recurringTaskRepository,
                 this.holidayRepository,
@@ -395,7 +410,11 @@ export class Container {
                     ? new SqliteSnapshotRestoreWriter(
                           this.sqliteConnection,
                           new SqliteTaskRepository(this.sqliteConnection.db, this.dateProvider),
-                          new SqliteSomeDayGroupRepository(
+                          new SqliteSomedayTabRepository(
+                              this.sqliteConnection.db,
+                              this.dateProvider,
+                          ),
+                          new SqliteSomedayListRepository(
                               this.sqliteConnection.db,
                               this.dateProvider,
                           ),
@@ -413,7 +432,8 @@ export class Container {
                       )
                     : new InMemorySnapshotRestoreWriter(
                           this.taskRepository,
-                          this.someDayGroupRepository,
+                          this.somedayTabRepository,
+                          this.somedayListRepository,
                           this.projectRepository,
                           this.recurringTaskRepository,
                           this.holidayRepository,

@@ -73,7 +73,8 @@ export interface ImportResult {
     /** Entities restored from a JSON snapshot (restore mode). */
     restored: {
         tasks: number;
-        someDayGroups: number;
+        somedayTabs: number;
+        somedayLists: number;
         projects: number;
         recurringTasks: number;
         /** Holidays restored from a JSON snapshot (0 when the snapshot

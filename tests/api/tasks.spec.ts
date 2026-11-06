@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { cleanup, createGroup, createTask, del, get, post, put, track, uniq } from './helpers';
+import { cleanup, createList, createTask, del, get, post, put, track, uniq } from './helpers';
 
 test.afterEach(async ({ request }) => {
     await cleanup(request);
@@ -91,21 +91,21 @@ test.describe('tasks -- create (POST /api/tasks)', () => {
         expect(res.body.details?.fields).toHaveProperty('startTime');
     });
 
-    test('accepts explicit position and someDayGroupId', async ({ request }) => {
-        const group = await createGroup(request, {
-            name: uniq('Group'),
-            tag: uniq('g'),
+    test('accepts explicit position and somedayListId', async ({ request }) => {
+        const list = await createList(request, {
+            tabId: 'default',
+            name: uniq('List'),
             position: 0,
         });
         const res = await post(request, '/api/tasks', {
-            text: 'Grouped task',
+            text: 'Parked task',
             date: null,
-            someDayGroupId: group.id,
+            somedayListId: list.id,
             position: 5,
         });
         expect(res.status).toBe(201);
         track('task', res.body.data.id);
-        expect(res.body.data.someDayGroupId).toBe(group.id);
+        expect(res.body.data.somedayListId).toBe(list.id);
         expect(res.body.data.position).toBe(5);
     });
 });

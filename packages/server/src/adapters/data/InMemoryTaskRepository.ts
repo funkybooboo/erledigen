@@ -35,9 +35,9 @@ export class InMemoryTaskRepository implements TaskRepository {
         return this.activeTasks().filter(task => task.recurringTaskId === recurringTaskId);
     }
 
-    async findBySomeDayGroup(groupId: string): Promise<Task[]> {
+    async findBySomedayList(listId: string): Promise<Task[]> {
         return this.activeTasks()
-            .filter(task => task.someDayGroupId === groupId)
+            .filter(task => task.somedayListId === listId)
             .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
     }
 
@@ -75,7 +75,7 @@ export class InMemoryTaskRepository implements TaskRepository {
             tags: input.tags ?? [...TASK_DEFAULTS.tags],
             parentId: input.parentId ?? null,
             rolloverEnabled: input.rolloverEnabled ?? TASK_DEFAULTS.rolloverEnabled,
-            someDayGroupId: input.someDayGroupId ?? null,
+            somedayListId: input.somedayListId ?? null,
             position: input.position ?? null,
             state: input.state ?? null,
             recurringTaskId: input.recurringTaskId ?? null,

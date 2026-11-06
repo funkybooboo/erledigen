@@ -253,10 +253,11 @@ test.describe('the Notes modal -- a lens over every note', () => {
         const res = await page.request.post(`${SERVER_URL}/api/import?format=json`, {
             data: JSON.stringify({
                 format: 'erledigen-export',
-                version: 1,
+                version: 2,
                 exportedAt: new Date().toISOString(),
                 tasks: [],
-                someDayGroups: [],
+                somedayTabs: [],
+                somedayLists: [],
                 projects: [],
                 recurringTasks: [],
                 userPreferences: prefs,

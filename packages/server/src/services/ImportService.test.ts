@@ -15,7 +15,8 @@ import { InMemoryDayNoteRepository } from '../adapters/data/InMemoryDayNoteRepos
 import { InMemoryHolidayRepository } from '../adapters/data/InMemoryHolidayRepository';
 import { InMemoryProjectRepository } from '../adapters/data/InMemoryProjectRepository';
 import { InMemoryRecurringTaskRepository } from '../adapters/data/InMemoryRecurringTaskRepository';
-import { InMemorySomeDayGroupRepository } from '../adapters/data/InMemorySomeDayGroupRepository';
+import { InMemorySomedayListRepository } from '../adapters/data/InMemorySomedayListRepository';
+import { InMemorySomedayTabRepository } from '../adapters/data/InMemorySomedayTabRepository';
 import { InMemoryTaskRepository } from '../adapters/data/InMemoryTaskRepository';
 import { InMemoryUserPreferencesRepository } from '../adapters/data/InMemoryUserPreferencesRepository';
 import {
@@ -26,7 +27,8 @@ import { SqliteDayNoteRepository } from '../adapters/data/SqliteDayNoteRepositor
 import { SqliteHolidayRepository } from '../adapters/data/SqliteHolidayRepository';
 import { SqliteProjectRepository } from '../adapters/data/SqliteProjectRepository';
 import { SqliteRecurringTaskRepository } from '../adapters/data/SqliteRecurringTaskRepository';
-import { SqliteSomeDayGroupRepository } from '../adapters/data/SqliteSomeDayGroupRepository';
+import { SqliteSomedayListRepository } from '../adapters/data/SqliteSomedayListRepository';
+import { SqliteSomedayTabRepository } from '../adapters/data/SqliteSomedayTabRepository';
 import { SqliteTaskRepository } from '../adapters/data/SqliteTaskRepository';
 import { SqliteUserPreferencesRepository } from '../adapters/data/SqliteUserPreferencesRepository';
 import { SqliteConnection } from '../adapters/data/sqliteConnection';
@@ -63,7 +65,8 @@ interface Wiring {
 
 function makeInMemoryWiring(): Wiring {
     const taskRepo = new InMemoryTaskRepository(dateProvider);
-    const groupRepo = new InMemorySomeDayGroupRepository(dateProvider);
+    const tabRepo = new InMemorySomedayTabRepository(dateProvider);
+    const listRepo = new InMemorySomedayListRepository(dateProvider);
     const projectRepo = new InMemoryProjectRepository(dateProvider);
     const recurringRepo = new InMemoryRecurringTaskRepository(dateProvider);
     const holidayRepo = new InMemoryHolidayRepository(dateProvider);
@@ -71,7 +74,8 @@ function makeInMemoryWiring(): Wiring {
     const preferencesRepo = new InMemoryUserPreferencesRepository(dateProvider);
     const exportService = new ExportService(
         taskRepo,
-        groupRepo,
+        tabRepo,
+        listRepo,
         projectRepo,
         recurringRepo,
         holidayRepo,
@@ -89,7 +93,8 @@ function makeInMemoryWiring(): Wiring {
             exportService,
             new InMemorySnapshotRestoreWriter(
                 taskRepo,
-                groupRepo,
+                tabRepo,
+                listRepo,
                 projectRepo,
                 recurringRepo,
                 holidayRepo,
@@ -107,7 +112,8 @@ function makeSqliteWiring(): Wiring {
     const connection = new SqliteConnection(':memory:');
     connections.push(connection);
     const taskRepo = new SqliteTaskRepository(connection.db, dateProvider);
-    const groupRepo = new SqliteSomeDayGroupRepository(connection.db, dateProvider);
+    const tabRepo = new SqliteSomedayTabRepository(connection.db, dateProvider);
+    const listRepo = new SqliteSomedayListRepository(connection.db, dateProvider);
     const projectRepo = new SqliteProjectRepository(connection.db, dateProvider);
     const recurringRepo = new SqliteRecurringTaskRepository(connection.db, dateProvider);
     const holidayRepo = new SqliteHolidayRepository(connection.db, dateProvider);
@@ -115,7 +121,8 @@ function makeSqliteWiring(): Wiring {
     const preferencesRepo = new SqliteUserPreferencesRepository(connection.db, dateProvider);
     const exportService = new ExportService(
         taskRepo,
-        groupRepo,
+        tabRepo,
+        listRepo,
         projectRepo,
         recurringRepo,
         holidayRepo,
@@ -134,7 +141,8 @@ function makeSqliteWiring(): Wiring {
             new SqliteSnapshotRestoreWriter(
                 connection,
                 taskRepo,
-                groupRepo,
+                tabRepo,
+                listRepo,
                 projectRepo,
                 recurringRepo,
                 holidayRepo,
@@ -158,10 +166,11 @@ async function buildSnapshot(wiring: Wiring): Promise<ExportSnapshot> {
     const prefs = await wiring.preferencesRepo.get();
     const snapshot: ExportSnapshot = {
         format: 'erledigen-export',
-        version: 1,
+        version: 2,
         exportedAt: dateProvider.timestamp(),
         tasks: [...(await wiring.taskRepo.findAll()), ...(await wiring.taskRepo.findDeleted())],
-        someDayGroups: [],
+        somedayTabs: [],
+        somedayLists: [],
         projects: [],
         recurringTasks: [],
         holidays: [],
@@ -202,10 +211,11 @@ for (const [name, makeWiring] of [
             await wiring.service.restore(
                 JSON.stringify({
                     format: 'erledigen-export',
-                    version: 1,
+                    version: 2,
                     exportedAt: dateProvider.timestamp(),
                     tasks: [],
-                    someDayGroups: [],
+                    somedayTabs: [],
+                    somedayLists: [],
                     projects: [],
                     recurringTasks: [],
                     holidays: [],
@@ -237,7 +247,8 @@ for (const [name, makeWiring] of [
                 wiring.taskRepo,
                 new ExportService(
                     wiring.taskRepo,
-                    new InMemorySomeDayGroupRepository(dateProvider),
+                    new InMemorySomedayTabRepository(dateProvider),
+                    new InMemorySomedayListRepository(dateProvider),
                     new InMemoryProjectRepository(dateProvider),
                     new InMemoryRecurringTaskRepository(dateProvider),
                     new InMemoryHolidayRepository(dateProvider),
@@ -247,7 +258,8 @@ for (const [name, makeWiring] of [
                 ),
                 new InMemorySnapshotRestoreWriter(
                     wiring.taskRepo,
-                    new InMemorySomeDayGroupRepository(dateProvider),
+                    new InMemorySomedayTabRepository(dateProvider),
+                    new InMemorySomedayListRepository(dateProvider),
                     new InMemoryProjectRepository(dateProvider),
                     new InMemoryRecurringTaskRepository(dateProvider),
                     new InMemoryHolidayRepository(dateProvider),
@@ -365,7 +377,8 @@ describe('ImportService (sqlite transaction atomicity)', () => {
         const connection = new SqliteConnection(':memory:');
         connections.push(connection);
         const taskRepo = new SqliteTaskRepository(connection.db, dateProvider);
-        const groupRepo = new SqliteSomeDayGroupRepository(connection.db, dateProvider);
+        const tabRepo = new SqliteSomedayTabRepository(connection.db, dateProvider);
+        const listRepo = new SqliteSomedayListRepository(connection.db, dateProvider);
         const projectRepo = new SqliteProjectRepository(connection.db, dateProvider);
         const recurringRepo = new SqliteRecurringTaskRepository(connection.db, dateProvider);
         const holidayRepo = new SqliteHolidayRepository(connection.db, dateProvider);
@@ -375,10 +388,11 @@ describe('ImportService (sqlite transaction atomicity)', () => {
         const keeper = await taskRepo.create({ text: 'Survivor', date: null });
         const snapshot: ExportSnapshot = {
             format: 'erledigen-export',
-            version: 1,
+            version: 2,
             exportedAt: dateProvider.timestamp(),
             tasks: [...(await taskRepo.findAll()), ...(await taskRepo.findDeleted())],
-            someDayGroups: [],
+            somedayTabs: [],
+            somedayLists: [],
             projects: [],
             recurringTasks: [],
             holidays: [],
@@ -394,7 +408,8 @@ describe('ImportService (sqlite transaction atomicity)', () => {
         const writer = new SqliteSnapshotRestoreWriter(
             connection,
             taskRepo,
-            groupRepo,
+            tabRepo,
+            listRepo,
             projectRepo,
             recurringRepo,
             holidayRepo,

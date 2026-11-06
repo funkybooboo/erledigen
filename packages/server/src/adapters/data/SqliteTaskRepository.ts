@@ -15,7 +15,7 @@ import type { TaskRepository } from './TaskRepository';
 
 const TASK_COLUMNS = `
     id, text, notes, completed, date, created_at, updated_at, tags,
-    parent_id, rollover_enabled, some_day_group_id, position, state,
+    parent_id, rollover_enabled, someday_list_id, position, state,
     recurring_task_id, instance_date, original_scheduled_date, days_late,
     depends_on, start_time, end_time, reminder, deleted_at
 `;
@@ -31,7 +31,7 @@ interface TaskRow {
     tags: string;
     parent_id: string | null;
     rollover_enabled: number;
-    some_day_group_id: string | null;
+    someday_list_id: string | null;
     position: number | null;
     state: string | null;
     recurring_task_id: string | null;
@@ -57,7 +57,7 @@ function mapTaskRow(row: TaskRow): Task {
         tags: parseJsonColumn<string[]>(row.tags, []),
         parentId: row.parent_id,
         rolloverEnabled: toBoolean(row.rollover_enabled),
-        someDayGroupId: row.some_day_group_id,
+        somedayListId: row.someday_list_id,
         position: row.position,
         state: (row.state as Task['state']) ?? null,
         recurringTaskId: row.recurring_task_id,
@@ -115,7 +115,7 @@ export class SqliteTaskRepository implements TaskRepository {
                 JSON.stringify(input.tags ?? [...TASK_DEFAULTS.tags]),
                 input.parentId ?? null,
                 toInteger(input.rolloverEnabled ?? TASK_DEFAULTS.rolloverEnabled),
-                input.someDayGroupId ?? null,
+                input.somedayListId ?? null,
                 input.position ?? null,
                 input.state ?? null,
                 input.recurringTaskId ?? null,
@@ -161,7 +161,7 @@ export class SqliteTaskRepository implements TaskRepository {
                     JSON.stringify(input.tags ?? [...TASK_DEFAULTS.tags]),
                     input.parentId ?? null,
                     toInteger(input.rolloverEnabled ?? TASK_DEFAULTS.rolloverEnabled),
-                    input.someDayGroupId ?? null,
+                    input.somedayListId ?? null,
                     input.position ?? null,
                     input.state ?? null,
                     input.recurringTaskId ?? null,
@@ -217,7 +217,7 @@ export class SqliteTaskRepository implements TaskRepository {
                     JSON.stringify(task.tags),
                     task.parentId,
                     toInteger(task.rolloverEnabled),
-                    task.someDayGroupId,
+                    task.somedayListId,
                     task.position,
                     task.state,
                     task.recurringTaskId,
@@ -243,7 +243,7 @@ export class SqliteTaskRepository implements TaskRepository {
         if ('date' in input) patch.assign('date', input.date);
         if ('tags' in input) patch.assign('tags', JSON.stringify(input.tags));
         if ('parentId' in input) patch.assign('parent_id', input.parentId);
-        if ('someDayGroupId' in input) patch.assign('some_day_group_id', input.someDayGroupId);
+        if ('somedayListId' in input) patch.assign('someday_list_id', input.somedayListId);
         if ('dependsOn' in input) patch.assign('depends_on', input.dependsOn);
         if ('rolloverEnabled' in input)
             patch.assign('rollover_enabled', toInteger(input.rolloverEnabled));
@@ -354,10 +354,10 @@ export class SqliteTaskRepository implements TaskRepository {
         return this.select('WHERE deleted_at IS NULL AND date IS NULL ORDER BY created_at ASC');
     }
 
-    async findBySomeDayGroup(groupId: string): Promise<Task[]> {
+    async findBySomedayList(listId: string): Promise<Task[]> {
         return this.select(
-            'WHERE deleted_at IS NULL AND some_day_group_id = ? ORDER BY created_at ASC',
-            [groupId],
+            'WHERE deleted_at IS NULL AND someday_list_id = ? ORDER BY created_at ASC',
+            [listId],
         );
     }
 

@@ -59,12 +59,12 @@ test.describe('hover tooltips', () => {
     test('label-only tooltips render without keybinding chips', async ({ page }) => {
         await hydrated(page);
 
-        // The Someday panel's "Add group" button documents no shortcut, so
+        // The Someday panel's "Add list" button documents no shortcut, so
         // its tooltip must show the label and no kbd chips.
-        await page.getByRole('button', { name: 'Add group' }).hover();
+        await page.getByRole('button', { name: 'Add list' }).hover();
         const tip = page.locator('.ui-tooltip');
         await expect(tip).toBeVisible();
-        await expect(tip).toContainText('Add group');
+        await expect(tip).toContainText('Add list');
         await expect(tip.locator('kbd')).toHaveCount(0);
     });
 });

@@ -20,7 +20,8 @@ import type { DayNoteRepository } from '../adapters/data/DayNoteRepository';
 import type { HolidayRepository } from '../adapters/data/HolidayRepository';
 import type { ProjectRepository } from '../adapters/data/ProjectRepository';
 import type { RecurringTaskRepository } from '../adapters/data/RecurringTaskRepository';
-import type { SomeDayGroupRepository } from '../adapters/data/SomeDayGroupRepository';
+import type { SomedayListRepository } from '../adapters/data/SomedayListRepository';
+import type { SomedayTabRepository } from '../adapters/data/SomedayTabRepository';
 import type { TaskRepository } from '../adapters/data/TaskRepository';
 import type { UserPreferencesRepository } from '../adapters/data/UserPreferencesRepository';
 
@@ -37,7 +38,8 @@ interface ExportDocument {
 export class ExportService {
     constructor(
         private readonly taskRepo: TaskRepository,
-        private readonly someDayGroupRepo: SomeDayGroupRepository,
+        private readonly somedayTabRepo: SomedayTabRepository,
+        private readonly somedayListRepo: SomedayListRepository,
         private readonly projectRepo: ProjectRepository,
         private readonly recurringTaskRepo: RecurringTaskRepository,
         private readonly holidayRepo: HolidayRepository,
@@ -51,7 +53,8 @@ export class ExportService {
         const [
             active,
             deleted,
-            someDayGroups,
+            somedayTabs,
+            somedayLists,
             projects,
             recurringTasks,
             holidays,
@@ -60,7 +63,8 @@ export class ExportService {
         ] = await Promise.all([
             this.taskRepo.findAll(),
             this.taskRepo.findDeleted(),
-            this.someDayGroupRepo.findAll(),
+            this.somedayTabRepo.findAll(),
+            this.somedayListRepo.findAll(),
             this.projectRepo.findAll(),
             this.recurringTaskRepo.findAll(),
             this.holidayRepo.findAll(),
@@ -69,10 +73,11 @@ export class ExportService {
         ]);
         return {
             format: 'erledigen-export',
-            version: 1,
+            version: 2,
             exportedAt: this.dateProvider.timestamp(),
             tasks: [...active, ...deleted],
-            someDayGroups,
+            somedayTabs,
+            somedayLists,
             projects,
             recurringTasks,
             holidays,

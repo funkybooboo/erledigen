@@ -20,7 +20,7 @@ function task(overrides: Partial<Task>): Task {
         tags: [],
         parentId: null,
         rolloverEnabled: true,
-        someDayGroupId: null,
+        somedayListId: null,
         position: null,
         state: null,
         recurringTaskId: null,

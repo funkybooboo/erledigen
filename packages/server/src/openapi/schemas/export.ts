@@ -12,7 +12,8 @@ import { registry } from '../registry';
 import { HolidaySchema } from './holiday';
 import { ProjectSchema } from './project';
 import { RecurringTaskSchema } from './recurringTask';
-import { SomeDayGroupSchema } from './someDayGroup';
+import { SomedayListSchema } from './somedayList';
+import { SomedayTabSchema } from './somedayTab';
 import { TaskSchema } from './task';
 import { UserPreferencesSchema } from './userPreferences';
 
@@ -21,10 +22,11 @@ export const ExportSnapshotSchema = registry.register(
     'ExportSnapshot',
     z.object({
         format: z.literal('erledigen-export').describe('Format discriminator'),
-        version: z.literal(1).describe('Snapshot schema version (see ADR-008)'),
+        version: z.literal(2).describe('Snapshot schema version (ADR-008; v2 = ADR-026)'),
         exportedAt: z.string().describe('ISO 8601 UTC timestamp of the export'),
         tasks: z.array(TaskSchema).describe('Every task, including soft-deleted (trash) rows'),
-        someDayGroups: z.array(SomeDayGroupSchema),
+        somedayTabs: z.array(SomedayTabSchema),
+        somedayLists: z.array(SomedayListSchema),
         projects: z.array(ProjectSchema),
         recurringTasks: z.array(RecurringTaskSchema),
         holidays: z

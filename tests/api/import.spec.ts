@@ -9,7 +9,10 @@ test.afterEach(async ({ request }) => {
 });
 
 /** An empty-snapshot restore: leaves the shared in-memory test server
- *  clean without tracking server-created ids. */
+ *  clean without tracking server-created ids. Deliberately a VERSION-1
+ *  document: every import test's teardown exercises the v1 -> v2
+ *  forward mapping (ADR-026), so a regression there fails the suite
+ *  immediately instead of at the next destructive restore. */
 async function restoreEmpty(request: Parameters<typeof get>[0]): Promise<void> {
     const prefs = (await get(request, '/api/preferences')).body.data as Record<string, unknown>;
     const res = await postText(
@@ -79,6 +82,84 @@ test.describe('import -- POST /api/import (ADR-009)', () => {
         expect(prefs.body.data.theme).toBe('dark');
     });
 
+    test('json restore: a version-1 snapshot maps forward (ADR-026)', async ({ request }) => {
+        const prefs = (await get(request, '/api/preferences')).body.data as Record<string, unknown>;
+        // A v0.15-era backup: Someday groups with tags, tasks parked via
+        // someDayGroupId, projects with isActive.
+        const res = await postText(
+            request,
+            '/api/import?format=json',
+            JSON.stringify({
+                format: 'erledigen-export',
+                version: 1,
+                exportedAt: '2026-01-01T00:00:00.000Z',
+                tasks: [
+                    {
+                        id: 'v1-t1',
+                        text: 'V1 parked idea',
+                        notes: null,
+                        completed: false,
+                        date: null,
+                        createdAt: '2026-01-01T00:00:00.000Z',
+                        updatedAt: '2026-01-01T00:00:00.000Z',
+                        tags: [],
+                        parentId: null,
+                        rolloverEnabled: false,
+                        someDayGroupId: 'v1-g1',
+                        position: null,
+                        state: null,
+                        recurringTaskId: null,
+                        instanceDate: null,
+                        originalScheduledDate: null,
+                        daysLate: 0,
+                        dependsOn: null,
+                        startTime: null,
+                        endTime: null,
+                        reminder: null,
+                        deletedAt: null,
+                    },
+                ],
+                someDayGroups: [
+                    {
+                        id: 'v1-g1',
+                        name: 'V1 Work',
+                        description: null,
+                        tag: '#v1-work',
+                        position: 2,
+                        createdAt: '2026-01-01T00:00:00.000Z',
+                    },
+                ],
+                projects: [],
+                recurringTasks: [],
+                userPreferences: prefs,
+            }),
+        );
+        expect(res.status).toBe(200);
+        expect(res.body.data.mode).toBe('restore');
+        // The group became a list under one default tab; ids preserved.
+        expect(res.body.data.restored.somedayTabs).toBe(1);
+        expect(res.body.data.restored.somedayLists).toBe(1);
+
+        const tabsRes = await get(request, '/api/someday-tabs');
+        const tabs = tabsRes.body.data as Array<{ id: string; name: string }>;
+        expect(tabs.length).toBe(1);
+        expect(tabs[0]?.id).toBe('default');
+        const listsRes = await get(request, '/api/someday-lists');
+        const lists = listsRes.body.data as Array<{
+            id: string;
+            tabId: string;
+            name: string;
+        }>;
+        expect(lists.length).toBe(1);
+        expect(lists[0]?.id).toBe('v1-g1');
+        expect(lists[0]?.tabId).toBe('default');
+        expect(lists[0]?.name).toBe('V1 Work');
+        // The parked task kept its spot: someDayGroupId reads as
+        // somedayListId, pointing at the same id.
+        const taskRes = await get(request, '/api/tasks/v1-t1');
+        expect(taskRes.body.data.somedayListId).toBe('v1-g1');
+    });
+
     test('json restore: rejects an invalid snapshot and wipes nothing', async ({ request }) => {
         const text = uniq('import-rejects');
         const task = await post(request, '/api/tasks', { text, date: null });
@@ -88,7 +169,7 @@ test.describe('import -- POST /api/import (ADR-009)', () => {
             '/api/import?format=json',
             JSON.stringify({
                 format: 'erledigen-export',
-                version: 2, // unsupported version
+                version: 3, // unreleased future version (v3 = ADR-012)
                 exportedAt: '2026-01-01T00:00:00.000Z',
                 tasks: [],
                 someDayGroups: [],

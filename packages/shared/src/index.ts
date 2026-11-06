@@ -75,6 +75,8 @@ export {
     API_ROUTES,
     CONTENT_TYPE_TEXT,
     DEFAULT_RATE_LIMIT_RPM,
+    DEFAULT_SOMEDAY_LIST_ID,
+    DEFAULT_SOMEDAY_TAB_ID,
     DEFAULT_TAG_KIND_MAP,
     DEFAULT_TAG_KINDS,
     HABIT_HEATMAP_WEEKS,
@@ -134,10 +136,15 @@ export type {
     UpdateRecurringTaskInput,
 } from './types/recurringTask';
 export type {
-    CreateSomeDayGroupInput,
-    SomeDayGroup,
-    UpdateSomeDayGroupInput,
-} from './types/someDayGroup';
+    CreateSomedayListInput,
+    SomedayList,
+    UpdateSomedayListInput,
+} from './types/somedayList';
+export type {
+    CreateSomedayTabInput,
+    SomedayTab,
+    UpdateSomedayTabInput,
+} from './types/somedayTab';
 export type { CreateTaskInput, Task, UpdateTaskInput } from './types/task';
 export {
     isValidTimeRange,

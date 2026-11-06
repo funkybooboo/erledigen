@@ -8,7 +8,8 @@
         preferencesStore,
         projectStore,
         recurringTaskStore,
-        someDayGroupStore,
+        somedayTabStore,
+        somedayListStore,
         tagStore,
         taskStore,
     } from '#lib/stores/index.ts';
@@ -56,7 +57,8 @@
             tagStore.fetchAll();
         });
         projectStore.fetchAll();
-        someDayGroupStore.fetchAll();
+        somedayTabStore.fetchAll();
+        somedayListStore.fetchAll();
         holidayStore.fetchAll();
         dayNoteStore.fetchAll();
         taskStore.fetchAll();
@@ -66,7 +68,8 @@
         taskStore.initWebSocket();
         tagStore.initWebSocket();
         projectStore.initWebSocket();
-        someDayGroupStore.initWebSocket();
+        somedayTabStore.initWebSocket();
+        somedayListStore.initWebSocket();
         holidayStore.initWebSocket();
         dayNoteStore.initWebSocket();
         recurringTaskStore.initWebSocket();
@@ -95,7 +98,8 @@
             taskStore.destroyWebSocket();
             tagStore.destroyWebSocket();
             projectStore.destroyWebSocket();
-            someDayGroupStore.destroyWebSocket();
+            somedayTabStore.destroyWebSocket();
+            somedayListStore.destroyWebSocket();
             holidayStore.destroyWebSocket();
             dayNoteStore.destroyWebSocket();
             recurringTaskStore.destroyWebSocket();

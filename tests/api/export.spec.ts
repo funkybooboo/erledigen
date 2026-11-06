@@ -26,9 +26,10 @@ test.describe('export -- GET /api/export (ADR-008)', () => {
         // Raw document, NOT the usual { data } envelope.
         const snapshot = res.body;
         expect(snapshot.format).toBe('erledigen-export');
-        expect(snapshot.version).toBe(1);
+        expect(snapshot.version).toBe(2);
         expect(typeof snapshot.exportedAt).toBe('string');
-        expect(Array.isArray(snapshot.someDayGroups)).toBe(true);
+        expect(Array.isArray(snapshot.somedayTabs)).toBe(true);
+        expect(Array.isArray(snapshot.somedayLists)).toBe(true);
         expect(Array.isArray(snapshot.projects)).toBe(true);
         expect(Array.isArray(snapshot.recurringTasks)).toBe(true);
         expect(snapshot.userPreferences.id).toBe('default');

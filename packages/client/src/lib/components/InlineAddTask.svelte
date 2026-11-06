@@ -13,9 +13,18 @@
 
     let {
         date,
-        someDayGroupId = null,
+        somedayListId = null,
+        autoTag = null,
         oncreated,
-    }: { date: string; someDayGroupId?: string | null; oncreated?: (id: string) => void } = $props();
+    }: {
+        date: string;
+        somedayListId?: string | null;
+        /** The project tag this list's tab carries (ADR-011): tasks
+         *  created here wear it. Appended to the text so typed words
+         *  and manual controls never disagree (identity rule 4). */
+        autoTag?: string | null;
+        oncreated?: (id: string) => void;
+    } = $props();
 
     let text = $state('');
     let inputEl: HTMLInputElement;
@@ -34,10 +43,14 @@
     async function handleSubmit() {
         // Capture the text before awaiting: `text = ''` below would otherwise
         // re-derive `parsed` to null while suspended.
-        const value = text.trim();
+        let value = text.trim();
         if (!value) return;
 
-        const result = await createFromText(value, { date, someDayGroupId });
+        // A project tab's lists inherit the project's tag: the task
+        // wears it unless the text already does.
+        if (autoTag && !value.includes(`#${autoTag}`)) value += ` #${autoTag}`;
+
+        const result = await createFromText(value, { date, somedayListId });
         if (!result) {
             // Creation failed (network/server). The text is kept so the
             // user can retry; the toast says what happened.

@@ -18,7 +18,7 @@
 
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { cleanup, createGroup, createProject, createTask, uniq } from '../api/helpers';
+import { cleanup, createList, createProject, createTask, uniq } from '../api/helpers';
 import { hydrated, modal, SERVER_URL, todayISO } from './util';
 
 const AXE_TAGS = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'];
@@ -77,9 +77,9 @@ test.beforeEach(async ({ page }) => {
         SERVER_URL,
     );
     await createProject(page.request, { name: `Axe Project ${uniq('p')}` }, SERVER_URL);
-    await createGroup(
+    await createList(
         page.request,
-        { name: `Axe Group ${uniq('g')}`, tag: uniq('audit-group'), position: 0 },
+        { tabId: 'default', name: `Axe List ${uniq('g')}`, position: 0 },
         SERVER_URL,
     );
 });
@@ -95,11 +95,11 @@ test('the page has no violations (dark theme)', async ({ page }) => {
     await audit(page, 'page dark');
 });
 
-test('the page with the Someday add-group form open has no violations', async ({ page }) => {
+test('the page with the Someday add-list form open has no violations', async ({ page }) => {
     await hydrated(page);
-    await page.getByRole('button', { name: 'Add group' }).click();
-    await page.getByLabel('New group name').waitFor();
-    await audit(page, 'page + add-group form');
+    await page.getByRole('button', { name: 'Add list' }).click();
+    await page.getByLabel('New list name').waitFor();
+    await audit(page, 'page + add-list form');
 });
 
 test('the task detail modal has no violations', async ({ page }) => {

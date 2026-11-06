@@ -27,15 +27,15 @@ export class TaskService {
         date?: string | undefined;
         tag?: string | undefined;
         completed?: boolean | undefined;
-        someDayGroupId?: string | undefined;
+        somedayListId?: string | undefined;
         someday?: string | undefined;
         includeDeleted?: boolean | undefined;
     }): Promise<Task[]> {
         let tasks: Task[];
         if (query.someday) {
             tasks = await this.taskRepo.findSomeday();
-        } else if (query.someDayGroupId) {
-            tasks = await this.taskRepo.findBySomeDayGroup(query.someDayGroupId);
+        } else if (query.somedayListId) {
+            tasks = await this.taskRepo.findBySomedayList(query.somedayListId);
         } else if (query.tag) {
             tasks = await this.taskRepo.findByTags([query.tag]);
         } else if (query.date) {
