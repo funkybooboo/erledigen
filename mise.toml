@@ -166,7 +166,7 @@ description = "Bump the version everywhere: major | minor | patch | X.Y.Z (tools
 run = "tools/update-version.sh"
 
 [tasks.release]
-description = "Cut a release via PR: gates + bump + CHANGELOG + merge + tag + GitHub Release. Args: [--full] [--yes] <bump> (tools/release.sh)"
+description = "Cut a release via PR: gates + bump + CHANGELOG + merge + tag + GitHub Release. Args: [--full] [--yes] --notes-file <path> <bump> -- the hand-written notes are required (tools/release.sh)"
 run = "tools/release.sh"
 
 # -- Maintenance ----------------------------------------------------------------
@@ -180,7 +180,7 @@ description = "Update dependencies the safe way. Args: [--fresh] [--yes] [--no-g
 run = "tools/update-deps.sh"
 
 [tasks.changelog]
-description = "Generate release notes from the commit log. Args: [--write] [<from> [<to>]] (tools/changelog.sh)"
+description = "Generate release-note drafts from the commit log; --notes-file ships the hand-written final. Args: [--write] [--notes-file <path>] [<from> [<to>]] (tools/changelog.sh)"
 run = "tools/changelog.sh"
 
 # -- CI ------------------------------------------------------------------------

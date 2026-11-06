@@ -1,19 +1,35 @@
 # Changelog
 
-## [v0.16.0](https://github.com/funkybooboo/erledigen/compare/v0.13.2...HEAD) - 2026-11-06
+What shipped, written for the app's users and operators -- not the
+commit log. Each section is drafted from the commit log by
+tools/changelog.sh, written by hand at release time (tools/release.sh
+--notes-file), and shipped verbatim as the GitHub Release; the story
+trail lives in plans/history.md.
 
-### Features
+## [v0.16.0](https://github.com/funkybooboo/erledigen/compare/v0.13.2...v0.16.0) - 2026-11-06
 
-- project milestones on their days (USE-19) (#100)
-- the project home gathers its work (USE-17) (#99)
-- the scheduling bridge -- Kanban, activate, and locks die (USE-18) (#98)
-- Someday becomes tabs of lists (USE-16) (#97)
+Projects became umbrellas: a project is a named tag plus its metadata,
+gathering related work instead of containing it. The v0.9.0 board is
+reversed -- the Kanban, Activate, and the dependency locks are gone;
+the date is the only bridge between parked work and the calendar.
 
-### Everything else
-
-- v0.16.0 close-out -- stories done, docs catch up (#101)
-- ADR-026 -- snapshot v2 is the someday/projects restructure (#96)
-- **plans:** v0.13.2 moves to history -- the record goes green with the images (#95)
+- Someday is tabs of lists. Parked work keeps a home, and every
+  install owns a default tab -- nothing sits invisible. Creating a
+  project auto-creates its tab.
+- Dragging parked work onto a day keeps its list; clearing the date
+  returns it home. Deleting a project now says so: the tasks are not
+  deleted, they keep the tag.
+- Projects have a home: backlog by list, scheduled by day, habits
+  with their streaks, and the ten most recent done -- plus the hill in
+  three phases, and one grammar input for all of it.
+- Milestones draw on their days: a project's start, due, and
+  completion dates appear as quiet calendar banners -- and an overdue
+  project keeps its due note on today until it is marked complete.
+- Export snapshot v2: the someday restructure rides the export
+  format, and restores map v1 documents forward.
+- Habits can wear tags: the typed-input path never extracted them,
+  and the inline tag parser reads interior colons the way its docs
+  always claimed.
 
 ## [v0.13.2](https://github.com/funkybooboo/erledigen/compare/v0.13.1...HEAD) - 2026-11-05
 
