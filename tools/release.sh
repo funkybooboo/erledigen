@@ -13,8 +13,16 @@
 # and the GitHub Release.
 #
 # Usage:
-#   tools/release.sh [--full] [--yes] <major|minor|patch|X.Y.Z>
+#   tools/release.sh [--full] [--yes] --notes-file <path> <major|minor|patch|X.Y.Z>
 #
+#   --notes-file <path>   the hand-written release notes (the section
+#                         body, no '## [vX.Y.Z]' header), saved outside
+#                         the repo tree. Required: the CHANGELOG section,
+#                         the tag message, and the GitHub Release all
+#                         carry the same text, written for the app's
+#                         users and operators -- never copied from the
+#                         commit log. Draft it with tools/changelog.sh,
+#                         then rewrite.
 #   --full   also run the dockerized integration suite (api + e2e) and a
 #            production build before the PR. Slow (10+ min on first image
 #            build). Default gates: biome + types + unit tests.
@@ -23,7 +31,7 @@
 # Flow:
 #   1. quality gates (CI's local mirror; --full adds the docker suites)
 #   2. release/vX.Y.Z branch: update-version.sh bump + changelog.sh
-#      --write (the CHANGELOG.md section rides the same PR)
+#      --write --notes-file (the hand-written section rides the same PR)
 #   3. open the PR; --auto merges once the required checks pass
 #      (auto-merge needs the repo setting; otherwise the script watches
 #      the checks and merges, and the ruleset is the final arbiter)
@@ -44,12 +52,17 @@ source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 FULL=0
 ASSUME_YES=0
 BUMP=""
+NOTES_FILE=""
 while [ $# -gt 0 ]; do
     case "$1" in
         --full) FULL=1 ;;
         --yes | -y) ASSUME_YES=1 ;;
+        --notes-file)
+            shift
+            NOTES_FILE="${1:?--notes-file needs a value}"
+            ;;
         -h | --help)
-            sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//'
+            sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'
             exit 0
             ;;
         *) BUMP="$1" ;;
@@ -58,9 +71,24 @@ while [ $# -gt 0 ]; do
 done
 
 if [ -z "$BUMP" ]; then
-    sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//' >&2
+    sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//' >&2
     exit 1
 fi
+
+if [ -z "$NOTES_FILE" ]; then
+    die "hand-written release notes are required (--notes-file <path>)
+
+Draft with tools/changelog.sh (the commit-log voice), then rewrite it
+for the app's users and operators: what shipped, in their words -- no
+USE-XX story IDs, no PR numbers (the section's compare link already
+carries the range). The file holds the section BODY (no '## [vX.Y.Z]'
+header); keep it outside the repo tree -- a release runs on a clean
+checkout."
+fi
+if [ ! -s "$NOTES_FILE" ]; then
+    die "notes file is missing or empty: $NOTES_FILE"
+fi
+NOTES_FILE="$(readlink -f "$NOTES_FILE")"
 
 cd "$REPO_ROOT"
 
@@ -123,18 +151,19 @@ it (changelog.sh --write). Restore the file, then cut the release."
 fi
 
 step "Writing the CHANGELOG.md section ($TAG)"
-# The bump commit is already in the range (it is HEAD), so the section
-# covers everything since the previous tag, release commit included.
+# The hand-written body rides --notes-file; the range only picks the
+# compare link's FROM (the previous tag). The bump commit is HEAD, so
+# the range still covers everything since the previous tag.
 if [ -n "$PREV_TAG" ]; then
-    "$TOOLS_DIR/changelog.sh" --write --title "$TAG" "$PREV_TAG" HEAD
+    "$TOOLS_DIR/changelog.sh" --write --title "$TAG" --notes-file "$NOTES_FILE" "$PREV_TAG" HEAD
 else
-    "$TOOLS_DIR/changelog.sh" --write --title "$TAG" HEAD
+    "$TOOLS_DIR/changelog.sh" --write --title "$TAG" --notes-file "$NOTES_FILE" HEAD
 fi
 
 if [ -n "$PREV_TAG" ]; then
-    NOTES="$("$TOOLS_DIR/changelog.sh" --title "$TAG" "$PREV_TAG" HEAD)"
+    NOTES="$("$TOOLS_DIR/changelog.sh" --title "$TAG" --notes-file "$NOTES_FILE" "$PREV_TAG" HEAD)"
 else
-    NOTES="$("$TOOLS_DIR/changelog.sh" --title "$TAG" HEAD)"
+    NOTES="$("$TOOLS_DIR/changelog.sh" --title "$TAG" --notes-file "$NOTES_FILE" HEAD)"
 fi
 
 # -- release branch + PR ------------------------------------------------------
@@ -247,7 +276,7 @@ rm -f "$NOTES_FILE"
 # -- done ---------------------------------------------------------------------
 
 step "Done: $TAG released (tag $TAG on $MERGE_SHA, GitHub Release published)"
-note "Commits in this release:"
+note "Release notes:"
 echo "$NOTES"
 note ""
 note "Manual post-release steps:"
