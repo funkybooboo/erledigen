@@ -65,10 +65,26 @@ export class InMemorySomedayTabRepository implements SomedayTabRepository {
         for (const tab of tabs) {
             this.tabs.set(tab.id, { ...tab });
         }
+        this.ensureDefaultTab(tabs);
         this.idCounter = tabs.reduce(
             (max, tab) => Math.max(max, Number.parseInt(tab.id, 10) || 0),
             0,
         );
+    }
+
+    /** Every install owns the default tab -- dateless unlisted tasks
+     *  render in it, so a restore that lacks it (a snapshot from a
+     *  hand-edited or partial source) re-seeds it rather than leaving
+     *  the app without its catch-all (USE-16). */
+    private ensureDefaultTab(tabs: SomedayTab[]): void {
+        if (tabs.some(t => t.id === DEFAULT_SOMEDAY_TAB_ID)) return;
+        this.tabs.set(DEFAULT_SOMEDAY_TAB_ID, {
+            id: DEFAULT_SOMEDAY_TAB_ID,
+            name: 'Someday',
+            position: 0,
+            projectTag: null,
+            createdAt: this.dateProvider.timestamp(),
+        });
     }
 
     async delete(id: string): Promise<boolean> {

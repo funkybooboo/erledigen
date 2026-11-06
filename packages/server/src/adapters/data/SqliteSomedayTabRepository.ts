@@ -13,6 +13,7 @@ import type {
     SomedayTab,
     UpdateSomedayTabInput,
 } from '@erledigen/shared';
+import { DEFAULT_SOMEDAY_TAB_ID } from '@erledigen/shared';
 import type { SomedayTabRepository } from './SomedayTabRepository';
 import { SqlUpdate } from './sqliteUpdate';
 
@@ -82,7 +83,10 @@ export class SqliteSomedayTabRepository implements SomedayTabRepository {
     }
 
     /** Synchronous core, for composing multi-table restore transactions
-     *  (ADR-009) -- see SqliteTaskRepository.replaceAllSync. */
+     *  (ADR-009) -- see SqliteTaskRepository.replaceAllSync. The default
+     *  tab is re-seeded when the snapshot lacks it: every install owns it
+     *  (unlisted parked tasks render there), so a verbatim replace never
+     *  leaves the app without its catch-all (USE-16). */
     replaceAllSync(tabs: SomedayTab[]): void {
         const insert = this.db.prepare(
             `
@@ -94,6 +98,15 @@ export class SqliteSomedayTabRepository implements SomedayTabRepository {
             this.db.prepare('DELETE FROM someday_tabs').run();
             for (const tab of tabs) {
                 insert.run(tab.id, tab.name, tab.position, tab.projectTag, tab.createdAt);
+            }
+            if (!tabs.some(t => t.id === DEFAULT_SOMEDAY_TAB_ID)) {
+                insert.run(
+                    DEFAULT_SOMEDAY_TAB_ID,
+                    'Someday',
+                    0,
+                    null,
+                    this.dateProvider.timestamp(),
+                );
             }
         })();
     }

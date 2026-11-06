@@ -62,13 +62,17 @@ test.describe('someday-lists -- create (POST /api/someday-lists)', () => {
 });
 
 test.describe('someday-lists -- list & by id', () => {
-    test('GET /api/someday-lists returns the seeded default list', async ({ request }) => {
+    test('GET /api/someday-lists returns created lists under their tab', async ({ request }) => {
+        // Fresh installs seed a default list, but restores replace the
+        // table verbatim (the default LIST is deletable data, unlike the
+        // default TAB invariant) -- so assert on a list we create.
+        const list = await createList(request, { tabId: 'default', name: uniq('L'), position: 1 });
         const res = await get(request, '/api/someday-lists');
         expect(res.status).toBe(200);
         const lists = res.body.data as Array<{ id: string; tabId: string }>;
         expect(Array.isArray(lists)).toBe(true);
-        expect(lists.map(l => l.id)).toContain('default-list');
-        expect(lists.map(l => l.tabId)).toContain('default');
+        expect(lists.map(l => l.id)).toContain(list.id);
+        expect(lists.filter(l => l.id === list.id)[0]?.tabId).toBe('default');
     });
 
     test('GET by id returns the list', async ({ request }) => {

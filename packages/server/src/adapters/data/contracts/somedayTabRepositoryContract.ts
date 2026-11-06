@@ -136,12 +136,31 @@ export function runSomedayTabRepositoryContractTests(makeRepo: () => SomedayTabR
                     projectTag: 'project:backup',
                     createdAt: '2026-01-01T00:00:00.000Z',
                 },
+                {
+                    id: DEFAULT_SOMEDAY_TAB_ID,
+                    name: 'Someday',
+                    position: 0,
+                    projectTag: null,
+                    createdAt: '2026-01-01T00:00:00.000Z',
+                },
             ]);
             const all = await repo.findAll();
-            expect(all.length).toBe(1);
-            expect(all[0]?.id).toBe('t7');
-            expect(all[0]?.projectTag).toBe('project:backup');
-            expect(all[0]?.position).toBe(3);
+            expect(all.length).toBe(2);
+            expect(all.map(t => t.id)).toEqual([DEFAULT_SOMEDAY_TAB_ID, 't7']);
+            expect(all[1]?.projectTag).toBe('project:backup');
+            expect(all[1]?.position).toBe(3);
+        });
+
+        test('re-seeds the default tab when the snapshot lacks it', async () => {
+            // Every install owns the default tab (unlisted parked tasks
+            // render in it) -- a restore without it re-seeds it (USE-16).
+            const repo = makeRepo();
+            await repo.replaceAll([]);
+            const all = await repo.findAll();
+            expect(all.map(t => t.id)).toEqual([DEFAULT_SOMEDAY_TAB_ID]);
+            expect(all[0]?.name).toBe('Someday');
+            expect(all[0]?.position).toBe(0);
+            expect(all[0]?.projectTag).toBeNull();
         });
     });
 }
