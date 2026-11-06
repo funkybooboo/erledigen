@@ -62,9 +62,15 @@ export async function createFromText(
     const parsed = parseRecurrence(text);
     if (parsed) {
         const startDate = options.date || container.dateProvider.today();
+        // Habits wear #tags too (USE-17: a project's routines carry the
+        // project tag) -- the same inline-tag extraction the plain-task
+        // path applies.
+        const inlineTags = extractInlineTags(parsed.cleanText);
+        if (!inlineTags.text) return null; // only tags left -- no habit name
         const result = await recurringTaskStore.createAndGenerate(
             {
-                text: parsed.cleanText,
+                text: inlineTags.text,
+                tags: inlineTags.tags,
                 frequency: parsed.schedule.frequency,
                 interval: parsed.schedule.interval,
                 daysOfWeek: parsed.schedule.daysOfWeek,

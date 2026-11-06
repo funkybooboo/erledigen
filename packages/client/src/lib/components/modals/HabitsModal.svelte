@@ -28,6 +28,7 @@
     } from '@erledigen/shared';
     import { container } from '#lib/container.ts';
     import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
+    import { openProjectHomeByTag, projectByTag } from '#lib/projectLink.ts';
     import { recurrencePhrases } from '#lib/i18n/recurrencePhrases.ts';
     import { onMount } from 'svelte';
 
@@ -329,8 +330,22 @@
                     </div>
                     {#if habit.tags.length > 0}
                         <div class="habit-tags">
-                            {#each habit.tags as tag}
-                                <span class="tag-chip">#{tag}</span>
+                            {#each habit.tags as tag (tag)}
+                                {@const project = projectByTag(tag)}
+                                {#if project}
+                                    <button
+                                        class="tag-chip tag-chip-link"
+                                        onclick={(e) => {
+                                            e.stopPropagation();
+                                            openProjectHomeByTag(tag);
+                                        }}
+                                        aria-label={i18nStore.t('taskRow.projectChip', { name: project.name })}
+                                    >
+                                        #{tag}
+                                    </button>
+                                {:else}
+                                    <span class="tag-chip">#{tag}</span>
+                                {/if}
                             {/each}
                         </div>
                     {/if}
@@ -483,6 +498,11 @@
         display: flex;
         gap: 4px;
         margin-top: 6px;
+    }
+
+    button.tag-chip-link {
+        font: inherit;
+        cursor: pointer;
     }
 
     .tag-chip {

@@ -26,6 +26,7 @@
         type UpdateTaskInput,
     } from '@erledigen/shared';
     import { tooltip } from '#lib/tooltip.ts';
+    import { openProjectHomeByTag } from '#lib/projectLink.ts';
     import { i18nStore } from '#lib/i18n/i18nStore.svelte.ts';
 
     // -- tabs --------------------------------------------------------------
@@ -551,6 +552,18 @@
                                     {taskCount}
                                     {completedCount}
                                 />
+                                {#if activeTab?.projectTag}
+                                    <button
+                                        class="tab-project-chip"
+                                        onclick={(e) => {
+                                            e.stopPropagation();
+                                            openProjectHomeByTag(activeTab!.projectTag!);
+                                        }}
+                                        aria-label={i18nStore.t('someday.projectChip', { tag: activeTab!.projectTag! })}
+                                    >
+                                        #{activeTab!.projectTag}
+                                    </button>
+                                {/if}
                                 <div class="group-actions">
                                     <button class="icon-btn" onclick={() => startRenameList(list)} use:tooltip={{ label: i18nStore.t('someday.renameList') }} aria-label={i18nStore.t('someday.renameList')}>
                                         <Icon src={LuPencil} size={13} />
@@ -890,6 +903,25 @@
 
     .icon-btn-danger:hover {
         color: var(--color-danger);
+    }
+
+    /* A list under a project tab carries the project's chip (USE-17):
+       the link hops to the project home. */
+    .tab-project-chip {
+        flex-shrink: 0;
+        font-size: 11px;
+        color: var(--color-text-secondary);
+        background: var(--color-surface-dim);
+        border: 1px solid var(--color-border);
+        border-radius: 4px;
+        padding: 1px 6px;
+        cursor: pointer;
+        transition: color 0.15s, border-color 0.15s;
+    }
+
+    .tab-project-chip:hover {
+        color: var(--color-accent);
+        border-color: var(--color-accent);
     }
 
     .group-header-row {

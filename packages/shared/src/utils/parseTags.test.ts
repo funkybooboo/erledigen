@@ -42,6 +42,21 @@ describe('extractInlineTags', () => {
         expect(extractInlineTags('#p1')).toEqual({ text: '#p1', tags: [] });
     });
 
+    it('reads project-kind tags (interior colons) as one tag', () => {
+        // The `project:` prefix is first-class in the one grammar
+        // (rule 3): tasks created in a project's surfaces wear the
+        // project tag through the same inline parse as every tag.
+        expect(extractInlineTags('Test from home #project:build-house')).toEqual({
+            text: 'Test from home',
+            tags: ['project:build-house'],
+        });
+        // A trailing colon is punctuation, not part of the tag.
+        expect(extractInlineTags('call #work: urgent')).toEqual({
+            text: 'call : urgent',
+            tags: ['work'],
+        });
+    });
+
     it('keeps the tags literal when nothing would remain', () => {
         expect(extractInlineTags('   #work   ')).toEqual({ text: '#work', tags: [] });
     });
