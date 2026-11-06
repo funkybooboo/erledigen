@@ -496,7 +496,10 @@
         "hillAria": "Project hill progress",
         "hillFiguring": "figuring it out",
         "hillSettled": "scope settled",
-        "hillExecuting": "executing"
+        "hillExecuting": "executing",
+        "startsBanner": "{name} starts",
+        "dueBanner": "{name} due",
+        "completedBanner": "{name} completed"
     },
     "settings": {
         "add": "Add",
